@@ -25,7 +25,7 @@ router.register(r'customized-umrah', CustomizedUmrahViewSet, basename='customize
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
- path('home/', home_view, name='home'),
+    path('', home_view, name='home'),
     path('about/', aboutus_view, name='about'),
     path('contact/', contact_view, name='contact'),
     path('contact/success/', contact_success_view, name='contact_success'),
