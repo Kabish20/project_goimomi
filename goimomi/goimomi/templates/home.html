@@ -48,7 +48,7 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <span>24/7 Customer Support Available</span>
-                    <a href="https://b2b.goimomi.com/auth/login" class="bg-white text-goimomi-primary rounded-full px-3 py-1 font-medium">Agent Login</a>
+                    <a href="https://b2b.goimomi.com/" class="bg-white text-goimomi-primary rounded-full px-3 py-1 font-medium">Agent Login</a>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@
                     <img src="{% static 'goimomi.png' %}" alt="Goimomi Holidays" class="h-16">
                   </a>
                 <nav class="hidden lg:flex items-center gap-6 text-slate-800">
-                    <a href="http://booking.goimomi.com" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
+                    <a href="https://booking.goimomi.com/" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-airplane-engines" viewBox="0 0 16 16"><path d="M8 0c-.787 0-1.292.592-1.572 1.151A4.35 4.35 0 0 0 6 3v3.691l-2 1V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.191l-1.17.585A1.5 1.5 0 0 0 0 10.618V12a.5.5 0 0 0 .582.493l1.631-.272.313.937a.5.5 0 0 0 .948 0l.405-1.214 2.21-.369.375 2.253-1.318 1.318A.5.5 0 0 0 5.5 16h5a.5.5 0 0 0 .354-.854l-1.318-1.318.375-2.253 2.21.369.405 1.214a.5.5 0 0 0 .948 0l.313-.937 1.63.272A.5.5 0 0 0 16 12v-1.382a1.5 1.5 0 0 0-.83-1.342L14 8.691V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v.191l-2-1V3c0-.568-.14-1.271-.428-1.849C9.292.591 8.787 0 8 0M7 3c0-.432.11-.979.322-1.401C7.542 1.159 7.787 1 8 1s.458.158.678.599C8.889 2.02 9 2.569 9 3v4a.5.5 0 0 0 .276.447l5.448 2.724a.5.5 0 0 1 .276.447v.792l-5.418-.903a.5.5 0 0 0-.575.41l-.5 3a.5.5 0 0 0 .14.437l.646.646H6.707l.647-.646a.5.5 0 0 0 .14-.436l-.5-3a.5.5 0 0 0-.576-.411L1 11.41v-.792a.5.5 0 0 1 .276-.447l5.448-2.724A.5.5 0 0 0 7 7z"/></svg>
                         <span class="font-medium">Flights</span>
                     </a>
@@ -113,8 +113,22 @@
             </div>
         </div>
     </div>
-    
-<main>
+
+    <!-- Mobile Navigation Menu -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg py-4">
+        <nav class="flex flex-col items-center gap-4 text-slate-800">
+            <a href="https://booking.goimomi.com/" target="_blank" rel="noopener noreferrer" class="text-sm font-medium hover:text-goimomi-primary">Flights</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Hotels</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Visa</a>
+            <a href="{% url 'customized_holidays' %}" class="text-sm font-medium hover:text-goimomi-primary">Holidays</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Cab Booking</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Cruise Bookings</a>
+            <a href="{% url 'contact' %}" class="text-sm font-medium hover:text-goimomi-primary">Contact Us</a>
+            <a href="{% url 'about' %}" class="text-sm font-medium hover:text-goimomi-primary">About Us</a>
+        </nav>
+    </div>
+
+    <main>
 
 <!-- Carousel start -->
 <section class="relative h-[60vh] overflow-hidden" aria-roledescription="carousel" id="hero-carousel">
@@ -690,5 +704,18 @@
                 <a href="{% url 'terms' %}" class="text-sm text-gray-400 hover:text-goimomi-gold">Terms & Conditions</a>
                 <a href="{% url 'cancellation' %}" class="text-sm text-gray-400 hover:text-goimomi-gold">Cancellation Policy</a>
             </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const mobileMenuButton = document.querySelector('button[aria-label="Open menu"]');
+                    const mobileMenu = document.getElementById('mobile-menu');
+
+                    if (mobileMenuButton && mobileMenu) {
+                        mobileMenuButton.addEventListener('click', function() {
+                            mobileMenu.classList.toggle('hidden');
+                        });
+                    }
+                });
+            </script>
 </body>
 </html>
