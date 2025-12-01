@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect # pyright: ignore[reportMissingModuleSource]
 from django.contrib.auth import authenticate, login # pyright: ignore[reportMissingModuleSource]
 from .forms import ContactForm, CustomizedHolidayForm, CustomizedUmrahForm
-from .models import ContactMessage, CustomizedHoliday, CustomizedUmrah
-from .serializers import ContactMessageSerializer, CustomizedHolidaySerializer, CustomizedUmrahSerializer
+from .models import ContactMessage, CustomizedHoliday, CustomizedUmrah, VisaEnquiry
+from .serializers import ContactMessageSerializer, CustomizedHolidaySerializer, CustomizedUmrahSerializer, VisaEnquirySerializer
 
 from rest_framework.views import APIView # pyright: ignore[reportMissingImports]
 from rest_framework.response import Response # pyright: ignore[reportMissingImports]
@@ -44,6 +44,9 @@ def privacy_view(request):
 def cancellation_view(request):
     return render(request, 'Cancellation Policy.html')
 
+def visa_view(request):
+    return render(request, 'visa.html')
+
 
 # API Views
 
@@ -69,6 +72,14 @@ class CustomizedUmrahViewSet(viewsets.ModelViewSet):
     """
     queryset = CustomizedUmrah.objects.all().order_by('-created_at')
     serializer_class = CustomizedUmrahSerializer
+
+
+class VisaEnquiryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows visa enquiries to be viewed or edited.
+    """
+    queryset = VisaEnquiry.objects.all().order_by('-created_at')
+    serializer_class = VisaEnquirySerializer
 
 
 def customized_holidays(request):

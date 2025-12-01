@@ -13,8 +13,10 @@ from .views import (
     ContactMessageViewSet,
     CustomizedHolidayViewSet,
     CustomizedUmrahViewSet,
+    VisaEnquiryViewSet,
     customized_holidays,
     customized_umrah,
+    visa_view,
 )
 
 # Create a router and register our viewsets with it.
@@ -22,6 +24,7 @@ router = DefaultRouter()
 router.register(r'contact-messages', ContactMessageViewSet, basename='contactmessage')
 router.register(r'customized-holidays', CustomizedHolidayViewSet, basename='customizedholiday')
 router.register(r'customized-umrah', CustomizedUmrahViewSet, basename='customizedumrah')
+router.register(r'visa-enquiries', VisaEnquiryViewSet, basename='visaenquiry')
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
@@ -34,6 +37,7 @@ urlpatterns = [
     path('cancellation/', cancellation_view, name='cancellation'),
     path('customized-holidays/', customized_holidays, name='customized_holidays'),
     path('customized-umrah/', customized_umrah, name='customized_umrah'),
+    path('visa/', visa_view, name='visa'),
 ]
 
 # Add router URLs to the urlpatterns

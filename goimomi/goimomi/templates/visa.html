@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goimomi Holidays - Visa Services</title>
+    {% load static %}
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Mapping your custom classes to the design colors
+                        'goimomi-primary': '#0F5D3F', 
+                        'goimomi-light': '#F8F9FA',
+                        brand: {
+                            blue: '#002855', 
+                            gold: '#C59114', 
+                            light: '#F8F9FA',
+                            text: '#333333'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    maxWidth: {
+                        '8xl': '88rem',
+                        '10xl': '100rem',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .section-title {
+            @apply text-3xl md:text-4xl font-serif text-brand-blue text-center mb-2 font-semibold;
+        }
+        .section-subtitle {
+            @apply text-gray-500 text-center mb-12 font-light;
+        }
+        .modal-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="font-sans text-brand-text bg-white relative">
+
+   <div class="w-full">
+        <div class="bg-goimomi-primary text-white text-sm hidden md:block">
+            <div class="max-w-10xl mx-auto flex items-center justify-between px-4 py-2">
+                <div class="flex items-center gap-6">
+                    <span class="flex items-center gap-2"><span>📞</span> +91 638 222 0393</span>
+                    <span class="flex items-center gap-2"><span>✉️</span> hello@goimomi.com</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span>24/7 Customer Support Available</span>
+                    <a href="https://b2b.goimomi.com/" class="bg-white text-goimomi-primary rounded-full px-3 py-1 font-medium">Agent Login</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border-b sticky top-0 bg-white z-50">
+            <div class="max-w-8xl mx-auto flex items-center justify-between px-4 py-3">
+                <a href="{% url 'home' %}">
+                    <img src="{% static 'goimomi.png' %}" alt="Goimomi Holidays" class="h-16">
+                </a>
+                <nav class="hidden lg:flex items-center gap-6 text-slate-800">
+                    <a href="https://booking.goimomi.com/" rel="noopener noreferrer" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-airplane-engines" viewBox="0 0 16 16"><path d="M8 0c-.787 0-1.292.592-1.572 1.151A4.35 4.35 0 0 0 6 3v3.691l-2 1V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.191l-1.17.585A1.5 1.5 0 0 0 0 10.618V12a.5.5 0 0 0 .582.493l1.631-.272.313.937a.5.5 0 0 0 .948 0l.405-1.214 2.21-.369.375 2.253-1.318 1.318A.5.5 0 0 0 5.5 16h5a.5.5 0 0 0 .354-.854l-1.318-1.318.375-2.253 2.21.369.405 1.214a.5.5 0 0 0 .948 0l.313-.937 1.63.272A.5.5 0 0 0 16 12v-1.382a1.5 1.5 0 0 0-.83-1.342L14 8.691V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v.191l-2-1V3c0-.568-.14-1.271-.428-1.849C9.292.591 8.787 0 8 0M7 3c0-.432.11-.979.322-1.401C7.542 1.159 7.787 1 8 1s.458.158.678.599C8.889 2.02 9 2.569 9 3v4a.5.5 0 0 0 .276.447l5.448 2.724a.5.5 0 0 1 .276.447v.792l-5.418-.903a.5.5 0 0 0-.575.41l-.5 3a.5.5 0 0 0 .14.437l.646.646H6.707l.647-.646a.5.5 0 0 0 .14-.436l-.5-3a.5.5 0 0 0-.576-.411L1 11.41v-.792a.5.5 0 0 1 .276-.447l5.448-2.724A.5.5 0 0 0 7 7z"/></svg>
+                        <span class="font-medium">Flights</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-buildings-fill" viewBox="0 0 16 16"><path d="M15 .5a.5.5 0 0 0-.724-.447l-8 4A.5.5 0 0 0 6 4.5v3.14L.342 9.526A.5.5 0 0 0 0 10v5.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V14h1v1.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5zM2 11h1v1H2zm2 0h1v1H4zm-1 2v1H2v-1zm1 0h1v1H4zm9-10v1h-1V3zM8 5h1v1H8zm1 2v1H8V7zM8 9h1v1H8zm2 0h1v1h-1zm-1 2v1H8v-1zm1 0h1v1h-1zm3-2v1h-1V9zm-1 2h1v1h-1zm-2-4h1v1h-1zm3 0v1h-1V7zm-2-2v1h-1V5zm1 0h1v1h-1z"/></svg>
+                        <span class="font-medium">Hotels</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary text-goimomi-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-passport-fill" viewBox="0 0 16 16"><path d="M8 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/><path d="M2 3.252a1.5 1.5 0 0 1 1.232-1.476l8-1.454A1.5 1.5 0 0 1 13 1.797v.47A2 2 0 0 1 14 4v10a2 2 0 0 1-2 2H4a2 2 0 0 1-1.51-.688 1.5 1.5 0 0 1-.49-1.11V3.253ZM5 8a3 3 0 1 0 6 0 3 3 0 0 0-6 0m0 4.5a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 0-1h-5a.5.5 0 0 0-.5.5"/></svg>
+                        <span class="font-medium">Visa</span>
+                    </a>
+                    
+                    <div class="relative group">
+                        <button type="button" aria-haspopup="true" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-sun" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/><path d="M8 0a.5.5 0 0 1 .5.5V2A.5.5 0 0 1 8 2V.5A.5.5 0 0 1 8 0zM8 14a.5.5 0 0 1 .5.5V15.5a.5.5 0 0 1-1 0V14.5A.5.5 0 0 1 8 14zM2.05 2.05a.5.5 0 0 1 .707 0L3.88 3.27A.5.5 0 0 1 3.27 3.88L2.05 2.66a.5.5 0 0 1 0-.707zM12.12 12.12a.5.5 0 0 1 .707 0l1.121 1.121a.5.5 0 1 1-.707.707L12.12 12.83a.5.5 0 0 1 0-.707zM0 8a.5.5 0 0 1 .5-.5H2A.5.5 0 0 1 2 8H.5A.5.5 0 0 1 0 8zM14 8a.5.5 0 0 1 .5-.5H15.5a.5.5 0 0 1 0 1H14.5A.5.5 0 0 1 14 8zM2.05 13.95a.5.5 0 0 1 0-.707L3.27 12.12a.5.5 0 0 1 .61.61L2.76 13.95a.5.5 0 0 1-.707 0zM12.12 3.88a.5.5 0 0 1 0-.707l1.121-1.121a.5.5 0 1 1 .707.707L12.83 3.88a.5.5 0 0 1-.707 0z"/></svg>
+                            <span class="font-medium flex items-center gap-1">
+                                Holidays
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
+                            </span>
+                        </button>
+                        <div class="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition">
+                            <a href="#" class="block px-4 py-2 text-left text-xs font-semibold hover:bg-goimomi-light">Domestic</a>
+                            <a href="#" class="block px-4 py-2 text-left text-xs font-semibold hover:bg-goimomi-light">International</a>
+                            <a href="#" class="block px-4 py-2 text-left text-xs font-semibold hover:bg-goimomi-light">Customized Holidays</a>
+                            <a href="#" class="block px-4 py-2 text-left text-xs font-semibold hover:bg-goimomi-light">Umrah Package</a>
+                            <a href="#" class="block px-4 py-2 text-left text-xs font-semibold hover:bg-goimomi-light">Customized Umrah</a>
+                        </div>
+                    </div>
+                    <a href="#" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-taxi-front-fill" viewBox="0 0 16 16"><path d="M6 1a1 1 0 0 0-1 1v1h-.181A2.5 2.5 0 0 0 2.52 4.515l-.792 1.848a.8.8 0 0 1-.38.404c-.5.25-.855.715-.965 1.262L.05 9.708a2.5 2.5 0 0 0-.049.49v.413c0 .814.39 1.543 1 1.997V14.5a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-1.338c1.292.048 2.745.088 4 .088s2.708-.04 4-.088V14.5a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-1.892c.61-.454 1-1.183 1-1.997v-.413q0-.248-.049-.49l-.335-1.68a1.8 1.8 0 0 0-.964-1.261.8.8 0 0 1-.381-.404l-.792-1.848A2.5 2.5 0 0 0 11.181 3H11V2a1 1 0 0 0-1-1zM4.309 4h7.382a.5.5 0 0 1 .447.276l.956 1.913a.51.51 0 0 1-.497.731c-.91-.073-3.35-.17-4.597-.17s-3.688.097-4.597.17a.51.51 0 0 1-.497-.731l.956-1.913A.5.5 0 0 1 4.309 4M4 10a1 1 0 1 1-2 0 1 1 0 0 1 2 0m10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-9 0a1 1 0 0 1 1-1h4a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1"/></svg>
+                        <span class="font-medium">Cab Booking</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20"height="20" fill="currentColor" class="bi bi-ship" viewBox="0 0 16 16"><path d="M8.146 2.792a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L9 4.207V7.5a.5.5 0 0 1-1 0V4.207L6.854 5.5a.5.5 0 1 1-.708-.708z" /><path d="M3.5 7h9l1 3H2.5l1-3z" /><path d="M1.5 11h13l-1.5 4h-10L1.5 11z" /></svg>
+                        <span class="font-medium">Cruise Bookings</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z"/></svg>
+                        <span class="font-medium">Contact Us</span>
+                    </a>
+                    <a href="#" class="flex flex-col items-center justify-center text-xs hover:text-goimomi-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/></svg>
+                        <span class="font-medium">About Us</span>
+                    </a>
+                </nav>
+                <button id="mobile-menu-toggle" class="lg:hidden p-2 rounded-lg bg-gray-100" aria-label="Open menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg py-4">
+        <nav class="flex flex-col items-center gap-4 text-slate-800">
+            <a href="https://booking.goimomi.com/" rel="noopener noreferrer" class="text-sm font-medium hover:text-goimomi-primary">Flights</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Hotels</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Visa</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Holidays</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Cab Booking</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Cruise Bookings</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">Contact Us</a>
+            <a href="#" class="text-sm font-medium hover:text-goimomi-primary">About Us</a>
+        </nav>
+    </div>
+    <header class="relative h-[400px] flex items-center justify-center bg-brand-blue">
+        <div class="absolute inset-0 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="Travel Background" class="w-full h-full object-cover opacity-20">
+        </div>
+        <div class="relative z-10 text-center px-4">
+            <h1 class="text-4xl md:text-5xl font-serif text-white mb-4">Visa Services</h1>
+            <p class="text-gray-200 font-light max-w-2xl mx-auto">Professional visa assistance for all countries with expert guidance and high success rates</p>
+        </div>
+    </header>
+
+
+    <section class="max-w-8xl mx-auto px-6 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl heading-font font-bold text-goimomi-dark font-serif mb-4">Why Choose Our Visa Services</h2>
+                <p class="text-lg text-gray-600 mt-2">Professional visa assistance with expert guidance</p>
+            </div>        
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                <div class="p-4">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-blue text-2xl">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="font-serif text-xl text-brand-blue mb-2">Expert Guidance</h3>
+                    <p class="text-sm text-gray-500">Our visa experts guide you through the entire process with personalized assistance.</p>
+                </div>
+                <div class="p-4">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-blue text-2xl">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="font-serif text-xl text-brand-blue mb-2">Quick Processing</h3>
+                    <p class="text-sm text-gray-500">Fast and efficient visa processing with regular status updates.</p>
+                </div>
+                <div class="p-4">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-blue text-2xl">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="font-serif text-xl text-brand-blue mb-2">High Success Rate</h3>
+                    <p class="text-sm text-gray-500">98% visa approval rate with our expert documentation and guidance.</p>
+                </div>
+                <div class="p-4">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-blue text-2xl">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="font-serif text-xl text-brand-blue mb-2">Document Support</h3>
+                    <p class="text-sm text-gray-500">Complete assistance with document preparation and verification.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <section class="max-w-8xl mx-auto px-6 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl heading-font font-bold text-goimomi-dark font-serif mb-4">Types of Visas We Process</h2>
+                <p class="text-lg text-gray-600 mt-2">We handle all types of visa applications for various purposes</p>
+            </div>           
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 flex gap-6">
+                    <div class="w-12 h-12 bg-gray-200 rounded text-brand-blue flex items-center justify-center shrink-0 text-xl">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-xl text-brand-blue mb-2">Tourist Visa</h3>
+                        <p class="text-sm text-gray-500 mb-4">For leisure travel and sightseeing</p>
+                        <ul class="text-sm text-gray-500 space-y-2">
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Single/Multiple entry</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Validity up to 10 years</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Tourism purposes only</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 flex gap-6">
+                    <div class="w-12 h-12 bg-gray-200 rounded text-brand-blue flex items-center justify-center shrink-0 text-xl">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-xl text-brand-blue mb-2">Business Visa</h3>
+                        <p class="text-sm text-gray-500 mb-4">For business meetings and conferences</p>
+                        <ul class="text-sm text-gray-500 space-y-2">
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Business meetings</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Conferences & seminars</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Trade purposes</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 flex gap-6">
+                    <div class="w-12 h-12 bg-gray-200 rounded text-brand-blue flex items-center justify-center shrink-0 text-xl">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-xl text-brand-blue mb-2">Transit Visa</h3>
+                        <p class="text-sm text-gray-500 mb-4">For connecting flights through a country</p>
+                        <ul class="text-sm text-gray-500 space-y-2">
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Short duration</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Airport transit</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Connecting flights</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100 flex gap-6">
+                    <div class="w-12 h-12 bg-gray-200 rounded text-brand-blue flex items-center justify-center shrink-0 text-xl">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-xl text-brand-blue mb-2">Student Visa</h3>
+                        <p class="text-sm text-gray-500 mb-4">For educational purposes and studies</p>
+                        <ul class="text-sm text-gray-500 space-y-2">
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Educational institutions</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Long-term validity</li>
+                            <li><i class="fas fa-check-circle text-green-500 mr-2"></i> Study permits</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<section class="max-w-8xl mx-auto px-6 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl heading-font font-bold text-goimomi-dark font-serif mb-4">Countries We Serve</h2>
+                <p class="text-lg text-gray-600 mt-2">Visa assistance for destinations worldwide</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/ae.png" alt="UAE Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">United Arab Emirates</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Tourist Visa, Business Visa</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">3-5 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Comprehensive assistance for UAE tourist and business visas, including document preparation.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/th.png" alt="Thailand Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">Thailand</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Tourist Visa, VOA</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">5-7 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Expert guidance for obtaining your Thai tourist visa or navigating the Visa on Arrival.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/sg.png" alt="Singapore Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">Singapore</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Tourist Visa, Business Visa</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">3-7 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Streamlined visa application services for Singapore, ensuring a smooth process.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/my.png" alt="Malaysia Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">Malaysia</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Tourist Visa, e-Visa</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">2-4 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Efficient processing for Malaysian tourist visas and e-Visas, making your trip easier.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+                 <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/eu.png" alt="EU Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">Schengen Area (Europe)</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Schengen Tourist Visa</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">10-15 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Full support for Schengen visa applications, covering multiple European countries.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/gb.png" alt="UK Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">United Kingdom</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Standard Visitor Visa</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">15-20 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Dedicated assistance for UK Standard Visitor Visas, from application to interview.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+                 <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/au.png" alt="Australia Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">Australia</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Visitor Visa (Subclass 600)</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">10-25 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Comprehensive visa services for Australia, including document verification.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-brand-light flex flex-col group">
+                    <div class="bg-brand-blue h-24 relative flex justify-center">
+                        <div class="absolute -bottom-5 w-16 h-12 bg-white p-1 shadow rounded">
+                            <img src="https://flagcdn.com/w80/ca.png" alt="Canada Flag" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                    <div class="pt-8 p-6 flex-grow">
+                        <h3 class="font-serif text-lg text-brand-blue mb-4">Canada</h3>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-2">
+                            <span class="text-gray-400">Visa Type:</span>
+                            <span class="col-span-2 text-brand-text font-medium">Visitor Visa (TRV)</span>
+                        </div>
+                        <div class="text-sm text-gray-500 grid grid-cols-3 gap-2 mb-4">
+                            <span class="text-gray-400">Processing:</span>
+                            <span class="col-span-2 text-brand-text font-bold">20-30 working days</span>
+                        </div>
+                        <p class="text-xs text-gray-400 line-clamp-2">Expert guidance for Canadian Visitor Visas, ensuring all requirements are met.</p>
+                    </div>
+                    <div class="p-4 pt-0">
+                        <button class="apply-btn w-full bg-brand-blue text-white py-2 rounded hover:bg-blue-900 transition">Apply Now</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    
+<section class="max-w-8xl mx-auto px-6 py-16">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl heading-font font-bold text-goimomi-dark font-serif mb-4" >Our Visa Process</h2>
+                <p class="text-lg text-gray-600 mt-2">Simple and transparent visa application process</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-brand-blue text-white flex items-center justify-center font-serif font-bold text-xl mb-6 shadow-lg">01</div>
+                    <h3 class="font-serif text-lg text-brand-blue mb-2">Consultation</h3>
+                    <p class="text-sm text-gray-500">Free consultation to understand your requirements</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-brand-blue text-white flex items-center justify-center font-serif font-bold text-xl mb-6 shadow-lg">02</div>
+                    <h3 class="font-serif text-lg text-brand-blue mb-2">Documentation</h3>
+                    <p class="text-sm text-gray-500">Assistance with document preparation and verification</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-brand-blue text-white flex items-center justify-center font-serif font-bold text-xl mb-6 shadow-lg">03</div>
+                    <h3 class="font-serif text-lg text-brand-blue mb-2">Application</h3>
+                    <p class="text-sm text-gray-500">Submit your visa application with our expert guidance</p>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-brand-blue text-white flex items-center justify-center font-serif font-bold text-xl mb-6 shadow-lg">04</div>
+                    <h3 class="font-serif text-lg text-brand-blue mb-2">Approval</h3>
+                    <p class="text-sm text-gray-500">Track your application and receive your visa</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-brand-blue text-center text-white">
+        <h2 class="text-3xl md:text-4xl font-serif mb-4">Ready to Apply for Your Visa?</h2>
+        <p class="max-w-3xl mx-auto text-gray-200 mb-8 px-4 font-light">Let our visa experts handle your application with professional guidance and high success rates. Start your visa application today.</p>
+        <button class="apply-btn bg-brand-gold text-brand-blue font-semibold px-8 py-3 rounded shadow hover:bg-yellow-600 transition">Start Visa Application</button>
+    </section>
+
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="section-title">Need Visa Assistance?</h2>
+            <p class="section-subtitle">Contact our visa experts for personalized assistance</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-brand-light p-10 rounded-lg text-center shadow-sm">
+                    <i class="fas fa-phone-alt text-4xl text-brand-blue mb-4"></i>
+                    <h3 class="font-serif text-lg text-brand-blue mb-2">Call Us</h3>
+                    <p class="text-gray-500">638 222 0393</p>
+                </div>
+                <div class="bg-brand-light p-10 rounded-lg text-center shadow-sm">
+                    <i class="fas fa-envelope text-4xl text-brand-blue mb-4"></i>
+                    <h3 class="font-serif text-lg text-brand-blue mb-2">Email Us</h3>
+                    <p class="text-gray-500">hello@goimomi.com</p>
+                </div>
+                <div class="bg-brand-light p-10 rounded-lg text-center shadow-sm">
+                    <i class="fas fa-file-alt text-4xl text-brand-blue mb-4"></i>
+                    <h3 class="font-serif text-lg text-brand-blue mb-2">Online Form</h3>
+                    <button class="apply-btn bg-brand-blue text-white px-6 py-2 rounded text-sm mt-2 hover:bg-blue-900 transition">Fill Visa Enquiry Form</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-brand-blue text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div>
+                <h3 class="font-serif text-xl mb-6">Goimomi Holidays</h3>
+                <p class="text-gray-300 text-sm leading-relaxed mb-6">Your trusted travel partner for creating unforgettable memories. We specialize in domestic and international travel packages, group tours, and personalized holiday experiences.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="text-white hover:text-brand-gold"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white hover:text-brand-gold"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white hover:text-brand-gold"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white hover:text-brand-gold"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-serif text-xl mb-6">Quick Links</h3>
+                <ul class="text-gray-300 text-sm space-y-3">
+                    <li><a href="#" class="hover:text-brand-gold">Flights</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">Hotels</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">Visa</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">Domestic</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">International</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-serif text-xl mb-6">Our Services</h3>
+                <ul class="text-gray-300 text-sm space-y-3">
+                    <li><a href="#" class="hover:text-brand-gold">Hotel Booking</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">Flight Tickets</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">Cab Booking</a></li>
+                    <li><a href="#" class="hover:text-brand-gold">Cruise Bookings</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-serif text-xl mb-6">Contact Info</h3>
+                <div class="space-y-4 text-sm text-gray-300">
+                    <div class="flex gap-3">
+                        <i class="fas fa-map-marker-alt text-brand-gold mt-1"></i>
+                        <p>5, Crescent Paark, Ground Floor, Sulaiman Hazrath St, Opp. Jamal Mohamed Masjid, Tiruchirapalli, Tamil Nadu 620020, India</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <i class="fas fa-phone-alt text-brand-gold mt-1"></i>
+                        <p>+91 638 222 0393</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <i class="fas fa-envelope text-brand-gold mt-1"></i>
+                        <p>hello@goimomiholidays.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 pt-8 border-t border-blue-800 flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
+            <p>© 2025 Goimomi Holidays. All rights reserved.</p>
+            <div class="flex gap-6 mt-4 md:mt-0">
+                <a href="#" class="hover:text-white">Privacy Policy</a>
+                <a href="#" class="hover:text-white">Terms & Conditions</a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="visa-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-black bg-opacity-60 transition-opacity"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-3xl border border-gray-200">
+                    
+                    <div class="bg-brand-blue px-6 py-4 flex justify-between items-start">
+                        <div>
+                            <h3 class="text-xl font-serif font-bold text-white">Visa Assistance Request</h3>
+                            <p class="text-sm text-blue-200 mt-1">Get expert help with your visa application</p>
+                        </div>
+                        <button id="close-modal-btn" class="text-white hover:text-gray-300 focus:outline-none">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="px-6 py-6 max-h-[80vh] overflow-y-auto modal-scroll">
+                        <form onsubmit="event.preventDefault(); alert('Enquiry Submitted!'); toggleModal(false);">
+                            
+                            <h4 class="text-brand-blue font-serif font-semibold text-lg mb-4 border-b pb-2">Personal Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="far fa-user mr-2 text-gray-500"></i>Full Name *</label>
+                                    <input type="text" placeholder="Enter your full name as per passport" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-blue" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="far fa-envelope mr-2 text-gray-500"></i>Email Address *</label>
+                                    <input type="email" placeholder="Enter your email address" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-blue" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="fas fa-phone mr-2 text-gray-500"></i>Phone Number *</label>
+                                    <input type="tel" placeholder="Enter your phone number" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-blue" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="far fa-file-alt mr-2 text-gray-500"></i>Passport Expiry Date</label>
+                                    <div class="relative">
+                                        <input type="date" class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-500 focus:outline-none focus:border-brand-blue">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4 class="text-brand-blue font-serif font-semibold text-lg mb-4 border-b pb-2">Visa Requirements</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="fas fa-globe mr-2 text-gray-500"></i>Destination Country *</label>
+                                    <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-brand-blue" required>
+                                        <option value="" disabled selected>Select destination country</option>
+                                        <option>United Arab Emirates</option>
+                                        <option>Thailand</option>
+                                        <option>Singapore</option>
+                                        <option>Malaysia</option>
+                                        <option>Schengen Area</option>
+                                        <option>United Kingdom</option>
+                                        <option>Australia</option>
+                                        <option>Canada</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="far fa-file mr-2 text-gray-500"></i>Visa Type *</label>
+                                    <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-brand-blue" required>
+                                        <option value="" disabled selected>Select visa type</option>
+                                        <option>Tourist Visa</option>
+                                        <option>Business Visa</option>
+                                        <option>Student Visa</option>
+                                        <option>Transit Visa</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="far fa-calendar-alt mr-2 text-gray-500"></i>Intended Travel Date</label>
+                                    <input type="date" class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-500 focus:outline-none focus:border-brand-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="far fa-clock mr-2 text-gray-500"></i>Processing Urgency</label>
+                                    <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-brand-blue">
+                                        <option value="" disabled selected>Select processing urgency</option>
+                                        <option>Standard</option>
+                                        <option>Express</option>
+                                        <option>Urgent</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-1 md:col-span-2">
+                                    <label class="block text-sm text-gray-700 mb-1"><i class="fas fa-map-marker-alt mr-2 text-gray-500"></i>Purpose of Visit</label>
+                                    <input type="text" placeholder="e.g., Tourism, Business meeting, Conference, etc." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-blue">
+                                </div>
+                                <div class="col-span-1 md:col-span-2">
+                                    <label class="block text-sm text-gray-700 mb-1">Previous Visa Rejection History</label>
+                                    <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-brand-blue">
+                                        <option value="" disabled selected>Have you been rejected for any visa before?</option>
+                                        <option>No</option>
+                                        <option>Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <h4 class="text-brand-blue font-serif font-semibold text-lg mb-4 border-b pb-2">Additional Information</h4>
+                            <div class="mb-6">
+                                <label class="block text-sm text-gray-700 mb-1">Special Requirements or Questions</label>
+                                <textarea rows="3" placeholder="Please mention any specific requirements, questions about documents, or additional information that might help us assist you better..." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-brand-blue"></textarea>
+                            </div>
+
+                            <div class="bg-blue-50 border border-blue-100 rounded p-4 mb-6 text-xs text-blue-800 leading-relaxed">
+                                Note: This is a preliminary enquiry form. Our visa experts will review your requirements and contact you with detailed information about required documents, processing time, and fees. Visa approval is subject to the embassy's decision and meeting all requirements.
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                                <button type="button" id="cancel-btn" class="px-6 py-2 border border-gray-300 rounded text-gray-700 text-sm hover:bg-gray-50 transition">Cancel</button>
+                                <button type="submit" class="px-6 py-2 bg-brand-blue text-white rounded text-sm hover:bg-blue-900 transition flex items-center justify-center gap-2">
+                                    <i class="far fa-paper-plane"></i> Submit Visa Enquiry
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Modal Logic
+        const modal = document.getElementById('visa-modal');
+        const applyButtons = document.querySelectorAll('.apply-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        function toggleModal(show) {
+            if (show) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            } else {
+                modal.classList.add('hidden');
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+        }
+
+        // Open Modal
+        applyButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleModal(true);
+            });
+        });
+
+        // Close Modal
+        closeModalBtn.addEventListener('click', () => toggleModal(false));
+        cancelBtn.addEventListener('click', () => toggleModal(false));
+
+        // Close on clicking outside the modal content
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.classList.contains('bg-opacity-60')) {
+                toggleModal(false);
+            }
+        });
+
+        // New Mobile Menu Logic (Updated for new HTML structure)
+        const menuBtn = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    </script>
+</body>
+</html>

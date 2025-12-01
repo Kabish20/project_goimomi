@@ -1,5 +1,5 @@
 from rest_framework import serializers # type: ignore
-from .models import ContactMessage, CustomizedHoliday, CustomizedUmrah
+from .models import ContactMessage, CustomizedHoliday, CustomizedUmrah, VisaEnquiry
 
 class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,4 +14,9 @@ class CustomizedHolidaySerializer(serializers.ModelSerializer):
 class CustomizedUmrahSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomizedUmrah
+        fields = '__all__'
+
+class VisaEnquirySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VisaEnquiry
         fields = '__all__'
