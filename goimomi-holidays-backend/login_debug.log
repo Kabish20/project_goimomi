@@ -1,0 +1,50 @@
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=False, is_superuser=False
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User authentication failed
+Login attempt for username='KABISH'
+User authentication failed
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='goimomi'
+User authentication failed
+Login attempt for username='goimomi'
+User authentication failed
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='admin'
+User found: admin, is_staff=True, is_superuser=False
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH '
+User authentication failed
+Login attempt for username='KABISH '
+User authentication failed
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True

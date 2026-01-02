@@ -1,0 +1,195 @@
+from django.db import models
+
+
+class HolidayEnquiry(models.Model):
+    package_type = models.CharField(max_length=100, blank=True, null=True)
+    start_city = models.CharField(max_length=100)
+    nationality = models.CharField(max_length=50)
+    travel_date = models.DateField()
+
+    rooms = models.PositiveIntegerField()
+    star_rating = models.CharField(max_length=10)
+    holiday_type = models.CharField(max_length=50)
+    budget = models.CharField(max_length=50, blank=True)
+
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+
+    cities = models.JSONField(default=list)
+    room_details = models.JSONField(default=list)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.full_name
+
+
+
+class UmrahEnquiry(models.Model):
+    package_type = models.CharField(max_length=100, blank=True, null=True)
+    start_city = models.CharField(max_length=100)
+    nationality = models.CharField(max_length=50)
+    travel_date = models.DateField()
+
+    rooms = models.PositiveIntegerField()
+    star_rating = models.CharField(max_length=10)
+    budget = models.CharField(max_length=50, blank=True)
+
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+
+    cities = models.JSONField(default=list)
+    room_details = models.JSONField(default=list)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Enquiry(models.Model):
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=20)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class HolidayPackage(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    
+    category = models.CharField(
+        max_length=20,
+        choices=[('Domestic', 'Domestic'), ('International', 'International'), ('Umrah', 'Umrah')],
+        default='Domestic'
+    )
+    starting_city = models.CharField(max_length=100)
+
+    days = models.PositiveIntegerField()
+    start_date = models.DateField(null=True, blank=True)
+
+    Offer_price = models.PositiveIntegerField()
+    price = models.PositiveIntegerField(null=True, blank=True)
+
+    group_size = models.PositiveIntegerField(default=0)
+
+    header_image = models.ImageField(upload_to="packages/headers/")
+    card_image = models.ImageField(upload_to="packages/cards/")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class PackageDestination(models.Model):
+    package = models.ForeignKey(
+        HolidayPackage,
+        related_name="extra_destinations",
+        on_delete=models.CASCADE
+    )
+    destination = models.ForeignKey('Destination', on_delete=models.CASCADE)
+    nights = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.package.title} - {self.destination.name}"
+
+
+class ItineraryDay(models.Model):
+    package = models.ForeignKey(
+        HolidayPackage,
+        related_name="itinerary",
+        on_delete=models.CASCADE
+    )
+    master_template = models.ForeignKey(
+        'ItineraryMaster',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Optional: Select a master template to pre-populate or reference data."
+    )
+    day_number = models.PositiveIntegerField()
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    image = models.ImageField(upload_to="packages/itinerary/", blank=True, null=True)
+
+    class Meta:
+        ordering = ["day_number"]
+
+    def __str__(self):
+        return f"{self.package.title} - Day {self.day_number}"
+
+
+class Inclusion(models.Model):
+    package = models.ForeignKey(
+        HolidayPackage,
+        related_name="inclusions",
+        on_delete=models.CASCADE
+    )
+    text = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.text
+
+
+class Exclusion(models.Model):
+    package = models.ForeignKey(
+        HolidayPackage,
+        related_name="exclusions",
+        on_delete=models.CASCADE
+    )
+    text = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.text
+
+
+class Destination(models.Model):
+    name = models.CharField(max_length=100)
+    region = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    
+    def __str__(self):
+        return self.name
+
+
+class StartingCity(models.Model):
+    name = models.CharField(max_length=100)
+    region = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ItineraryMaster(models.Model):
+    name = models.CharField(max_length=200, help_text="A unique name to identify this template (e.g., 'Goa Arrival')")
+    title = models.CharField(max_length=200, help_text="The title that will appear in the package (e.g., 'Arrival and Check-in')")
+    description = models.TextField()
+    image = models.ImageField(upload_to="itinerary_master/", blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Nationality(models.Model):
+    country = models.CharField(max_length=100)
+    nationality = models.CharField(max_length=100)
+    continent = models.CharField(max_length=50)
+
+    class Meta:
+        verbose_name_plural = "Nationalities"
+        ordering = ['continent', 'country']
+
+    def __str__(self):
+        return f"{self.country} ({self.nationality})"
+
+
+class UmrahDestination(models.Model):
+    name = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ['country', 'name']
+
+    def __str__(self):
+        return f"{self.name} - {self.country}"

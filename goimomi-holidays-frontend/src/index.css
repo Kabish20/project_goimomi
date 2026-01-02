@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global custom styles (similar to your HTML files) */
+
+body {
+  @apply bg-white text-slate-800 antialiased leading-relaxed;
+}
+
+.heading-font {
+  font-family: Georgia, serif;
+}
+
+/* Custom shadows etc (optional) */
+.card-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+              0 2px 4px -2px rgba(0, 0, 0, 0.03);
+}
+
+
+
+/* Fade Up Animation */
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Zoom Hover Effect */
+.zoom-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.zoom-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
