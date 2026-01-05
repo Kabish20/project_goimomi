@@ -63,11 +63,11 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
     destinations = PackageDestinationSerializer(source='extra_destinations', many=True, read_only=True)
     nights = serializers.SerializerMethodField()
     
-    # Write-only fields for creating nested objects
+    # Use distinct field names for writing to avoid clashing with read-only fields
     package_destinations = serializers.JSONField(write_only=True, required=False)
     itinerary_days = serializers.JSONField(write_only=True, required=False)
-    inclusions_list = serializers.JSONField(write_only=True, required=False, source='inclusions')
-    exclusions_list = serializers.JSONField(write_only=True, required=False, source='exclusions')
+    inclusions_raw = serializers.JSONField(write_only=True, required=False)
+    exclusions_raw = serializers.JSONField(write_only=True, required=False)
 
     class Meta:
         model = HolidayPackage
@@ -85,12 +85,37 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         # Extract nested data
         package_destinations_data = validated_data.pop('package_destinations', [])
         itinerary_days_data = validated_data.pop('itinerary_days', [])
-        inclusions_data = validated_data.pop('inclusions', [])
-        exclusions_data = validated_data.pop('exclusions', [])
+        inclusions_data = validated_data.pop('inclusions_raw', [])
+        exclusions_data = validated_data.pop('exclusions_raw', [])
         
         # Create the package
         package = HolidayPackage.objects.create(**validated_data)
         
+        self._handle_nested_data(package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data)
+        return package
+
+    def update(self, instance, validated_data):
+        # Extract nested data
+        package_destinations_data = validated_data.pop('package_destinations', [])
+        itinerary_days_data = validated_data.pop('itinerary_days', [])
+        inclusions_data = validated_data.pop('inclusions_raw', [])
+        exclusions_data = validated_data.pop('exclusions_raw', [])
+
+        # Update basic fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Clear existing relations and re-create (simple approach for nested data)
+        instance.extra_destinations.all().delete()
+        instance.itinerary.all().delete()
+        instance.inclusions.all().delete()
+        instance.exclusions.all().delete()
+
+        self._handle_nested_data(instance, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data)
+        return instance
+
+    def _handle_nested_data(self, package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data):
         # Create package destinations
         if package_destinations_data:
             for dest_data in package_destinations_data:
@@ -144,8 +169,6 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
             for exclusion_text in exclusions_data:
                 if exclusion_text:
                     Exclusion.objects.create(package=package, text=exclusion_text)
-        
-        return package
 
 
 class DestinationSerializer(serializers.ModelSerializer):

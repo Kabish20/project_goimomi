@@ -46,38 +46,52 @@ class AdminLoginView(APIView):
 
 
 class HolidayEnquiryAPI(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = HolidayEnquiry.objects.all()
     serializer_class = HolidayEnquirySerializer
 
 
 class UmrahEnquiryAPI(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = UmrahEnquiry.objects.all()
     serializer_class = UmrahEnquirySerializer
 
 
 class EnquiryAPI(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = Enquiry.objects.all()
     serializer_class = EnquirySerializer
 
 
 class HolidayPackageViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = HolidayPackage.objects.all()
     serializer_class = HolidayPackageSerializer
 
 
 class DestinationViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = Destination.objects.all()
     serializer_class = DestinationSerializer
     pagination_class = None
 
 
 class StartingCityViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = StartingCity.objects.all()
     serializer_class = StartingCitySerializer
     pagination_class = None
 
 
 class ItineraryMasterViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = ItineraryMaster.objects.all()
     serializer_class = ItineraryMasterSerializer
     pagination_class = None
@@ -86,18 +100,24 @@ class ItineraryMasterViewSet(ModelViewSet):
 from django.contrib.auth.models import User
 
 class UserViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = None
 
 
 class NationalityViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = Nationality.objects.all()
     serializer_class = NationalitySerializer
     pagination_class = None
 
 
 class UmrahDestinationViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
     queryset = UmrahDestination.objects.all()
     serializer_class = UmrahDestinationSerializer
     pagination_class = None

@@ -16,6 +16,11 @@ class HolidayEnquiry(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=20)
 
+    # Added fields for detailed tracking
+    adults = models.PositiveIntegerField(default=0)
+    children = models.PositiveIntegerField(default=0)
+    message = models.TextField(blank=True, null=True)
+
     cities = models.JSONField(default=list)
     room_details = models.JSONField(default=list)
 
@@ -39,6 +44,12 @@ class UmrahEnquiry(models.Model):
     full_name = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
+
+    # Added fields for detailed tracking
+    adults = models.PositiveIntegerField(default=0)
+    children = models.PositiveIntegerField(default=0)
+    infants = models.PositiveIntegerField(default=0)
+    message = models.TextField(blank=True, null=True)
 
     cities = models.JSONField(default=list)
     room_details = models.JSONField(default=list)

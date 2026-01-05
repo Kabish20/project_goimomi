@@ -276,8 +276,8 @@ const HolidayPackageAdd = () => {
       });
 
       // Add inclusions and exclusions
-      formDataToSend.append("inclusions", JSON.stringify(inclusions.filter(i => i.trim() !== "")));
-      formDataToSend.append("exclusions", JSON.stringify(exclusions.filter(e => e.trim() !== "")));
+      formDataToSend.append("inclusions_raw", JSON.stringify(inclusions.filter(i => i.trim() !== "")));
+      formDataToSend.append("exclusions_raw", JSON.stringify(exclusions.filter(e => e.trim() !== "")));
 
       const response = await axios.post(`${API_BASE_URL}/packages/`, formDataToSend, {
         headers: {
@@ -309,12 +309,18 @@ const HolidayPackageAdd = () => {
     } catch (err) {
       console.error("Error adding package:", err);
       if (err.response?.data) {
-        const errorMessages = Object.entries(err.response.data)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(", ");
-        setError(errorMessages);
+        if (typeof err.response.data === 'object') {
+          const errorMessages = Object.entries(err.response.data)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(", ");
+          setError(errorMessages);
+        } else {
+          // Handle HTML error pages or plain text
+          setError(`Server Error: ${err.response.status} ${err.response.statusText}`);
+          console.error("Non-JSON error response:", err.response.data);
+        }
       } else {
-        setError("Failed to add package. Please try again.");
+        setError("Failed to add package. Please check your connection and try again.");
       }
     } finally {
       setLoading(false);

@@ -95,18 +95,21 @@ const UmrahEnquiryAdd = () => {
 
         try {
             const payload = {
-                first_name: form.fullName.split(' ')[0] || "",
-                last_name: form.fullName.split(' ').slice(1).join(' ') || "",
+                full_name: form.fullName,
                 email: form.email,
                 phone: form.phone,
                 package_type: "Customized Umrah",
                 travel_date: form.travelDate,
-                duration: form.cities.length * 2, // Simplified duration logic
-                budget: parseFloat(form.budget.replace(/[^0-9.]/g, '')) || 0,
+                budget: form.budget,
                 adults: form.rooms.reduce((acc, r) => acc + r.adults, 0),
                 children: form.rooms.reduce((acc, r) => acc + r.children, 0),
                 infants: 0,
                 message: `Cities: ${form.cities.map(c => `${c.name} (${c.nights})`).join(', ')}, Starting City: ${form.startCity}, Nationality: ${form.nationality}, Hotel: ${form.hotelRating}`,
+                star_rating: form.hotelRating,
+                start_city: form.startCity,
+                nationality: form.nationality,
+                rooms: form.rooms.length,
+                room_details: form.rooms
             };
 
             await axios.post(`${API_BASE_URL}/umrah-form/`, payload);

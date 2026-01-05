@@ -91,6 +91,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
 
   // Helpers — SAME AS UMRAH
   const updateCity = (i, key, val) => {
@@ -199,6 +200,9 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
       nights: city.nights
     }));
 
+    const totalAdults = roomDetails.reduce((sum, r) => sum + r.adults, 0);
+    const totalChildren = roomDetails.reduce((sum, r) => sum + r.children, 0);
+
     const payload = {
       package_type: packageType,
       cities: formattedCities,
@@ -207,12 +211,15 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
       nationality: nationality,
       rooms: rooms,
       room_details: roomDetails,
+      adults: totalAdults,
+      children: totalChildren,
       star_rating: starRating,
       holiday_type: holidayType,
       budget: budget,
       full_name: fullName,
       email: email,
       phone: phone,
+      message: message,
     };
 
     try {
@@ -245,6 +252,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
           setFullName("");
           setEmail("");
           setPhone("");
+          setMessage("");
           setErrors({});
 
           // Close the modal after resetting the form
@@ -706,6 +714,16 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                     className="border px-3 py-2 rounded w-full mt-1"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="font-semibold">Additional Message</label>
+                  <textarea
+                    placeholder="Tell us more about your preferences..."
+                    className="border px-3 py-2 rounded w-full mt-1 h-32 resize-none"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                   />
                 </div>
               </div>

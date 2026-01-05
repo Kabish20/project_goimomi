@@ -31,7 +31,13 @@ SECRET_KEY = 'django-insecure-&t4_sd6+&#m!@p4e$n7@+84rtr$+p@qcv8*&et75u9ck1q!2tk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['goimomi.com', 'www.goimomi.com', '172.203.209.87', 'localhost', '127.0.0.1']
+
+# Secure Proxy SSL Header
+# This tells Django it's behind a proxy that handles SSL
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
 
 
 # Application definition

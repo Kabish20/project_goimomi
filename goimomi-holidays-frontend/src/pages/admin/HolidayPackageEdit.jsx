@@ -333,8 +333,8 @@ const HolidayPackageEdit = () => {
             });
 
             // Add inclusions and exclusions
-            formDataToSend.append("inclusions", JSON.stringify(inclusions.filter(i => i && i.trim() !== "")));
-            formDataToSend.append("exclusions", JSON.stringify(exclusions.filter(e => e && e.trim() !== "")));
+            formDataToSend.append("inclusions_raw", JSON.stringify(inclusions.filter(i => i && i.trim() !== "")));
+            formDataToSend.append("exclusions_raw", JSON.stringify(exclusions.filter(e => e && e.trim() !== "")));
 
             // Use PUT to update
             const response = await axios.put(`${API_BASE_URL}/packages/${id}/`, formDataToSend, {
@@ -350,14 +350,17 @@ const HolidayPackageEdit = () => {
         } catch (err) {
             console.error("Error updating package:", err);
             if (err.response?.data) {
-                // Handle varied error structures
-                let msg = "Failed to update package.";
-                try {
-                    msg = JSON.stringify(err.response.data);
-                } catch (e) { /* empty */ }
-                setError(msg);
+                if (typeof err.response.data === 'object') {
+                    const errorMessages = Object.entries(err.response.data)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join(", ");
+                    setError(errorMessages);
+                } else {
+                    setError(`Server Error: ${err.response.status} ${err.response.statusText}`);
+                    console.error("Non-JSON error response:", err.response.data);
+                }
             } else {
-                setError("Failed to update package. Please try again.");
+                setError("Failed to update package. Please check your connection and try again.");
             }
         } finally {
             setSaving(false);

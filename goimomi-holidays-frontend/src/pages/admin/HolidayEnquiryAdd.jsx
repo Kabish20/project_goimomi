@@ -101,18 +101,21 @@ const HolidayEnquiryAdd = () => {
             // Transform data to match backend HolidayEnquiry model if necessary
             // Current HolidayEnquiryManage fetches from /holiday-form/
             const payload = {
-                first_name: form.fullName.split(' ')[0] || "",
-                last_name: form.fullName.split(' ').slice(1).join(' ') || "",
+                full_name: form.fullName,
                 email: form.email,
                 phone: form.phone,
                 destination: form.destinations.map(d => `${d.city} (${d.nights})`).join(', '),
                 travel_date: form.travelDate,
-                duration: form.destinations.length, // Placeholder logic
-                budget: parseFloat(form.budget.replace(/[^0-9.]/g, '')) || 0,
+                budget: form.budget,
                 adults: form.rooms.reduce((acc, r) => acc + r.adults, 0),
                 children: form.rooms.reduce((acc, r) => acc + r.children, 0),
                 message: `Starting City: ${form.startCity}, Nationality: ${form.nationality}, Hotel: ${form.hotelRating}, Type: ${form.holidayType}`,
-                // If the backend expects rooms as JSON, add it here
+                star_rating: form.hotelRating,
+                holiday_type: form.holidayType,
+                start_city: form.startCity,
+                nationality: form.nationality,
+                rooms: form.rooms.length,
+                room_details: form.rooms
             };
 
             await axios.post(`${API_BASE_URL}/holiday-form/`, payload);

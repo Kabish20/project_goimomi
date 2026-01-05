@@ -37,8 +37,7 @@ const UmrahEnquiryManage = () => {
 
   useEffect(() => {
     const filtered = enquiries.filter(enquiry =>
-      enquiry.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enquiry.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enquiry.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enquiry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enquiry.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enquiry.package_type?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -139,8 +138,8 @@ const UmrahEnquiryManage = () => {
                   ) : (
                     filteredEnquiries.map((enquiry) => (
                       <tr key={enquiry.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-6 font-medium text-gray-900 border-r">
-                          {enquiry.first_name} {enquiry.last_name}
+                        <td className="py-4 px-6 font-medium text-gray-900 border-r text-sm">
+                          {enquiry.full_name}
                         </td>
                         <td className="py-4 px-6 border-r text-gray-600">
                           <div className="space-y-1">
@@ -204,7 +203,7 @@ const UmrahEnquiryManage = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-semibold text-gray-700">Personal Information</h3>
-                    <p><strong>Name:</strong> {selectedEnquiry.first_name} {selectedEnquiry.last_name}</p>
+                    <p><strong>Name:</strong> {selectedEnquiry.full_name}</p>
                     <p><strong>Email:</strong> {selectedEnquiry.email}</p>
                     <p><strong>Phone:</strong> {selectedEnquiry.phone}</p>
                   </div>
@@ -222,6 +221,17 @@ const UmrahEnquiryManage = () => {
                     <p><strong>Adults:</strong> {selectedEnquiry.adults}</p>
                     <p><strong>Children:</strong> {selectedEnquiry.children}</p>
                     <p><strong>Infants:</strong> {selectedEnquiry.infants}</p>
+
+                    {selectedEnquiry.room_details && selectedEnquiry.room_details.length > 0 && (
+                      <div className="mt-2 pl-4 border-l-2 border-gray-200">
+                        <p className="text-sm font-semibold text-gray-500 mb-1">Room Breakdown:</p>
+                        {selectedEnquiry.room_details.map((room, idx) => (
+                          <p key={idx} className="text-sm text-gray-600">
+                            Room {idx + 1}: {room.adults} Adults, {room.children} Children
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div>
