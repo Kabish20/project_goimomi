@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -17,11 +17,7 @@ const StartingCityEdit = () => {
 
     const API_BASE_URL = "/api";
 
-    useEffect(() => {
-        fetchStartingCity();
-    }, [id]);
-
-    const fetchStartingCity = async () => {
+    const fetchStartingCity = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get(`${API_BASE_URL}/starting-cities/${id}/`);
@@ -35,7 +31,11 @@ const StartingCityEdit = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchStartingCity();
+    }, [fetchStartingCity]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });

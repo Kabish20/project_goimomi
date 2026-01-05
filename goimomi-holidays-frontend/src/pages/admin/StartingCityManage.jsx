@@ -11,8 +11,6 @@ const StartingCityManage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
@@ -45,35 +43,6 @@ const StartingCityManage = () => {
     setFilteredCities(filtered);
   }, [searchTerm, cities]);
 
-  const handleEdit = (city) => {
-    setEditingId(city.id);
-    setEditForm(city);
-    setMessage("");
-    setError("");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditForm({});
-    setMessage("");
-    setError("");
-  };
-
-  const handleUpdate = async (id) => {
-    try {
-      setLoading(true);
-      await axios.put(`${API_BASE_URL}/starting-cities/${id}/`, editForm);
-      setMessage("City updated successfully!");
-      setEditingId(null);
-      setEditForm({});
-      fetchCities();
-    } catch (err) {
-      console.error("Error updating city:", err);
-      setError("Failed to update city. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this city?")) {
@@ -91,9 +60,6 @@ const StartingCityManage = () => {
     }
   };
 
-  const handleEditChange = (e) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
-  };
 
   return (
     <div className="flex bg-gray-100 min-h-screen">
@@ -142,6 +108,13 @@ const StartingCityManage = () => {
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
               {error}
+            </div>
+          )}
+
+          {loading && (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
+              <p className="mt-2 text-gray-600">Loading cities...</p>
             </div>
           )}
 

@@ -354,7 +354,7 @@ const HolidayPackageEdit = () => {
                 let msg = "Failed to update package.";
                 try {
                     msg = JSON.stringify(err.response.data);
-                } catch (e) { }
+                } catch (e) { /* empty */ }
                 setError(msg);
             } else {
                 setError("Failed to update package. Please try again.");

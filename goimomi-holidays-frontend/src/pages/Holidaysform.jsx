@@ -173,7 +173,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
     }
     if (!phone.trim()) {
       newErrors.phone = "Required";
-    } else if (!/^[\d\+\-\s]{10,20}$/.test(phone)) {
+    } else if (!/^[\d+\-\s]{10,20}$/.test(phone)) {
       newErrors.phone = "Invalid number";
     }
 

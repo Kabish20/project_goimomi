@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -22,11 +22,7 @@ const DestinationEdit = () => {
 
     const API_BASE_URL = "/api";
 
-    useEffect(() => {
-        fetchDestination();
-    }, [id]);
-
-    const fetchDestination = async () => {
+    const fetchDestination = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get(`${API_BASE_URL}/destinations/${id}/`);
@@ -46,7 +42,11 @@ const DestinationEdit = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchDestination();
+    }, [fetchDestination]);
 
     const handleChange = (e) => {
         if (e.target.name === "image") {

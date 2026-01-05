@@ -110,6 +110,13 @@ const HolidayEnquiryManage = () => {
             </div>
           )}
 
+          {loading && (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
+              <p className="mt-2 text-gray-600">Loading holiday enquiries...</p>
+            </div>
+          )}
+
           <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
             <div className="overflow-x-auto">
               <table className="w-full">

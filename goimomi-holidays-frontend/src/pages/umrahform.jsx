@@ -165,7 +165,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
     }
     if (!phone.trim()) {
       newErrors.phone = "Phone number is required";
-    } else if (!/^[\d\+\-\s]{10,20}$/.test(phone)) {
+    } else if (!/^[\d+\-\s]{10,20}$/.test(phone)) {
       newErrors.phone = "Please enter a valid phone number";
     }
 

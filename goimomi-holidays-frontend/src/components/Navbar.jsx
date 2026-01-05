@@ -47,12 +47,12 @@ const Navbar = () => {
             >
               Agent Login
             </a>
-            <a
-              href="/admin/"
+            <Link
+              to="/admin-login"
               className="bg-white text-goimomi-primary rounded-full px-3 py-1 font-medium"
             >
               Admin Login
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -344,13 +344,13 @@ const Navbar = () => {
                 >
                   Agent Login
                 </a>
-                <a
-                  href="/admin/"
+                <Link
+                  to="/admin-login"
                   className="w-full text-center border-2 border-goimomi-primary text-goimomi-primary rounded-lg py-2 font-medium"
                   onClick={() => setMobileOpen(false)}
                 >
                   Admin Login
-                </a>
+                </Link>
               </div>
 
             </div>

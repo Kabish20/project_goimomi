@@ -11,8 +11,6 @@ const HolidayPackageManage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
@@ -113,6 +111,13 @@ const HolidayPackageManage = () => {
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
               {error}
+            </div>
+          )}
+
+          {loading && (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
+              <p className="mt-2 text-gray-600">Loading packages...</p>
             </div>
           )}
 

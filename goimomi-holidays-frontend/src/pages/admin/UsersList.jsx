@@ -147,7 +147,7 @@ const UsersList = () => {
                                     <tbody className="divide-y divide-gray-200">
                                         {filteredUsers.map((u, i) => (
                                             <tr
-                                                key={i}
+                                                key={u.id}
                                                 className={`${i % 2 === 0 ? "bg-white" : "bg-gray-50"} ${selectedUsers.includes(u.id) ? "bg-[#ffffcc]" : ""}`}
                                             >
                                                 <td className="p-3 text-center">

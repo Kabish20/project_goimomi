@@ -2,17 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 // ========== SAMPLE IMAGES FROM ASSETS ==========
-import bhutanImg from "../assets/Package/Id1.png";
-import vietnamImg from "../assets/Package/Id2.png";
-import dubaiImg from "../assets/Package/Id3.png";
-import singaporeImg from "../assets/Package/Id4.png";
-import malaysiaImg from "../assets/Package/Id5.png";
-import saudiArabiaImg from "../assets/Package/Id6.png";
-import europeImg from "../assets/Package/Id7.png";
-import ukImg from "../assets/Package/Id8.png";
-import uzbekistanImg from "../assets/Package/Id9.png";
-import nepalImg from "../assets/Package/Id10.png";
-import cambodiaImg from "../assets/Package/Id11.png";
 
 
 const Holidays = () => {
@@ -37,7 +26,6 @@ const Holidays = () => {
   const [nights, setNights] = useState("");
   const [startingCity, setStartingCity] = useState("");
   const [budget, setBudget] = useState([0, 200000]);
-  const [flightOption, setFlightOption] = useState("");
 
   const [isDestOpen, setIsDestOpen] = useState(false);
   const [destSearch, setDestSearch] = useState("");
@@ -92,15 +80,6 @@ const Holidays = () => {
     city.name.toLowerCase().includes(startCitySearch.toLowerCase())
   );
 
-  // Group starting cities by region
-  const groupedStartingCities = startingCitiesList.reduce((acc, city) => {
-    const region = city.region || "Other";
-    if (!acc[region]) {
-      acc[region] = [];
-    }
-    acc[region].push(city);
-    return acc;
-  }, {});
 
   // Helper to fix image URLs
   const getImageUrl = (path) => {
@@ -322,18 +301,6 @@ const Holidays = () => {
           <p className="text-sm mt-1">₹ {budget[0]} – ₹ {budget[1]}</p>
         </div>
 
-        {/* FLIGHT OPTION */}
-        <div className="mb-6">
-          <label className="font-semibold">Flight Option</label>
-          <select
-            className="w-full p-2 border rounded mt-2"
-            onChange={(e) => setFlightOption(e.target.value)}
-          >
-            <option value="">Any</option>
-            <option value="With Flight">With Flight</option>
-            <option value="Without Flight">Without Flight</option>
-          </select>
-        </div>
       </div>
 
       {/* ====================== RIGHT SIDE (PACKAGE LISTING) ====================== */}

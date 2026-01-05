@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import axios from "axios";
@@ -23,11 +23,7 @@ const UserEdit = () => {
 
     const API_BASE_URL = "/api";
 
-    useEffect(() => {
-        fetchUser();
-    }, [id]);
-
-    const fetchUser = async () => {
+    const fetchUser = useCallback(async () => {
         try {
             const response = await axios.get(`${API_BASE_URL}/users/${id}/`);
             const data = response.data;
@@ -48,7 +44,11 @@ const UserEdit = () => {
             setError("Failed to load user data.");
             setLoading(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchUser();
+    }, [fetchUser]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;

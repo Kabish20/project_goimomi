@@ -11,8 +11,6 @@ const DestinationManage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
@@ -58,40 +56,6 @@ const DestinationManage = () => {
     setSearchTerm("");
   };
 
-  const handleEdit = (destination) => {
-    setEditingId(destination.id);
-    setEditForm(destination);
-    setMessage("");
-    setError("");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditForm({});
-    setMessage("");
-    setError("");
-  };
-
-  const handleUpdate = async (id) => {
-    try {
-      setLoading(true);
-      await axios.put(`${API_BASE_URL}/destinations/${id}/`, editForm);
-      setMessage("Destination updated successfully!");
-      setEditingId(null);
-      setEditForm({});
-      fetchDestinations(); // Refresh list
-    } catch (err) {
-      console.error("Error updating destination:", err);
-      if (err.response?.data) {
-        const errorMessages = Object.values(err.response.data).flat();
-        setError(errorMessages.join(", "));
-      } else {
-        setError("Failed to update destination. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this destination?")) {
@@ -109,9 +73,6 @@ const DestinationManage = () => {
     }
   };
 
-  const handleEditChange = (e) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
-  };
 
   return (
     <div className="flex bg-gray-100 min-h-screen">

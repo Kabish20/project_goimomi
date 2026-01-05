@@ -14,11 +14,12 @@ const AdminDashboard = () => {
     umrahEnquiries: 0,
     startingCities: 0,
     itineraryMasters: 0,
+    nationalities: 0,
+    umrahDestinations: 0,
   });
   const [recentEnquiries, setRecentEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
 
   // Base API URL
   const API_BASE_URL = "/api";
@@ -42,6 +43,8 @@ const AdminDashboard = () => {
         axios.get(`${API_BASE_URL}/umrah-form/`).catch(err => ({ error: err, endpoint: 'umrah-enquiries' })),
         axios.get(`${API_BASE_URL}/starting-cities/`).catch(err => ({ error: err, endpoint: 'starting-cities' })),
         axios.get(`${API_BASE_URL}/itinerary-masters/`).catch(err => ({ error: err, endpoint: 'itinerary-masters' })),
+        axios.get(`${API_BASE_URL}/nationalities/`).catch(err => ({ error: err, endpoint: 'nationalities' })),
+        axios.get(`${API_BASE_URL}/umrah-destinations/`).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
       ];
 
       const responses = await Promise.all(fetchPromises);
@@ -55,13 +58,15 @@ const AdminDashboard = () => {
         umrahEnquiries: 0,
         startingCities: 0,
         itineraryMasters: 0,
+        nationalities: 0,
+        umrahDestinations: 0,
       };
 
       const allEnquiries = [];
       const errors = [];
 
       responses.forEach((response, index) => {
-        const endpoints = ['destinations', 'packages', 'enquiries', 'holiday-enquiries', 'umrah-enquiries', 'starting-cities', 'itinerary-masters'];
+        const endpoints = ['destinations', 'packages', 'enquiries', 'holiday-enquiries', 'umrah-enquiries', 'starting-cities', 'itinerary-masters', 'nationalities', 'umrah-destinations'];
         const endpoint = endpoints[index];
 
         if (response.error) {
@@ -95,6 +100,12 @@ const AdminDashboard = () => {
             case 'itinerary-masters':
               newStats.itineraryMasters = count;
               break;
+            case 'nationalities':
+              newStats.nationalities = count;
+              break;
+            case 'umrah-destinations':
+              newStats.umrahDestinations = count;
+              break;
           }
         }
       });
@@ -107,7 +118,7 @@ const AdminDashboard = () => {
         .slice(0, 5);
 
       setRecentEnquiries(sortedEnquiries);
-      setLastUpdated(new Date());
+      // setLastUpdated(new Date());
 
       if (errors.length > 0) {
         setError(`Partial data loaded. Errors: ${errors.join(', ')}`);
@@ -125,9 +136,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const openDjangoAdmin = () => {
-    window.open(DJANGO_ADMIN_URL, '_blank');
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -184,6 +192,8 @@ const AdminDashboard = () => {
                 <AdminCard title="General Enquiries" count={stats.enquiries} />
                 <AdminCard title="Holiday Enquiries" count={stats.holidayEnquiries} />
                 <AdminCard title="Umrah Enquiries" count={stats.umrahEnquiries} />
+                <AdminCard title="Nationalities" count={stats.nationalities} />
+                <AdminCard title="Umrah Destinations" count={stats.umrahDestinations} />
               </div>
 
               {/* Recent Enquiries */}
@@ -210,7 +220,7 @@ const AdminDashboard = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {recentEnquiries.map((enquiry, index) => (
+                        {recentEnquiries.map((enquiry) => (
                           <tr key={`${enquiry.type}-${enquiry.id}`} className="border-b hover:bg-gray-50">
                             <td className="py-2">{getEnquiryName(enquiry)}</td>
                             <td className="py-2">

@@ -17,6 +17,7 @@ const menu = [
       "Itinerary Masters",
       "Nationalities",
       "Starting Cities",
+      "Umrah Destinations",
       "Umrah Enquiries",
     ],
   },
@@ -81,6 +82,14 @@ const AdminSidebar = () => {
     navigate("/admin/users");
   };
 
+  const handleChangeUmrahDestinations = () => {
+    navigate("/admin/umrah-destinations");
+  };
+
+  const handleAddUmrahDestinations = () => {
+    navigate("/admin/umrah-destinations/add");
+  };
+
   const handleAddStartingCity = () => {
     navigate("/admin/starting-cities/add");
   };
@@ -111,6 +120,8 @@ const AdminSidebar = () => {
         return handleAddHolidayEnquiry;
       case "Umrah Enquiries":
         return handleAddUmrahEnquiry;
+      case "Umrah Destinations":
+        return handleAddUmrahDestinations;
       default:
         return undefined;
     }
@@ -136,6 +147,8 @@ const AdminSidebar = () => {
         return handleChangeItineraryMaster;
       case "Nationalities":
         return handleChangeNationalities;
+      case "Umrah Destinations":
+        return handleChangeUmrahDestinations;
       default:
         return undefined;
     }
