@@ -82,6 +82,7 @@ class HolidayPackage(models.Model):
     price = models.PositiveIntegerField(null=True, blank=True)
 
     group_size = models.PositiveIntegerField(default=0)
+    with_flight = models.BooleanField(default=False)
 
     header_image = models.ImageField(upload_to="packages/headers/")
     card_image = models.ImageField(upload_to="packages/cards/")
@@ -146,6 +147,18 @@ class Exclusion(models.Model):
     package = models.ForeignKey(
         HolidayPackage,
         related_name="exclusions",
+        on_delete=models.CASCADE
+    )
+    text = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.text
+
+
+class Highlight(models.Model):
+    package = models.ForeignKey(
+        HolidayPackage,
+        related_name="highlights",
         on_delete=models.CASCADE
     )
     text = models.CharField(max_length=255)

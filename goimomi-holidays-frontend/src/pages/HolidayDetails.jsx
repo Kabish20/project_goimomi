@@ -46,6 +46,20 @@ const HolidayDetails = () => {
             </ul>
           )}
 
+          {pkg.highlights && pkg.highlights.length > 0 && (
+            <div className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4 text-black">Highlights</h2>
+              <ul className="text-gray-700 text-base space-y-2">
+                {pkg.highlights.map((item, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="font-bold text-gray-900">•</span>
+                    <span>{item.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <h2 className="text-2xl font-semibold mb-4">Itinerary</h2>
 
           {/* =================== DROPDOWN ITINERARY =================== */}
@@ -98,13 +112,23 @@ const HolidayDetails = () => {
 
         {/* RIGHT PRICE CARD */}
         <div className="w-[35%] sticky top-10 bg-white shadow-xl rounded-2xl p-6 h-fit">
-          {pkg.price && (
-            <p className="line-through text-gray-400 text-lg">
-              ₹ {pkg.price.toLocaleString()}
-            </p>
-          )}
-          <p className="text-3xl font-bold text-[#14532d]">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
-          <p className="text-gray-500 mt-2">{pkg.nights}Nights / {pkg.days}Day</p>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <p className="text-gray-500 text-sm leading-tight">Starts at per</p>
+              <p className="text-gray-500 text-sm leading-tight">person</p>
+            </div>
+            <div className="text-right">
+              {pkg.price && (
+                <p className="line-through text-gray-400 text-sm">
+                  ₹ {pkg.price.toLocaleString()}
+                </p>
+              )}
+              <p className="text-3xl font-bold text-black">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="border-t pt-4">
+            <p className="text-gray-600 font-medium">{pkg.nights}Nights / {pkg.days}Days</p>
+          </div>
 
           <button className="w-full bg-[#14532d] text-white py-3 rounded-xl mt-6 text-lg">
             Enquire Now

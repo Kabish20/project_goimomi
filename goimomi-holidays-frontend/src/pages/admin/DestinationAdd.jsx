@@ -11,8 +11,6 @@ const DestinationAdd = () => {
     region: "",
     city: "",
     country: "",
-    description: "",
-    image: null,
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -41,10 +39,6 @@ const DestinationAdd = () => {
     formData.append("region", form.region);
     formData.append("city", form.city);
     formData.append("country", form.country);
-    formData.append("description", form.description);
-    if (form.image) {
-      formData.append("image", form.image);
-    }
 
     try {
       const response = await axios.post(`${API_BASE_URL}/destinations/`, formData, {
@@ -67,12 +61,7 @@ const DestinationAdd = () => {
             region: "",
             city: "",
             country: "",
-            description: "",
-            image: null,
           });
-          // Reset file input
-          const fileInput = document.getElementById("imageInput");
-          if (fileInput) fileInput.value = "";
         }
       }
     } catch (err) {
@@ -134,7 +123,7 @@ const DestinationAdd = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+            <div className="grid grid-cols-1 gap-6 p-6">
               <div className="space-y-4">
                 <div>
                   <label className="block text-gray-700 font-semibold mb-2">
@@ -187,38 +176,6 @@ const DestinationAdd = () => {
                   />
                 </div>
               </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">Description:</label>
-                  <textarea
-                    name="description"
-                    value={form.description}
-                    onChange={handleChange}
-                    rows="4"
-                    className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
-                    placeholder="Detailed description of the destination..."
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">Image:</label>
-                  <input
-                    id="imageInput"
-                    type="file"
-                    name="image"
-                    onChange={handleChange}
-                    accept="image/*"
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100 file:cursor-pointer"
-                    disabled={loading}
-                  />
-                  {form.image && (
-                    <p className="mt-2 text-sm text-green-600 font-medium">
-                      ✓ Selected: {form.image.name}
-                    </p>
-                  )}
-                </div>
-              </div>
             </div>
 
             {/* Action Buttons */}
@@ -248,9 +205,9 @@ const DestinationAdd = () => {
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   );
 };
 

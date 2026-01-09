@@ -26,6 +26,7 @@ const Holidays = () => {
   const [nights, setNights] = useState("");
   const [startingCity, setStartingCity] = useState("");
   const [budget, setBudget] = useState([0, 200000]);
+  const [flightFilter, setFlightFilter] = useState("All");
 
   const [isDestOpen, setIsDestOpen] = useState(false);
   const [destSearch, setDestSearch] = useState("");
@@ -100,9 +101,15 @@ const Holidays = () => {
     // Ensure price is a number
     const price = Number(pkg.Offer_price || 0);
 
+    const flightMatch =
+      flightFilter === "All" ||
+      (flightFilter === "With Flight" && pkg.with_flight === true) ||
+      (flightFilter === "Without Flight" && pkg.with_flight === false);
+
     return (
       categoryMatch &&
       destinationMatch &&
+      flightMatch &&
       (nights ? pkg.nights === Number(nights) : true) &&
       (startingCity ? pkg.starting_city === startingCity : true) &&
       price >= budget[0] &&
@@ -180,6 +187,28 @@ const Holidays = () => {
               </ul>
             </div>
           )}
+        </div>
+
+        {/* FLIGHT FILTER */}
+        <div className="mb-6 border-t pt-4">
+          <label className="font-semibold block mb-3 text-gray-800">Flight</label>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {["All", "With Flight", "Without Flight"].map((option) => (
+              <label key={option} className="flex items-center gap-1.5 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="flightFilter"
+                  value={option}
+                  checked={flightFilter === option}
+                  onChange={(e) => setFlightFilter(e.target.value)}
+                  className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] cursor-pointer"
+                />
+                <span className={`text-xs ${flightFilter === option ? "text-[#14532d] font-semibold" : "text-gray-600"} group-hover:text-[#14532d]`}>
+                  {option}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* NIGHTS */}
@@ -330,10 +359,7 @@ const Holidays = () => {
                 {pkg.days} days
               </span>
 
-              {/* Guaranteed Fixed Departure */}
-              <span className="absolute bottom-2 left-2 bg-orange-600 text-white text-xs px-3 py-1 rounded">
-                GUARANTEED FIXED DEPARTURE
-              </span>
+
             </div>
 
             {/* MAIN DETAILS SECTION */}
@@ -348,13 +374,21 @@ const Holidays = () => {
                   ` • ${pkg.destinations.map(d => `${d.name} (${d.nights}N)`).join(" • ")}`}
               </p>
 
-              {/* BULLETS */}
+              {/* DYNAMIC HIGHLIGHTS */}
               <ul className="text-gray-700 text-sm mt-3 space-y-1">
-                <li>• Accommodation in all places as per itinerary</li>
-                <li>• Daily Breakfast & Dinner included</li>
-                <li>• All Tours and Transfers on private basis</li>
-                <li>• Sightseeing as per the itinerary</li>
-                <li>• All Entrance Fees included</li>
+                {pkg.highlights && pkg.highlights.length > 0 ? (
+                  pkg.highlights.map((h, index) => (
+                    <li key={index}>• {h.text}</li>
+                  ))
+                ) : (
+                  <>
+                    <li>• Accommodation in all places as per itinerary</li>
+                    <li>• Daily Breakfast & Dinner included</li>
+                    <li>• All Tours and Transfers on private basis</li>
+                    <li>• Sightseeing as per the itinerary</li>
+                    <li>• All Entrance Fees included</li>
+                  </>
+                )}
               </ul>
 
 

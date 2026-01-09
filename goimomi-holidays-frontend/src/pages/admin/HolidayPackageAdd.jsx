@@ -100,6 +100,7 @@ const HolidayPackageAdd = () => {
 
   const [inclusions, setInclusions] = useState([""]);
   const [exclusions, setExclusions] = useState([""]);
+  const [highlights, setHighlights] = useState([""]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -114,6 +115,7 @@ const HolidayPackageAdd = () => {
     price: "",
     header_image: null,
     card_image: null,
+    with_flight: false,
   });
 
   const [startingCities, setStartingCities] = useState([]);
@@ -246,6 +248,7 @@ const HolidayPackageAdd = () => {
       formDataToSend.append("group_size", formData.group_size);
       formDataToSend.append("Offer_price", formData.offer_price);
       if (formData.price) formDataToSend.append("price", formData.price);
+      formDataToSend.append("with_flight", formData.with_flight);
 
       // Add main images
       if (formData.header_image) {
@@ -275,9 +278,10 @@ const HolidayPackageAdd = () => {
         }
       });
 
-      // Add inclusions and exclusions
+      // Add inclusions, exclusions and highlights
       formDataToSend.append("inclusions_raw", JSON.stringify(inclusions.filter(i => i.trim() !== "")));
       formDataToSend.append("exclusions_raw", JSON.stringify(exclusions.filter(e => e.trim() !== "")));
+      formDataToSend.append("highlights_raw", JSON.stringify(highlights.filter(h => h.trim() !== "")));
 
       const response = await axios.post(`${API_BASE_URL}/packages/`, formDataToSend, {
         headers: {
@@ -305,6 +309,7 @@ const HolidayPackageAdd = () => {
         setItineraryDays([{ day: "", title: "", description: "", master_template: "", image: null }]);
         setInclusions([""]);
         setExclusions([""]);
+        setHighlights([""]);
       }
     } catch (err) {
       console.error("Error adding package:", err);
@@ -395,7 +400,9 @@ const HolidayPackageAdd = () => {
                     required
                   />
                 </label>
+              </div>
 
+              <div className="flex gap-8 items-end mt-4">
                 <label className="block">
                   <span className="text-gray-700 font-medium mb-1 block">Category:</span>
                   <select
@@ -411,6 +418,32 @@ const HolidayPackageAdd = () => {
                     <option value="Umrah">Umrah</option>
                   </select>
                 </label>
+
+                <div className="mb-2">
+                  <span className="text-gray-700 font-medium mb-2 block">Flight:</span>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="with_flight"
+                        checked={formData.with_flight === true}
+                        onChange={() => setFormData({ ...formData, with_flight: true })}
+                        className="w-4 h-4 text-[#14532d] focus:ring-[#14532d]"
+                      />
+                      <span className="text-gray-700">With Flight</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="with_flight"
+                        checked={formData.with_flight === false}
+                        onChange={() => setFormData({ ...formData, with_flight: false })}
+                        className="w-4 h-4 text-[#14532d] focus:ring-[#14532d]"
+                      />
+                      <span className="text-gray-700">Without Flight</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </Section>
 
@@ -603,7 +636,7 @@ const HolidayPackageAdd = () => {
                     <div className="col-span-1">
                       <input
                         type="number"
-                        placeholder="#"
+                        placeholder="1"
                         value={row.day}
                         onChange={(e) => {
                           const copy = [...itineraryDays];
@@ -764,6 +797,36 @@ const HolidayPackageAdd = () => {
                 className="text-[#14532d] hover:text-[#0f4a24] font-semibold"
               >
                 + Add another Exclusion
+              </button>
+            </Section>
+
+            {/* HIGHLIGHTS */}
+            <Section title="Highlights">
+              {highlights.map((high, i) => (
+                <div key={i} className="flex gap-4 mb-2">
+                  <Input
+                    value={high}
+                    onChange={(e) => {
+                      const copy = [...highlights];
+                      copy[i] = e.target.value;
+                      setHighlights(copy);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeRow(setHighlights, i)}
+                    className="text-red-600 hover:text-red-800 font-bold whitespace-nowrap"
+                  >
+                    ✖ Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => addRow(setHighlights, "")}
+                className="text-[#14532d] hover:text-[#0f4a24] font-semibold"
+              >
+                + Add another Highlight
               </button>
             </Section>
 

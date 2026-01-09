@@ -84,14 +84,14 @@ const Footer = () => {
               </a>
             </li>
 
-            <li><Link to="/hotels">Hotels</Link></li>
-            <li><Link to="/visa">Visa</Link></li>
-            <li><Link to="/domestic">Domestic</Link></li>
-            <li><Link to="/international">International</Link></li>
-            <li><Link to="/hajj-umrah">Hajj/Umrah</Link></li>
-            <li><Link to="/customizedHolidays">Customized Holidays</Link></li>
-            <li><Link to="/about">About Us</Link></li>
-            <li><Link to="/contact">Contact Us</Link></li>
+            <li><Link to="/hotel" className="hover:text-white hover:underline">Hotels</Link></li>
+            <li><Link to="/visa" className="hover:text-white hover:underline">Visa</Link></li>
+            <li><Link to="/holidays" state={{ category: "Domestic" }} className="hover:text-white hover:underline">Domestic</Link></li>
+            <li><Link to="/holidays" state={{ category: "International" }} className="hover:text-white hover:underline">International</Link></li>
+            <li><Link to="/holidays" state={{ category: "Umrah" }} className="hover:text-white hover:underline">Hajj/Umrah</Link></li>
+            <li><Link to="/customizedHolidays" className="hover:text-white hover:underline">Customized Holidays</Link></li>
+            <li><Link to="/about" className="hover:text-white hover:underline">About Us</Link></li>
+            <li><Link to="/contact" className="hover:text-white hover:underline">Contact Us</Link></li>
           </ul>
         </div>
 
@@ -99,11 +99,11 @@ const Footer = () => {
         <div>
           <h3 className="text-xl font-bold mb-4">Our Services</h3>
           <ul className="space-y-2 text-gray-300">
-            <li><Link to="/hotel-booking">Hotel Booking</Link></li>
+            <li><Link to="/hotel" className="hover:text-white hover:underline">Hotel Booking</Link></li>
             <li> <a href="https://booking.goimomi.com/" rel="noopener noreferrer" className="hover:text-white hover:underline">Flights Booking</a></li>
-            <li><Link to="/cab-booking">Cab Booking</Link></li>
-            <li><Link to="/cruise-bookings">Cruise Bookings</Link></li>
-            <li><Link to="/visa-services">Visa Services</Link></li>
+            <li><Link to="/cab" className="hover:text-white hover:underline">Cab Booking</Link></li>
+            <li><Link to="/cruise" className="hover:text-white hover:underline">Cruise Bookings</Link></li>
+            <li><Link to="/visa" className="hover:text-white hover:underline">Visa Services</Link></li>
           </ul>
         </div>
 

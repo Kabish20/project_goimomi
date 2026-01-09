@@ -128,6 +128,7 @@ const HolidayPackageManage = () => {
                   <tr>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Flight</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Price</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Duration</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
@@ -145,6 +146,13 @@ const HolidayPackageManage = () => {
                       <tr key={pkg.id} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4 font-medium">{pkg.title || pkg.name}</td>
                         <td className="py-3 px-4">{pkg.category}</td>
+                        <td className="py-3 px-4">
+                          {pkg.with_flight ? (
+                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Yes</span>
+                          ) : (
+                            <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">No</span>
+                          )}
+                        </td>
                         <td className="py-3 px-4">${pkg.price || pkg.Offer_price}</td>
                         <td className="py-3 px-4">{pkg.days || pkg.duration} days</td>
                         <td className="py-3 px-4">

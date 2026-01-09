@@ -72,6 +72,18 @@ class HolidayPackageViewSet(ModelViewSet):
     queryset = HolidayPackage.objects.all()
     serializer_class = HolidayPackageSerializer
 
+    def get_queryset(self):
+        queryset = HolidayPackage.objects.all()
+        with_flight = self.request.query_params.get('with_flight', None)
+        
+        if with_flight is not None:
+             if with_flight.lower() == 'true':
+                 queryset = queryset.filter(with_flight=True)
+             elif with_flight.lower() == 'false':
+                 queryset = queryset.filter(with_flight=False)
+                 
+        return queryset
+
 
 class DestinationViewSet(ModelViewSet):
     authentication_classes = []

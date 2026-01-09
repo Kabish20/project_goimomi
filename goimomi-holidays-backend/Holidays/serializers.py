@@ -1,9 +1,10 @@
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay, 
-    Inclusion, Exclusion, Destination, StartingCity, PackageDestination, 
+    Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination, 
     ItineraryMaster, Nationality, UmrahDestination
 )
 from rest_framework import serializers
+from django.core.files.base import ContentFile
 
 # ... existing serializers ...
 
@@ -49,6 +50,12 @@ class ExclusionSerializer(serializers.ModelSerializer):
         fields = ["text"]
 
 
+class HighlightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Highlight
+        fields = ["text"]
+
+
 class PackageDestinationSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='destination.name', read_only=True)
     class Meta:
@@ -60,6 +67,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
     itinerary = serializers.SerializerMethodField()
     inclusions = InclusionSerializer(many=True, read_only=True)
     exclusions = ExclusionSerializer(many=True, read_only=True)
+    highlights = HighlightSerializer(many=True, read_only=True)
     destinations = PackageDestinationSerializer(source='extra_destinations', many=True, read_only=True)
     nights = serializers.SerializerMethodField()
     
@@ -68,6 +76,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
     itinerary_days = serializers.JSONField(write_only=True, required=False)
     inclusions_raw = serializers.JSONField(write_only=True, required=False)
     exclusions_raw = serializers.JSONField(write_only=True, required=False)
+    highlights_raw = serializers.JSONField(write_only=True, required=False)
 
     class Meta:
         model = HolidayPackage
@@ -87,11 +96,12 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         itinerary_days_data = validated_data.pop('itinerary_days', [])
         inclusions_data = validated_data.pop('inclusions_raw', [])
         exclusions_data = validated_data.pop('exclusions_raw', [])
+        highlights_data = validated_data.pop('highlights_raw', [])
         
         # Create the package
         package = HolidayPackage.objects.create(**validated_data)
         
-        self._handle_nested_data(package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data)
+        self._handle_nested_data(package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data)
         return package
 
     def update(self, instance, validated_data):
@@ -100,6 +110,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         itinerary_days_data = validated_data.pop('itinerary_days', [])
         inclusions_data = validated_data.pop('inclusions_raw', [])
         exclusions_data = validated_data.pop('exclusions_raw', [])
+        highlights_data = validated_data.pop('highlights_raw', [])
 
         # Update basic fields
         for attr, value in validated_data.items():
@@ -111,11 +122,12 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         instance.itinerary.all().delete()
         instance.inclusions.all().delete()
         instance.exclusions.all().delete()
+        instance.highlights.all().delete()
 
-        self._handle_nested_data(instance, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data)
+        self._handle_nested_data(instance, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data)
         return instance
 
-    def _handle_nested_data(self, package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data):
+    def _handle_nested_data(self, package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data):
         # Create package destinations
         if package_destinations_data:
             for dest_data in package_destinations_data:
@@ -148,6 +160,31 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                              master_template_obj = ItineraryMaster.objects.get(id=day_data['master_template'])
                          except ItineraryMaster.DoesNotExist:
                              pass
+                    elif day_data.get('title'):
+                        # Auto-create ItineraryMaster if not provided
+                        try:
+                            # Prepare image for master template (clone content)
+                            master_image = None
+                            if image_file:
+                                try:
+                                    if hasattr(image_file, 'open'):
+                                        image_file.open()
+                                    file_content = image_file.read()
+                                    master_image = ContentFile(file_content, name=image_file.name)
+                                    image_file.seek(0) # Reset for ItineraryDay
+                                except Exception as img_err:
+                                    print(f"Error clone image for master: {img_err}")
+                                    pass
+
+                            master_template_obj = ItineraryMaster.objects.create(
+                                name=day_data['title'][:200], # Truncate to fit max_length
+                                title=day_data['title'][:200],
+                                description=day_data.get('description', ''),
+                                image=master_image
+                            )
+                        except Exception as e:
+                            print(f"Error creating ItineraryMaster: {e}")
+                            pass
 
                     ItineraryDay.objects.create(
                         package=package,
@@ -169,6 +206,12 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
             for exclusion_text in exclusions_data:
                 if exclusion_text:
                     Exclusion.objects.create(package=package, text=exclusion_text)
+
+        # Create highlights
+        if highlights_data:
+            for highlight_text in highlights_data:
+                if highlight_text:
+                    Highlight.objects.create(package=package, text=highlight_text)
 
 
 class DestinationSerializer(serializers.ModelSerializer):

@@ -12,10 +12,7 @@ const DestinationEdit = () => {
         region: "",
         city: "",
         country: "",
-        description: "",
-        image: null,
     });
-    const [existingImage, setExistingImage] = useState("");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -32,10 +29,7 @@ const DestinationEdit = () => {
                 region: data.region || "",
                 city: data.city || "",
                 country: data.country || "",
-                description: data.description || "",
-                image: null,
             });
-            setExistingImage(data.image || "");
         } catch (err) {
             console.error("Error fetching destination:", err);
             setError("Failed to load destination data.");
@@ -69,11 +63,6 @@ const DestinationEdit = () => {
         formData.append("region", form.region);
         formData.append("city", form.city);
         formData.append("country", form.country);
-        formData.append("description", form.description);
-
-        if (form.image) {
-            formData.append("image", form.image);
-        }
 
         try {
             const response = await axios.put(`${API_BASE_URL}/destinations/${id}/`, formData, {
@@ -84,13 +73,6 @@ const DestinationEdit = () => {
 
             if (response.status === 200) {
                 setMessage("Destination updated successfully!");
-                if (response.data.image) {
-                    setExistingImage(response.data.image);
-                    setForm(prev => ({ ...prev, image: null }));
-                    // Reset file input
-                    const fileInput = document.getElementById("imageInput");
-                    if (fileInput) fileInput.value = "";
-                }
 
                 if (!continueEditing) {
                     setTimeout(() => navigate("/admin/destinations"), 1500);
@@ -142,7 +124,7 @@ const DestinationEdit = () => {
                     )}
 
                     <form onSubmit={(e) => handleSubmit(e, false)} className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                        <div className="grid grid-cols-1 gap-6 p-6">
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-gray-700 font-semibold mb-2">Name:</label>
@@ -180,40 +162,6 @@ const DestinationEdit = () => {
                                         onChange={handleChange}
                                         className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
                                         required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-gray-700 font-semibold mb-2">Description:</label>
-                                    <textarea
-                                        name="description"
-                                        value={form.description}
-                                        onChange={handleChange}
-                                        rows="5"
-                                        className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700 font-semibold mb-2">Image:</label>
-                                    {existingImage && (
-                                        <div className="mb-2">
-                                            <p className="text-xs text-gray-500 mb-1">Current Image:</p>
-                                            <img
-                                                src={existingImage.startsWith('http') ? existingImage : `${existingImage}`}
-                                                alt="Existing"
-                                                className="h-20 w-32 object-cover rounded border"
-                                            />
-                                        </div>
-                                    )}
-                                    <input
-                                        id="imageInput"
-                                        type="file"
-                                        name="image"
-                                        onChange={handleChange}
-                                        accept="image/*"
-                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
                                     />
                                 </div>
                             </div>
