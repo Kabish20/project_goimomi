@@ -63,7 +63,7 @@ const VisaApplication = () => {
     const travelerRef = useRef(null);
 
     const VISA_FEES = visa?.price || 2250;
-    const SERVICE_FEES = 1749;
+    const SERVICE_FEES = 0;
     const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * applicants.length;
 
     useEffect(() => {
@@ -749,13 +749,15 @@ const VisaApplication = () => {
                     </div>
 
                     <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-xl font-bold text-gray-900">Price Details</h3>
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-gray-900">Price Details</h3>
                         </div>
 
+
+
                         <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-                            <span className="text-gray-500 font-medium">Total Amount</span>
-                            <span className="text-xl font-bold text-[#14532d]">₹{TOTAL_PRICE.toLocaleString()}</span>
+                            <span className="text-gray-900 font-bold">Total Amount</span>
+                            <span className="text-2xl font-bold text-[#14532d]">₹{TOTAL_PRICE.toLocaleString()}</span>
                         </div>
                     </div>
 
