@@ -19,6 +19,7 @@ const menu = [
       "Starting Cities",
       "Umrah Destinations",
       "Umrah Enquiries",
+      "Visas",
     ],
   },
 ];
@@ -50,6 +51,10 @@ const AdminSidebar = () => {
     navigate("/admin/umrah-enquiries/add");
   };
 
+  const handleAddVisa = () => {
+    navigate("/admin/visas/add");
+  };
+
 
   const handleChangePackage = () => {
     navigate("/admin/packages");
@@ -65,6 +70,10 @@ const AdminSidebar = () => {
 
   const handleChangeUmrahEnquiry = () => {
     navigate("/admin/umrah-enquiries");
+  };
+
+  const handleChangeVisa = () => {
+    navigate("/admin/visas");
   };
 
 
@@ -125,6 +134,8 @@ const AdminSidebar = () => {
         return handleAddUmrahEnquiry;
       case "Umrah Destinations":
         return handleAddUmrahDestinations;
+      case "Visas":
+        return handleAddVisa;
       default:
         return undefined;
     }
@@ -152,6 +163,8 @@ const AdminSidebar = () => {
         return handleChangeNationalities;
       case "Umrah Destinations":
         return handleChangeUmrahDestinations;
+      case "Visas":
+        return handleChangeVisa;
       default:
         return undefined;
     }

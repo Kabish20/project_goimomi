@@ -78,3 +78,17 @@ Login attempt for username='KABISH'
 User found: KABISH, is_staff=True, is_superuser=True
 Login attempt for username='KABISH'
 User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH '
+User authentication failed
+Login attempt for username='KABISH '
+User authentication failed
+Login attempt for username='KABISH '
+User authentication failed
+Login attempt for username='KABISH '
+User authentication failed
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True
+Login attempt for username='KABISH'
+User found: KABISH, is_staff=True, is_superuser=True

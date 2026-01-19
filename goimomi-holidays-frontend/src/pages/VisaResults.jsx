@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CheckCircle, Home, Plane, Calendar, Search } from "lucide-react";
+import { CheckCircle, Home, Plane, Calendar, Search, X, Copy } from "lucide-react";
 
 const VisaResults = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [visas, setVisas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeDocPopup, setActiveDocPopup] = useState(null);
 
     const citizenOf = searchParams.get("citizenOf") || "India";
     const goingTo = searchParams.get("goingTo") || "";
@@ -66,6 +67,11 @@ const VisaResults = () => {
                 returnDate
             }
         });
+    };
+
+    const handleCopy = (text) => {
+        navigator.clipboard.writeText(text);
+        // Optional: Add toast notification here
     };
 
     if (loading) {
@@ -134,80 +140,126 @@ const VisaResults = () => {
             </div>
 
             {/* Results */}
-            <div className="max-w-6xl mx-auto px-4 py-8">
+            <div className="max-w-5xl mx-auto px-4 py-8">
                 {visas.length === 0 ? (
                     <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
                         <p className="text-gray-600 text-lg">No visas found for {goingTo}</p>
                         <button
                             onClick={() => navigate("/visa")}
-                            className="mt-4 text-green-600 hover:text-green-700 font-semibold"
+                            className="mt-4 text-[#14532d] hover:text-[#0f4a24] font-semibold"
                         >
                             Try another search
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {visas.map((visa) => (
                             <div
                                 key={visa.id}
-                                className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                                className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative"
                             >
                                 {/* Header */}
-                                <div className="bg-[#14532d] text-white px-6 py-4">
-                                    <h3 className="text-xl font-bold">{visa.title}</h3>
+                                <div className="bg-[#14532d] text-white px-6 py-3 rounded-t-2xl">
+                                    <h3 className="text-lg font-bold">{visa.title}</h3>
                                 </div>
 
-                                {/* Content */}
+                                {/* Content Container */}
                                 <div className="p-6">
-                                    {/* Estimated Arrival */}
-                                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-                                        <CheckCircle size={18} className="text-green-500" />
-                                        <span>
-                                            Estimated visa arrival by{" "}
-                                            <strong className="text-gray-900">{calculateEstimatedArrival(visa.processing_time, departureDate)}</strong>
+                                    {/* Estimated Arrival Badge */}
+                                    <div className="flex items-center gap-3 mb-6 bg-green-50/50 p-2 rounded-lg w-fit">
+                                        <CheckCircle size={20} className="text-[#14532d]" fill="white" />
+                                        <span className="text-[#14532d] font-medium text-sm">
+                                            Estimated visa arrival by <span className="font-bold">{calculateEstimatedArrival(visa.processing_time, departureDate)}</span>
                                         </span>
                                     </div>
 
-                                    {/* Details Grid */}
-                                    <div className="grid grid-cols-5 gap-4 mb-6">
-                                        <div>
-                                            <div className="text-xs font-semibold text-gray-500 mb-1">Entry</div>
-                                            <div className="text-sm font-medium text-gray-900">{visa.entry_type}</div>
+                                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                                        {/* Details Grid */}
+                                        <div className="flex-1 grid grid-cols-5 gap-8 bg-gray-50/50 p-4 rounded-xl w-full">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Entry</span>
+                                                <span className="text-sm font-semibold text-gray-900">{visa.entry_type}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Validity</span>
+                                                <span className="text-sm font-semibold text-gray-900">{visa.validity}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Duration</span>
+                                                <span className="text-sm font-semibold text-gray-900">{visa.duration}</span>
+                                            </div>
+
+                                            {/* Documents - Popup */}
+                                            <div className="flex flex-col gap-1 relative">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Documents</span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveDocPopup(activeDocPopup === visa.id ? null : visa.id);
+                                                    }}
+                                                    className="text-sm font-semibold text-[#14532d] hover:underline text-left"
+                                                >
+                                                    View Here
+                                                </button>
+
+                                                {activeDocPopup === visa.id && (
+                                                    <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-5 animate-in fade-in zoom-in-95 duration-200">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <h4 className="font-bold text-gray-900">Documents</h4>
+                                                            <div className="flex items-center gap-3">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleCopy(visa.documents_required);
+                                                                    }}
+                                                                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                                                                >
+                                                                    <Copy size={14} />
+                                                                    <span className="text-xs font-medium">Copy</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDocPopup(null);
+                                                                    }}
+                                                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                                                >
+                                                                    <X size={18} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <ul className="list-disc pl-4 space-y-2">
+                                                            {visa.documents_required ? visa.documents_required.split(',').map((doc, idx) => (
+                                                                <li key={idx} className="text-sm text-gray-700 leading-relaxed pl-1">{doc.trim()}</li>
+                                                            )) : (
+                                                                <li className="text-sm text-gray-500 italic">No specific documents listed.</li>
+                                                            )}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Processing Time</span>
+                                                <span className="text-sm font-semibold text-gray-900">{visa.processing_time}</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="text-xs font-semibold text-gray-500 mb-1">Validity</div>
-                                            <div className="text-sm font-medium text-gray-900">{visa.validity}</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold text-gray-500 mb-1">Duration</div>
-                                            <div className="text-sm font-medium text-gray-900">{visa.duration}</div>
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold text-gray-500 mb-1">Documents</div>
-                                            <button className="text-sm font-medium text-[#14532d] hover:underline">
-                                                View Here
+
+                                        {/* Price and Action */}
+                                        <div className="flex flex-row md:flex-col items-center md:items-end gap-4 min-w-[150px]">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xl font-bold text-gray-900">₹{visa.price.toLocaleString()}</span>
+                                                <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <button
+                                                onClick={() => handleSelect(visa)}
+                                                className="px-8 py-2 bg-white border border-[#14532d] text-[#14532d] rounded-full font-semibold hover:bg-[#14532d] hover:text-white transition-all text-sm"
+                                            >
+                                                Select
                                             </button>
                                         </div>
-                                        <div>
-                                            <div className="text-xs font-semibold text-gray-500 mb-1">Processing Time</div>
-                                            <div className="text-sm font-medium text-gray-900">{visa.processing_time}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Price and Select */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-2xl font-bold text-gray-900">₹{visa.price.toLocaleString()}</span>
-                                            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <button
-                                            onClick={() => handleSelect(visa)}
-                                            className="px-8 py-2.5 bg-white border-2 border-[#14532d] text-[#14532d] rounded-lg font-semibold hover:bg-[#14532d] hover:text-white transition-colors"
-                                        >
-                                            Select
-                                        </button>
                                     </div>
                                 </div>
                             </div>

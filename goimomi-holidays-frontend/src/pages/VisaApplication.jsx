@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { User, Calendar, Upload } from "lucide-react";
+import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X } from "lucide-react";
 
 const VisaApplication = () => {
     const { id } = useParams();
@@ -13,37 +13,102 @@ const VisaApplication = () => {
     const departureDate = location.state?.departureDate || "";
     const returnDate = location.state?.returnDate || "";
 
+    // Steps for Sidebar
+    const steps = [
+        { id: "internal_id", label: "Internal ID" },
+        { id: "group_name", label: "Group Name" },
+        { id: "traveler_1", label: "Traveler 1", subSteps: ["Passport", "Traveler Photo"] },
+        { id: "review", label: "Review" },
+        { id: "submit", label: "Submit" }
+    ];
+
+    const [currentStep, setCurrentStep] = useState("internal_id");
+
+    // Form State
     const [applicationType, setApplicationType] = useState("Individual");
     const [internalId, setInternalId] = useState("");
     const [groupName, setGroupName] = useState("");
     const [selectedVisaType, setSelectedVisaType] = useState(visa?.title || "");
+
+    // Data State
+    const [countries, setCountries] = useState([]);
+
+    // Travelers State
     const [applicants, setApplicants] = useState([{
         first_name: "",
         last_name: "",
         passport_number: "",
         nationality: citizenOf,
-        sex: "Male",
+        sex: "",
         dob: "",
         place_of_birth: "",
         place_of_issue: "",
-        marital_status: "Single",
+        marital_status: "",
         date_of_issue: "",
         date_of_expiry: "",
         passport_front: null,
-        photo: null
+        photo: null,
+        passport_front_preview: null,
+        photo_preview: null
     }]);
 
+    const [errors, setErrors] = useState({});
+
     const [submitting, setSubmitting] = useState(false);
+    const [showPriceDetails, setShowPriceDetails] = useState(false);
+
+    // Refs for scrolling to sections
+    const internalIdRef = useRef(null);
+    const groupNameRef = useRef(null);
+    const travelerRef = useRef(null);
+
+    const VISA_FEES = visa?.price || 2250;
+    const SERVICE_FEES = 1749;
+    const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * applicants.length;
+
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const response = await axios.get("/api/countries/");
+                setCountries(response.data);
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+            }
+        };
+        fetchCountries();
+    }, []);
 
     const handleApplicantChange = (index, field, value) => {
         const updated = [...applicants];
         updated[index][field] = value;
         setApplicants(updated);
+        // Clear error for this field when it changes
+        setErrors(prevErrors => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`applicant_${index}_${field}`];
+            return newErrors;
+        });
     };
 
     const handleFileChange = (index, field, file) => {
+        if (file) {
+            const updated = [...applicants];
+            updated[index][field] = file;
+            updated[index][`${field}_preview`] = URL.createObjectURL(file);
+            setApplicants(updated);
+            // Clear error for this file field when it changes
+            setErrors(prevErrors => {
+                const newErrors = { ...prevErrors };
+                delete newErrors[`applicant_${index}_${field}`];
+                return newErrors;
+            });
+        }
+    };
+
+    const removeFile = (index, field) => {
         const updated = [...applicants];
-        updated[index][field] = file;
+        updated[index][field] = null;
+        updated[index][`${field}_preview`] = null;
         setApplicants(updated);
     };
 
@@ -53,28 +118,148 @@ const VisaApplication = () => {
             last_name: "",
             passport_number: "",
             nationality: citizenOf,
-            sex: "Male",
+            sex: "",
             dob: "",
             place_of_birth: "",
             place_of_issue: "",
-            marital_status: "Single",
+            marital_status: "",
             date_of_issue: "",
             date_of_expiry: "",
             passport_front: null,
-            photo: null
+            photo: null,
+            passport_front_preview: null,
+            photo_preview: null
         }]);
     };
 
     const removeApplicant = (index) => {
-        if (applicants.length > 1) {
-            setApplicants(applicants.filter((_, i) => i !== index));
-        }
+        const updated = applicants.filter((_, i) => i !== index);
+        setApplicants(updated);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmitting(true);
+    const validateForm = () => {
+        let newErrors = {};
+        let isValid = true;
 
+        // Internal ID and Group Name are not marked as required in the UI, so skipping validation for them for now.
+        // If they become required, add checks here:
+        // if (!internalId.trim()) {
+        //      newErrors.internal_id = "Internal ID is required";
+        //      isValid = false;
+        // }
+        // if (applicationType === "Group" && !groupName.trim()) {
+        //      newErrors.group_name = "Group Name is required for group applications";
+        //      isValid = false;
+        // }
+
+        applicants.forEach((applicant, index) => {
+            // Passport Number
+            if (!applicant.passport_number.trim()) {
+                newErrors[`applicant_${index}_passport_number`] = "Passport number is required";
+                isValid = false;
+            } else if (!/^[a-zA-Z0-9]+$/.test(applicant.passport_number)) {
+                newErrors[`applicant_${index}_passport_number`] = "Invalid passport format (alphanumeric only)";
+                isValid = false;
+            }
+
+            // First Name
+            if (!applicant.first_name.trim()) {
+                newErrors[`applicant_${index}_first_name`] = "First name is required";
+                isValid = false;
+            }
+
+            // Nationality
+            if (!applicant.nationality) {
+                newErrors[`applicant_${index}_nationality`] = "Nationality is required";
+                isValid = false;
+            }
+
+            // Sex
+            if (!applicant.sex) {
+                newErrors[`applicant_${index}_sex`] = "Sex is required";
+                isValid = false;
+            }
+
+            // DOB
+            if (!applicant.dob) {
+                newErrors[`applicant_${index}_dob`] = "Date of birth is required";
+                isValid = false;
+            } else {
+                const dobDate = new Date(applicant.dob);
+                const today = new Date();
+                // Set today's time to 00:00:00 for accurate date comparison
+                today.setHours(0, 0, 0, 0);
+                if (dobDate >= today) {
+                    newErrors[`applicant_${index}_dob`] = "Date of birth must be in the past";
+                    isValid = false;
+                }
+            }
+
+            // Place of Birth
+            if (!applicant.place_of_birth.trim()) {
+                newErrors[`applicant_${index}_place_of_birth`] = "Place of birth is required";
+                isValid = false;
+            }
+
+            // Place of Issue
+            if (!applicant.place_of_issue.trim()) {
+                newErrors[`applicant_${index}_place_of_issue`] = "Place of issue is required";
+                isValid = false;
+            }
+
+            // Marital Status
+            if (!applicant.marital_status) {
+                newErrors[`applicant_${index}_marital_status`] = "Marital status is required";
+                isValid = false;
+            }
+
+            // Date of Issue
+            if (!applicant.date_of_issue) {
+                newErrors[`applicant_${index}_date_of_issue`] = "Date of issue is required";
+                isValid = false;
+            }
+
+            // Date of Expiry
+            if (!applicant.date_of_expiry) {
+                newErrors[`applicant_${index}_date_of_expiry`] = "Date of expiry is required";
+                isValid = false;
+            } else {
+                const expiryDate = new Date(applicant.date_of_expiry);
+                const today = new Date();
+                // Set today's time to 00:00:00 for accurate date comparison
+                today.setHours(0, 0, 0, 0);
+                if (expiryDate <= today) {
+                    newErrors[`applicant_${index}_date_of_expiry`] = "Passport has expired";
+                    isValid = false;
+                }
+            }
+
+            // Files
+            if (!applicant.passport_front) {
+                newErrors[`applicant_${index}_passport_front`] = "Passport image is required";
+                isValid = false;
+            }
+            if (!applicant.photo) {
+                newErrors[`applicant_${index}_photo`] = "Traveler photo is required";
+                isValid = false;
+            }
+        });
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const handleSubmit = async () => {
+        if (!validateForm()) {
+            // Scroll to the first error
+            const firstErrorField = document.querySelector('.text-red-500.text-xs.mt-1, .text-red-500.text-xs.mt-2');
+            if (firstErrorField) {
+                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
+        setSubmitting(true);
         try {
             const formData = new FormData();
             formData.append("visa", id);
@@ -83,9 +268,10 @@ const VisaApplication = () => {
             formData.append("group_name", groupName);
             formData.append("departure_date", departureDate);
             formData.append("return_date", returnDate);
-            formData.append("total_price", visa.price * applicants.length);
+            formData.append("total_price", TOTAL_PRICE);
 
-            const applicantsData = applicants.map(({ passport_front, photo, ...rest }) => rest);
+            // Filter out previews and nulls
+            const applicantsData = applicants.map(({ passport_front, photo, passport_front_preview, photo_preview, ...rest }) => rest);
             formData.append("applicants_data", JSON.stringify(applicantsData));
 
             applicants.forEach((applicant, index) => {
@@ -106,344 +292,490 @@ const VisaApplication = () => {
         } catch (error) {
             console.error("Error submitting application:", error);
             alert("Failed to submit application. Please try again.");
-        } finally {
             setSubmitting(false);
         }
     };
 
-    if (!visa) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-600">Visa information not found</p>
-                    <button
-                        onClick={() => navigate("/visa")}
-                        className="mt-4 text-indigo-600 hover:text-indigo-700 font-semibold"
-                    >
-                        Back to Search
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    // Check if steps are complete for Sidebar visual feedback
+    const isStepComplete = (stepId) => {
+        switch (stepId) {
+            case "internal_id":
+                return internalId.trim().length > 0;
+            case "group_name":
+                return groupName.trim().length > 0;
+            case "traveler_1":
+                // Basic check for traveler 1 completion
+                const app = applicants[0];
+                return app && app.first_name && app.passport_number && app.passport_front && app.photo;
+            case "review":
+                // Considered complete if we have at least one valid traveler
+                return applicants.length > 0 && isStepComplete("traveler_1");
+            default:
+                return false;
+        }
+    };
+
+    const isSubStepComplete = (stepId, subLabel) => {
+        if (stepId === "traveler_1") {
+            const app = applicants[0];
+            if (!app) return false;
+            if (subLabel === "Passport") return !!app.passport_front;
+            if (subLabel === "Traveler Photo") return !!app.photo;
+        }
+        return false;
+    };
+
+    if (!visa) return <div className="p-10 text-center">Loading...</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-5xl mx-auto px-4">
-                {/* Header */}
-                <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Visa Application</h1>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                            <span className="text-gray-500">Citizen of:</span>
-                            <p className="font-semibold">{citizenOf}</p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Going to:</span>
-                            <p className="font-semibold">{visa.country}</p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Departure:</span>
-                            <p className="font-semibold">{departureDate}</p>
-                        </div>
-                        <div>
-                            <span className="text-gray-500">Return:</span>
-                            <p className="font-semibold">{returnDate}</p>
-                        </div>
-                    </div>
+        <div className="min-h-screen bg-gray-50 flex font-sans">
+            {/* Sidebar Navigation */}
+            <aside className="hidden lg:block w-72 bg-white h-screen sticky top-0 p-8 border-r border-gray-100 overflow-y-auto">
+                <div className="space-y-8">
+                    {steps.map((step) => {
+                        const completed = isStepComplete(step.id);
+                        const active = currentStep === step.id;
+
+                        return (
+                            <div key={step.id}>
+                                <div className={`flex items-center gap-3 font-semibold ${completed || active ? "text-[#14532d]" : "text-gray-400"
+                                    }`}>
+                                    <div className={`mt-0.5`}>
+                                        {completed ? (
+                                            <CheckCircle size={18} fill="#14532d" className="text-white" />
+                                        ) : (
+                                            <div className={`w-4 h-4 rounded-full border-2 ${active ? "border-[#14532d]" : "border-gray-300"}`} />
+                                        )}
+                                    </div>
+                                    <span>{step.label}</span>
+                                </div>
+
+                                {/* Substeps line */}
+                                {step.subSteps && (
+                                    <div className="ml-2.5 pl-4 border-l-2 border-gray-100 my-2 space-y-3">
+                                        {step.subSteps.map(sub => {
+                                            const subCompleted = isSubStepComplete(step.id, sub);
+                                            return (
+                                                <div key={sub} className={`flex items-center gap-2 text-sm ${subCompleted ? "text-[#14532d]" : "text-gray-500"}`}>
+                                                    <CheckCircle size={14} className={subCompleted ? "text-[#14532d] fill-green-50" : "text-gray-300"} />
+                                                    <span>{sub}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full">
+
+                {/* Header Actions */}
+                <div className="flex justify-end gap-4 mb-8">
+                    <button
+                        onClick={addApplicant}
+                        className="px-4 py-2 text-[#14532d] border border-[#14532d] rounded-full font-medium hover:bg-green-50 text-sm flex items-center gap-2"
+                    >
+                        <User size={16} /> + Add Another Traveler
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="px-6 py-2 bg-[#14532d] text-white rounded-full font-medium hover:bg-[#0f4a24] text-sm shadow-sm flex items-center gap-2"
+                        style={{ backgroundColor: '#14532d' }}
+                    >
+                        {submitting ? "Saving..." : "Review and Save"}
+                    </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Application Type */}
-                    <div className="bg-white rounded-2xl shadow-sm p-6">
-                        <h2 className="text-lg font-bold text-gray-900 mb-4">Are You Applying For</h2>
-                        <div className="flex gap-4 mb-6">
+                <div className="space-y-8">
+
+                    {/* Section 1: Application Type */}
+                    <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                        <h2 className="text-xl font-bold text-gray-900 mb-6">Are You Applying For</h2>
+
+                        <div className="flex gap-4 mb-8">
                             <button
-                                type="button"
                                 onClick={() => setApplicationType("Individual")}
-                                className={`flex-1 py-3 rounded-full font-semibold transition-colors ${applicationType === "Individual"
-                                        ? "bg-indigo-600 text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                className={`px-12 py-3 rounded-full font-semibold transition-all ${applicationType === "Individual"
+                                    ? "bg-[#14532d] text-white shadow-md"
+                                    : "bg-white border border-gray-200 text-gray-500"
                                     }`}
+                                style={{ backgroundColor: applicationType === "Individual" ? '#14532d' : '' }}
                             >
                                 Individual
                             </button>
                             <button
-                                type="button"
                                 onClick={() => setApplicationType("Group")}
-                                className={`flex-1 py-3 rounded-full font-semibold transition-colors ${applicationType === "Group"
-                                        ? "bg-indigo-600 text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                className={`px-12 py-3 rounded-full font-semibold transition-all ${applicationType === "Group"
+                                    ? "bg-[#14532d] text-white shadow-md"
+                                    : "bg-white border border-gray-200 text-gray-500"
                                     }`}
+                                style={{ backgroundColor: applicationType === "Group" ? '#14532d' : '' }}
                             >
                                 Group
                             </button>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid md:grid-cols-2 gap-8">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Internal ID
-                                </label>
+                                <label className="block text-xs font-semibold text-gray-500 mb-2">Internal ID</label>
                                 <input
                                     type="text"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#14532d] outline-none transition-colors bg-gray-50/50"
                                     value={internalId}
                                     onChange={(e) => setInternalId(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Group Name
-                                </label>
+                                <label className="block text-xs font-semibold text-gray-500 mb-2">Group Name</label>
                                 <input
                                     type="text"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#14532d] outline-none transition-colors bg-gray-50/50"
                                     value={groupName}
                                     onChange={(e) => setGroupName(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />
                             </div>
                         </div>
 
-                        <div className="mt-4">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Visa Type
-                            </label>
-                            <input
-                                type="text"
-                                value={selectedVisaType}
-                                readOnly
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50"
-                            />
+                        <div className="mt-6">
+                            <label className="block text-xs font-semibold text-gray-500 mb-2">Visa Type</label>
+                            <div className="relative">
+                                <select
+                                    value={selectedVisaType}
+                                    onChange={(e) => setSelectedVisaType(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border border-[#14532d] text-gray-900 appearance-none bg-white font-medium outline-none focus:ring-1 focus:ring-[#14532d]"
+                                    style={{ borderColor: '#14532d' }}
+                                >
+                                    <option>{visa.title}</option>
+                                    <option>Vietnam E-Visa</option>
+                                    <option>Vietnam 90 Days Multiple Entry E-Visa</option>
+                                    <option>Lighting Fast (6 Business Hours)</option>
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Travelers */}
+                    {/* Travelers Forms */}
                     {applicants.map((applicant, index) => (
-                        <div key={index} className="bg-white rounded-2xl shadow-sm p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-lg font-bold text-gray-900">Traveler {index + 1}</h2>
+                        <div key={index} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <div className="flex justify-between items-center border-b border-gray-100 pb-4 mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900">Traveler {index + 1}</h2>
                                 {applicants.length > 1 && (
                                     <button
-                                        type="button"
                                         onClick={() => removeApplicant(index)}
-                                        className="text-red-600 hover:text-red-700 font-semibold text-sm"
+                                        className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm font-medium transition-colors"
                                     >
-                                        Remove
+                                        <Trash2 size={16} /> Remove
                                     </button>
                                 )}
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        First Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={applicant.first_name}
-                                        onChange={(e) => handleApplicantChange(index, "first_name", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    />
-                                </div>
+                            {/* Passport Upload */}
+                            <div className="mb-10">
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">Upload Traveler's Front Passport Page</h3>
+                                <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-3xl">
+                                    Vietnam requires a scan of the traveler's passport. Upload a clear passport image and your details will be filled automatically. However, it is mandatory to review the information before submitting to ensure there are no mistakes.
+                                </p>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Last Name *
-                                    </label>
+                                <div className={`border-2 border-dashed ${errors[`applicant_${index}_passport_front`] ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors w-full md:w-2/3 relative group cursor-pointer`}>
                                     <input
-                                        type="text"
-                                        required
-                                        value={applicant.last_name}
-                                        onChange={(e) => handleApplicantChange(index, "last_name", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        type="file"
+                                        accept="image/*,application/pdf"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        onChange={(e) => handleFileChange(index, 'passport_front', e.target.files[0])}
                                     />
+                                    {applicant.passport_front_preview ? (
+                                        <div className="relative">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault(); // Prevent opening file dialog
+                                                    removeFile(index, 'passport_front');
+                                                }}
+                                                className="absolute top-2 right-2 z-10 p-1.5 bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200"
+                                                title="Remove file"
+                                                type="button"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                            <img src={applicant.passport_front_preview} alt="Passport Preview" className="h-48 mx-auto object-contain rounded-lg shadow-sm" />
+                                            <div className="mt-2 text-[#14532d] font-semibold text-sm flex items-center justify-center gap-2">
+                                                <CheckCircle size={16} /> File Selected: {applicant.passport_front.name}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-[#14532d]">
+                                                <Upload size={24} />
+                                            </div>
+                                            <h4 className="font-semibold text-gray-900 mb-1">Drag and drop files to upload</h4>
+                                            <p className="text-gray-400 text-sm mb-4">or</p>
+                                            <button className="px-6 py-2 bg-[#14532d] text-white rounded-lg text-sm font-semibold">Select file</button>
+                                            <p className="text-xs text-gray-400 mt-4">Supports JPEG, JPG, PDF, PNG. Max file size 5MB</p>
+                                        </>
+                                    )}
                                 </div>
+                                {errors[`applicant_${index}_passport_front`] && <p className="text-red-500 text-xs mt-2">{errors[`applicant_${index}_passport_front`]}</p>}
+                            </div>
 
+                            {/* Manual Form Fields */}
+                            <div className="grid md:grid-cols-2 gap-6 mb-10 border-t border-gray-100 pt-8">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Passport Number *
-                                    </label>
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5 ">Passport Number <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         required
+                                        className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_passport_number`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors`}
                                         value={applicant.passport_number}
                                         onChange={(e) => handleApplicantChange(index, "passport_number", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    />
+                                    {errors[`applicant_${index}_passport_number`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_passport_number`]}</p>}
+                                </div>
+                                <div className="hidden md:block"></div> {/* Spacer */}
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5">First Name <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_first_name`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors`}
+                                        value={applicant.first_name}
+                                        onChange={(e) => handleApplicantChange(index, "first_name", e.target.value)}
+                                    />
+                                    {errors[`applicant_${index}_first_name`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_first_name`]}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5">Last Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#14532d] transition-colors"
+                                        value={applicant.last_name}
+                                        onChange={(e) => handleApplicantChange(index, "last_name", e.target.value)}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Nationality *
-                                    </label>
-                                    <input
-                                        type="text"
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5">Nationality <span className="text-red-500">*</span></label>
+                                    <select
                                         required
+                                        className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_nationality`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors bg-white`}
                                         value={applicant.nationality}
                                         onChange={(e) => handleApplicantChange(index, "nationality", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Sex *
-                                    </label>
-                                    <select
-                                        required
-                                        value={applicant.sex}
-                                        onChange={(e) => handleApplicantChange(index, "sex", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     >
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
+                                        <option value="">Select Nationality</option>
+                                        {countries.map(c => (
+                                            <option key={c.id} value={c.name}>{c.name}</option>
+                                        ))}
                                     </select>
+                                    {errors[`applicant_${index}_nationality`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_nationality`]}</p>}
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-900 mb-1.5">Sex <span className="text-red-500">*</span></label>
+                                        <select
+                                            required
+                                            className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_sex`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors bg-white`}
+                                            value={applicant.sex}
+                                            onChange={(e) => handleApplicantChange(index, "sex", e.target.value)}
+                                        >
+                                            <option value="">Select...</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                        {errors[`applicant_${index}_sex`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_sex`]}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-900 mb-1.5">Date of Birth <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="date"
+                                            required
+                                            className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_dob`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors text-gray-500 uppercase`}
+                                            value={applicant.dob}
+                                            onChange={(e) => handleApplicantChange(index, "dob", e.target.value)}
+                                        />
+                                        {errors[`applicant_${index}_dob`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_dob`]}</p>}
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Date of Birth *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={applicant.dob}
-                                        onChange={(e) => handleApplicantChange(index, "dob", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Place of Birth *
-                                    </label>
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5">Place of Birth <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         required
+                                        className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_place_of_birth`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors`}
                                         value={applicant.place_of_birth}
                                         onChange={(e) => handleApplicantChange(index, "place_of_birth", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
+                                    {errors[`applicant_${index}_place_of_birth`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_place_of_birth`]}</p>}
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Place of Issue *
-                                    </label>
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5">Place of Issue <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
                                         required
+                                        className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_place_of_issue`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors`}
                                         value={applicant.place_of_issue}
                                         onChange={(e) => handleApplicantChange(index, "place_of_issue", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                     />
+                                    {errors[`applicant_${index}_place_of_issue`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_place_of_issue`]}</p>}
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Marital Status *
-                                    </label>
-                                    <select
-                                        required
-                                        value={applicant.marital_status}
-                                        onChange={(e) => handleApplicantChange(index, "marital_status", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    >
-                                        <option value="Single">Single</option>
-                                        <option value="Married">Married</option>
-                                        <option value="Divorced">Divorced</option>
-                                        <option value="Widowed">Widowed</option>
-                                    </select>
+                                <div className="grid grid-cols-6 gap-4 col-span-1 md:col-span-2">
+                                    <div className="col-span-2">
+                                        <label className="block text-xs font-bold text-gray-900 mb-1.5">Marital Status <span className="text-red-500">*</span></label>
+                                        <select
+                                            required
+                                            className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_marital_status`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors bg-white`}
+                                            value={applicant.marital_status}
+                                            onChange={(e) => handleApplicantChange(index, "marital_status", e.target.value)}
+                                        >
+                                            <option value="">Select...</option>
+                                            <option value="Single">Single</option>
+                                            <option value="Married">Married</option>
+                                        </select>
+                                        {errors[`applicant_${index}_marital_status`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_marital_status`]}</p>}
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="block text-xs font-bold text-gray-900 mb-1.5">Date of Issue <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="date"
+                                            required
+                                            className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_date_of_issue`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors text-gray-500 uppercase`}
+                                            value={applicant.date_of_issue}
+                                            onChange={(e) => handleApplicantChange(index, "date_of_issue", e.target.value)}
+                                        />
+                                        {errors[`applicant_${index}_date_of_issue`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_date_of_issue`]}</p>}
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="block text-xs font-bold text-gray-900 mb-1.5">Date of Expiry <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="date"
+                                            required
+                                            className={`w-full px-4 py-3 rounded-xl border ${errors[`applicant_${index}_date_of_expiry`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors text-gray-500 uppercase`}
+                                            value={applicant.date_of_expiry}
+                                            onChange={(e) => handleApplicantChange(index, "date_of_expiry", e.target.value)}
+                                        />
+                                        {errors[`applicant_${index}_date_of_expiry`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_date_of_expiry`]}</p>}
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Date of Issue *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={applicant.date_of_issue}
-                                        onChange={(e) => handleApplicantChange(index, "date_of_issue", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    />
-                                </div>
+                            {/* Photo Upload */}
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 mb-2">Upload Traveler Photo</h3>
+                                <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-3xl">
+                                    Vietnam requires a passport-sized photo of the traveler. You can upload a selfie of the traveler.
+                                </p>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Date of Expiry *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={applicant.date_of_expiry}
-                                        onChange={(e) => handleApplicantChange(index, "date_of_expiry", e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Passport Front Copy *
-                                    </label>
-                                    <input
-                                        type="file"
-                                        required
-                                        accept="image/*"
-                                        onChange={(e) => handleFileChange(index, "passport_front", e.target.files[0])}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Photo *
-                                    </label>
+                                <div className={`border-2 border-dashed ${errors[`applicant_${index}_photo`] ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors w-full md:w-1/2 relative group cursor-pointer`}>
                                     <input
                                         type="file"
-                                        required
                                         accept="image/*"
-                                        onChange={(e) => handleFileChange(index, "photo", e.target.files[0])}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        onChange={(e) => handleFileChange(index, 'photo', e.target.files[0])}
                                     />
+                                    {applicant.photo_preview ? (
+                                        <div className="relative">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    e.preventDefault();
+                                                    removeFile(index, 'photo');
+                                                }}
+                                                className="absolute top-2 right-2 z-10 p-1.5 bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200"
+                                                title="Remove file"
+                                                type="button"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                            <img src={applicant.photo_preview} alt="Photo Preview" className="h-40 mx-auto object-cover rounded-lg shadow-sm" />
+                                            <div className="mt-2 text-[#14532d] font-semibold text-sm flex items-center justify-center gap-2">
+                                                <CheckCircle size={16} /> Image Selected
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-[#14532d]">
+                                                <ImageIcon size={24} />
+                                            </div>
+                                            <h4 className="font-semibold text-gray-900 mb-1">Drag and drop files to upload</h4>
+                                            <p className="text-gray-400 text-sm mb-4">or</p>
+                                            <button className="px-6 py-2 bg-[#14532d] text-white rounded-lg text-sm font-semibold">Select file</button>
+                                        </>
+                                    )}
                                 </div>
+                                {errors[`applicant_${index}_photo`] && <p className="text-red-500 text-xs mt-2">{errors[`applicant_${index}_photo`]}</p>}
                             </div>
                         </div>
                     ))}
 
-                    {/* Add Traveler Button */}
-                    <button
-                        type="button"
-                        onClick={addApplicant}
-                        className="w-full py-3 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition-colors font-semibold"
-                    >
-                        + Add Another Traveler
-                    </button>
+                </div>
 
-                    {/* Submit */}
-                    <div className="flex gap-4">
-                        <button
-                            type="button"
-                            onClick={() => navigate(-1)}
-                            className="flex-1 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                        >
-                            Back
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="flex-1 py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {submitting ? "Submitting..." : "Submit Application"}
-                        </button>
+                {/* Right/Bottom Price Details Floating Card or Inline */}
+                <div className="fixed bottom-0 right-0 p-4 w-full md:w-auto z-50">
+                    {/* Can be implemented as a sticky footer or sidebar widget. 
+                         For now, let's keep it simple as per screenshot which shows it as a card possibly on the right side on large screens. 
+                         I'll add it as a floating widget for now designated for desktop, or inline.
+                     */}
+                </div>
+            </main>
+
+            {/* Right Side Price Panel (Desktop) */}
+            <div className="hidden xl:block w-96 p-8 sticky top-0 h-screen overflow-y-auto">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-6">Visa Information</h3>
+                    <div className="space-y-4 mb-8">
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Vietnam - {selectedVisaType}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Travelers: <span className="text-gray-900">{applicants.length}</span></p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Travel Dates: <span className="text-gray-900">{departureDate} - {returnDate}</span></p>
+                        </div>
                     </div>
-                </form>
+
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Expected Visa Approval</h3>
+                    <div className="flex items-center gap-2 text-gray-700 mb-8 font-medium">
+                        <CalendarIcon />
+                        {/* Calculate approx date, +3 days from now */}
+                        {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}
+                    </div>
+
+                    <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-xl font-bold text-gray-900">Price Details</h3>
+                        </div>
+
+                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                            <span className="text-gray-500 font-medium">Total Amount</span>
+                            <span className="text-xl font-bold text-[#14532d]">₹{TOTAL_PRICE.toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleSubmit}
+                        className="w-full py-4 bg-[#14532d] text-white rounded-xl font-bold hover:bg-[#0f4a24] shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
+                        {submitting ? "Processing..." : "Review and Save"}
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
+
+// Helper components
+const CalendarIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+);
 
 export default VisaApplication;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Home, Plane, Calendar, MapPin, ChevronDown } from "lucide-react";
+import { Search, Home, Plane, Calendar, MapPin, ChevronDown, Zap, ShieldCheck, Headphones } from "lucide-react";
 import axios from "axios";
 
 const VisaSearch = () => {
@@ -239,33 +239,27 @@ const VisaSearch = () => {
             </div>
 
             {/* Features Section */}
-            <div className="max-w-6xl mx-auto px-4 py-16 -mt-16">
+            <div className="max-w-6xl mx-auto px-4 py-12">
                 <div className="grid md:grid-cols-3 gap-8">
-                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
-                        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-[#14532d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Zap size={32} className="text-[#14532d]" />
                         </div>
                         <h3 className="font-bold text-lg mb-2 text-gray-900">Fast Processing</h3>
                         <p className="text-gray-600 text-sm">Get your visa processed quickly with our express services</p>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
-                        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-[#14532d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
+                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <ShieldCheck size={32} className="text-[#14532d]" />
                         </div>
                         <h3 className="font-bold text-lg mb-2 text-gray-900">100% Secure</h3>
                         <p className="text-gray-600 text-sm">Your data is protected with bank-level security</p>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
-                        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-[#14532d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
+                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Headphones size={32} className="text-[#14532d]" />
                         </div>
                         <h3 className="font-bold text-lg mb-2 text-gray-900">24/7 Support</h3>
                         <p className="text-gray-600 text-sm">Our team is always ready to assist you</p>

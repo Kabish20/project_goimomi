@@ -55,6 +55,9 @@ import NationalityEdit from "./pages/admin/NationalityEdit";
 import UmrahDestinationManage from "./pages/admin/UmrahDestinationManage";
 import UmrahDestinationAdd from "./pages/admin/UmrahDestinationAdd";
 import UmrahDestinationEdit from "./pages/admin/UmrahDestinationEdit";
+import AdminVisaManage from "./pages/admin/AdminVisaManage";
+import AdminVisaAdd from "./pages/admin/AdminVisaAdd";
+import AdminVisaEdit from "./pages/admin/AdminVisaEdit";
 
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -133,6 +136,9 @@ const App = () => {
             <Route path="/admin/umrah-destinations" element={<UmrahDestinationManage />} />
             <Route path="/admin/umrah-destinations/add" element={<UmrahDestinationAdd />} />
             <Route path="/admin/umrah-destinations/edit/:id" element={<UmrahDestinationEdit />} />
+            <Route path="/admin/visas" element={<AdminVisaManage />} />
+            <Route path="/admin/visas/add" element={<AdminVisaAdd />} />
+            <Route path="/admin/visas/edit/:id" element={<AdminVisaEdit />} />
 
           </Route>
         </Routes>
