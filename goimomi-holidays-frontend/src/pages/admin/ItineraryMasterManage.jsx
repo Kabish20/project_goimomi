@@ -127,14 +127,13 @@ const ItineraryMasterManage = () => {
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Name (ID)</th>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Title</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Description</th>
                     <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredItineraries.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="text-center py-10 text-gray-500">
+                      <td colSpan="3" className="text-center py-10 text-gray-500">
                         {searchTerm ? `No itinerary masters match "${searchTerm}"` : "No itinerary masters found."}
                       </td>
                     </tr>
@@ -143,11 +142,6 @@ const ItineraryMasterManage = () => {
                       <tr key={itinerary.id} className="hover:bg-gray-50 transition-colors">
                         <td className="py-4 px-6 font-medium text-gray-900 border-r">{itinerary.name}</td>
                         <td className="py-4 px-6 text-gray-700 border-r font-medium">{itinerary.title}</td>
-                        <td className="py-4 px-6 text-gray-600 border-r max-w-xs">
-                          <p className="line-clamp-2" title={itinerary.description}>
-                            {itinerary.description}
-                          </p>
-                        </td>
                         <td className="py-4 px-6">
                           <div className="flex justify-center gap-4">
                             <button

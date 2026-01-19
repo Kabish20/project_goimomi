@@ -1,4 +1,5 @@
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -127,9 +128,76 @@ class NationalityViewSet(ModelViewSet):
     pagination_class = None
 
 
+
 class UmrahDestinationViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]
     queryset = UmrahDestination.objects.all()
     serializer_class = UmrahDestinationSerializer
+    pagination_class = None
+
+
+class VisaViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Visa.objects.all()
+    serializer_class = VisaSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Visa.objects.filter(is_active=True)
+        country = self.request.query_params.get('country', None)
+        if country:
+            queryset = queryset.filter(country__iexact=country)
+        return queryset
+
+
+class VisaApplicationViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = VisaApplication.objects.all().order_by('-created_at')
+    serializer_class = VisaApplicationSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        applicants_json = data.get('applicants_data')
+        import json
+        try:
+            applicants_list = json.loads(applicants_json) if applicants_json else []
+        except:
+            applicants_list = []
+            
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        application = serializer.save()
+        
+        for i, applicant_data in enumerate(applicants_list):
+            passport_front = request.FILES.get(f'applicant_{i}_passport_front')
+            photo = request.FILES.get(f'applicant_{i}_photo')
+            
+            VisaApplicant.objects.create(
+                application=application,
+                first_name=applicant_data.get('first_name', ''),
+                last_name=applicant_data.get('last_name', ''),
+                passport_number=applicant_data.get('passport_number', ''),
+                nationality=applicant_data.get('nationality', ''),
+                sex=applicant_data.get('sex', 'Male'),
+                dob=applicant_data.get('dob'),
+                place_of_birth=applicant_data.get('place_of_birth', ''),
+                place_of_issue=applicant_data.get('place_of_issue', ''),
+                marital_status=applicant_data.get('marital_status', 'Single'),
+                date_of_issue=applicant_data.get('date_of_issue'),
+                date_of_expiry=applicant_data.get('date_of_expiry'),
+                passport_front=passport_front,
+                photo=photo
+            )
+            
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CountryViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
     pagination_class = None

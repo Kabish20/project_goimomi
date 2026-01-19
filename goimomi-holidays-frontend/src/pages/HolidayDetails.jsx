@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
+import FormModal from "../components/FormModal";
 
 const HolidayDetails = () => {
   const { id } = useParams();
   const [openDay, setOpenDay] = useState(null);
   const [pkg, setPkg] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const getImageUrl = (url) => {
     if (!url) return "";
-    if (url.startsWith("http")) return url;
-    return `${url}`;
+    if (url.startsWith("http")) {
+      return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+    }
+    return url;
   };
 
   const toggleDay = (index) => {
@@ -17,9 +22,8 @@ const HolidayDetails = () => {
   };
 
   useEffect(() => {
-    fetch(`/api/packages/${id}/`)
-      .then((res) => res.json())
-      .then((data) => setPkg(data))
+    axios.get(`/api/packages/${id}/`)
+      .then((res) => setPkg(res.data))
       .catch((err) => console.error("Error fetching package details:", err));
   }, [id]);
 
@@ -130,12 +134,20 @@ const HolidayDetails = () => {
             <p className="text-gray-600 font-medium">{pkg.nights}Nights / {pkg.days}Days</p>
           </div>
 
-          <button className="w-full bg-[#14532d] text-white py-3 rounded-xl mt-6 text-lg">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="w-full bg-[#14532d] text-white py-3 rounded-xl mt-6 text-lg hover:bg-[#0f4022] transition-colors uppercase font-bold tracking-wider"
+          >
             Enquire Now
           </button>
         </div>
       </div>
 
+      <FormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        packageType={pkg?.title}
+      />
     </div>
   );
 };

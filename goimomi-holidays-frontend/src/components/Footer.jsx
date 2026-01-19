@@ -86,6 +86,7 @@ const Footer = () => {
 
             <li><Link to="/hotel" className="hover:text-white hover:underline">Hotels</Link></li>
             <li><Link to="/visa" className="hover:text-white hover:underline">Visa</Link></li>
+
             <li><Link to="/holidays" state={{ category: "Domestic" }} className="hover:text-white hover:underline">Domestic</Link></li>
             <li><Link to="/holidays" state={{ category: "International" }} className="hover:text-white hover:underline">International</Link></li>
             <li><Link to="/holidays" state={{ category: "Umrah" }} className="hover:text-white hover:underline">Hajj/Umrah</Link></li>
@@ -104,6 +105,7 @@ const Footer = () => {
             <li><Link to="/cab" className="hover:text-white hover:underline">Cab Booking</Link></li>
             <li><Link to="/cruise" className="hover:text-white hover:underline">Cruise Bookings</Link></li>
             <li><Link to="/visa" className="hover:text-white hover:underline">Visa Services</Link></li>
+
           </ul>
         </div>
 

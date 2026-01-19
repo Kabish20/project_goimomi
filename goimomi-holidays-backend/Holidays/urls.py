@@ -13,6 +13,9 @@ router.register("itinerary-masters", ItineraryMasterViewSet)
 router.register("users", UserViewSet)
 router.register("nationalities", NationalityViewSet)
 router.register("umrah-destinations", UmrahDestinationViewSet)
+router.register("visas", VisaViewSet)
+router.register("visa-applications", VisaApplicationViewSet)
+router.register("countries", CountryViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

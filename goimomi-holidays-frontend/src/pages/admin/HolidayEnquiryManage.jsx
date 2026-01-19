@@ -122,9 +122,9 @@ const HolidayEnquiryManage = () => {
                 <thead className="bg-[#14532d] text-white">
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Name</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Contact</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Destination</th>
+                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Start City</th>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Travel Date</th>
+                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Created At</th>
                     <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -141,24 +141,15 @@ const HolidayEnquiryManage = () => {
                         <td className="py-4 px-6 font-medium text-gray-900 border-r text-sm">
                           {enquiry.full_name}
                         </td>
-                        <td className="py-4 px-6 border-r text-gray-600">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Mail size={14} className="text-gray-400" />
-                              {enquiry.email}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Phone size={14} className="text-gray-400" />
-                              {enquiry.phone}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{enquiry.destination}</td>
-                        <td className="py-3 px-4 text-sm">
+                        <td className="py-3 px-4 border-r text-gray-600">{enquiry.start_city}</td>
+                        <td className="py-3 px-4 border-r text-sm">
                           <div className="flex items-center gap-2">
                             <Calendar size={14} className="text-gray-400" />
                             {formatDate(enquiry.travel_date)}
                           </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm border-r">
+                          {formatDate(enquiry.created_at)}
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex gap-2">
@@ -212,8 +203,12 @@ const HolidayEnquiryManage = () => {
                     <h3 className="font-semibold text-gray-700">Travel Details</h3>
                     <p><strong>Destination:</strong> {selectedEnquiry.destination}</p>
                     <p><strong>Travel Date:</strong> {formatDate(selectedEnquiry.travel_date)}</p>
-                    <p><strong>Duration:</strong> {selectedEnquiry.duration} days</p>
-                    <p><strong>Budget:</strong> ${selectedEnquiry.budget}</p>
+                    <p><strong>Nights:</strong> {selectedEnquiry.nights}</p>
+                    <p><strong>Star Rating:</strong> {selectedEnquiry.star_rating} Star</p>
+                    <p><strong>Room Type:</strong> {selectedEnquiry.room_type || "N/A"}</p>
+                    <p><strong>Meal Plan:</strong> {selectedEnquiry.meal_plan || "N/A"}</p>
+                    <p><strong>Transfer:</strong> {selectedEnquiry.transfer_details || "N/A"}</p>
+                    <p><strong>Budget:</strong> {selectedEnquiry.budget}</p>
                   </div>
 
                   <div>
@@ -225,12 +220,26 @@ const HolidayEnquiryManage = () => {
                       <div className="mt-2 pl-4 border-l-2 border-gray-200">
                         <p className="text-sm font-semibold text-gray-500 mb-1">Room Breakdown:</p>
                         {selectedEnquiry.room_details.map((room, idx) => (
-                          <p key={idx} className="text-sm text-gray-600">
-                            Room {idx + 1}: {room.adults} Adults, {room.children} Children
-                          </p>
+                          <div key={idx} className="mb-2">
+                            <p className="text-sm text-gray-600">
+                              Room {idx + 1}: {room.adults} Adults, {room.children} Children
+                            </p>
+                            {room.childAges && room.childAges.length > 0 && (
+                              <p className="text-xs text-gray-400">
+                                Child Ages: {room.childAges.join(", ")}
+                              </p>
+                            )}
+                          </div>
                         ))}
                       </div>
                     )}
+
+                    <div className="mt-4">
+                      <p><strong>Other Inclusions / Special Requests:</strong></p>
+                      <p className="text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded mt-1 border">
+                        {selectedEnquiry.other_inclusions || "None"}
+                      </p>
+                    </div>
 
                     <p className="mt-2"><strong>Message:</strong></p>
                     <p className="text-gray-600 whitespace-pre-wrap">{selectedEnquiry.message}</p>

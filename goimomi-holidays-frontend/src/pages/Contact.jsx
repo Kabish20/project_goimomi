@@ -3,12 +3,47 @@ import { FiPhone, FiMail, FiMapPin, FiUser, FiMessageCircle } from "react-icons/
 import emailjs from "emailjs-com";
 
 const Contact = () => {
-  
+
   // ✅ Popup State (Placed correctly inside component)
   const [showSuccess, setShowSuccess] = React.useState(false);
 
+  const [errors, setErrors] = React.useState({});
+
+  const validateForm = (formData) => {
+    const newErrors = {};
+    const fullName = formData.get("fullName");
+    const email = formData.get("email");
+    const phone = formData.get("phone");
+    const contactingFor = formData.get("contactingFor");
+    const message = formData.get("message");
+
+    if (!fullName || fullName.trim().length < 3) {
+      newErrors.fullName = "Name must be at least 3 characters";
+    }
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Invalid email address";
+    }
+    if (!phone || !/^\d{10}$/.test(phone.trim())) {
+      newErrors.phone = "Phone must be exactly 10 digits";
+    }
+    if (!contactingFor) {
+      newErrors.contactingFor = "Please select an option";
+    }
+    if (!message || message.trim().length < 10) {
+      newErrors.message = "Message must be at least 10 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const formData = new FormData(e.target);
+
+    if (!validateForm(formData)) {
+      return;
+    }
 
     emailjs
       .sendForm(
@@ -20,11 +55,12 @@ const Contact = () => {
       .then(
         () => {
           setShowSuccess(true); // 🎉 Show popup
+          setErrors({});
           e.target.reset();     // Clear form
         },
         (error) => {
           console.log(error.text);
-          alert("Failed to send message");
+          alert("Failed to send message: " + error.text);
         }
       );
   };
@@ -122,86 +158,86 @@ const Contact = () => {
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d]">
+              <div className={`flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d] ${errors.fullName ? 'border-red-500' : 'border-gray-200'}`}>
                 <FiUser className="text-gray-500" />
                 <input
                   type="text"
                   name="fullName"
-                  required
                   className="w-full outline-none text-gray-700 text-sm"
                   placeholder="Enter your full name"
                 />
               </div>
+              {errors.fullName && <p className="text-red-500 text-[10px] mt-1">{errors.fullName}</p>}
             </div>
 
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d]">
+              <div className={`flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d] ${errors.email ? 'border-red-500' : 'border-gray-200'}`}>
                 <FiMail className="text-gray-500" />
                 <input
                   type="email"
                   name="email"
-                  required
                   className="w-full outline-none text-gray-700 text-sm"
                   placeholder="you@example.com"
                 />
               </div>
+              {errors.email && <p className="text-red-500 text-[10px] mt-1">{errors.email}</p>}
             </div>
 
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d]">
+              <div className={`flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d] ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}>
                 <FiPhone className="text-gray-500" />
                 <input
                   type="tel"
                   name="phone"
-                  required
                   className="w-full outline-none text-gray-700 text-sm"
-                  placeholder="Your phone number"
+                  placeholder="Enter 10 digit number"
                 />
               </div>
+              {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}
             </div>
 
             {/* Contacting For */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Contacting For:</label>
 
-             <div className="flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d]">
-             <select 
-             name="contactingFor"
-             required
-             className="w-full outline-none text-gray-700 text-sm bg-transparent">
-            <option value="">Select an option</option>
-            <option value="Visa">Visa</option>
-            <option value="Tour Package">Tour Package</option>
-            <option value="Umrah">Umrah</option>
-            <option value="Haj">Haj</option>
-            <option value="Group Ticket">Group Ticket</option>
-            <option value="Passport Assistance">Passport Assistance</option>
-            <option value="Insurance">Insurance</option>
-            <option value="Feedback">Feedback</option>
-            <option value="Review">Review</option>
-            <option value="Other">Other</option>
-    </select>
-  </div>
-</div>
+              <div className={`flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d] ${errors.contactingFor ? 'border-red-500' : 'border-gray-200'}`}>
+                <select
+                  name="contactingFor"
+                  className="w-full outline-none text-gray-700 text-sm bg-transparent">
+                  <option value="">Select an option</option>
+                  <option value="Visa">Visa</option>
+                  <option value="Tour Package">Tour Package</option>
+                  <option value="Umrah">Umrah</option>
+                  <option value="Haj">Haj</option>
+                  <option value="Group Ticket">Group Ticket</option>
+                  <option value="Passport Assistance">Passport Assistance</option>
+                  <option value="Insurance">Insurance</option>
+                  <option value="Feedback">Feedback</option>
+                  <option value="Review">Review</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              {errors.contactingFor && <p className="text-red-500 text-[10px] mt-1">{errors.contactingFor}</p>}
+            </div>
 
 
             {/* Message */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-              <div className="flex items-start gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d]">
+              <div className={`flex items-start gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d] ${errors.message ? 'border-red-500' : 'border-gray-200'}`}>
                 <FiMessageCircle className="text-gray-500 mt-1" />
                 <textarea
                   rows="4"
                   name="message"
-                  required
                   className="w-full outline-none text-gray-700 text-sm resize-none"
                   placeholder="How can we help you?"
                 ></textarea>
               </div>
+              {errors.message && <p className="text-red-500 text-[10px] mt-1">{errors.message}</p>}
             </div>
 
             {/* Submit */}

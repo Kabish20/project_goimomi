@@ -24,6 +24,13 @@ class HolidayEnquiry(models.Model):
     cities = models.JSONField(default=list)
     room_details = models.JSONField(default=list)
 
+    # Additional fields requested for "Enquire Now" form
+    room_type = models.CharField(max_length=100, blank=True, null=True)
+    meal_plan = models.CharField(max_length=100, blank=True, null=True)
+    transfer_details = models.CharField(max_length=100, blank=True, null=True)
+    other_inclusions = models.TextField(blank=True, null=True)
+    nights = models.PositiveIntegerField(default=1)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -217,3 +224,95 @@ class UmrahDestination(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.country}"
+
+
+
+# Country Master for Visa
+class Country(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=3, blank=True, null=True)
+    
+    class Meta:
+        verbose_name_plural = "Countries"
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+
+# Visa Models
+class Visa(models.Model):
+    country = models.CharField(max_length=100)
+    title = models.CharField(max_length=200)
+    entry_type = models.CharField(max_length=50, default="Single")  # Single, Multiple
+    validity = models.CharField(max_length=50, default="30 days")
+    duration = models.CharField(max_length=50, default="30 days")
+    processing_time = models.CharField(max_length=100)
+    price = models.IntegerField()
+    documents_required = models.TextField(blank=True, help_text="Comma-separated list")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['country', 'price']
+
+    def __str__(self):
+        return f"{self.country} - {self.title}"
+
+
+class VisaApplication(models.Model):
+    APPLICATION_TYPES = [
+        ('Individual', 'Individual'),
+        ('Group', 'Group'),
+    ]
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Processing', 'Processing'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    visa = models.ForeignKey(Visa, on_delete=models.CASCADE, related_name='applications')
+    application_type = models.CharField(max_length=20, choices=APPLICATION_TYPES, default='Individual')
+    internal_id = models.CharField(max_length=100, blank=True, null=True)
+    group_name = models.CharField(max_length=100, blank=True, null=True)
+    departure_date = models.DateField()
+    return_date = models.DateField()
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"App for {self.visa.country} ({self.id})"
+
+
+class VisaApplicant(models.Model):
+    SEX_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Other', 'Other'),
+    ]
+    MARITAL_STATUS_CHOICES = [
+        ('Single', 'Single'),
+        ('Married', 'Married'),
+        ('Divorced', 'Divorced'),
+        ('Widowed', 'Widowed'),
+    ]
+
+    application = models.ForeignKey(VisaApplication, related_name='applicants', on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    passport_number = models.CharField(max_length=50)
+    nationality = models.CharField(max_length=50)
+    sex = models.CharField(max_length=10, choices=SEX_CHOICES)
+    dob = models.DateField()
+    place_of_birth = models.CharField(max_length=100)
+    place_of_issue = models.CharField(max_length=100)
+    marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES)
+    date_of_issue = models.DateField()
+    date_of_expiry = models.DateField()
+    passport_front = models.ImageField(upload_to='visa_apps/passports/')
+    photo = models.ImageField(upload_to='visa_apps/photos/')
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.passport_number})"

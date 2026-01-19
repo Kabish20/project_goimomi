@@ -28,8 +28,22 @@ const DestinationAdd = () => {
     setError("");
   };
 
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = "Name is required";
+    if (!form.country.trim()) newErrors.country = "Country is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e, continueEditing = false) => {
     if (e) e.preventDefault();
+    if (!validateForm()) {
+      setError("Please fix the errors in the form.");
+      return;
+    }
     setLoading(true);
     setMessage("");
     setError("");
@@ -49,6 +63,7 @@ const DestinationAdd = () => {
 
       if (response.status === 201) {
         setMessage("Destination added successfully!");
+        setErrors({});
 
         if (continueEditing) {
           // Redirect to edit page of the newly created destination
@@ -67,8 +82,14 @@ const DestinationAdd = () => {
     } catch (err) {
       console.error("Error adding destination:", err);
       if (err.response?.data) {
-        const errorMessages = Object.values(err.response.data).flat();
-        setError(errorMessages.join(", "));
+        if (typeof err.response.data === 'object') {
+          const errorMessages = Object.entries(err.response.data)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(", ");
+          setError(errorMessages);
+        } else {
+          setError("Failed to add destination. Please try again.");
+        }
       } else {
         setError("Failed to add destination. Please try again.");
       }
@@ -133,11 +154,11 @@ const DestinationAdd = () => {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
+                    className={`w-full border ${errors.name ? 'border-red-500' : 'border-gray-300'} px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none`}
                     placeholder="e.g., North Goa"
-                    required
                     disabled={loading}
                   />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-gray-700 font-semibold mb-2">Region:</label>
@@ -169,11 +190,11 @@ const DestinationAdd = () => {
                     name="country"
                     value={form.country}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
+                    className={`w-full border ${errors.country ? 'border-red-500' : 'border-gray-300'} px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none`}
                     placeholder="e.g., India"
-                    required
                     disabled={loading}
                   />
+                  {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
                 </div>
               </div>
             </div>

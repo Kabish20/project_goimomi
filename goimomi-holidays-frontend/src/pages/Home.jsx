@@ -346,9 +346,9 @@ const Home = () => {
               </div>
             </div>
             <p className="text-gray-700 text-sm">
-              "Visa assistance was smooth and stress-free. Highly recommended!"
+              "Their team curated a perfect honeymoon package. Everything was professionally handled!"
             </p>
-            <p className="mt-4 text-xs text-gray-500">Service: Europe Visa</p>
+            <p className="mt-4 text-xs text-gray-500">Service: Honeymoon Package</p>
           </div>
 
         </div>

@@ -93,6 +93,7 @@ const Navbar = () => {
               <span className="font-medium">Visa</span>
             </NavLink>
 
+
             {/* Holidays Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
@@ -124,16 +125,14 @@ const Navbar = () => {
               {desktopHoliday && (
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl">
                   <NavLink
-                    to="/holidays"
-                    state={{ category: "Domestic" }}
+                    to="/holidays?category=Domestic"
                     onClick={() => setDesktopHoliday(false)}
                     className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
                   >
                     Domestic
                   </NavLink>
                   <NavLink
-                    to="/holidays"
-                    state={{ category: "International" }}
+                    to="/holidays?category=International"
                     onClick={() => setDesktopHoliday(false)}
                     className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
                   >
@@ -147,8 +146,7 @@ const Navbar = () => {
                     Customized Holidays
                   </NavLink>
                   <NavLink
-                    to="/holidays"
-                    state={{ category: "Umrah" }}
+                    to="/holidays?category=Umrah"
                     onClick={() => setDesktopHoliday(false)}
                     className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light"
                   >
@@ -273,16 +271,14 @@ const Navbar = () => {
                 {mobileHoliday && (
                   <div className="pl-6 space-y-2">
                     <NavLink
-                      to="/holidays"
-                      state={{ category: "Domestic" }}
+                      to="/holidays?category=Domestic"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
                       onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
                     >
                       Domestic
                     </NavLink>
                     <NavLink
-                      to="/holidays"
-                      state={{ category: "International" }}
+                      to="/holidays?category=International"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
                       onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
                     >
@@ -296,8 +292,7 @@ const Navbar = () => {
                       Customized Holidays
                     </NavLink>
                     <NavLink
-                      to="/holidays"
-                      state={{ category: "Umrah" }}
+                      to="/holidays?category=Umrah"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
                       onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
                     >

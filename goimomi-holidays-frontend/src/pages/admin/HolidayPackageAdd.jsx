@@ -14,10 +14,13 @@ const Section = ({ title, children, className = "bg-white border border-gray-300
 );
 
 const Input = (props) => (
-  <input
-    {...props}
-    className={`bg-white border border-gray-300 px-3 py-2 rounded w-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent ${props.className || ''}`}
-  />
+  <div>
+    <input
+      {...props}
+      className={`bg-white border ${props.error ? 'border-red-500' : 'border-gray-300'} px-3 py-2 rounded w-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent ${props.className || ''}`}
+    />
+    {props.error && <p className="text-red-500 text-[10px] mt-0.5">{props.error}</p>}
+  </div>
 );
 
 const SearchableSelect = ({ options, value, onChange, placeholder = "Select..." }) => {
@@ -228,8 +231,39 @@ const HolidayPackageAdd = () => {
     setFormData((prev) => ({ ...prev, [name]: files[0] }));
   };
 
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.title.trim()) newErrors.title = "Title is required";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.category) newErrors.category = "Category is required";
+    if (!formData.starting_city) newErrors.starting_city = "Starting city is required";
+    if (!formData.days || formData.days <= 0) newErrors.days = "Days must be greater than 0";
+    if (!formData.offer_price || formData.offer_price <= 0) newErrors.offer_price = "Offer price is required";
+    if (!formData.header_image) newErrors.header_image = "Header image is required";
+    if (!formData.card_image) newErrors.card_image = "Card image is required";
+
+    if (packageDestinations.length === 0) {
+      newErrors.packageDestinations = "At least one destination is required";
+    } else {
+      packageDestinations.forEach((dest, index) => {
+        if (!dest.destination) newErrors[`dest_${index}`] = "Required";
+        if (!dest.nights || dest.nights <= 0) newErrors[`nights_${index}`] = "Required";
+      });
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      setError("Please fix the errors in the form.");
+      window.scrollTo(0, 0);
+      return;
+    }
     setLoading(true);
     setMessage("");
     setError("");
@@ -262,7 +296,6 @@ const HolidayPackageAdd = () => {
       formDataToSend.append("package_destinations", JSON.stringify(packageDestinations));
 
       // Add itinerary days JSON
-      // Note: We don't verify images here, we send them separately
       const itineraryJson = itineraryDays.map(day => ({
         day: day.day,
         title: day.title,
@@ -291,6 +324,7 @@ const HolidayPackageAdd = () => {
 
       if (response.status === 201) {
         setMessage("Holiday package added successfully!");
+        setErrors({});
         // Reset form
         setFormData({
           title: "",
@@ -320,9 +354,7 @@ const HolidayPackageAdd = () => {
             .join(", ");
           setError(errorMessages);
         } else {
-          // Handle HTML error pages or plain text
           setError(`Server Error: ${err.response.status} ${err.response.statusText}`);
-          console.error("Non-JSON error response:", err.response.data);
         }
       } else {
         setError("Failed to add package. Please check your connection and try again.");
@@ -386,7 +418,7 @@ const HolidayPackageAdd = () => {
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
-                    required
+                    error={errors.title}
                   />
                 </label>
 
@@ -396,9 +428,9 @@ const HolidayPackageAdd = () => {
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    className="bg-white border border-gray-300 p-3 rounded w-full h-32 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent"
-                    required
+                    className={`bg-white border ${errors.description ? 'border-red-500' : 'border-gray-300'} p-3 rounded w-full h-32 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent`}
                   />
+                  {errors.description && <p className="text-red-500 text-[10px] mt-0.5">{errors.description}</p>}
                 </label>
               </div>
 
@@ -409,14 +441,14 @@ const HolidayPackageAdd = () => {
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="bg-white border border-gray-300 p-2 rounded w-60 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent"
-                    required
+                    className={`bg-white border ${errors.category ? 'border-red-500' : 'border-gray-300'} p-2 rounded w-60 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent`}
                   >
                     <option value="">Select category</option>
                     <option value="Domestic">Domestic</option>
                     <option value="International">International</option>
                     <option value="Umrah">Umrah</option>
                   </select>
+                  {errors.category && <p className="text-red-500 text-[10px] mt-0.5">{errors.category}</p>}
                 </label>
 
                 <div className="mb-2">
@@ -455,8 +487,7 @@ const HolidayPackageAdd = () => {
                   name="starting_city"
                   value={formData.starting_city}
                   onChange={handleInputChange}
-                  className="bg-white border border-gray-300 p-2 rounded w-60 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent"
-                  required
+                  className={`bg-white border ${errors.starting_city ? 'border-red-500' : 'border-gray-300'} p-2 rounded w-60 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent`}
                 >
                   <option value="">----------</option>
                   {Object.entries(groupedStartingCities).map(([region, cities]) => (
@@ -469,6 +500,7 @@ const HolidayPackageAdd = () => {
                     </optgroup>
                   ))}
                 </select>
+                {errors.starting_city && <p className="text-red-500 text-[10px] mt-0.5">{errors.starting_city}</p>}
               </label>
             </Section>
 
@@ -482,7 +514,7 @@ const HolidayPackageAdd = () => {
                     name="days"
                     value={formData.days}
                     onChange={handleInputChange}
-                    required
+                    error={errors.days}
                   />
                 </label>
                 <label className="block">
@@ -516,7 +548,7 @@ const HolidayPackageAdd = () => {
                     name="offer_price"
                     value={formData.offer_price}
                     onChange={handleInputChange}
-                    required
+                    error={errors.offer_price}
                   />
                 </label>
                 <label className="block">
@@ -540,7 +572,7 @@ const HolidayPackageAdd = () => {
                   name="header_image"
                   onChange={handleFileChange}
                   accept="image/*"
-                  required
+                  error={errors.header_image}
                 />
               </label>
               <label className="block">
@@ -550,7 +582,7 @@ const HolidayPackageAdd = () => {
                   name="card_image"
                   onChange={handleFileChange}
                   accept="image/*"
-                  required
+                  error={errors.card_image}
                 />
               </label>
             </Section>

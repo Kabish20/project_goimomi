@@ -17,12 +17,17 @@ import Holidays from './pages/Holidays.jsx'
 import PlanTrip from './pages/Holidaysform.jsx'
 import Cab from './pages/cab.jsx'
 import Cruise from './pages/curise.jsx'
-import Visa from './pages/visa.jsx'
+import VisaSearch from './pages/VisaSearch.jsx'
+import VisaResults from './pages/VisaResults.jsx'
+import VisaApplication from './pages/VisaApplication.jsx'
+
 import Hotel from './pages/hotel.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsConditions from './pages/TermsConditions.jsx'
 import CancellationPolicy from './pages/CancellationPolicy.jsx'
 import HolidayDetails from "./pages/HolidayDetails";
+
+import PackageEnquiryPage from "./pages/PackageEnquiryPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DestinationAdd from "./pages/admin/DestinationAdd";
 import DestinationManage from "./pages/admin/DestinationManage";
@@ -50,6 +55,7 @@ import NationalityEdit from "./pages/admin/NationalityEdit";
 import UmrahDestinationManage from "./pages/admin/UmrahDestinationManage";
 import UmrahDestinationAdd from "./pages/admin/UmrahDestinationAdd";
 import UmrahDestinationEdit from "./pages/admin/UmrahDestinationEdit";
+
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
@@ -83,12 +89,18 @@ const App = () => {
           <Route path="/form" element={<PlanTrip isOpen={true} onClose={() => window.history.back()} />} />
           <Route path="/cab" element={<Cab />} />
           <Route path="/cruise" element={<Cruise />} />
-          <Route path="/visa" element={<Visa />} />
+
           <Route path="/hotel" element={<Hotel />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-and-conditions" element={<TermsConditions />} />
           <Route path="/cancellation-policy" element={<CancellationPolicy />} />
           <Route path="/holiday/:id" element={<HolidayDetails />} />
+
+          <Route path="/enquiry" element={<PackageEnquiryPage />} />
+          <Route path="/visa" element={<VisaSearch />} />
+          <Route path="/visa/results" element={<VisaResults />} />
+          <Route path="/visa/apply/:id" element={<VisaApplication />} />
+
 
           <Route path="/admin-login" element={<AdminLogin />} />
 
@@ -121,6 +133,7 @@ const App = () => {
             <Route path="/admin/umrah-destinations" element={<UmrahDestinationManage />} />
             <Route path="/admin/umrah-destinations/add" element={<UmrahDestinationAdd />} />
             <Route path="/admin/umrah-destinations/edit/:id" element={<UmrahDestinationEdit />} />
+
           </Route>
         </Routes>
       </main>

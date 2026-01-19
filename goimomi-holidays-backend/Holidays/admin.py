@@ -137,3 +137,8 @@ class StartingCityAdmin(admin.ModelAdmin):
 class ItineraryMasterAdmin(admin.ModelAdmin):
     list_display = ("name", "title")
     search_fields = ("name", "title", "description")
+
+
+
+
+

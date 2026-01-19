@@ -1,27 +1,37 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-
-// ========== SAMPLE IMAGES FROM ASSETS ==========
-
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import axios from "axios";
+import FormModal from "../components/FormModal";
 
 const Holidays = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   // ===================== FILTER STATES =====================
   const [category, setCategory] = useState("");
   const [destination, setDestination] = useState("");
 
   useEffect(() => {
+    // 1. Check Query Params (Priority)
+    const categoryParam = searchParams.get("category");
+
+    if (categoryParam) {
+      setCategory(categoryParam);
+    }
+    // 2. Check State (Fallback)
+    else if (location.state?.category) {
+      setCategory(location.state.category);
+    }
+    // 3. Default (Reset)
+    else {
+      setCategory("");
+    }
+
     if (location.state?.filter) {
       setDestination(location.state.filter);
     }
-    if (location.state?.category) {
-      setCategory(location.state.category);
-    } else {
-      setCategory("");
-    }
-  }, [location, location.state]);
+  }, [searchParams, location.state]);
 
   const [nights, setNights] = useState("");
   const [startingCity, setStartingCity] = useState("");
@@ -33,28 +43,31 @@ const Holidays = () => {
   const [isStartCityOpen, setIsStartCityOpen] = useState(false);
   const [startCitySearch, setStartCitySearch] = useState("");
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPkgTitle, setSelectedPkgTitle] = useState("");
+
   // ===================== PACKAGE DATA =====================
   const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [destinationsList, setDestinationsList] = useState([]);
   const [startingCitiesList, setStartingCitiesList] = useState([]);
 
   useEffect(() => {
+    setLoading(true);
     // Fetch packages
-    fetch("/api/packages/")
-      .then((res) => res.json())
-      .then((data) => setPackages(data))
-      .catch((err) => console.error("Error fetching packages:", err));
+    axios.get("/api/packages/")
+      .then((res) => setPackages(res.data))
+      .catch((err) => console.error("Error fetching packages:", err))
+      .finally(() => setLoading(false));
 
     // Fetch destinations
-    fetch("/api/destinations/")
-      .then((res) => res.json())
-      .then((data) => setDestinationsList(data))
+    axios.get("/api/destinations/")
+      .then((res) => setDestinationsList(res.data))
       .catch((err) => console.error("Error fetching destinations:", err));
 
     // Fetch starting cities
-    fetch("/api/starting-cities/")
-      .then((res) => res.json())
-      .then((data) => setStartingCitiesList(data))
+    axios.get("/api/starting-cities/")
+      .then((res) => setStartingCitiesList(res.data))
       .catch((err) => console.error("Error fetching starting cities:", err));
   }, []);
 
@@ -81,12 +94,13 @@ const Holidays = () => {
     city.name.toLowerCase().includes(startCitySearch.toLowerCase())
   );
 
-
   // Helper to fix image URLs
-  const getImageUrl = (path) => {
-    if (!path) return "";
-    if (path.startsWith("http")) return path;
-    return `${path}`;
+  const getImageUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) {
+      return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+    }
+    return url;
   };
 
   // ===================== FILTERED LIST =====================
@@ -216,38 +230,13 @@ const Holidays = () => {
           <label className="font-semibold">Total Nights</label>
           <select
             className="w-full p-2 border rounded mt-2"
+            value={nights}
             onChange={(e) => setNights(e.target.value)}
           >
             <option value="">Any</option>
-            <option value="2">2 Nights</option>
-            <option value="3">3 Nights</option>
-            <option value="4">4 Nights</option>
-            <option value="5">5 Nights</option>
-            <option value="6">6 Nights</option>
-            <option value="7">7 Nights</option>
-            <option value="8">8 Nights</option>
-            <option value="9">9 Nights</option>
-            <option value="10">10 Nights</option>
-            <option value="11">11 Nights</option>
-            <option value="12">12 Nights</option>
-            <option value="13">13 Nights</option>
-            <option value="14">14 Nights</option>
-            <option value="15">15 Nights</option>
-            <option value="16">16 Nights</option>
-            <option value="17">17 Nights</option>
-            <option value="18">18 Nights</option>
-            <option value="19">19 Nights</option>
-            <option value="20">20 Nights</option>
-            <option value="21">21 Nights</option>
-            <option value="22">22 Nights</option>
-            <option value="23">23 Nights</option>
-            <option value="24">24 Nights</option>
-            <option value="25">25 Nights</option>
-            <option value="26">26 Nights</option>
-            <option value="27">27 Nights</option>
-            <option value="28">28 Nights</option>
-            <option value="29">29 Nights</option>
-            <option value="30">30 Nights</option>
+            {[...Array(29)].map((_, i) => (
+              <option key={i + 2} value={i + 2}>{i + 2} Nights</option>
+            ))}
           </select>
         </div>
 
@@ -318,126 +307,152 @@ const Holidays = () => {
 
         {/* BUDGET */}
         <div className="mb-6">
-          <label className="font-semibold">Budget</label>
+          <label className="font-semibold">Budget (per person)</label>
           <input
             type="range"
             min="0"
             max="200000"
+            step="5000"
             value={budget[1]}
             onChange={(e) => setBudget([0, Number(e.target.value)])}
-            className="w-full mt-2"
+            className="w-full mt-2 accent-[#14532d]"
           />
-          <p className="text-sm mt-1">₹ {budget[0]} – ₹ {budget[1]}</p>
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>₹ 0</span>
+            <span className="font-bold text-[#14532d]">Up to ₹ {budget[1].toLocaleString()}</span>
+          </div>
         </div>
 
       </div>
 
       {/* ====================== RIGHT SIDE (PACKAGE LISTING) ====================== */}
-      <div className="w-[75%] p-8">
+      <div className="w-[75%] p-8 overflow-y-auto h-screen">
 
-        <h2 className="text-2xl font-bold mb-6">Holiday Packages</h2>
+        <h2 className="text-2xl font-bold mb-6">Holiday Packages {category && `- ${category}`}</h2>
 
-
-
-        {filtered.map((pkg) => (
-          <div
-            key={pkg.id}
-            className="bg-white rounded-xl shadow-md p-5 mb-6 flex gap-6 justify-between"
-          >
-
-            {/* IMAGE SECTION */}
-            <div className="relative w-72 h-48 bg-gray-200 rounded-lg">
-              <img
-                src={getImageUrl(pkg.card_image)}
-                onError={(e) => { e.target.src = "https://via.placeholder.com/300x200?text=No+Image" }}
-                className="w-72 h-48 rounded-lg object-cover"
-                alt={pkg.title}
-              />
-
-              {/* Days badge */}
-              <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                {pkg.days} days
-              </span>
-
-
-            </div>
-
-            {/* MAIN DETAILS SECTION */}
-            <div className="flex-1">
-
-              <h3 className="text-xl font-semibold">{pkg.title}</h3>
-
-              {/* LOCATION */}
-              <p className="text-gray-600 text-sm mt-1">
-                {pkg.starting_city}
-                {pkg.destinations && pkg.destinations.length > 0 &&
-                  ` • ${pkg.destinations.map(d => `${d.name} (${d.nights}N)`).join(" • ")}`}
-              </p>
-
-              {/* DYNAMIC HIGHLIGHTS */}
-              <ul className="text-gray-700 text-sm mt-3 space-y-1">
-                {pkg.highlights && pkg.highlights.length > 0 ? (
-                  pkg.highlights.map((h, index) => (
-                    <li key={index}>• {h.text}</li>
-                  ))
-                ) : (
-                  <>
-                    <li>• Accommodation in all places as per itinerary</li>
-                    <li>• Daily Breakfast & Dinner included</li>
-                    <li>• All Tours and Transfers on private basis</li>
-                    <li>• Sightseeing as per the itinerary</li>
-                    <li>• All Entrance Fees included</li>
-                  </>
-                )}
-              </ul>
-
-
-
-              {/* Departure info */}
-              <div className="flex gap-12 mt-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Departure Starting</p>
-                  <p className="font-semibold">
-                    {pkg.start_date
-                      ? new Date(pkg.start_date).toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })
-                      : "Flexible Dates"}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-gray-500">Max. Group Size</p>
-                  <p className="font-semibold">{pkg.group_size}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* PRICE & BUTTON */}
-            <div className="text-right flex flex-col justify-between">
-
-              <div>
-                {pkg.price && (
-                  <p className="line-through text-gray-400 text-sm">
-                    ₹ {pkg.price.toLocaleString()}
-                  </p>
-                )}
-                <p className="text-2xl font-bold">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
-                <p className="text-gray-500 text-xs">per person</p>
-              </div>
-
-              <button
-                className="bg-[#14532d] text-white px-6 py-2 rounded-lg mt-4 text-sm"
-                onClick={() => navigate(`/holiday/${pkg.id}`)}
-              >
-                View Details
-              </button>
-            </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
           </div>
-        ))}
+        ) : filtered.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-md p-20 text-center">
+            <h3 className="text-2xl font-semibold text-gray-400">No Holiday Packages Found</h3>
+            <p className="text-gray-500 mt-2">Try adjusting your filters or search criteria to find matching packages.</p>
+            <button
+              onClick={() => {
+                setCategory("");
+                setDestination("");
+                setNights("");
+                setStartingCity("");
+                setBudget([0, 200000]);
+                setFlightFilter("All");
+              }}
+              className="mt-6 bg-[#14532d] text-white px-8 py-2 rounded-lg font-semibold hover:bg-[#0f4022] transition-colors shadow-lg"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {filtered.map((pkg) => (
+              <div
+                key={pkg.id}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col md:flex-row border border-gray-100"
+              >
+                {/* IMAGE SECTION */}
+                <div className="relative w-full md:w-80 h-56 md:h-auto overflow-hidden">
+                  <img
+                    src={getImageUrl(pkg.card_image)}
+                    onError={(e) => { e.target.src = "https://via.placeholder.com/400x300?text=Package+Image" }}
+                    className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
+                    alt={pkg.title}
+                  />
+                  <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    <span className="bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium">
+                      {pkg.days} Days / {pkg.days - 1} Nights
+                    </span>
+                    {pkg.with_flight && (
+                      <span className="bg-green-600/90 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                        ✈️ Flights Included
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* CONTENT SECTION */}
+                <div className="flex-1 p-6 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-xl font-bold text-gray-800 leading-tight mb-2 hover:text-[#14532d] transition-colors cursor-pointer" onClick={() => navigate(`/holiday/${pkg.id}`)}>
+                        {pkg.title}
+                      </h3>
+                      <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded text-yellow-700 text-xs font-bold">
+                        ⭐ 4.5
+                      </div>
+                    </div>
+
+                    <p className="text-gray-500 text-sm flex items-center gap-1.5 mb-4">
+                      <span className="text-[#14532d]">📍</span>
+                      {pkg.starting_city}
+                      {pkg.destinations && pkg.destinations.length > 0 &&
+                        ` • ${pkg.destinations.map(d => `${d.name}`).join(" • ")}`}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                      {pkg.highlights && pkg.highlights.slice(0, 4).map((h, index) => (
+                        <div key={index} className="flex items-center gap-2 text-gray-600 text-sm">
+                          <span className="text-[#14532d]">✓</span>
+                          <span className="truncate">{h.text}</span>
+                        </div>
+                      ))}
+                      {!pkg.highlights?.length && (
+                        <>
+                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Accommodation</div>
+                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Daily Breakfast</div>
+                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Sightseeing</div>
+                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Transfers</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-50 flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Starting from</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black text-gray-900 leading-none">
+                          ₹ {(pkg.Offer_price || 0).toLocaleString()}
+                        </span>
+                        {pkg.price > pkg.Offer_price && (
+                          <span className="text-gray-400 line-through text-sm">
+                            ₹ {pkg.price.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-gray-500 text-[10px] mt-0.5">*per person</p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        className="bg-[#14532d] text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-[#0f4022] hover:shadow-lg transition-all transform active:scale-95"
+                        onClick={() => navigate(`/holiday/${pkg.id}`)}
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      <FormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        packageType={selectedPkgTitle}
+      />
     </div>
   );
 };

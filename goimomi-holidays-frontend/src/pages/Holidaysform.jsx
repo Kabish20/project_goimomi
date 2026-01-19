@@ -22,12 +22,15 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
   const [nationality, setNationality] = useState("Indian");
 
   const [rooms, setRooms] = useState(1);
-  const [roomDetails, setRoomDetails] = useState([{ adults: 2, children: 0 }]);
+  const [roomDetails, setRoomDetails] = useState([{ adults: 2, children: 0, childAges: [] }]);
   const [travelerDropdownOpen, setTravelerDropdownOpen] = useState(false);
   const [starRating, setStarRating] = useState("");
   const [holidayType, setHolidayType] = useState("");
 
-
+  const [roomType, setRoomType] = useState("");
+  const [mealPlan, setMealPlan] = useState("");
+  const [transfer, setTransfer] = useState("");
+  const [otherInclusions, setOtherInclusions] = useState("");
   const [budget, setBudget] = useState("");
 
   // Data from Backend
@@ -116,7 +119,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
 
     let updated = [...roomDetails];
     if (count > updated.length) {
-      updated.push({ adults: 2, children: 0 });
+      updated.push({ adults: 2, children: 0, childAges: [] });
     } else {
       updated = updated.slice(0, count);
     }
@@ -132,7 +135,23 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
 
   const updateChildren = (i, val) => {
     const updated = [...roomDetails];
-    updated[i].children = Math.max(0, updated[i].children + val);
+    const newCount = Math.max(0, updated[i].children + val);
+    updated[i].children = newCount;
+
+    // Adjust child ages array
+    if (newCount > updated[i].childAges.length) {
+      for (let j = updated[i].childAges.length; j < newCount; j++) {
+        updated[i].childAges.push("");
+      }
+    } else {
+      updated[i].childAges.length = newCount;
+    }
+    setRoomDetails(updated);
+  };
+
+  const updateChildAge = (roomIdx, childIdx, val) => {
+    const updated = [...roomDetails];
+    updated[roomIdx].childAges[childIdx] = val;
     setRoomDetails(updated);
   };
 
@@ -215,6 +234,10 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
       children: totalChildren,
       star_rating: starRating,
       holiday_type: holidayType,
+      room_type: roomType,
+      meal_plan: mealPlan,
+      transfer_details: transfer,
+      other_inclusions: otherInclusions,
       budget: budget,
       full_name: fullName,
       email: email,
@@ -248,6 +271,10 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
           setRoomDetails([{ adults: 2, children: 0 }]);
           setStarRating("");
           setHolidayType("");
+          setRoomType("");
+          setMealPlan("");
+          setTransfer("");
+          setOtherInclusions("");
           setBudget("");
           setFullName("");
           setEmail("");
@@ -294,7 +321,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
         message="Your holiday enquiry has been submitted successfully! Our team will contact you shortly."
       />
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div className="w-full max-w-4xl bg-white rounded-xl shadow-xl p-8 max-h-[90vh] overflow-y-auto relative">
+        <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[90vh] overflow-y-auto relative">
 
           {/* Close */}
           <button
@@ -307,7 +334,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
           {/* STEP 1 — EXACT UMRAH UI */}
           {step === 1 && (
             <>
-              <h2 className="text-2xl font-bold mb-5">Plan Your Customized Holiday</h2>
+              <h2 className="text-xl font-bold mb-4">Plan Your Customized Holiday</h2>
 
               {/* Selected Package */}
               {packageType && (
@@ -319,7 +346,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
               )}
 
               {/* MULTI-CITY LIST (Umrah style) */}
-              <div className="space-y-4 mb-8">
+              <div className="space-y-3 mb-6">
                 {cities.map((item, i) => (
                   <div key={i} className="flex gap-3 items-center">
                     <div className="w-full relative custom-dropdown-container">
@@ -404,7 +431,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
               </div>
 
               {/* MAIN TRIP DETAILS (exact Umrah feel) */}
-              <div className="grid grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-2 gap-4 mb-6">
 
                 <div>
                   <label className="font-semibold">Starting City *</label>
@@ -583,9 +610,9 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                             <div>
                               <p className="text-sm">Adults (12+)</p>
                               <div className="flex justify-between border rounded px-3 py-2">
-                                <button onClick={() => updateAdults(i, -1)}>-</button>
+                                <button type="button" onClick={() => updateAdults(i, -1)}>-</button>
                                 <span>{room.adults}</span>
-                                <button onClick={() => updateAdults(i, 1)}>+</button>
+                                <button type="button" onClick={() => updateAdults(i, 1)}>+</button>
                               </div>
                             </div>
 
@@ -593,11 +620,29 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                             <div>
                               <p className="text-sm">Children</p>
                               <div className="flex justify-between border rounded px-3 py-2">
-                                <button onClick={() => updateChildren(i, -1)}>-</button>
+                                <button type="button" onClick={() => updateChildren(i, -1)}>-</button>
                                 <span>{room.children}</span>
-                                <button onClick={() => updateChildren(i, 1)}>+</button>
+                                <button type="button" onClick={() => updateChildren(i, 1)}>+</button>
                               </div>
                             </div>
+
+                            {/* Child Ages */}
+                            {room.children > 0 && (
+                              <div className="col-span-2 mt-2 grid grid-cols-2 gap-2">
+                                {room.childAges.map((age, childIdx) => (
+                                  <div key={childIdx}>
+                                    <p className="text-[10px] uppercase font-bold text-gray-400">Child {childIdx + 1} Age</p>
+                                    <input
+                                      type="number"
+                                      className="border rounded w-full px-2 py-1 text-sm"
+                                      value={age}
+                                      onChange={(e) => updateChildAge(i, childIdx, e.target.value)}
+                                      placeholder="Age"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -645,17 +690,68 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                   {errors.holidayType && <p className="text-red-500 text-sm mt-1">{errors.holidayType}</p>}
                 </div>
 
+                {/* Room Type */}
+                <div>
+                  <label className="font-semibold">Room Type</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Deluxe, Suite"
+                    className="border rounded px-3 py-2 w-full mt-1"
+                    value={roomType}
+                    onChange={(e) => setRoomType(e.target.value)}
+                  />
+                </div>
+
+                {/* Meal Plan */}
+                <div>
+                  <label className="font-semibold">Meal Plan</label>
+                  <select
+                    className="border rounded px-3 py-2 w-full mt-1"
+                    value={mealPlan}
+                    onChange={(e) => setMealPlan(e.target.value)}
+                  >
+                    <option value="">Select Meal Plan</option>
+                    <option value="Breakfast Only">Breakfast Only (CP)</option>
+                    <option value="Breakfast + Dinner">Breakfast + Dinner (MAP)</option>
+                    <option value="All Meals">All Meals (AP)</option>
+                    <option value="No Meals">Room Only</option>
+                  </select>
+                </div>
+
+                {/* Transfer */}
+                <div>
+                  <label className="font-semibold">Transfer Details</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Private AC Car"
+                    className="border rounded px-3 py-2 w-full mt-1"
+                    value={transfer}
+                    onChange={(e) => setTransfer(e.target.value)}
+                  />
+                </div>
+
+                {/* Budget moved here for 2-col layout */}
+                <div>
+                  <label className="font-semibold">Budget Per Person</label>
+                  <input
+                    type="text"
+                    className="border px-3 py-2 rounded w-full mt-1"
+                    placeholder="Ex: ₹25,000 – ₹60,000"
+                    value={budget}
+                    onChange={(e) => setBudget(e.target.value)}
+                  />
+                </div>
+
               </div>
 
-              {/* BUDGET */}
+              {/* Other Inclusions */}
               <div className="mb-6">
-                <label className="font-semibold">Budget Per Person Without Flight</label>
-                <input
-                  type="text"
-                  className="border px-3 py-2 rounded w-full mt-1"
-                  placeholder="Ex: ₹25,000 – ₹60,000"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
+                <label className="font-semibold">Other Inclusions / Special Requests</label>
+                <textarea
+                  className="border px-3 py-2 rounded w-full mt-1 h-20 resize-none"
+                  placeholder="Tell us about sightseeing, specific activities, etc."
+                  value={otherInclusions}
+                  onChange={(e) => setOtherInclusions(e.target.value)}
                 />
               </div>
 
@@ -681,7 +777,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
           {/* STEP 2 — SAME UI AS UMRAH */}
           {step === 2 && (
             <>
-              <h2 className="text-2xl font-bold mb-6">Your Contact Details</h2>
+              <h2 className="text-xl font-bold mb-4">Your Contact Details</h2>
 
               <div className="space-y-5">
                 <div>

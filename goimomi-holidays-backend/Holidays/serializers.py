@@ -1,12 +1,13 @@
+from rest_framework import serializers
+from django.core.files.base import ContentFile
+from django.contrib.auth.models import User
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay, 
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination, 
-    ItineraryMaster, Nationality, UmrahDestination
+    ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country
 )
-from rest_framework import serializers
-from django.core.files.base import ContentFile
 
-# ... existing serializers ...
+
 
 class NationalitySerializer(serializers.ModelSerializer):
     class Meta:
@@ -238,8 +239,6 @@ class ItineraryMasterSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-from django.contrib.auth.models import User
-
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -255,3 +254,32 @@ class UserSerializer(serializers.ModelSerializer):
             is_staff=True # Important: Make them staff by default
         )
         return user
+
+
+class VisaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Visa
+        fields = "__all__"
+
+
+class VisaApplicantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VisaApplicant
+        fields = "__all__"
+
+
+
+class VisaApplicationSerializer(serializers.ModelSerializer):
+    applicants = VisaApplicantSerializer(many=True, read_only=True)
+    visa_country = serializers.CharField(source='visa.country', read_only=True)
+    visa_title = serializers.CharField(source='visa.title', read_only=True)
+
+    class Meta:
+        model = VisaApplication
+        fields = "__all__"
+
+
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = "__all__"

@@ -50,6 +50,7 @@ const AdminSidebar = () => {
     navigate("/admin/umrah-enquiries/add");
   };
 
+
   const handleChangePackage = () => {
     navigate("/admin/packages");
   };
@@ -65,6 +66,8 @@ const AdminSidebar = () => {
   const handleChangeUmrahEnquiry = () => {
     navigate("/admin/umrah-enquiries");
   };
+
+
 
   const handleChangeStartingCity = () => {
     navigate("/admin/starting-cities");

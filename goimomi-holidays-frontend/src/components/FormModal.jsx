@@ -7,22 +7,18 @@ const FormModal = ({ isOpen, onClose, packageType }) => {
 
   const isUmrah = packageType && packageType.toLowerCase().includes("umrah");
 
-  return (
-    <div className="bg-white w-full max-w-[1400px] h-[90vh] overflow-y-auto rounded-2xl shadow-lg p-8">
-      {isUmrah ? (
-        <PlanTripUmrah
-          packageType={packageType}
-          isOpen={isOpen}
-          onClose={onClose}
-        />
-      ) : (
-        <PlanTripHolidays
-          packageType={packageType}
-          isOpen={isOpen}
-          onClose={onClose}
-        />
-      )}
-    </div>
+  return isUmrah ? (
+    <PlanTripUmrah
+      packageType={packageType}
+      isOpen={isOpen}
+      onClose={onClose}
+    />
+  ) : (
+    <PlanTripHolidays
+      packageType={packageType}
+      isOpen={isOpen}
+      onClose={onClose}
+    />
   );
 };
 
