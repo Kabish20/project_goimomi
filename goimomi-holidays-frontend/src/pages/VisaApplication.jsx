@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X } from "lucide-react";
+import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus } from "lucide-react";
 
 const VisaApplication = () => {
     const { id } = useParams();
@@ -49,7 +49,8 @@ const VisaApplication = () => {
         passport_front: null,
         photo: null,
         passport_front_preview: null,
-        photo_preview: null
+        photo_preview: null,
+        additional_documents: []
     }]);
 
     const [errors, setErrors] = useState({});
@@ -112,6 +113,31 @@ const VisaApplication = () => {
         setApplicants(updated);
     };
 
+    const addAdditionalDocument = (applicantIndex) => {
+        const updated = [...applicants];
+        updated[applicantIndex].additional_documents.push({
+            id: Date.now() + Math.random(),
+            file: null,
+            preview: null
+        });
+        setApplicants(updated);
+    };
+
+    const removeAdditionalDocument = (applicantIndex, docIndex) => {
+        const updated = [...applicants];
+        updated[applicantIndex].additional_documents.splice(docIndex, 1);
+        setApplicants(updated);
+    };
+
+    const handleAdditionalFileChange = (applicantIndex, docIndex, file) => {
+        if (file) {
+            const updated = [...applicants];
+            updated[applicantIndex].additional_documents[docIndex].file = file;
+            updated[applicantIndex].additional_documents[docIndex].preview = URL.createObjectURL(file);
+            setApplicants(updated);
+        }
+    };
+
     const addApplicant = () => {
         setApplicants([...applicants, {
             first_name: "",
@@ -128,7 +154,8 @@ const VisaApplication = () => {
             passport_front: null,
             photo: null,
             passport_front_preview: null,
-            photo_preview: null
+            photo_preview: null,
+            additional_documents: []
         }]);
     };
 
@@ -281,6 +308,13 @@ const VisaApplication = () => {
                 if (applicant.photo) {
                     formData.append(`applicant_${index}_photo`, applicant.photo);
                 }
+
+                // Append additional documents
+                applicant.additional_documents.forEach((doc, docIndex) => {
+                    if (doc.file) {
+                        formData.append(`applicant_${index}_additional_doc_${docIndex}`, doc.file);
+                    }
+                });
             });
 
             await axios.post("/api/visa-applications/", formData, {
@@ -709,7 +743,90 @@ const VisaApplication = () => {
                                         </>
                                     )}
                                 </div>
-                                {errors[`applicant_${index}_photo`] && <p className="text-red-500 text-xs mt-2">{errors[`applicant_${index}_photo`]}</p>}
+                            </div>
+
+                            {/* Additional Documents */}
+                            <div className="mt-10 border-t border-gray-100 pt-8">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold text-gray-900">Additional Documents</h3>
+                                    <button
+                                        onClick={() => addAdditionalDocument(index)}
+                                        className="text-[#14532d] font-medium text-sm flex items-center gap-1 hover:bg-green-50 px-3 py-1.5 rounded-lg transition-colors border border-[#14532d]"
+                                    >
+                                        <Plus size={16} /> Add Document
+                                    </button>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-3xl">
+                                    If you have any other supporting documents (e.g., flight tickets, hotel bookings, etc.), you can upload them here.
+                                </p>
+
+                                <div className="space-y-6">
+                                    {applicant.additional_documents.map((doc, docIndex) => (
+                                        <div key={doc.id} className="relative">
+                                            {/* Header with Remove button */}
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-sm font-semibold text-gray-700">Document {docIndex + 1}</span>
+                                                <button
+                                                    onClick={() => removeAdditionalDocument(index, docIndex)}
+                                                    className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1"
+                                                >
+                                                    <Trash2 size={14} /> Remove Slot
+                                                </button>
+                                            </div>
+
+                                            <div className={`border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors w-full md:w-1/2 relative group cursor-pointer`}>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*,application/pdf"
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    onChange={(e) => handleAdditionalFileChange(index, docIndex, e.target.files[0])}
+                                                />
+                                                {doc.preview ? (
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                e.preventDefault();
+                                                                // Clear the file but keep the slot
+                                                                const updated = [...applicants];
+                                                                updated[index].additional_documents[docIndex].file = null;
+                                                                updated[index].additional_documents[docIndex].preview = null;
+                                                                setApplicants(updated);
+                                                            }}
+                                                            className="absolute top-2 right-2 z-10 p-1.5 bg-white rounded-full shadow-md text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200"
+                                                            title="Remove file"
+                                                            type="button"
+                                                        >
+                                                            <X size={16} />
+                                                        </button>
+                                                        {doc.file?.type?.includes('pdf') ? (
+                                                            <div className="h-40 flex items-center justify-center bg-gray-100 rounded-lg">
+                                                                <FileText size={48} className="text-gray-400" />
+                                                            </div>
+                                                        ) : (
+                                                            <img src={doc.preview} alt="Document Preview" className="h-40 mx-auto object-cover rounded-lg shadow-sm" />
+                                                        )}
+                                                        <div className="mt-2 text-[#14532d] font-semibold text-sm flex items-center justify-center gap-2">
+                                                            <CheckCircle size={16} /> File Selected: {doc.file.name}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 text-[#14532d]">
+                                                            <FileText size={24} />
+                                                        </div>
+                                                        <h4 className="font-semibold text-gray-900 mb-1">Drag and drop files to upload</h4>
+                                                        <p className="text-gray-400 text-sm mb-4">or</p>
+                                                        <button className="px-6 py-2 bg-[#14532d] text-white rounded-lg text-sm font-semibold">Select file</button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {applicant.additional_documents.length === 0 && (
+                                        <div className="text-sm text-gray-400 italic">No additional documents added.</div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}

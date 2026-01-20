@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const AdminLogin = () => {
     const [username, setUsername] = useState("");
@@ -13,19 +14,26 @@ const AdminLogin = () => {
         setError("");
 
         try {
-            const response = await axios.post("/api/admin-login/", {
+            const response = await axios.post("/api/token/", {
                 username,
                 password,
             });
 
-            if (response.data.success) {
-                // Store user info/token if needed
-                localStorage.setItem("adminUser", JSON.stringify(response.data.user));
+            if (response.data.access) {
+                // Store tokens
+                localStorage.setItem("accessToken", response.data.access);
+                localStorage.setItem("refreshToken", response.data.refresh);
+
+                // Store user info from token
+                const user = jwtDecode(response.data.access);
+                localStorage.setItem("adminUser", JSON.stringify(user));
+
                 navigate("/admin-dashboard");
             }
         } catch (err) {
             if (err.response && err.response.data) {
-                setError(err.response.data.error);
+                // SimpleJWT often returns {"detail": "..."}
+                setError(err.response.data.detail || err.response.data.error || "Login failed.");
             } else {
                 setError("Login failed. Please try again.");
             }

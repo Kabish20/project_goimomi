@@ -1,15 +1,30 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 
 const ProtectedRoute = () => {
-    // Check if user is logged in
-    // In AdminLogin.jsx we set: localStorage.setItem("adminUser", JSON.stringify(response.data.user));
-    const user = JSON.parse(localStorage.getItem('adminUser'));
+    const token = localStorage.getItem('accessToken');
+    let isAuthenticated = false;
 
-    // Basic check: user must exist and have an ID.
-    // Since our backend only logs in staff, this is a reasonable check for now.
-    // For more security, you could store a token and validate it, but this mirrors the basic auth flow request.
-    const isAuthenticated = user && user.id;
+    if (token) {
+        try {
+            const decoded = jwtDecode(token);
+            const currentTime = Date.now() / 1000;
+            if (decoded.exp > currentTime) {
+                isAuthenticated = true;
+            } else {
+                // Token expired
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
+                localStorage.removeItem("adminUser");
+            }
+        } catch (error) {
+            // Invalid token
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("adminUser");
+        }
+    }
 
     if (!isAuthenticated) {
         return <Navigate to="/admin-login" replace />;

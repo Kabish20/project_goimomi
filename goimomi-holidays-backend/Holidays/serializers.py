@@ -6,6 +6,20 @@ from .models import (
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination, 
     ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country
 )
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['username'] = user.username
+        token['is_staff'] = user.is_staff
+        token['is_superuser'] = user.is_superuser
+        token['email'] = user.email
+
+        return token
 
 
 

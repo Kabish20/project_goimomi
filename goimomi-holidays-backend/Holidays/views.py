@@ -113,8 +113,6 @@ class ItineraryMasterViewSet(ModelViewSet):
 from django.contrib.auth.models import User
 
 class UserViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = None
