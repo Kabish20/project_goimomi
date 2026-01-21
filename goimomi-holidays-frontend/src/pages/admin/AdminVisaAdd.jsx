@@ -18,6 +18,8 @@ const AdminVisaAdd = () => {
         documents_required: "Passport Front, Photo",
         visa_type: "Paper Visa",
         is_active: true,
+        header_image: null,
+        card_image: null,
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,8 +32,6 @@ const AdminVisaAdd = () => {
     const fetchCountries = async () => {
         try {
             const response = await axios.get("/api/countries/");
-            // Assuming response.data is a list of objects {name: "Vietnam", ...} or just strings if I made it simpler.
-            // Based on earlier context, it's list of objects.
             setCountries(response.data);
         } catch (error) {
             console.error("Error fetching countries:", error);
@@ -39,11 +39,15 @@ const AdminVisaAdd = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData({
-            ...formData,
-            [name]: type === "checkbox" ? checked : value,
-        });
+        const { name, value, type, checked, files } = e.target;
+        if (type === "file") {
+            setFormData({ ...formData, [name]: files[0] });
+        } else {
+            setFormData({
+                ...formData,
+                [name]: type === "checkbox" ? checked : value,
+            });
+        }
     };
 
     const handleSubmit = async (e, action = "save") => {
@@ -58,7 +62,16 @@ const AdminVisaAdd = () => {
         setStatusMessage({ text: "", type: "" });
 
         try {
-            const response = await axios.post("/api/visas/", formData);
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key] !== null) {
+                    data.append(key, formData[key]);
+                }
+            });
+
+            const response = await axios.post("/api/visas/", data, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
 
             if (action === "continue") {
                 navigate(`/admin/visas/edit/${response.data.id}`);
@@ -74,6 +87,8 @@ const AdminVisaAdd = () => {
                     documents_required: "Passport Front, Photo",
                     visa_type: "Paper Visa",
                     is_active: true,
+                    header_image: null,
+                    card_image: null,
                 });
                 setStatusMessage({ text: "Visa added successfully! Add another one.", type: "success" });
                 setIsSubmitting(false);
@@ -242,6 +257,33 @@ const AdminVisaAdd = () => {
                                         <label className="ml-2 text-xs font-bold text-gray-700 uppercase">
                                             Is Active?
                                         </label>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div className="space-y-1">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase">
+                                            Header Image
+                                        </label>
+                                        <input
+                                            type="file"
+                                            name="header_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase">
+                                            Card Image
+                                        </label>
+                                        <input
+                                            type="file"
+                                            name="card_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                        />
                                     </div>
                                 </div>
 

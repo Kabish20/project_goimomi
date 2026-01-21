@@ -19,10 +19,24 @@ const AdminVisaEdit = () => {
         documents_required: "Passport Front, Photo",
         visa_type: "Paper Visa",
         is_active: true,
+        header_image: null,
+        card_image: null,
     });
+    const [headerPreview, setHeaderPreview] = useState(null);
+    const [cardPreview, setCardPreview] = useState(null);
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countries, setCountries] = useState([]);
+
+    // Helper to fix image URLs
+    const getImageUrl = (url) => {
+        if (!url) return "";
+        if (typeof url !== "string") return url;
+        if (url.startsWith("http")) {
+            return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+        }
+        return url;
+    };
 
     useEffect(() => {
         fetchCountries();
@@ -41,7 +55,14 @@ const AdminVisaEdit = () => {
     const fetchVisa = async () => {
         try {
             const response = await axios.get(`/api/visas/${id}/`);
-            setFormData(response.data);
+            const data = response.data;
+            setFormData({
+                ...data,
+                header_image: null,
+                card_image: null
+            });
+            setHeaderPreview(getImageUrl(data.header_image));
+            setCardPreview(getImageUrl(data.card_image));
         } catch (error) {
             console.error("Error fetching visa:", error);
             setStatusMessage({ text: "Failed to fetch visa details", type: "error" });
@@ -49,11 +70,15 @@ const AdminVisaEdit = () => {
     };
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData({
-            ...formData,
-            [name]: type === "checkbox" ? checked : value,
-        });
+        const { name, value, type, checked, files } = e.target;
+        if (type === "file") {
+            setFormData({ ...formData, [name]: files[0] });
+        } else {
+            setFormData({
+                ...formData,
+                [name]: type === "checkbox" ? checked : value,
+            });
+        }
     };
 
     const handleSubmit = async (e, action = "save") => {
@@ -68,10 +93,22 @@ const AdminVisaEdit = () => {
         setStatusMessage({ text: "", type: "" });
 
         try {
-            const response = await axios.put(`/api/visas/${id}/`, formData);
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key] instanceof File) {
+                    data.append(key, formData[key]);
+                } else if (key !== 'header_image' && key !== 'card_image') {
+                    data.append(key, formData[key]);
+                }
+            });
+
+            const response = await axios.put(`/api/visas/${id}/`, data, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
 
             if (action === "continue") {
                 setStatusMessage({ text: "Visa updated successfully!", type: "success" });
+                fetchVisa();
                 setIsSubmitting(false);
             } else if (action === "another") {
                 navigate("/admin/visas/add");
@@ -240,6 +277,45 @@ const AdminVisaEdit = () => {
                                         <label className="ml-2 text-sm font-semibold text-gray-700 uppercase tracking-wider">
                                             Is Active?
                                         </label>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div className="space-y-1">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase">
+                                            Header Image
+                                        </label>
+                                        {headerPreview && (
+                                            <div className="mb-2">
+                                                <img src={headerPreview} alt="Header Preview" className="h-20 w-full object-cover rounded border" />
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            name="header_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                        />
+                                        <p className="text-[10px] text-gray-500 italic">Leave empty to keep current</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase">
+                                            Card Image
+                                        </label>
+                                        {cardPreview && (
+                                            <div className="mb-2">
+                                                <img src={cardPreview} alt="Card Preview" className="h-20 w-full object-cover rounded border" />
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            name="card_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                        />
+                                        <p className="text-[10px] text-gray-500 italic">Leave empty to keep current</p>
                                     </div>
                                 </div>
 

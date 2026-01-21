@@ -25,6 +25,16 @@ const ItineraryMasterEdit = () => {
 
     const API_BASE_URL = "/api";
 
+    // Helper to fix image URLs
+    const getImageUrl = (url) => {
+        if (!url) return "";
+        if (typeof url !== "string") return url;
+        if (url.startsWith("http")) {
+            return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+        }
+        return url;
+    };
+
     const fetchItinerary = useCallback(async () => {
         try {
             setLoading(true);
@@ -37,7 +47,7 @@ const ItineraryMasterEdit = () => {
                 image: null,
                 destination: data.destination || "",
             });
-            setExistingImage(data.image); // URL of existing image
+            setExistingImage(getImageUrl(data.image)); // URL of existing image
             setError("");
         } catch (err) {
             console.error("Error fetching itinerary:", err);

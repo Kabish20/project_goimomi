@@ -104,6 +104,16 @@ const HolidayPackageEdit = () => {
         }, {});
     }, [itineraryMasters, destinations]);
 
+    // Helper to fix image URLs
+    const getImageUrl = (url) => {
+        if (!url) return "";
+        if (typeof url !== "string") return url;
+        if (url.startsWith("http")) {
+            return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+        }
+        return url;
+    };
+
 
     useEffect(() => {
         const loadData = async () => {
@@ -139,8 +149,8 @@ const HolidayPackageEdit = () => {
                 });
 
                 // Set Previews
-                setHeaderPreview(pkg.header_image);
-                setCardPreview(pkg.card_image);
+                setHeaderPreview(getImageUrl(pkg.header_image));
+                setCardPreview(getImageUrl(pkg.card_image));
 
                 // Populate Nested Data
                 // Destinations
@@ -159,7 +169,7 @@ const HolidayPackageEdit = () => {
                         description: day.description,
                         master_template: day.master_template || "",
                         image: null, // We generally don't pre-fill file inputs. 
-                        existing_image: day.image // Can show preview if needed
+                        existing_image: getImageUrl(day.image) // Can show preview if needed
                     })));
                 }
 
