@@ -27,7 +27,7 @@ const VisaSearch = () => {
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await axios.get("http://127.0.0.1:8000/api/countries/");
+                const response = await axios.get("/api/countries/");
                 // Extract names if the API returns objects, assuming list of objects with 'name' property
                 // or list of strings. Adjust based on actual API response.
                 // Based on previous populate script, it creates objects. Serializer likely returns objects.

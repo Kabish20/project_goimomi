@@ -288,7 +288,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
         message="Your Umrah enquiry has been submitted successfully! Our team will contact you shortly."
       />
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[90vh] overflow-y-auto relative">
+        <div className="w-full max-w-lg bg-white rounded-xl shadow-xl p-4 max-h-[90vh] overflow-y-auto relative">
 
           {/* Close button */}
           <button
@@ -301,7 +301,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
           {/* STEP 1 FORM */}
           {step === 1 && (
             <>
-              <h2 className="text-xl font-bold mb-4">Create Customized Proposal</h2>
+              <h2 className="text-lg font-bold mb-3">Create Customized Proposal</h2>
 
               {/* Selected Package */}
               {packageType && (
@@ -313,12 +313,12 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
               )}
 
               {/* Destination list */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2 mb-4">
                 {cities.map((item, i) => (
                   <div key={i} className="flex gap-3 items-center">
                     <div className="w-full relative custom-dropdown-container">
                       <div
-                        className="border px-3 py-2 rounded w-full bg-white cursor-pointer flex justify-between items-center"
+                        className="border px-2 py-1 rounded w-full bg-white cursor-pointer flex justify-between items-center text-xs"
                         onClick={() => {
                           setActiveCityIndex(activeCityIndex === i ? null : i);
                           setCitySearch("");
@@ -371,7 +371,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                     </div>
 
                     <select
-                      className="border px-3 py-2 rounded"
+                      className="border px-2 py-1 rounded text-xs"
                       value={item.nights}
                       onChange={(e) => updateCity(i, "nights", Number(e.target.value))}
                     >
@@ -396,11 +396,11 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
               </div>
 
               {/* Trip details */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                 <div className="w-full relative custom-dropdown-container">
                   <label className="font-semibold">Starting City *</label>
                   <div
-                    className={`border px-3 py-2 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 ${errors.startCity ? 'border-red-500' : ''}`}
+                    className={`border px-2 py-1 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 text-xs ${errors.startCity ? 'border-red-500' : ''}`}
                     onClick={() => {
                       setIsStartCityOpen(!isStartCityOpen);
                       setStartCitySearch("");
@@ -457,7 +457,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                 <div className="w-full relative custom-dropdown-container">
                   <label className="font-semibold">Nationality *</label>
                   <div
-                    className={`border px-3 py-2 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 ${errors.nationality ? 'border-red-500' : ''}`}
+                    className={`border px-2 py-1 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 text-xs ${errors.nationality ? 'border-red-500' : ''}`}
                     onClick={() => {
                       setIsNationalityOpen(!isNationalityOpen);
                       setNationalitySearch("");
@@ -515,7 +515,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                   <label className="font-semibold">Travel Date *</label>
                   <input
                     type="date"
-                    className={`border w-full rounded px-3 py-2 mt-1 ${errors.travelDate ? 'border-red-500' : ''}`}
+                    className={`border w-full rounded px-2 py-1 mt-1 text-xs ${errors.travelDate ? 'border-red-500' : ''}`}
                     value={travelDate}
                     onChange={(e) => {
                       setTravelDate(e.target.value);
@@ -531,7 +531,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                   <button
                     type="button"
                     onClick={() => setTravelerDropdownOpen(!travelerDropdownOpen)}
-                    className="border rounded w-full px-3 py-2 mt-1 text-left flex justify-between items-center"
+                    className="border rounded w-full px-2 py-1 mt-1 text-left flex justify-between items-center text-xs"
                   >
                     <span>{travelerSummary()}</span>
                     <svg className={`w-4 h-4 text-gray-500 transition-transform ${travelerDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -590,7 +590,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                 <div>
                   <label className="font-semibold"> Hotel Star Rating</label>
                   <select
-                    className={`border rounded px-3 py-2 w-full mt-1 ${errors.starRating ? 'border-red-500' : ''}`}
+                    className={`border rounded px-2 py-1 w-full mt-1 text-xs ${errors.starRating ? 'border-red-500' : ''}`}
                     value={starRating}
                     onChange={(e) => {
                       setStarRating(e.target.value);
@@ -609,11 +609,11 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
               </div>
 
               {/* Budget */}
-              <div className="mb-6">
+              <div className="mb-4 text-sm">
                 <label className="font-semibold">Budget Per Person Without Flight</label>
                 <input
                   type="text"
-                  className="border rounded px-3 py-2 w-full mt-1"
+                  className="border rounded px-3 py-1.5 w-full mt-1 text-sm"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                 />
@@ -635,15 +635,15 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
           {/* STEP 2 FORM */}
           {step === 2 && (
             <>
-              <h2 className="text-xl font-bold mb-4">Traveler Details</h2>
+              <h2 className="text-lg font-bold mb-3">Traveler Details</h2>
 
-              <div className="space-y-5">
+              <div className="space-y-4 text-sm">
                 <div>
                   <label className="font-semibold">Full Name *</label>
                   <input
                     type="text"
                     placeholder="Full Name"
-                    className={`border px-3 py-2 rounded w-full ${errors.fullName ? 'border-red-500' : ''}`}
+                    className={`border px-3 py-1.5 rounded w-full text-sm ${errors.fullName ? 'border-red-500' : ''}`}
                     value={fullName}
                     onChange={(e) => {
                       setFullName(e.target.value);
@@ -658,7 +658,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                   <input
                     type="email"
                     placeholder="Email"
-                    className={`border px-3 py-2 rounded w-full ${errors.email ? 'border-red-500' : ''}`}
+                    className={`border px-3 py-1.5 rounded w-full text-sm ${errors.email ? 'border-red-500' : ''}`}
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -673,7 +673,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                   <input
                     type="tel"
                     placeholder="Phone Number"
-                    className={`border px-3 py-2 rounded w-full ${errors.phone ? 'border-red-500' : ''}`}
+                    className={`border px-3 py-1.5 rounded w-full text-sm ${errors.phone ? 'border-red-500' : ''}`}
                     value={phone}
                     onChange={(e) => {
                       setPhone(e.target.value);
@@ -687,7 +687,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                   <label className="font-semibold">Additional Message</label>
                   <textarea
                     placeholder="Tell us more about your preferences..."
-                    className="border px-3 py-2 rounded w-full mt-1 h-32 resize-none"
+                    className="border px-3 py-1.5 rounded w-full mt-1 h-24 resize-none text-sm"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                   />

@@ -19,7 +19,7 @@ const AdminVisaManage = () => {
 
     const fetchVisas = async () => {
         try {
-            const response = await axios.get("/api/visas/");
+            const response = await axios.get("/api/visas/?all=true");
             setVisas(response.data);
             setLoading(false);
         } catch (error) {
@@ -39,6 +39,21 @@ const AdminVisaManage = () => {
                 console.error("Error deleting visa:", error);
                 setStatusMessage({ text: "Failed to delete visa", type: "error" });
             }
+        }
+    };
+
+    const handleStatusToggle = async (visa) => {
+        try {
+            const updatedVisa = { ...visa, is_active: !visa.is_active };
+            await axios.put(`/api/visas/${visa.id}/`, updatedVisa);
+            setVisas(visas.map((v) => (v.id === visa.id ? updatedVisa : v)));
+            setStatusMessage({
+                text: `Visa ${!visa.is_active ? "activated" : "deactivated"} successfully`,
+                type: "success",
+            });
+        } catch (error) {
+            console.error("Error toggling visa status:", error);
+            setStatusMessage({ text: "Failed to toggle visa status", type: "error" });
         }
     };
 
@@ -124,11 +139,17 @@ const AdminVisaManage = () => {
                                                 <td className="py-4 px-6 text-gray-600 border-r">{v.validity}</td>
                                                 <td className="py-4 px-6 text-gray-900 font-medium border-r">₹{v.price}</td>
                                                 <td className="py-4 px-6 text-center border-r">
-                                                    {v.is_active ? (
-                                                        <CheckCircle size={20} className="text-green-500 mx-auto" />
-                                                    ) : (
-                                                        <XCircle size={20} className="text-red-500 mx-auto" />
-                                                    )}
+                                                    <button
+                                                        onClick={() => handleStatusToggle(v)}
+                                                        title={v.is_active ? "Click to deactivate" : "Click to activate"}
+                                                        className="hover:scale-110 transition-transform active:scale-95"
+                                                    >
+                                                        {v.is_active ? (
+                                                            <CheckCircle size={24} className="text-green-500 mx-auto" />
+                                                        ) : (
+                                                            <XCircle size={24} className="text-gray-300 mx-auto" />
+                                                        )}
+                                                    </button>
                                                 </td>
                                                 <td className="py-4 px-6">
                                                     <div className="flex justify-center gap-4">

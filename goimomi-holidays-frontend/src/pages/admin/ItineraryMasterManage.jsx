@@ -68,40 +68,40 @@ const ItineraryMasterManage = () => {
       <AdminSidebar />
       <div className="flex-1">
         <AdminTopbar />
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-semibold text-gray-800">Manage Itinerary Masters</h1>
-            <div className="flex gap-3">
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-lg font-bold text-gray-800">Manage Itinerary Masters</h1>
+            <div className="flex gap-2">
               <button
                 onClick={fetchItineraries}
-                className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+                className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-gray-700 transition"
               >
-                Refresh List
+                Refresh
               </button>
               <button
                 onClick={() => navigate("/admin/itinerary-masters/add")}
-                className="flex items-center gap-2 bg-[#14532d] text-white px-4 py-2 rounded hover:bg-[#0f4a24] transition"
+                className="flex items-center gap-1.5 bg-[#14532d] text-white px-3 py-1.5 rounded-lg text-xs hover:bg-[#0f4a24] transition"
               >
-                <Plus size={16} />
-                Add New Itinerary
+                <Plus size={14} />
+                Add New
               </button>
             </div>
           </div>
-
+          electoral
           {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
-              <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
+          <div className="mb-4">
+            <div className="relative max-w-sm">
+              <Search size={16} className="absolute left-3 top-2 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search itineraries by name or title..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                placeholder="Search templates..."
+                className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14532d]"
               />
             </div>
           </div>
-
+          electoral
           {message && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
               {message}
@@ -120,42 +120,42 @@ const ItineraryMasterManage = () => {
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-[#14532d] text-white">
                   <tr>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Name (ID)</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Title</th>
-                    <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Name (ID)</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Title</th>
+                    <th className="text-center py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredItineraries.length === 0 ? (
                     <tr>
-                      <td colSpan="3" className="text-center py-10 text-gray-500">
-                        {searchTerm ? `No itinerary masters match "${searchTerm}"` : "No itinerary masters found."}
+                      <td colSpan="3" className="text-center py-8 text-gray-500 text-sm">
+                        {searchTerm ? `No results for "${searchTerm}"` : "No itineraries found."}
                       </td>
                     </tr>
                   ) : (
                     filteredItineraries.map((itinerary) => (
                       <tr key={itinerary.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-6 font-medium text-gray-900 border-r">{itinerary.name}</td>
-                        <td className="py-4 px-6 text-gray-700 border-r font-medium">{itinerary.title}</td>
-                        <td className="py-4 px-6">
-                          <div className="flex justify-center gap-4">
+                        <td className="py-2.5 px-4 font-medium text-gray-900 border-r text-sm">{itinerary.name}</td>
+                        <td className="py-2.5 px-4 text-gray-700 border-r font-medium text-sm">{itinerary.title}</td>
+                        <td className="py-2.5 px-4">
+                          <div className="flex justify-center gap-3">
                             <button
                               onClick={() => handleEdit(itinerary)}
-                              className="flex items-center gap-1.5 bg-[#1f7a45] text-white px-4 py-1.5 rounded-md text-sm hover:bg-[#1a6338] transition shadow-sm"
+                              className="flex items-center gap-1.5 text-green-700 font-bold hover:text-green-900 transition text-xs"
                             >
-                              <Edit2 size={14} />
+                              <Edit2 size={12} />
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(itinerary.id)}
-                              className="flex items-center gap-1.5 bg-red-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-red-700 transition shadow-sm"
+                              className="flex items-center gap-1.5 text-red-600 font-bold hover:text-red-800 transition text-xs"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={12} />
                               Delete
                             </button>
                           </div>

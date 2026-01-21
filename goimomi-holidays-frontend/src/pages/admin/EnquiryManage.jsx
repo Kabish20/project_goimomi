@@ -36,9 +36,8 @@ const EnquiryManage = () => {
   useEffect(() => {
     const filtered = enquiries.filter(enquiry =>
       enquiry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enquiry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enquiry.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enquiry.message?.toLowerCase().includes(searchTerm.toLowerCase())
+      enquiry.purpose?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredEnquiries(filtered);
   }, [searchTerm, enquiries]);
@@ -87,7 +86,7 @@ const EnquiryManage = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search enquiries by name, email, phone, or message..."
+                placeholder="Search enquiries by name, phone, or purpose..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d]"
               />
             </div>
@@ -113,7 +112,7 @@ const EnquiryManage = () => {
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Name</th>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Contact</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Message</th>
+                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Purpose</th>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Date</th>
                     <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
                   </tr>
@@ -132,10 +131,6 @@ const EnquiryManage = () => {
                         <td className="py-4 px-6 border-r">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-sm">
-                              <Mail size={14} className="text-gray-400" />
-                              {enquiry.email}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
                               <Phone size={14} className="text-gray-400" />
                               {enquiry.phone}
                             </div>
@@ -144,7 +139,7 @@ const EnquiryManage = () => {
                         <td className="py-3 px-4">
                           <div className="max-w-xs">
                             <p className="text-sm text-gray-600 truncate">
-                              {enquiry.message}
+                              {enquiry.purpose}
                             </p>
                           </div>
                         </td>
@@ -196,6 +191,14 @@ const EnquiryManage = () => {
                     <h3 className="font-semibold text-gray-700">Contact Information</h3>
                     <p><strong>Name:</strong> {selectedEnquiry.name}</p>
                     <p><strong>Phone:</strong> {selectedEnquiry.phone}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-700">Enquiry Details</h3>
+                    <p><strong>Purpose of Visit:</strong></p>
+                    <p className="mt-1 text-gray-600 bg-gray-50 p-3 rounded border">
+                      {selectedEnquiry.purpose || "No details provided"}
+                    </p>
                   </div>
 
                   <div>

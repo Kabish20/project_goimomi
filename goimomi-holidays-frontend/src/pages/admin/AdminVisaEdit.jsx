@@ -17,6 +17,7 @@ const AdminVisaEdit = () => {
         processing_time: "3-5 Business Days",
         price: "",
         documents_required: "Passport Front, Photo",
+        visa_type: "Paper Visa",
         is_active: true,
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
@@ -89,33 +90,30 @@ const AdminVisaEdit = () => {
             <AdminSidebar />
             <div className="flex-1">
                 <AdminTopbar />
-                <div className="p-6">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex items-center gap-4 mb-8">
+                <div className="p-4">
+                    <div className="max-w-5xl mx-auto">
+                        <div className="flex items-center gap-2 mb-4">
                             <button
                                 onClick={() => navigate("/admin/visas")}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                className="p-1 px-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-xs font-semibold flex items-center gap-1"
                             >
-                                <ArrowLeft size={24} className="text-gray-600" />
+                                <ArrowLeft size={14} /> Back
                             </button>
-                            <h1 className="text-2xl font-bold text-gray-800">Edit Visa</h1>
+                            <h1 className="text-xl font-bold text-gray-800">Edit Visa</h1>
                         </div>
 
                         {statusMessage.text && (
-                            <div
-                                className={`mb-6 p-4 rounded-lg flex justify-between items-center ${statusMessage.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                                    }`}
-                            >
-                                <span>{statusMessage.text}</span>
-                                <button onClick={() => setStatusMessage({ text: "", type: "" })}>✕</button>
+                            <div className={`p-3 rounded mb-4 text-sm font-medium ${statusMessage.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                                }`}>
+                                {statusMessage.text}
                             </div>
                         )}
 
-                        <form className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                            <div className="p-8 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                        <form onSubmit={(e) => handleSubmit(e)} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="p-4 space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                                    <div className="space-y-1">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase">
                                             Country <span className="text-red-500">*</span>
                                         </label>
                                         <select
@@ -132,8 +130,8 @@ const AdminVisaEdit = () => {
                                         </select>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                                    <div className="space-y-1">
+                                        <label className="block text-xs font-bold text-gray-700 uppercase">
                                             Title <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -142,9 +140,24 @@ const AdminVisaEdit = () => {
                                             value={formData.title}
                                             onChange={handleChange}
                                             placeholder="e.g. Vietnam E-Visa"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
                                             required
                                         />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                                            Visa Type
+                                        </label>
+                                        <select
+                                            name="visa_type"
+                                            value={formData.visa_type}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                        >
+                                            <option value="Paper Visa">Paper Visa</option>
+                                            <option value="Sticker Visa">Sticker Visa</option>
+                                        </select>
                                     </div>
 
                                     <div className="space-y-2">
@@ -155,7 +168,7 @@ const AdminVisaEdit = () => {
                                             name="entry_type"
                                             value={formData.entry_type}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
                                         >
                                             <option value="Single">Single</option>
                                             <option value="Multiple">Multiple</option>
@@ -171,7 +184,7 @@ const AdminVisaEdit = () => {
                                             name="validity"
                                             value={formData.validity}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
                                         />
                                     </div>
 
@@ -184,7 +197,7 @@ const AdminVisaEdit = () => {
                                             name="duration"
                                             value={formData.duration}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
                                         />
                                     </div>
 
@@ -197,7 +210,7 @@ const AdminVisaEdit = () => {
                                             name="processing_time"
                                             value={formData.processing_time}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
                                         />
                                     </div>
 
@@ -210,7 +223,7 @@ const AdminVisaEdit = () => {
                                             name="price"
                                             value={formData.price}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
                                             required
                                         />
                                     </div>
@@ -244,32 +257,29 @@ const AdminVisaEdit = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 bg-gray-50 border-t flex flex-wrap justify-end gap-3">
+                            <div className="p-4 bg-gray-50 border-t flex flex-wrap justify-end gap-2">
                                 <button
-                                    type="button"
-                                    onClick={(e) => handleSubmit(e, "save")}
+                                    type="submit"
                                     disabled={isSubmitting}
-                                    className="px-6 py-2.5 bg-[#14532d] hover:bg-[#1f7a45] text-white rounded-lg font-semibold flex items-center gap-2 transition-all disabled:opacity-50"
+                                    className="flex items-center gap-1 px-4 py-1.5 bg-[#14532d] text-white rounded hover:bg-[#0f4a24] transition-colors disabled:opacity-50 text-sm font-semibold"
                                 >
-                                    <Save size={18} />
-                                    SAVE
+                                    <Save size={14} /> SAVE
                                 </button>
                                 <button
                                     type="button"
                                     onClick={(e) => handleSubmit(e, "another")}
                                     disabled={isSubmitting}
-                                    className="px-6 py-2.5 bg-[#1f7a45] hover:bg-[#2d915a] text-white rounded-lg font-semibold flex items-center gap-2 transition-all disabled:opacity-50"
+                                    className="flex items-center gap-1 px-4 py-1.5 bg-[#1f7a45] text-white rounded hover:bg-[#1a6338] transition-colors disabled:opacity-50 text-sm font-semibold"
                                 >
-                                    <Plus size={18} />
-                                    SAVE AND ADD ANOTHER
+                                    <Plus size={14} /> ADD NEW
                                 </button>
                                 <button
                                     type="button"
                                     onClick={(e) => handleSubmit(e, "continue")}
                                     disabled={isSubmitting}
-                                    className="px-6 py-2.5 border border-[#14532d] text-[#14532d] hover:bg-green-50 rounded-lg font-semibold transition-all disabled:opacity-50"
+                                    className="px-4 py-1.5 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors disabled:opacity-50 text-sm font-semibold"
                                 >
-                                    SAVE AND CONTINUE EDITING
+                                    UPDATE + STAY
                                 </button>
                             </div>
                         </form>

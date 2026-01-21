@@ -3,6 +3,7 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import SearchableSelect from "../../components/admin/SearchableSelect";
 
 const ItineraryMasterEdit = () => {
     const { id } = useParams();
@@ -13,7 +14,9 @@ const ItineraryMasterEdit = () => {
         title: "",
         description: "",
         image: null,
+        destination: "",
     });
+    const [destinations, setDestinations] = useState([]);
     const [existingImage, setExistingImage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -31,7 +34,8 @@ const ItineraryMasterEdit = () => {
                 name: data.name,
                 title: data.title,
                 description: data.description,
-                image: null, // Don't pre-fill file input
+                image: null,
+                destination: data.destination || "",
             });
             setExistingImage(data.image); // URL of existing image
             setError("");
@@ -43,9 +47,19 @@ const ItineraryMasterEdit = () => {
         }
     }, [id]);
 
+    const fetchDestinations = useCallback(async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/destinations/`);
+            setDestinations(response.data);
+        } catch (err) {
+            console.error("Error fetching destinations:", err);
+        }
+    }, []);
+
     useEffect(() => {
         fetchItinerary();
-    }, [fetchItinerary]);
+        fetchDestinations();
+    }, [fetchItinerary, fetchDestinations]);
 
     const handleChange = (e) => {
         if (e.target.name === "image") {
@@ -67,6 +81,9 @@ const ItineraryMasterEdit = () => {
         formData.append("name", form.name);
         formData.append("title", form.title);
         formData.append("description", form.description);
+        if (form.destination) {
+            formData.append("destination", form.destination);
+        }
         if (form.image) {
             formData.append("image", form.image);
         }
@@ -115,12 +132,12 @@ const ItineraryMasterEdit = () => {
             <div className="flex-1">
                 <AdminTopbar />
 
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-xl font-semibold text-gray-800">Edit Itinerary Master</h1>
+                <div className="p-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-xl font-bold text-gray-800">Edit Itinerary Master</h1>
                         <button
                             onClick={() => navigate('/admin/itinerary-masters')}
-                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+                            className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300 transition"
                         >
                             Back to List
                         </button>
@@ -132,55 +149,64 @@ const ItineraryMasterEdit = () => {
                         </div>
                     )}
                     {error && (
-                        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="max-w-xl bg-white rounded-lg shadow-md p-6 space-y-4">
-                        <div className="flex flex-col gap-2">
-                            <label className="text-gray-700 font-medium">Name (Internal ID):</label>
+                    <form onSubmit={handleSubmit} className="max-w-xl bg-white rounded-lg shadow-sm p-4 space-y-3">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-gray-700 font-bold text-xs uppercase">Destination:</label>
+                            <SearchableSelect
+                                options={destinations.map(d => ({ value: d.id, label: d.name }))}
+                                value={form.destination}
+                                onChange={(val) => setForm({ ...form, destination: val })}
+                                placeholder="Select Destination (Global)"
+                                disabled={saving}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-gray-700 font-bold text-xs uppercase">Name (Internal ID):</label>
                             <input
                                 name="name"
                                 value={form.name}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                                className="w-full border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
                                 required
                                 disabled={saving}
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <label className="text-gray-700 font-medium">Title (Display Name):</label>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-gray-700 font-bold text-xs uppercase">Title (Display Name):</label>
                             <input
                                 name="title"
                                 value={form.title}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                                className="w-full border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
                                 required
                                 disabled={saving}
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <label className="text-gray-700 font-medium">Description:</label>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-gray-700 font-bold text-xs uppercase">Description:</label>
                             <textarea
                                 name="description"
                                 value={form.description}
                                 onChange={handleChange}
                                 rows="4"
-                                className="w-full border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                                className="w-full border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
                                 required
                                 disabled={saving}
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <label className="text-gray-700 font-medium">Image (Optional):</label>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-gray-700 font-bold text-xs uppercase">Image:</label>
                             {existingImage && (
                                 <div className="mb-2">
-                                    <img src={existingImage} alt="Current" className="h-24 object-cover rounded border" />
-                                    <p className="text-xs text-gray-500">Current Image</p>
+                                    <img src={existingImage} alt="Preview" className="h-20 w-32 object-cover rounded shadow-sm" />
                                 </div>
                             )}
                             <input
@@ -188,18 +214,26 @@ const ItineraryMasterEdit = () => {
                                 name="image"
                                 onChange={handleChange}
                                 accept="image/*"
-                                className="w-full border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                                className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-[#14532d] file:text-white"
                                 disabled={saving}
                             />
                         </div>
 
-                        <div className="flex gap-3 pt-4">
+                        <div className="pt-2 flex gap-2">
                             <button
                                 type="submit"
-                                className="bg-[#14532d] text-white px-4 py-2 rounded hover:bg-[#0f4a24] transition disabled:opacity-50"
+                                className="bg-[#14532d] text-white px-4 py-1.5 rounded hover:bg-[#0f4a24] transition text-sm font-semibold"
                                 disabled={saving}
                             >
-                                {saving ? "Updating..." : "UPDATE"}
+                                {saving ? "UPDATING..." : "UPDATE"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/admin/itinerary-masters')}
+                                className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-[#0f4a24] transition text-sm font-semibold"
+                                disabled={saving}
+                            >
+                                CANCEL
                             </button>
                         </div>
                     </form>

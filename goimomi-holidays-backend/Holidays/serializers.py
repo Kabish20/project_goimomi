@@ -175,6 +175,16 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                              master_template_obj = ItineraryMaster.objects.get(id=day_data['master_template'])
                          except ItineraryMaster.DoesNotExist:
                              pass
+                    # Get primary destination to link auto-created master
+                    primary_destination = None
+                    if package_destinations_data and len(package_destinations_data) > 0:
+                        try:
+                            primary_dest_name = package_destinations_data[0].get('destination')
+                            if primary_dest_name:
+                                primary_destination = Destination.objects.get(name=primary_dest_name)
+                        except Destination.DoesNotExist:
+                            pass
+
                     elif day_data.get('title'):
                         # Auto-create ItineraryMaster if not provided
                         try:
@@ -192,6 +202,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                                     pass
 
                             master_template_obj = ItineraryMaster.objects.create(
+                                destination=primary_destination,
                                 name=day_data['title'][:200], # Truncate to fit max_length
                                 title=day_data['title'][:200],
                                 description=day_data.get('description', ''),

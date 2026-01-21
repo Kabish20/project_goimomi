@@ -98,8 +98,6 @@ const HolidayEnquiryAdd = () => {
         setError("");
 
         try {
-            // Transform data to match backend HolidayEnquiry model if necessary
-            // Current HolidayEnquiryManage fetches from /holiday-form/
             const payload = {
                 full_name: form.fullName,
                 email: form.email,
@@ -141,32 +139,30 @@ const HolidayEnquiryAdd = () => {
             <AdminSidebar />
             <div className="flex-1">
                 <AdminTopbar />
-                <div className="p-6">
+                <div className="p-4">
                     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                         {/* Header */}
-                        <div className="p-6 border-b border-gray-100 bg-[#14532d] text-white">
-                            <h1 className="text-xl font-bold uppercase tracking-wider">Add Customized Holiday Enquiry</h1>
-                            <p className="text-sm opacity-80 mt-1">Fill in the details for the new holiday enquiry.</p>
+                        <div className="p-4 border-b border-gray-100 bg-[#14532d] text-white">
+                            <h1 className="text-lg font-bold uppercase tracking-wider text-center">Add Holiday Enquiry</h1>
                         </div>
 
                         {error && (
-                            <div className="m-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
+                            <div className="m-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs">
                                 {error}
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="p-8 space-y-8 text-[#333]">
-
+                        <form onSubmit={handleSubmit} className="p-4 space-y-4 text-[#333]">
                             {/* Destinations */}
                             <div className="space-y-4">
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Destinations *</label>
+                                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Destinations *</label>
                                 {form.destinations.map((dest, idx) => (
-                                    <div key={idx} className="flex gap-3 items-center">
+                                    <div key={idx} className="flex gap-2 items-center">
                                         <div className="relative flex-1">
                                             <select
                                                 value={dest.city}
                                                 onChange={(e) => handleDestinationChange(idx, "city", e.target.value)}
-                                                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
+                                                className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
                                                 required
                                             >
                                                 <option value="">Select Destination</option>
@@ -180,7 +176,7 @@ const HolidayEnquiryAdd = () => {
                                             <select
                                                 value={dest.nights}
                                                 onChange={(e) => handleDestinationChange(idx, "nights", e.target.value)}
-                                                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
+                                                className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
                                             >
                                                 {[...Array(30)].map((_, i) => (
                                                     <option key={i} value={`${i + 1} night${i > 0 ? 's' : ''}`}>{i + 1} night{i > 0 ? 's' : ''}</option>
@@ -205,15 +201,15 @@ const HolidayEnquiryAdd = () => {
                             </div>
 
                             {/* Row 1: Start City & Nationality */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Starting City *</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Starting City *</label>
                                     <div className="relative">
                                         <select
                                             name="startCity"
                                             value={form.startCity}
                                             onChange={handleChange}
-                                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
+                                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
                                             required
                                         >
                                             <option value="">Select Starting City</option>
@@ -225,13 +221,13 @@ const HolidayEnquiryAdd = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Nationality *</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Nationality *</label>
                                     <div className="relative">
                                         <select
                                             name="nationality"
                                             value={form.nationality}
                                             onChange={handleChange}
-                                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
+                                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
                                             required
                                         >
                                             {nationalities.map(n => (
@@ -244,23 +240,23 @@ const HolidayEnquiryAdd = () => {
                             </div>
 
                             {/* Row 2: Travel Date & Travelers */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Travel Date *</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Travel Date *</label>
                                     <input
                                         type="date"
                                         name="travelDate"
                                         value={form.travelDate}
                                         onChange={handleChange}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none"
+                                        className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none"
                                         required
                                     />
                                 </div>
                                 <div className="relative">
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Travelers *</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Travelers *</label>
                                     <div
                                         onClick={() => setTravelerDropdownOpen(!travelerDropdownOpen)}
-                                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm cursor-pointer flex justify-between items-center bg-white"
+                                        className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs cursor-pointer flex justify-between items-center bg-white"
                                     >
                                         <span>{travelerSummary()}</span>
                                         {travelerDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -314,15 +310,15 @@ const HolidayEnquiryAdd = () => {
                             </div>
 
                             {/* Row 3: Hotel Rating & Type */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Hotel Star Rating</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Hotel Star Rating</label>
                                     <div className="relative">
                                         <select
                                             name="hotelRating"
                                             value={form.hotelRating}
                                             onChange={handleChange}
-                                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
+                                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
                                         >
                                             <option value="Select">Select</option>
                                             <option value="2 Star">2 Star</option>
@@ -334,13 +330,13 @@ const HolidayEnquiryAdd = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Holiday Type</label>
+                                    <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Holiday Type</label>
                                     <div className="relative">
                                         <select
                                             name="holidayType"
                                             value={form.holidayType}
                                             onChange={handleChange}
-                                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
+                                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none appearance-none"
                                         >
                                             <option value="Select Type">Select Type</option>
                                             <option value="Honeymoon">Honeymoon</option>
@@ -355,53 +351,53 @@ const HolidayEnquiryAdd = () => {
 
                             {/* Budget */}
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Budget Per Person Without Flight</label>
+                                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Budget Per Person Without Flight</label>
                                 <input
                                     type="text"
                                     name="budget"
                                     placeholder="Ex: ₹25,000 – ₹60,000"
                                     value={form.budget}
                                     onChange={handleChange}
-                                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none"
+                                    className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none"
                                 />
                             </div>
 
                             {/* Contact Details Section */}
-                            <div className="pt-6 border-t border-gray-100">
-                                <h3 className="text-lg font-bold text-gray-800 mb-6">Your Contact Details</h3>
-                                <div className="space-y-6">
+                            <div className="pt-4 border-t border-gray-100">
+                                <h3 className="text-md font-bold text-gray-800 mb-4 uppercase tracking-tighter">Your Contact Details</h3>
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Full Name *</label>
                                         <input
                                             name="fullName"
                                             placeholder="Full Name"
                                             value={form.fullName}
                                             onChange={handleChange}
-                                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none"
+                                            className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none"
                                             required
                                         />
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Email *</label>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Email *</label>
                                             <input
                                                 type="email"
                                                 name="email"
                                                 placeholder="xxxxxx@xxxx.com"
                                                 value={form.email}
                                                 onChange={handleChange}
-                                                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none"
+                                                className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none"
                                                 required
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-2">Phone *</label>
+                                            <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-tight">Phone *</label>
                                             <input
                                                 name="phone"
                                                 placeholder="91-xxxxxxxxxx"
                                                 value={form.phone}
                                                 onChange={handleChange}
-                                                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-1 focus:ring-[#14532d] outline-none"
+                                                className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:ring-1 focus:ring-[#14532d] outline-none"
                                                 required
                                             />
                                         </div>
@@ -410,18 +406,18 @@ const HolidayEnquiryAdd = () => {
                             </div>
 
                             {/* Form Footer */}
-                            <div className="flex justify-end gap-3 pt-6">
+                            <div className="flex justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
                                 <button
                                     type="button"
                                     onClick={() => navigate("/admin/holiday-enquiries")}
-                                    className="px-6 py-2 border border-gray-300 text-gray-600 rounded text-sm font-bold uppercase transition-colors hover:bg-gray-50"
+                                    className="px-4 py-1.5 border border-gray-300 text-gray-600 rounded text-xs font-bold uppercase transition-colors hover:bg-gray-50"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-[#14532d] text-white px-8 py-2 rounded text-sm font-bold uppercase shadow-sm transition-all hover:bg-[#0f4a24] disabled:opacity-50"
+                                    className="bg-[#14532d] text-white px-6 py-1.5 rounded text-xs font-bold uppercase shadow-sm transition-all hover:bg-[#0f4a24] disabled:opacity-50"
                                 >
                                     {loading ? "Submitting..." : "Submit Enquiry"}
                                 </button>

@@ -175,7 +175,11 @@ const VisaResults = () => {
 
                                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                                         {/* Details Grid */}
-                                        <div className="flex-1 grid grid-cols-5 gap-8 bg-gray-50/50 p-4 rounded-xl w-full">
+                                        <div className="flex-1 grid grid-cols-6 gap-6 bg-gray-50/50 p-4 rounded-xl w-full">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Type</span>
+                                                <span className="text-sm font-semibold text-gray-900 line-clamp-1">{visa.visa_type}</span>
+                                            </div>
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Entry</span>
                                                 <span className="text-sm font-semibold text-gray-900">{visa.entry_type}</span>

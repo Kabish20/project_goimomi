@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import SearchableSelect from "../../components/admin/SearchableSelect";
 
 const ItineraryMasterAdd = () => {
     const navigate = useNavigate();
@@ -11,12 +12,27 @@ const ItineraryMasterAdd = () => {
         title: "",
         description: "",
         image: null,
+        destination: "",
     });
+    const [destinations, setDestinations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
     const API_BASE_URL = "/api";
+
+    React.useEffect(() => {
+        fetchDestinations();
+    }, []);
+
+    const fetchDestinations = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/destinations/`);
+            setDestinations(response.data);
+        } catch (err) {
+            console.error("Error fetching destinations:", err);
+        }
+    };
 
     const handleChange = (e) => {
         if (e.target.name === "image") {
@@ -38,6 +54,9 @@ const ItineraryMasterAdd = () => {
         formData.append("name", form.name);
         formData.append("title", form.title);
         formData.append("description", form.description);
+        if (form.destination) {
+            formData.append("destination", form.destination);
+        }
         if (form.image) {
             formData.append("image", form.image);
         }
@@ -59,6 +78,7 @@ const ItineraryMasterAdd = () => {
                         title: "",
                         description: "",
                         image: null,
+                        destination: "",
                     });
                     // Reset file input
                     const fileInput = document.getElementById("imageInput");
@@ -93,17 +113,17 @@ const ItineraryMasterAdd = () => {
             <div className="flex-1">
                 <AdminTopbar />
 
-                <div className="p-6">
+                <div className="p-4">
                     {/* Header */}
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
                         <div className="flex justify-between items-center">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-800 mb-2">Add Itinerary Master Template</h1>
-                                <p className="text-gray-600">Create reusable itinerary day templates for holiday packages</p>
+                                <h1 className="text-xl font-bold text-gray-800 mb-1">Add Itinerary Master</h1>
+                                <p className="text-xs text-gray-600">Create reusable itinerary day templates</p>
                             </div>
                             <button
                                 onClick={() => navigate('/admin/itinerary-masters')}
-                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition"
+                                className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300 transition"
                             >
                                 Back to List
                             </button>
@@ -112,85 +132,89 @@ const ItineraryMasterAdd = () => {
 
                     {/* Messages */}
                     {message && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
+                        <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm flex items-center gap-2">
+                            <i className="fas fa-check-circle"></i>
                             {message}
                         </div>
                     )}
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                            </svg>
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm flex items-center gap-2">
+                            <i className="fas fa-times-circle"></i>
                             {error}
                         </div>
                     )}
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm overflow-hidden max-w-4xl">
+                        {/* Destination Field */}
+                        <div className="border-b border-gray-100 p-4 bg-gray-50">
+                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
+                                Destination: <span className="text-gray-400 normal-case">(Optional)</span>
+                            </label>
+                            <SearchableSelect
+                                options={destinations.map(d => ({ value: d.id, label: d.name }))}
+                                value={form.destination}
+                                onChange={(val) => setForm({ ...form, destination: val })}
+                                placeholder="Select Destination (Global)"
+                                disabled={loading}
+                            />
+                            <p className="text-[10px] text-gray-500 mt-1">
+                                Categorize templates under a city for easier filtering in packages
+                            </p>
+                        </div>
                         {/* Name Field */}
-                        <div className="border-b border-gray-200 p-6">
-                            <label className="block text-gray-700 font-semibold mb-2">
+                        <div className="border-b border-gray-100 p-4">
+                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
                                 Name (Internal ID): <span className="text-red-500">*</span>
                             </label>
                             <input
                                 name="name"
                                 value={form.name}
                                 onChange={handleChange}
-                                className="w-full max-w-2xl border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent"
-                                placeholder="e.g., goa_arrival"
+                                className="w-full max-w-xl border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
+                                placeholder="e.g. thailand_bangkok_day1"
                                 required
                                 disabled={loading}
                             />
-                            <p className="text-sm text-gray-500 mt-2">
-                                A unique identifier for this template (use lowercase, underscores allowed)
-                            </p>
+                            <p className="text-[10px] text-gray-400 mt-1">Unique identifier (lowercase, underscores only)</p>
                         </div>
 
                         {/* Title Field */}
-                        <div className="border-b border-gray-200 p-6 bg-gray-50">
-                            <label className="block text-gray-700 font-semibold mb-2">
+                        <div className="border-b border-gray-100 p-4 bg-gray-50">
+                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
                                 Title (Display Name): <span className="text-red-500">*</span>
                             </label>
                             <input
                                 name="title"
                                 value={form.title}
                                 onChange={handleChange}
-                                className="w-full max-w-2xl border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent"
-                                placeholder="e.g., Arrival and Check-in"
+                                className="w-full max-w-xl border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
+                                placeholder="e.g. Arrival and Leisure"
                                 required
                                 disabled={loading}
                             />
-                            <p className="text-sm text-gray-500 mt-2">
-                                The title that will appear in holiday packages
-                            </p>
                         </div>
 
                         {/* Description Field */}
-                        <div className="border-b border-gray-200 p-6">
-                            <label className="block text-gray-700 font-semibold mb-2">
-                                Description: <span className="text-red-500">*</span>
+                        <div className="border-b border-gray-100 p-4">
+                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
+                                Description:*
                             </label>
                             <textarea
                                 name="description"
                                 value={form.description}
                                 onChange={handleChange}
-                                rows="6"
-                                className="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent"
-                                placeholder="Enter detailed description of this itinerary day..."
+                                rows="4"
+                                className="w-full border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
+                                placeholder="Description of activities..."
                                 required
                                 disabled={loading}
                             />
-                            <p className="text-sm text-gray-500 mt-2">
-                                Detailed description of activities for this day
-                            </p>
                         </div>
 
                         {/* Image Field */}
-                        <div className="border-b border-gray-200 p-6 bg-gray-50">
-                            <label className="block text-gray-700 font-semibold mb-2">
+                        <div className="border-b border-gray-100 p-4 bg-gray-50">
+                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
                                 Image (Optional):
                             </label>
                             <input
@@ -199,46 +223,41 @@ const ItineraryMasterAdd = () => {
                                 name="image"
                                 onChange={handleChange}
                                 accept="image/*"
-                                className="w-full max-w-2xl text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#14532d] file:text-white hover:file:bg-[#0f4a24] file:cursor-pointer"
+                                className="w-full max-w-xl text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-[#14532d] file:text-white"
                                 disabled={loading}
                             />
-                            <p className="text-sm text-gray-500 mt-2">
-                                Upload a representative image for this itinerary day (JPG, PNG, WebP)
-                            </p>
                             {form.image && (
-                                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
-                                    ✓ File selected: <strong>{form.image.name}</strong>
+                                <div className="mt-1 text-[10px] text-green-600 font-bold">
+                                    ✓ {form.image.name}
                                 </div>
                             )}
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="bg-gray-100 p-6">
-                            <div className="flex gap-3">
-                                <button
-                                    type="submit"
-                                    className="bg-[#14532d] text-white px-6 py-2 rounded hover:bg-[#0f4a24] transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={loading}
-                                >
-                                    {loading ? "Saving..." : "SAVE"}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSaveAndAddAnother}
-                                    className="bg-[#1f7a45] text-white px-6 py-2 rounded hover:bg-[#1a6338] transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={loading}
-                                >
-                                    {loading ? "Saving..." : "Save and add another"}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSaveAndContinue}
-                                    className="bg-[#1f7a45] text-white px-6 py-2 rounded hover:bg-[#1a6338] transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={loading}
-                                >
-                                    {loading ? "Saving..." : "Save and continue editing"}
-                                </button>
-                            </div>
+                        <div className="bg-white p-4 flex gap-2 border-t border-gray-100">
+                            <button
+                                type="submit"
+                                className="bg-[#14532d] text-white px-4 py-1.5 rounded hover:bg-[#0f4a24] transition text-sm font-semibold"
+                                disabled={loading}
+                            >
+                                {loading ? "Saving..." : "SAVE"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSaveAndAddAnother}
+                                className="bg-[#1f7a45] text-white px-4 py-1.5 rounded hover:bg-[#1a6338] transition text-sm font-semibold"
+                                disabled={loading}
+                            >
+                                {loading ? "Saving..." : "Save + New"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSaveAndContinue}
+                                className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-gray-300 transition text-sm font-semibold"
+                                disabled={loading}
+                            >
+                                {loading ? "Saving..." : "Save + Continue"}
+                            </button>
                         </div>
                     </form>
                 </div>

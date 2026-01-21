@@ -33,7 +33,6 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                 ...prev,
                 destination: packageData.title || "",
                 nights: packageData.days ? packageData.days - 1 : 1,
-                // Pre-fill budget if needed, but usually user inputs it
             }));
         }
     }, [packageData]);
@@ -71,7 +70,6 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
         const payload = {
             ...formData,
             package_type: packageData?.title || "Custom Package",
-            // Construct message from additional details if backend doesn't have all fields
             message: `Room Type: ${formData.room_type}\nMeal Plan: ${formData.meal_plan}\nTransfer: ${formData.transfer_details}\nOther Inclusions: ${formData.other_inclusions}`,
             room_details: [{
                 adults: formData.adults,
@@ -103,24 +101,24 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                 message="Your enquiry has been submitted successfully! We will contact you soon."
             />
 
-            <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
                 {/* Header */}
-                <div className="bg-[#14532d] p-6 text-white flex justify-between items-center">
+                <div className="bg-[#14532d] p-3 text-white flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-bold">Plan Your Trip</h2>
-                        <p className="text-green-100 opacity-90 text-sm">Fill in the details for {packageData?.title || "your customized holiday"}</p>
+                        <h2 className="text-lg font-bold">Plan Your Trip</h2>
+                        <p className="text-green-100 opacity-90 text-[10px]">Fill in the details for {packageData?.title || "your customized holiday"}</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                        <FaTimes size={24} />
+                    <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                        <FaTimes size={18} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 max-h-[80vh] overflow-y-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={handleSubmit} className="p-3 max-h-[80vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
                         {/* Destination */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                 <FaPlane className="text-green-700" /> Destination
                             </label>
                             <input
@@ -128,14 +126,14 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                 name="destination"
                                 value={formData.destination}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 required
                             />
                         </div>
 
                         {/* Check-in Date */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                 <FaCalendarAlt className="text-green-700" /> Check-in Date
                             </label>
                             <input
@@ -143,15 +141,15 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                 name="travel_date"
                                 value={formData.travel_date}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 required
                             />
                         </div>
 
                         {/* Nights & Rooms */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                     <FaMoon className="text-green-700" /> No. of Nights
                                 </label>
                                 <input
@@ -160,12 +158,12 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                     min="1"
                                     value={formData.nights}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                     <FaHotel className="text-green-700" /> No. of Rooms
                                 </label>
                                 <input
@@ -174,7 +172,7 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                     min="1"
                                     value={formData.rooms}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                     required
                                 />
                             </div>
@@ -182,8 +180,8 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
 
                         {/* Adults & Children */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                     <FaUsers className="text-green-700" /> Adults
                                 </label>
                                 <input
@@ -192,12 +190,12 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                     min="1"
                                     value={formData.adults}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                            <div className="space-y-1">
+                                <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                     <FaChild className="text-green-700" /> Children
                                 </label>
                                 <input
@@ -206,23 +204,23 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                     min="0"
                                     value={formData.children}
                                     onChange={(e) => handleChildCountChange(e.target.value)}
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 />
                             </div>
                         </div>
 
                         {/* Child Ages if children > 0 */}
                         {formData.children > 0 && (
-                            <div className="md:col-span-2 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-wrap gap-4">
+                            <div className="md:col-span-2 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-wrap gap-2">
                                 {formData.childAges.map((age, index) => (
                                     <div key={index} className="space-y-1">
-                                        <label className="text-xs font-bold text-blue-800 uppercase tracking-wider">Child {index + 1} Age</label>
+                                        <label className="text-[10px] font-bold text-blue-800 uppercase tracking-wider">Child {index + 1} Age</label>
                                         <input
                                             type="number"
                                             placeholder="Age"
                                             value={age}
                                             onChange={(e) => handleChildAgeChange(index, e.target.value)}
-                                            className="w-20 px-3 py-1 bg-white border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-20 px-3 py-1 bg-white border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                                             required
                                         />
                                     </div>
@@ -231,15 +229,15 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                         )}
 
                         {/* Hotel Category */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                 Hotel Category
                             </label>
                             <select
                                 name="star_rating"
                                 value={formData.star_rating}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 required
                             >
                                 <option value="">Select Star Rating</option>
@@ -251,8 +249,8 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                         </div>
 
                         {/* Room Type */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                 Room Type
                             </label>
                             <input
@@ -261,20 +259,20 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                 placeholder="Ex: Deluxe, Suite, Twin Sharing"
                                 value={formData.room_type}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                             />
                         </div>
 
                         {/* Meal Plan */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                 <FaUtensils className="text-green-700" /> Meal Plan
                             </label>
                             <select
                                 name="meal_plan"
                                 value={formData.meal_plan}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                             >
                                 <option value="">Select Meal Plan</option>
                                 <option value="Breakfast Only">Breakfast Only (CP)</option>
@@ -285,9 +283,9 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                         </div>
 
                         {/* Transfer */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                Transfer
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
+                                <FaPlane className="text-green-700" /> Transfer
                             </label>
                             <input
                                 type="text"
@@ -295,13 +293,13 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                 placeholder="Ex: Private AC Car, Shared Shuttle"
                                 value={formData.transfer_details}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                             />
                         </div>
 
                         {/* Budget */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                 <FaWallet className="text-green-700" /> Estimated Budget
                             </label>
                             <input
@@ -310,13 +308,13 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                 placeholder="Ex: ₹50,000"
                                 value={formData.budget}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                             />
                         </div>
 
                         {/* Other Inclusions */}
-                        <div className="md:col-span-2 space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div className="md:col-span-2 space-y-1">
+                            <label className="text-xs font-semibold text-gray-700 flex items-center gap-2">
                                 Other Inclusions / Special Requests
                             </label>
                             <textarea
@@ -324,78 +322,78 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
                                 placeholder="Tell us about sightseeing, specific activities, etc."
                                 value={formData.other_inclusions}
                                 onChange={handleChange}
-                                rows="3"
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all resize-none"
+                                rows="2"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all resize-none text-sm"
                             />
                         </div>
 
-                        <div className="md:col-span-2 h-px bg-gray-100 my-2"></div>
+                        <div className="md:col-span-2 h-px bg-gray-100 my-1"></div>
 
                         {/* Personal Details Section */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Full Name</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700">Full Name</label>
                             <input
                                 type="text"
                                 name="full_name"
                                 value={formData.full_name}
                                 onChange={handleChange}
                                 placeholder="Ex: John Doe"
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 required
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Phone Number</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700">Phone Number</label>
                             <input
                                 type="tel"
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleChange}
                                 placeholder="Ex: +91 98765 43210"
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 required
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Email Address</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700">Email Address</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="Ex: john@example.com"
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 required
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700">Nationality</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-700">Nationality</label>
                             <input
                                 type="text"
                                 name="nationality"
                                 value={formData.nationality}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
+                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
                                 required
                             />
                         </div>
                     </div>
 
-                    <div className="mt-10 flex justify-end gap-4">
+                    <div className="mt-4 flex justify-end gap-2 border-t pt-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-8 py-3 text-gray-600 font-semibold hover:bg-gray-100 rounded-2xl transition-all"
+                            className="px-5 py-1.5 text-gray-600 font-semibold hover:bg-gray-100 rounded-xl transition-all text-xs"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-10 py-3 bg-[#14532d] text-white font-bold rounded-2xl shadow-lg shadow-green-900/20 hover:bg-[#0f3d21] transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-5 py-1.5 bg-[#14532d] text-white font-bold rounded-xl shadow-md shadow-green-900/10 hover:bg-[#0f3d21] transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                         >
                             {loading ? "Submitting..." : "Send Enquiry"}
                         </button>

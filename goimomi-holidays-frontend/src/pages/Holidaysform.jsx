@@ -321,7 +321,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
         message="Your holiday enquiry has been submitted successfully! Our team will contact you shortly."
       />
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl p-6 max-h-[90vh] overflow-y-auto relative">
+        <div className="w-full max-w-lg bg-white rounded-xl shadow-xl p-4 max-h-[90vh] overflow-y-auto relative">
 
           {/* Close */}
           <button
@@ -334,7 +334,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
           {/* STEP 1 — EXACT UMRAH UI */}
           {step === 1 && (
             <>
-              <h2 className="text-xl font-bold mb-4">Plan Your Customized Holiday</h2>
+              <h2 className="text-lg font-bold mb-3">Plan Your Customized Holiday</h2>
 
               {/* Selected Package */}
               {packageType && (
@@ -346,12 +346,12 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
               )}
 
               {/* MULTI-CITY LIST (Umrah style) */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2 mb-4">
                 {cities.map((item, i) => (
                   <div key={i} className="flex gap-3 items-center">
                     <div className="w-full relative custom-dropdown-container">
                       <div
-                        className={`border px-3 py-2 rounded w-full bg-white cursor-pointer flex justify-between items-center ${errors.cities ? 'border-red-500' : ''}`}
+                        className={`border px-3 py-1.5 rounded w-full bg-white cursor-pointer flex justify-between items-center text-sm ${errors.cities ? 'border-red-500' : ''}`}
                         onClick={() => {
                           setActiveCityIndex(activeCityIndex === i ? null : i);
                           setCitySearch("");
@@ -406,7 +406,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                     </div>
 
                     <select
-                      className="border px-3 py-2 rounded"
+                      className="border px-2 py-1 rounded text-xs"
                       value={item.nights}
                       onChange={(e) => updateCity(i, "nights", Number(e.target.value))}
                     >
@@ -431,13 +431,13 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
               </div>
 
               {/* MAIN TRIP DETAILS (exact Umrah feel) */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
 
                 <div>
                   <label className="font-semibold">Starting City *</label>
                   <div className="w-full relative custom-dropdown-container">
                     <div
-                      className={`border px-3 py-2 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 ${errors.startCity ? 'border-red-500' : ''}`}
+                      className={`border px-2 py-1 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 text-xs ${errors.startCity ? 'border-red-500' : ''}`}
                       onClick={() => {
                         setIsStartCityOpen(!isStartCityOpen);
                         setStartCitySearch("");
@@ -496,7 +496,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                   <label className="font-semibold">Nationality *</label>
                   <div className="w-full relative custom-dropdown-container">
                     <div
-                      className={`border px-3 py-2 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 ${errors.nationality ? 'border-red-500' : ''}`}
+                      className={`border px-2 py-1 rounded w-full bg-white cursor-pointer flex justify-between items-center mt-1 text-xs ${errors.nationality ? 'border-red-500' : ''}`}
                       onClick={() => {
                         setIsNationalityOpen(!isNationalityOpen);
                         setNationalitySearch("");
@@ -556,7 +556,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                   <div className="w-full">
                     <input
                       type="date"
-                      className={`border px-3 py-2 rounded w-full ${errors.travelDate ? 'border-red-500' : ''}`}
+                      className={`border px-2 py-1 rounded w-full text-xs ${errors.travelDate ? 'border-red-500' : ''}`}
                       value={travelDate}
                       onChange={(e) => {
                         setTravelDate(e.target.value);
@@ -575,7 +575,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                   <button
                     type="button"
                     onClick={() => setTravelerDropdownOpen(!travelerDropdownOpen)}
-                    className="border rounded w-full px-3 py-2 mt-1 text-left flex justify-between items-center"
+                    className="border rounded w-full px-2 py-1 mt-1 text-left flex justify-between items-center text-xs"
                   >
                     <span>{travelerSummary()}</span>
                     <svg className={`w-4 h-4 text-gray-500 transition-transform ${travelerDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -654,7 +654,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                 <div>
                   <label className="font-semibold">Hotel Star Rating</label>
                   <select
-                    className={`border rounded px-3 py-2 w-full mt-1 ${errors.starRating ? 'border-red-500' : ''}`}
+                    className={`border rounded px-3 py-1.5 w-full mt-1 text-sm ${errors.starRating ? 'border-red-500' : ''}`}
                     value={starRating}
                     onChange={(e) => {
                       setStarRating(e.target.value);
@@ -673,7 +673,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                 <div>
                   <label className="font-semibold">Holiday Type</label>
                   <select
-                    className={`border rounded px-3 py-2 w-full mt-1 ${errors.holidayType ? 'border-red-500' : ''}`}
+                    className={`border rounded px-3 py-1.5 w-full mt-1 text-sm ${errors.holidayType ? 'border-red-500' : ''}`}
                     value={holidayType}
                     onChange={(e) => {
                       setHolidayType(e.target.value);
@@ -706,7 +706,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
                 <div>
                   <label className="font-semibold">Meal Plan</label>
                   <select
-                    className="border rounded px-3 py-2 w-full mt-1"
+                    className="border rounded px-3 py-1.5 w-full mt-1 text-sm"
                     value={mealPlan}
                     onChange={(e) => setMealPlan(e.target.value)}
                   >
@@ -748,7 +748,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
               <div className="mb-6">
                 <label className="font-semibold">Other Inclusions / Special Requests</label>
                 <textarea
-                  className="border px-3 py-2 rounded w-full mt-1 h-20 resize-none"
+                  className="border px-3 py-1.5 rounded w-full mt-1 h-16 resize-none text-sm"
                   placeholder="Tell us about sightseeing, specific activities, etc."
                   value={otherInclusions}
                   onChange={(e) => setOtherInclusions(e.target.value)}
@@ -777,9 +777,9 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
           {/* STEP 2 — SAME UI AS UMRAH */}
           {step === 2 && (
             <>
-              <h2 className="text-xl font-bold mb-4">Your Contact Details</h2>
+              <h2 className="text-lg font-bold mb-3">Your Contact Details</h2>
 
-              <div className="space-y-5">
+              <div className="space-y-4 text-sm">
                 <div>
                   <label className="font-semibold">Full Name *</label>
                   <input

@@ -3,11 +3,12 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import SearchableSelect from "../../components/admin/SearchableSelect";
 
 /* ---------- UI helpers (same as Add) ---------- */
-const Section = ({ title, children, className = "bg-white border border-gray-300 p-4" }) => (
-    <div className="mb-6">
-        <div className="bg-[#14532d] text-white px-4 py-2 font-semibold text-sm uppercase">
+const Section = ({ title, children, className = "bg-white border border-gray-300 p-3" }) => (
+    <div className="mb-4">
+        <div className="bg-[#14532d] text-white px-3 py-1.5 font-semibold text-xs uppercase">
             {title}
         </div>
         <div className={className}>{children}</div>
@@ -18,79 +19,12 @@ const Input = (props) => (
     <div>
         <input
             {...props}
-            className={`bg-white border ${props.error ? 'border-red-500' : 'border-gray-300'} px-3 py-2 rounded w-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent ${props.className || ''}`}
+            className={`bg-white border ${props.error ? 'border-red-500' : 'border-gray-300'} px-2 py-1.5 rounded w-full text-black text-sm focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent ${props.className || ''}`}
         />
         {props.error && <p className="text-red-500 text-[10px] mt-0.5">{props.error}</p>}
     </div>
 );
 
-const SearchableSelect = ({ options, value, onChange, placeholder = "Select..." }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const wrapperRef = useRef(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const filteredOptions = options.filter(option =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const selectedOption = options.find(o => o.value === value);
-
-    return (
-        <div className="relative w-full" ref={wrapperRef}>
-            <div
-                className="bg-white border border-gray-300 px-3 py-2 rounded w-full text-gray-800 cursor-pointer flex justify-between items-center focus:ring-2 focus:ring-[#14532d]"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <span>{selectedOption ? selectedOption.label : placeholder}</span>
-                <span className="text-gray-400 text-xs">▼</span>
-            </div>
-
-            {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-hidden flex flex-col">
-                    <div className="p-2 border-b border-gray-200 sticky top-0 bg-white">
-                        <input
-                            type="text"
-                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-[#14532d]"
-                            placeholder="Search..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            autoFocus
-                        />
-                    </div>
-                    <div className="overflow-y-auto flex-1">
-                        {filteredOptions.length > 0 ? (
-                            filteredOptions.map((option) => (
-                                <div
-                                    key={option.value}
-                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${option.value === value ? "bg-green-50 text-[#14532d]" : "text-gray-800"}`}
-                                    onClick={() => {
-                                        onChange(option.value);
-                                        setIsOpen(false);
-                                    }}
-                                >
-                                    {option.label}
-                                </div>
-                            ))
-                        ) : (
-                            <div className="px-3 py-2 text-sm text-gray-500">No results found</div>
-                        )}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
 
 const HolidayPackageEdit = () => {
     const { id } = useParams();
@@ -155,6 +89,20 @@ const HolidayPackageEdit = () => {
 
         return ordered;
     }, [startingCities]);
+
+    const groupedItineraryMasters = useMemo(() => {
+        return itineraryMasters.reduce((acc, master) => {
+            let destName = "Global / General";
+            if (master.destination) {
+                const destObj = destinations.find(d => d.id === master.destination);
+                if (destObj) destName = destObj.name;
+            }
+
+            if (!acc[destName]) acc[destName] = [];
+            acc[destName].push(master);
+            return acc;
+        }, {});
+    }, [itineraryMasters, destinations]);
 
 
     useEffect(() => {
@@ -244,20 +192,7 @@ const HolidayPackageEdit = () => {
     }, [id]);
 
 
-    useEffect(() => {
-        // NOTE: Logic to sync itinerary days count with 'days' input is tricky in edit mode
-        // because we don't want to accidentally delete fetched data if the fetched 'days' count is weird.
-        // But generally we should respect the 'days' input.
-        // For now, let's just let the user manually add/remove rows or let the input drive it carefully.
-        // We'll reimplement the sync but ensure we don't wipe data immediately on load.
-        // Actually, let's strictly stick to the Add logic: if user changes number, we adjust rows.
-        // But wait, initial load sets 'days'.
-    }, [formData.days]);
-
-    // Sync logic similar to Add, but be careful not to trigger on initial load if states aren't ready.
-    // We can skip this automatic sync for Edit to avoid accidental data loss, or implement it carefully.
-    // Let's implement a manual "Update Rows" button or just let them add/remove manually?
-    // The Add page had auto-sync. Let's keep it but only if rows.length != days
+    // Sync itinerary days with "Days" input
     useEffect(() => {
         if (loading) return;
         const dayCount = parseInt(formData.days, 10);
@@ -279,6 +214,26 @@ const HolidayPackageEdit = () => {
         }
     }, [formData.days, loading]);
 
+    // Sync Package Destinations with "Days" input (One row per night)
+    useEffect(() => {
+        if (loading) return;
+        const dayCount = parseInt(formData.days, 10);
+        const totalNights = isNaN(dayCount) ? 0 : Math.max(0, dayCount - 1);
+
+        setPackageDestinations((prev) => {
+            if (prev.length === totalNights) return prev;
+            if (totalNights > prev.length) {
+                const newRows = [];
+                for (let i = prev.length + 1; i <= totalNights; i++) {
+                    newRows.push({ destination: "", nights: 1 });
+                }
+                return [...prev, ...newRows];
+            } else {
+                return prev.slice(0, totalNights);
+            }
+        });
+    }, [formData.days, loading]);
+
 
     /* ---------- handlers ---------- */
     const addRow = (setter, row) => setter((p) => [...p, row]);
@@ -288,6 +243,34 @@ const HolidayPackageEdit = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const getNightRange = (index) => {
+        let start = 1;
+        for (let i = 0; i < index; i++) {
+            start += parseInt(packageDestinations[i].nights || 0, 10);
+        }
+        const nights = parseInt(packageDestinations[index].nights || 0, 10);
+        if (nights <= 0) return "";
+        if (nights === 1) return `Night ${start}`;
+        return `Nights ${start}-${start + nights - 1}`;
+    };
+
+    const getDestinationForDay = (dayIndex) => {
+        let currentDay = 0;
+        for (let dest of packageDestinations) {
+            const nights = parseInt(dest.nights || 0, 10);
+            if (dayIndex >= currentDay && dayIndex < currentDay + nights) {
+                return dest.destination || "---";
+            }
+            currentDay += nights;
+        }
+        // Handle the last day (Departure Day)
+        const totalNights = packageDestinations.reduce((acc, d) => acc + parseInt(d.nights || 0, 10), 0);
+        if (dayIndex === totalNights && packageDestinations.length > 0) {
+            return packageDestinations[packageDestinations.length - 1].destination || "---";
+        }
+        return "---";
     };
 
     const handleFileChange = (e) => {
@@ -318,6 +301,13 @@ const HolidayPackageEdit = () => {
                 if (!dest.nights || dest.nights <= 0) newErrors[`nights_${index}`] = "Required";
             });
         }
+
+        // Itinerary validations
+        itineraryDays.forEach((day, index) => {
+            if (!day.title || !day.title.trim()) {
+                newErrors[`itinerary_title_${index}`] = "Title required";
+            }
+        });
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -444,15 +434,15 @@ const HolidayPackageEdit = () => {
             <div className="flex-1">
                 <AdminTopbar />
 
-                <div className="p-6">
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex justify-between items-center">
+                <div className="p-4">
+                    <div className="flex justify-between items-center mb-4 bg-white p-4 rounded-lg shadow-sm">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-800 mb-2">Edit Holiday Package</h1>
-                            <p className="text-gray-600">Update package details</p>
+                            <h1 className="text-xl font-bold text-gray-800 mb-1">Edit Holiday Package</h1>
+                            <p className="text-xs text-gray-600">ID: {id}</p>
                         </div>
                         <button
                             onClick={() => navigate('/admin/packages')}
-                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+                            className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300 transition"
                         >
                             Back to List
                         </button>
@@ -542,25 +532,14 @@ const HolidayPackageEdit = () => {
 
                         {/* LOCATION DETAILS */}
                         <Section title="Location Details">
-                            <label className="block">
+                            <label className="block w-60">
                                 <span className="text-gray-700 font-medium mb-1 block">Starting city:</span>
-                                <select
-                                    name="starting_city"
+                                <SearchableSelect
+                                    options={startingCities.map(city => ({ value: city.name, label: city.name }))}
                                     value={formData.starting_city}
-                                    onChange={handleInputChange}
-                                    className={`bg-white border ${errors.starting_city ? 'border-red-500' : 'border-gray-300'} p-2 rounded w-60 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent`}
-                                >
-                                    <option value="">----------</option>
-                                    {Object.entries(groupedStartingCities).map(([region, cities]) => (
-                                        <optgroup key={region} label={region}>
-                                            {cities.map((city) => (
-                                                <option key={city.id} value={city.name}>
-                                                    {city.name}
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
+                                    placeholder="----------"
+                                />
                                 {errors.starting_city && <p className="text-red-500 text-[10px] mt-0.5">{errors.starting_city}</p>}
                             </label>
                         </Section>
@@ -664,52 +643,66 @@ const HolidayPackageEdit = () => {
                             </div>
                         </Section>
 
-                        {/* PACKAGE DESTINATIONS */}
-                        <Section title="Package Destinations">
-                            {packageDestinations.map((row, i) => (
-                                <div key={i} className="grid grid-cols-4 gap-4 mb-3 items-center">
-                                    <SearchableSelect
-                                        options={destinations.map(d => ({ value: d.name, label: d.name }))}
-                                        value={row.destination}
-                                        onChange={(val) => {
-                                            const copy = [...packageDestinations];
-                                            copy[i].destination = val;
-                                            setPackageDestinations(copy);
-                                        }}
-                                        placeholder="Select destination"
-                                    />
+                        <Section title="Package Destinations" className="bg-white border border-gray-300 p-0">
+                            <div className="text-gray-800">
+                                {/* Header Row */}
+                                <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-[#e6f0eb] text-[#14532d] text-xs font-bold uppercase tracking-wider border-b border-green-100">
+                                    <div className="col-span-2">Stay</div>
+                                    <div className="col-span-9">Destination City</div>
+                                    <div className="col-span-1 text-center">Action</div>
+                                </div>
 
-                                    <Input
-                                        type="number"
-                                        placeholder="Nights"
-                                        value={row.nights}
-                                        onChange={(e) => {
-                                            const copy = [...packageDestinations];
-                                            copy[i].nights = e.target.value;
-                                            setPackageDestinations(copy);
-                                        }}
-                                    />
+                                {/* Data Rows */}
+                                {packageDestinations.map((row, i) => (
+                                    <div key={i} className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 items-center hover:bg-gray-50 transition-colors">
+                                        <div className="col-span-2 py-1 px-2 bg-gray-100 rounded border border-gray-200 text-center font-bold text-[#14532d] text-sm">
+                                            Night {i + 1}
+                                        </div>
+                                        <div className="col-span-9">
+                                            <SearchableSelect
+                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                value={row.destination}
+                                                onChange={(val) => {
+                                                    const copy = [...packageDestinations];
+                                                    copy[i].destination = val;
+                                                    setPackageDestinations(copy);
+                                                }}
+                                                placeholder={`Select city for Night ${i + 1}`}
+                                            />
+                                            {errors[`dest_${i}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`dest_${i}`]}</p>}
+                                        </div>
+                                        <div className="col-span-1 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const currentDays = parseInt(formData.days || 1, 10);
+                                                    if (currentDays > 1) {
+                                                        setFormData(prev => ({ ...prev, days: (currentDays - 1).toString() }));
+                                                        removeRow(setPackageDestinations, i);
+                                                    }
+                                                }}
+                                                className="text-red-500 hover:text-red-700 font-bold transition-transform hover:scale-125"
+                                                title="Remove this night"
+                                            >
+                                                ✖
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
 
+                                <div className="p-4 bg-gray-50 border-t border-gray-200">
                                     <button
                                         type="button"
-                                        onClick={() => removeRow(setPackageDestinations, i)}
-                                        className="text-red-600 hover:text-red-800 font-bold"
+                                        onClick={() => {
+                                            const newDays = parseInt(formData.days || 1, 10) + 1;
+                                            setFormData(prev => ({ ...prev, days: newDays.toString() }));
+                                            addRow(setPackageDestinations, { destination: "", nights: 1 });
+                                        }}
+                                        className="flex items-center gap-1 text-[#14532d] hover:text-[#0f4a24] font-semibold text-sm"
                                     >
-                                        ✖ Remove
+                                        <span>+</span> Add another Night (Increases duration)
                                     </button>
                                 </div>
-                            ))}
-
-                            <div className="flex items-center gap-4 mt-2">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        addRow(setPackageDestinations, { destination: "", nights: 1 })
-                                    }
-                                    className="text-[#14532d] hover:text-[#0f4a24] font-semibold"
-                                >
-                                    + Add another Package destination
-                                </button>
                             </div>
                         </Section>
 
@@ -726,30 +719,41 @@ const HolidayPackageEdit = () => {
 
                                 {itineraryDays.map((row, i) => (
                                     <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 border-b border-gray-200 items-start hover:bg-gray-50 transition-colors">
-                                        <div className="col-span-1">
-                                            <input
-                                                type="number"
-                                                placeholder="1"
-                                                value={row.day}
-                                                onChange={(e) => {
-                                                    const copy = [...itineraryDays];
-                                                    copy[i].day = e.target.value;
-                                                    setItineraryDays(copy);
-                                                }}
-                                                className="w-full bg-white border border-gray-300 text-gray-800 px-2 py-1 rounded focus:border-[#14532d] focus:ring-1 focus:ring-[#14532d] text-sm"
-                                            />
+                                        {/* Day Number */}
+                                        <div className="col-span-1 flex flex-col items-center gap-1">
+                                            <div className="w-full py-1 px-2 bg-gray-100 rounded border border-gray-200 text-center font-bold text-[#14532d]">
+                                                {i + 1}
+                                            </div>
+                                            <span className="text-[10px] font-bold text-green-800 uppercase text-center leading-none">
+                                                {getDestinationForDay(i)}
+                                            </span>
                                         </div>
 
                                         <div className="col-span-3">
                                             <select
                                                 value={row.master_template}
                                                 onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
-                                                className="w-full bg-white border border-gray-300 text-gray-800 px-2 py-1 rounded focus:border-[#14532d] text-sm"
+                                                className="w-full bg-white border border-gray-300 text-black px-2 py-1 rounded focus:border-[#14532d] text-sm"
                                             >
                                                 <option value="">Select Template...</option>
-                                                {itineraryMasters.map(master => (
-                                                    <option key={master.id} value={master.id}>{master.name}</option>
-                                                ))}
+                                                {(() => {
+                                                    const currentDest = getDestinationForDay(i);
+                                                    // Show only templates matching current destination, fallback to Global if empty
+                                                    const targetGroup = currentDest && currentDest !== "---" ? currentDest : "Global / General";
+                                                    const masters = groupedItineraryMasters[targetGroup] || [];
+
+                                                    if (masters.length === 0) return <option disabled>No templates for {targetGroup}</option>;
+
+                                                    return (
+                                                        <optgroup label={targetGroup}>
+                                                            {masters.map((master) => (
+                                                                <option key={master.id} value={master.id}>
+                                                                    {master.name}
+                                                                </option>
+                                                            ))}
+                                                        </optgroup>
+                                                    );
+                                                })()}
                                             </select>
                                             <div className="flex gap-2 mt-2 text-gray-400 text-xs text-right w-full justify-end">
                                                 <button
@@ -763,15 +767,16 @@ const HolidayPackageEdit = () => {
                                         </div>
 
                                         <div className="col-span-3">
-                                            <input
+                                            <Input
                                                 type="text"
+                                                placeholder="Day Title"
                                                 value={row.title}
                                                 onChange={(e) => {
                                                     const copy = [...itineraryDays];
                                                     copy[i].title = e.target.value;
                                                     setItineraryDays(copy);
                                                 }}
-                                                className="w-full bg-white border border-gray-300 text-gray-800 px-2 py-1 rounded focus:border-[#14532d] text-sm"
+                                                error={errors[`itinerary_title_${i}`]}
                                             />
                                         </div>
 
@@ -784,7 +789,7 @@ const HolidayPackageEdit = () => {
                                                     setItineraryDays(copy);
                                                 }}
                                                 rows="4"
-                                                className="w-full bg-white border border-gray-300 text-gray-800 px-2 py-1 rounded focus:border-[#14532d] text-sm"
+                                                className="w-full bg-white border border-gray-300 text-black px-2 py-1 rounded focus:border-[#14532d] text-sm"
                                             />
                                         </div>
 
@@ -919,10 +924,17 @@ const HolidayPackageEdit = () => {
                         </Section>
 
                         {/* SAVE BUTTONS */}
-                        <div className="flex gap-3 mt-6 bg-white p-6 rounded-lg shadow-sm">
+                        <div className="flex gap-2 mt-4 bg-white p-4 rounded-lg shadow-sm">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/admin/packages')}
+                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition text-sm font-semibold"
+                            >
+                                CANCEL
+                            </button>
                             <button
                                 type="submit"
-                                className="bg-[#14532d] px-6 py-2 rounded text-white hover:bg-[#0f4a24] transition font-semibold"
+                                className="bg-[#14532d] px-4 py-2 rounded text-white hover:bg-[#0f4a24] transition text-sm font-semibold"
                                 disabled={saving}
                             >
                                 {saving ? "UPDATING..." : "UPDATE PACKAGE"}
