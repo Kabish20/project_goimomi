@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import SuccessModal from "../components/SuccessModal";
 
 const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
@@ -164,9 +166,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Email is invalid";
     }
-    if (!phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^[\d+\-\s]{10,20}$/.test(phone)) {
+    if (!phone || phone.trim().length < 5) {
       newErrors.phone = "Please enter a valid phone number";
     }
 
@@ -670,16 +670,23 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
 
                 <div>
                   <label className="font-semibold">Phone *</label>
-                  <input
-                    type="tel"
-                    placeholder="Phone Number"
-                    className={`border px-3 py-1.5 rounded w-full text-sm ${errors.phone ? 'border-red-500' : ''}`}
-                    value={phone}
-                    onChange={(e) => {
-                      setPhone(e.target.value);
-                      if (errors.phone) setErrors({ ...errors, phone: '' });
-                    }}
-                  />
+                  <div className="mt-1">
+                    <PhoneInput
+                      country={"in"}
+                      value={phone}
+                      onChange={(phone) => {
+                        setPhone(phone);
+                        if (errors.phone) setErrors({ ...errors, phone: '' });
+                      }}
+                      inputProps={{
+                        name: "phone",
+                        required: true,
+                      }}
+                      containerClass="!w-full"
+                      inputClass={`!w-full !px-3 !py-1.5 !border !rounded !text-sm !h-[38px] ${errors.phone ? '!border-red-500' : '!border-gray-200'}`}
+                      buttonClass="!bg-white !border !border-gray-200 !rounded-l"
+                    />
+                  </div>
                   {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                 </div>
 

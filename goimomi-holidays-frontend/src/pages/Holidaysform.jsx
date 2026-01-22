@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import SuccessModal from "../components/SuccessModal";
 
 const HOLIDAY_TYPES = [
@@ -191,9 +193,7 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Invalid email";
     }
-    if (!phone.trim()) {
-      newErrors.phone = "Required";
-    } else if (!/^[\d+\-\s]{10,20}$/.test(phone)) {
+    if (!phone || phone.trim().length < 5) {
       newErrors.phone = "Invalid number";
     }
 
@@ -804,13 +804,20 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
 
                 <div>
                   <label className="font-semibold">Phone *</label>
-                  <input
-                    type="text"
-                    placeholder="91-xxxxxxxxxx"
-                    className="border px-3 py-2 rounded w-full mt-1"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
+                  <div className="mt-1">
+                    <PhoneInput
+                      country={"in"}
+                      value={phone}
+                      onChange={(phone) => setPhone(phone)}
+                      inputProps={{
+                        name: "phone",
+                        required: true,
+                      }}
+                      containerClass="!w-full"
+                      inputClass="!w-full !px-3 !py-2 !border !border-gray-200 !rounded !text-sm !h-[42px]"
+                      buttonClass="!bg-white !border !border-gray-200 !rounded-l"
+                    />
+                  </div>
                 </div>
 
                 <div>

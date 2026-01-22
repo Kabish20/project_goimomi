@@ -37,6 +37,7 @@ const EnquiryManage = () => {
     const filtered = enquiries.filter(enquiry =>
       enquiry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enquiry.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      enquiry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enquiry.purpose?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredEnquiries(filtered);
@@ -69,7 +70,7 @@ const EnquiryManage = () => {
         <AdminTopbar />
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-semibold text-gray-800">Manage General Enquiries</h1>
+            <h1 className="text-xl font-semibold text-gray-800">Manage Goimomi Enquiries</h1>
             <button
               onClick={fetchEnquiries}
               className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
@@ -134,6 +135,12 @@ const EnquiryManage = () => {
                               <Phone size={14} className="text-gray-400" />
                               {enquiry.phone}
                             </div>
+                            {enquiry.email && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <Mail size={14} className="text-gray-400" />
+                                {enquiry.email}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="py-3 px-4">
@@ -190,6 +197,7 @@ const EnquiryManage = () => {
                   <div>
                     <h3 className="font-semibold text-gray-700">Contact Information</h3>
                     <p><strong>Name:</strong> {selectedEnquiry.name}</p>
+                    <p><strong>Email:</strong> {selectedEnquiry.email || "N/A"}</p>
                     <p><strong>Phone:</strong> {selectedEnquiry.phone}</p>
                   </div>
 

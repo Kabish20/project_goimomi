@@ -189,7 +189,7 @@ const AdminDashboard = () => {
                 <AdminCard title="Holiday Packages" count={stats.packages} />
                 <AdminCard title="Starting Cities" count={stats.startingCities} />
                 <AdminCard title="Itinerary Masters" count={stats.itineraryMasters} />
-                <AdminCard title="General Enquiries" count={stats.enquiries} />
+                <AdminCard title="Goimomi Enquiries" count={stats.enquiries} />
                 <AdminCard title="Holiday Enquiries" count={stats.holidayEnquiries} />
                 <AdminCard title="Umrah Enquiries" count={stats.umrahEnquiries} />
                 <AdminCard title="Nationalities" count={stats.nationalities} />

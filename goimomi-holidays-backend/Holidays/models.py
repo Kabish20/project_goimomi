@@ -66,6 +66,7 @@ class UmrahEnquiry(models.Model):
 
 class Enquiry(models.Model):
     name = models.CharField(max_length=100)
+    email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20)
     purpose = models.TextField(blank=True, null=True)
 
@@ -323,6 +324,7 @@ class VisaApplicant(models.Model):
     place_of_birth = models.CharField(max_length=100)
     place_of_issue = models.CharField(max_length=100)
     marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES)
+    phone = models.CharField(max_length=20, blank=True, null=True)
     date_of_issue = models.DateField()
     date_of_expiry = models.DateField()
     passport_front = models.ImageField(upload_to='visa_apps/passports/')

@@ -1,19 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { FiPhone, FiMail, FiMapPin, FiUser, FiMessageCircle } from "react-icons/fi";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import emailjs from "emailjs-com";
 
 const Contact = () => {
 
   // ✅ Popup State (Placed correctly inside component)
-  const [showSuccess, setShowSuccess] = React.useState(false);
-
-  const [errors, setErrors] = React.useState({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [errors, setErrors] = useState({});
 
   const validateForm = (formData) => {
     const newErrors = {};
     const fullName = formData.get("fullName");
     const email = formData.get("email");
-    const phone = formData.get("phone");
     const contactingFor = formData.get("contactingFor");
     const message = formData.get("message");
 
@@ -23,8 +24,8 @@ const Contact = () => {
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Invalid email address";
     }
-    if (!phone || !/^\d{10}$/.test(phone.trim())) {
-      newErrors.phone = "Phone must be exactly 10 digits";
+    if (!phone || phone.trim().length < 5) {
+      newErrors.phone = "Invalid phone number";
     }
     if (!contactingFor) {
       newErrors.contactingFor = "Please select an option";
@@ -56,6 +57,7 @@ const Contact = () => {
         () => {
           setShowSuccess(true); // 🎉 Show popup
           setErrors({});
+          setPhone("");
           e.target.reset();     // Clear form
         },
         (error) => {
@@ -188,13 +190,18 @@ const Contact = () => {
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-              <div className={`flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#0b1a3d] ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}>
-                <FiPhone className="text-gray-500" />
-                <input
-                  type="tel"
-                  name="phone"
-                  className="w-full outline-none text-gray-700 text-sm"
-                  placeholder="Enter 10 digit number"
+              <div className="mt-1">
+                <PhoneInput
+                  country={"in"}
+                  value={phone}
+                  onChange={(phone) => setPhone(phone)}
+                  inputProps={{
+                    name: "phone",
+                    required: true,
+                  }}
+                  containerClass="!w-full"
+                  inputClass={`!w-full !outline-none !text-gray-700 !text-sm !h-[38px] !border !rounded-lg focus-within:!ring-2 focus-within:!ring-[#0b1a3d] ${errors.phone ? '!border-red-500' : '!border-gray-200'}`}
+                  buttonClass="!bg-transparent !border !border-gray-200 !rounded-l-lg"
                 />
               </div>
               {errors.phone && <p className="text-red-500 text-[10px] mt-1">{errors.phone}</p>}

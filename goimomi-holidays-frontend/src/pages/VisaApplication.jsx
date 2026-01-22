@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus } from "lucide-react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const VisaApplication = () => {
     const { id } = useParams();
@@ -37,6 +39,7 @@ const VisaApplication = () => {
     const [applicants, setApplicants] = useState([{
         first_name: "",
         last_name: "",
+        phone: "",
         passport_number: "",
         nationality: citizenOf,
         sex: "",
@@ -142,6 +145,7 @@ const VisaApplication = () => {
         setApplicants([...applicants, {
             first_name: "",
             last_name: "",
+            phone: "",
             passport_number: "",
             nationality: citizenOf,
             sex: "",
@@ -192,6 +196,12 @@ const VisaApplication = () => {
             // First Name
             if (!applicant.first_name.trim()) {
                 newErrors[`applicant_${index}_first_name`] = "First name is required";
+                isValid = false;
+            }
+
+            // Phone
+            if (!applicant.phone || applicant.phone.trim().length < 5) {
+                newErrors[`applicant_${index}_phone`] = "Invalid phone number";
                 isValid = false;
             }
 
@@ -584,13 +594,32 @@ const VisaApplication = () => {
                                     {errors[`applicant_${index}_first_name`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_first_name`]}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-900 mb-1.5">Last Name</label>
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5 ">Last Name</label>
                                     <input
                                         type="text"
                                         className="w-full px-3 py-2 rounded-xl border border-gray-200 outline-none focus:border-[#14532d] transition-colors text-sm"
                                         value={applicant.last_name}
                                         onChange={(e) => handleApplicantChange(index, "last_name", e.target.value)}
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-900 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
+                                    <div className="mt-1">
+                                        <PhoneInput
+                                            country={"in"}
+                                            value={applicant.phone}
+                                            onChange={(phone) => handleApplicantChange(index, "phone", phone)}
+                                            inputProps={{
+                                                name: `phone_${index}`,
+                                                required: true,
+                                            }}
+                                            containerClass="!w-full"
+                                            inputClass={`!w-full !px-3 !py-2 !rounded-xl !border ${errors[`applicant_${index}_phone`] ? '!border-red-500' : '!border-gray-200'} !outline-none focus:!border-[#14532d] !transition-colors !text-sm !h-[38px]`}
+                                            buttonClass="!bg-white !border !border-gray-200 !rounded-l-xl"
+                                        />
+                                    </div>
+                                    {errors[`applicant_${index}_phone`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_phone`]}</p>}
                                 </div>
 
                                 <div>

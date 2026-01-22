@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaTimes, FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet } from "react-icons/fa";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import SuccessModal from "./SuccessModal";
 
 const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
@@ -345,14 +347,18 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
 
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-gray-700">Phone Number</label>
-                            <input
-                                type="tel"
-                                name="phone"
+                            <PhoneInput
+                                country={"in"}
                                 value={formData.phone}
-                                onChange={handleChange}
-                                placeholder="Ex: +91 98765 43210"
-                                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all text-sm"
-                                required
+                                onChange={(phone) => setFormData(prev => ({ ...prev, phone }))}
+                                inputProps={{
+                                    name: "phone",
+                                    required: true,
+                                    placeholder: "Ex: +91 98765 43210"
+                                }}
+                                containerClass="!w-full"
+                                inputClass="!w-full !px-3 !py-1.5 !bg-gray-50 !border !border-gray-200 !rounded-xl focus:!ring-2 focus:!ring-[#14532d] focus:!border-transparent !outline-none !transition-all !text-sm !h-[34px]"
+                                buttonClass="!bg-gray-50 !border !border-gray-200 !rounded-l-xl"
                             />
                         </div>
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import SuccessModal from "../components/SuccessModal";
 
 const PackageEnquiryPage = () => {
@@ -85,10 +87,8 @@ const PackageEnquiryPage = () => {
             newErrors.full_name = "Name must be at least 3 characters";
         }
 
-        if (!formData.phone.trim()) {
-            newErrors.phone = "Phone number is required";
-        } else if (!/^\d{10}$/.test(formData.phone.trim())) {
-            newErrors.phone = "Phone must be exactly 10 digits";
+        if (!formData.phone || formData.phone.trim().length < 5) {
+            newErrors.phone = "Invalid phone number";
         }
 
         if (!formData.email.trim()) {
@@ -413,14 +413,20 @@ const PackageEnquiryPage = () => {
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold text-gray-500 uppercase tracking-wider">Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        placeholder="Enter 10 digit number"
-                                        className={`w-full px-4 py-3 bg-gray-50 border-2 ${errors.phone ? 'border-red-500' : 'border-transparent'} border-b-gray-200 rounded-xl focus:border-green-700 focus:bg-white outline-none transition-all`}
-                                    />
+                                    <div className="mt-1">
+                                        <PhoneInput
+                                            country={"in"}
+                                            value={formData.phone}
+                                            onChange={(phone) => setFormData(prev => ({ ...prev, phone }))}
+                                            inputProps={{
+                                                name: "phone",
+                                                required: true,
+                                            }}
+                                            containerClass="!w-full"
+                                            inputClass={`!w-full !px-4 !py-3 !bg-gray-50 !border-2 ${errors.phone ? '!border-red-500' : '!border-transparent'} !border-b-gray-200 !rounded-xl focus:!border-green-700 focus:!bg-white !outline-none !transition-all !h-[50px]`}
+                                            buttonClass="!bg-gray-50 !border-2 !border-transparent !border-b-gray-200 !rounded-l-xl"
+                                        />
+                                    </div>
                                     {errors.phone && <p className="text-red-500 text-xs mt-1 ml-1">{errors.phone}</p>}
                                 </div>
 
