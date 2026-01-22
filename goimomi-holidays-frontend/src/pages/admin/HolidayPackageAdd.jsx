@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -26,6 +27,7 @@ const Input = (props) => (
 
 
 const HolidayPackageAdd = () => {
+  const navigate = useNavigate();
   const [packageDestinations, setPackageDestinations] = useState([
     { destination: "", nights: 1 },
   ]);
@@ -62,34 +64,7 @@ const HolidayPackageAdd = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const groupedStartingCities = useMemo(() => {
-    const groups = startingCities.reduce((acc, city) => {
-      const region = (city.region || "Other").toString().trim() || "Other";
-      const key = region.toUpperCase();
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(city);
-      return acc;
-    }, {});
-
-    Object.keys(groups).forEach((key) => {
-      groups[key].sort((a, b) => (a?.name || "").localeCompare(b?.name || ""));
-    });
-
-    const ordered = {};
-    Object.keys(groups)
-      .sort((a, b) => a.localeCompare(b))
-      .forEach((key) => {
-        ordered[key] = groups[key];
-      });
-
-    return ordered;
-  }, [startingCities]);
-
   const groupedItineraryMasters = useMemo(() => {
-    const selectedDestinationNames = packageDestinations
-      .map(pd => pd.destination)
-      .filter(name => name !== "");
-
     return itineraryMasters.reduce((acc, master) => {
       let destName = "Global / General";
       if (master.destination) {
@@ -195,17 +170,6 @@ const HolidayPackageAdd = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const getNightRange = (index) => {
-    let start = 1;
-    for (let i = 0; i < index; i++) {
-      start += parseInt(packageDestinations[i].nights || 0, 10);
-    }
-    const nights = parseInt(packageDestinations[index].nights || 0, 10);
-    if (nights <= 0) return "";
-    if (nights === 1) return `Night ${start}`;
-    return `Nights ${start}-${start + nights - 1}`;
   };
 
   const getDestinationForDay = (dayIndex) => {

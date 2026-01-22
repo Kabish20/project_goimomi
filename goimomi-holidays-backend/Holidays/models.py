@@ -261,10 +261,10 @@ class Visa(models.Model):
     price = models.IntegerField()
     documents_required = models.TextField(blank=True, help_text="Comma-separated list")
     VISA_TYPES = [
-        ('Paper Visa', 'Paper Visa'),
         ('Sticker Visa', 'Sticker Visa'),
+        ('E-Visa', 'E-Visa'),
     ]
-    visa_type = models.CharField(max_length=50, choices=VISA_TYPES, default='Paper Visa')
+    visa_type = models.CharField(max_length=50, choices=VISA_TYPES, default='E-Visa')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

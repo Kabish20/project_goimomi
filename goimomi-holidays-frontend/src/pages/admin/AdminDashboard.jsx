@@ -4,6 +4,7 @@ import { ExternalLink, RefreshCw, Settings } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import AdminCard from "../../components/admin/AdminCard";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -20,6 +21,7 @@ const AdminDashboard = () => {
   const [recentEnquiries, setRecentEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Base API URL
   const API_BASE_URL = "/api";
@@ -34,17 +36,31 @@ const AdminDashboard = () => {
       setLoading(true);
       console.log("Fetching dashboard data from Django API...");
 
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        // If no token, you might want to redirect or handle it, 
+        // though ProtectedRoute usually handles this.
+        // navigate("/admin-login");
+        // return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+
       // Fetch all data in parallel with error handling for each endpoint
       const fetchPromises = [
-        axios.get(`${API_BASE_URL}/destinations/`).catch(err => ({ error: err, endpoint: 'destinations' })),
-        axios.get(`${API_BASE_URL}/packages/`).catch(err => ({ error: err, endpoint: 'packages' })),
-        axios.get(`${API_BASE_URL}/enquiry-form/`).catch(err => ({ error: err, endpoint: 'enquiries' })),
-        axios.get(`${API_BASE_URL}/holiday-form/`).catch(err => ({ error: err, endpoint: 'holiday-enquiries' })),
-        axios.get(`${API_BASE_URL}/umrah-form/`).catch(err => ({ error: err, endpoint: 'umrah-enquiries' })),
-        axios.get(`${API_BASE_URL}/starting-cities/`).catch(err => ({ error: err, endpoint: 'starting-cities' })),
-        axios.get(`${API_BASE_URL}/itinerary-masters/`).catch(err => ({ error: err, endpoint: 'itinerary-masters' })),
-        axios.get(`${API_BASE_URL}/nationalities/`).catch(err => ({ error: err, endpoint: 'nationalities' })),
-        axios.get(`${API_BASE_URL}/umrah-destinations/`).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
+        axios.get(`${API_BASE_URL}/destinations/`, config).catch(err => ({ error: err, endpoint: 'destinations' })),
+        axios.get(`${API_BASE_URL}/packages/`, config).catch(err => ({ error: err, endpoint: 'packages' })),
+        axios.get(`${API_BASE_URL}/enquiry-form/`, config).catch(err => ({ error: err, endpoint: 'enquiries' })),
+        axios.get(`${API_BASE_URL}/holiday-form/`, config).catch(err => ({ error: err, endpoint: 'holiday-enquiries' })),
+        axios.get(`${API_BASE_URL}/umrah-form/`, config).catch(err => ({ error: err, endpoint: 'umrah-enquiries' })),
+        axios.get(`${API_BASE_URL}/starting-cities/`, config).catch(err => ({ error: err, endpoint: 'starting-cities' })),
+        axios.get(`${API_BASE_URL}/itinerary-masters/`, config).catch(err => ({ error: err, endpoint: 'itinerary-masters' })),
+        axios.get(`${API_BASE_URL}/nationalities/`, config).catch(err => ({ error: err, endpoint: 'nationalities' })),
+        axios.get(`${API_BASE_URL}/umrah-destinations/`, config).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
       ];
 
       const responses = await Promise.all(fetchPromises);
@@ -130,7 +146,11 @@ const AdminDashboard = () => {
 
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
-      setError(`Failed to load dashboard data: ${err.message}. Please check if the Django backend is running on ${API_BASE_URL}`);
+      if (err.response && err.response.status === 401) {
+        setError("Authentication failed. Please log in again.");
+      } else {
+        setError(`Failed to load dashboard data: ${err.message}. Please check if the Django backend is running on ${API_BASE_URL}`);
+      }
     } finally {
       setLoading(false);
     }

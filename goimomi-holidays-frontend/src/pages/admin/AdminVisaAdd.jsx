@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ArrowLeft, Save, Plus } from "lucide-react";
+import { ArrowLeft, Save, Plus, ChevronDown, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -16,7 +16,7 @@ const AdminVisaAdd = () => {
         processing_time: "3-5 Business Days",
         price: "",
         documents_required: "Passport Front, Photo",
-        visa_type: "Paper Visa",
+        visa_type: "E-Visa",
         is_active: true,
         header_image: null,
         card_image: null,
@@ -24,6 +24,8 @@ const AdminVisaAdd = () => {
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countries, setCountries] = useState([]);
+    const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+    const [countrySearchTerm, setCountrySearchTerm] = useState("");
 
     useEffect(() => {
         fetchCountries();
@@ -85,7 +87,7 @@ const AdminVisaAdd = () => {
                     processing_time: "3-5 Business Days",
                     price: "",
                     documents_required: "Passport Front, Photo",
-                    visa_type: "Paper Visa",
+                    visa_type: "E-Visa",
                     is_active: true,
                     header_image: null,
                     card_image: null,
@@ -133,18 +135,57 @@ const AdminVisaAdd = () => {
                                         <label className="block text-xs font-bold text-gray-700 uppercase">
                                             Country <span className="text-red-500">*</span>
                                         </label>
-                                        <select
-                                            name="country"
-                                            value={formData.country}
-                                            onChange={handleChange}
-                                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
-                                            required
-                                        >
-                                            <option value="">Select Country</option>
-                                            {countries.map((c) => (
-                                                <option key={c.id} value={c.name}>{c.name}</option>
-                                            ))}
-                                        </select>
+                                        <div className="relative">
+                                            <div
+                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all cursor-pointer flex items-center justify-between bg-white"
+                                                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                                            >
+                                                <span className={formData.country ? "text-gray-900" : "text-gray-500"}>
+                                                    {formData.country || "Select Country"}
+                                                </span>
+                                                <ChevronDown size={16} className="text-gray-500" />
+                                            </div>
+
+                                            {isCountryDropdownOpen && (
+                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden flex flex-col">
+                                                    <div className="p-2 border-b border-gray-100">
+                                                        <div className="relative">
+                                                            <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                            <input
+                                                                type="text"
+                                                                value={countrySearchTerm}
+                                                                onChange={(e) => setCountrySearchTerm(e.target.value)}
+                                                                placeholder="Search country..."
+                                                                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-[#14532d]"
+                                                                autoFocus
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="overflow-y-auto flex-1">
+                                                        {countries.filter(c => c.name.toLowerCase().includes(countrySearchTerm.toLowerCase())).length > 0 ? (
+                                                            countries
+                                                                .filter(c => c.name.toLowerCase().includes(countrySearchTerm.toLowerCase()))
+                                                                .map((c) => (
+                                                                    <div
+                                                                        key={c.id}
+                                                                        className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 ${formData.country === c.name ? "bg-[#14532d]/10 text-[#14532d] font-medium" : "text-gray-700"}`}
+                                                                        onClick={() => {
+                                                                            setFormData({ ...formData, country: c.name });
+                                                                            setIsCountryDropdownOpen(false);
+                                                                            setCountrySearchTerm("");
+                                                                        }}
+                                                                    >
+                                                                        {c.name}
+                                                                    </div>
+                                                                ))
+                                                        ) : (
+                                                            <div className="px-3 py-2 text-sm text-gray-500 text-center">No countries found</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="space-y-1">
@@ -172,7 +213,7 @@ const AdminVisaAdd = () => {
                                             onChange={handleChange}
                                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
                                         >
-                                            <option value="Paper Visa">Paper Visa</option>
+                                            <option value="E-Visa">E-Visa</option>
                                             <option value="Sticker Visa">Sticker Visa</option>
                                         </select>
                                     </div>

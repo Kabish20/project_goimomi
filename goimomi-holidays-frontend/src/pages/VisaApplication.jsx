@@ -347,10 +347,11 @@ const VisaApplication = () => {
                 return internalId.trim().length > 0;
             case "group_name":
                 return groupName.trim().length > 0;
-            case "traveler_1":
+            case "traveler_1": {
                 // Basic check for traveler 1 completion
                 const app = applicants[0];
                 return app && app.first_name && app.passport_number && app.passport_front && app.photo;
+            }
             case "review":
                 // Considered complete if we have at least one valid traveler
                 return applicants.length > 0 && isStepComplete("traveler_1");
@@ -486,20 +487,14 @@ const VisaApplication = () => {
                         </div>
 
                         <div className="mt-4">
-                            <label className="block text-xs font-semibold text-gray-500 mb-2">Visa Type</label>
+                            <label className="block text-xs font-semibold text-gray-500 mb-2">Visa Name</label>
                             <div className="relative">
-                                <select
+                                <input
+                                    type="text"
                                     value={selectedVisaType}
-                                    onChange={(e) => setSelectedVisaType(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-xl border border-[#14532d] text-gray-900 appearance-none bg-white font-medium outline-none focus:ring-1 focus:ring-[#14532d] text-sm"
-                                    style={{ borderColor: '#14532d' }}
-                                >
-                                    <option>{visa.title}</option>
-                                    <option>Vietnam E-Visa</option>
-                                    <option>Vietnam 90 Days Multiple Entry E-Visa</option>
-                                    <option>Lighting Fast (6 Business Hours)</option>
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                    readOnly
+                                    className="w-full px-3 py-2 rounded-xl border border-[#14532d] text-gray-900 bg-gray-50 font-medium outline-none text-sm cursor-not-allowed"
+                                />
                             </div>
                         </div>
                     </div>

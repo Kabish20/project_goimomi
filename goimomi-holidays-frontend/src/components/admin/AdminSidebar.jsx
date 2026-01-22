@@ -20,6 +20,7 @@ const menu = [
       "Umrah Destinations",
       "Umrah Enquiries",
       "Visas",
+      "Visa Applications",
     ],
   },
 ];
@@ -74,6 +75,10 @@ const AdminSidebar = () => {
 
   const handleChangeVisa = () => {
     navigate("/admin/visas");
+  };
+
+  const handleChangeVisaApplication = () => {
+    navigate("/admin/visa-applications");
   };
 
 
@@ -165,6 +170,8 @@ const AdminSidebar = () => {
         return handleChangeUmrahDestinations;
       case "Visas":
         return handleChangeVisa;
+      case "Visa Applications":
+        return handleChangeVisaApplication;
       default:
         return undefined;
     }

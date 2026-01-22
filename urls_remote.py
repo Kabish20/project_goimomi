@@ -1,0 +1,23 @@
+from rest_framework.routers import DefaultRouter
+from django.urls import path, include
+from .views import *
+
+router = DefaultRouter()
+router.register("holiday-form", HolidayEnquiryAPI)
+router.register("umrah-form", UmrahEnquiryAPI)
+router.register("enquiry-form", EnquiryAPI)
+router.register("packages", HolidayPackageViewSet)
+router.register("destinations", DestinationViewSet)
+router.register("starting-cities", StartingCityViewSet)
+router.register("itinerary-masters", ItineraryMasterViewSet)
+router.register("users", UserViewSet)
+router.register("nationalities", NationalityViewSet)
+router.register("countries", NationalityViewSet) # Alias for frontend
+router.register("umrah-destinations", UmrahDestinationViewSet)
+router.register("visas", VisaViewSet)
+router.register("visa-applications", VisaApplicationViewSet)
+
+urlpatterns = [
+    path('', include(router.urls)),
+    path('admin-login/', AdminLoginView.as_view(), name='admin-login'),
+]
