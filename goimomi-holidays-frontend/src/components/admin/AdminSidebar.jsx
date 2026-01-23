@@ -8,7 +8,7 @@ const menu = [
     items: ["Users"],
   },
   {
-    title: "Holidays",
+    title: "Holidays Data",
     items: [
       "Destinations",
       "Enquiries",
@@ -57,6 +57,7 @@ const AdminSidebar = () => {
   };
 
 
+
   const handleChangePackage = () => {
     navigate("/admin/packages");
   };
@@ -77,11 +78,11 @@ const AdminSidebar = () => {
     navigate("/admin/visas");
   };
 
+
+
   const handleChangeVisaApplication = () => {
     navigate("/admin/visa-applications");
   };
-
-
 
   const handleChangeStartingCity = () => {
     navigate("/admin/starting-cities");

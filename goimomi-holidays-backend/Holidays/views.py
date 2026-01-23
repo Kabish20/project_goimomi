@@ -200,7 +200,7 @@ class VisaApplicationViewSet(ModelViewSet):
             passport_front = request.FILES.get(f'applicant_{i}_passport_front')
             photo = request.FILES.get(f'applicant_{i}_photo')
             
-            VisaApplicant.objects.create(
+            applicant = VisaApplicant.objects.create(
                 application=application,
                 first_name=applicant_data.get('first_name', ''),
                 last_name=applicant_data.get('last_name', ''),
@@ -216,6 +216,17 @@ class VisaApplicationViewSet(ModelViewSet):
                 passport_front=passport_front,
                 photo=photo
             )
+
+            # Handle additional documents
+            additional_docs = applicant_data.get('additional_documents', [])
+            for j, doc_data in enumerate(additional_docs):
+                doc_file = request.FILES.get(f'applicant_{i}_additional_doc_{j}')
+                if doc_file:
+                    VisaAdditionalDocument.objects.create(
+                        applicant=applicant,
+                        document_name=doc_data.get('name', f'Document {j+1}'),
+                        file=doc_file
+                    )
             
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

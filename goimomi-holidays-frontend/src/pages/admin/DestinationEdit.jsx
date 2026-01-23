@@ -98,93 +98,107 @@ const DestinationEdit = () => {
             <div className="flex-1">
                 <AdminTopbar />
 
-                <div className="p-6">
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex justify-between items-center">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-800 mb-2">Edit Destination</h1>
-                            <p className="text-gray-600">Update destination details and images</p>
+                <div className="p-3">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex items-center gap-2 mb-3">
+                            <button
+                                onClick={() => navigate('/admin/destinations')}
+                                className="p-1 px-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-[10px] font-bold flex items-center gap-1 uppercase tracking-tight"
+                            >
+                                Back
+                            </button>
+                            <h1 className="text-xl font-bold text-gray-900">Edit Destination</h1>
                         </div>
-                        <button
-                            onClick={() => navigate("/admin/destinations")}
-                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition"
-                        >
-                            Back to List
-                        </button>
-                    </div>
 
-                    {message && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-2">
-                            <span className="font-bold">✓</span> {message}
-                        </div>
-                    )}
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
-                            <span className="font-bold">⚠</span> {error}
-                        </div>
-                    )}
+                        {message && (
+                            <div className="mb-3 p-2 bg-green-50 ring-1 ring-green-200 text-green-700 rounded text-xs font-bold animate-in fade-in slide-in-from-top-2">
+                                {message}
+                            </div>
+                        )}
+                        {error && (
+                            <div className="mb-3 p-2 bg-red-50 ring-1 ring-red-200 text-red-700 rounded text-xs font-bold animate-in fade-in slide-in-from-top-2">
+                                {error}
+                            </div>
+                        )}
 
-                    <form onSubmit={(e) => handleSubmit(e, false)} className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="grid grid-cols-1 gap-6 p-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-gray-700 font-semibold mb-2">Name:</label>
-                                    <input
-                                        name="name"
-                                        value={form.name}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700 font-semibold mb-2">Region:</label>
-                                    <input
-                                        name="region"
-                                        value={form.region}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700 font-semibold mb-2">City:</label>
-                                    <input
-                                        name="city"
-                                        value={form.city}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700 font-semibold mb-2">Country:</label>
-                                    <input
-                                        name="country"
-                                        value={form.country}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-[#14532d] outline-none"
-                                        required
-                                    />
+                        <form onSubmit={(e) => handleSubmit(e, false)} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="p-4 space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Destination Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            name="name"
+                                            value={form.name}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic font-medium"
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Country <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            name="country"
+                                            value={form.country}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic font-medium"
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            City / Locality
+                                        </label>
+                                        <input
+                                            name="city"
+                                            value={form.city}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic font-medium"
+                                            disabled={loading}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Region / State
+                                        </label>
+                                        <input
+                                            name="region"
+                                            value={form.region}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic font-medium"
+                                            disabled={loading}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="bg-gray-50 p-6 flex gap-3">
-                            <button
-                                type="submit"
-                                className="bg-[#14532d] text-white px-6 py-2 rounded hover:bg-[#0f4a24] transition font-semibold disabled:opacity-50"
-                                disabled={loading}
-                            >
-                                {loading ? "Updating..." : "UPDATE"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={(e) => handleSubmit(e, true)}
-                                className="bg-[#1f7a45] text-white px-6 py-2 rounded hover:bg-[#1a6338] transition font-semibold disabled:opacity-50"
-                                disabled={loading}
-                            >
-                                Save and continue editing
-                            </button>
-                        </div>
-                    </form>
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="px-8 py-2 bg-[#14532d] text-white rounded-xl hover:bg-[#0f4a24] transition-all transform active:scale-95 disabled:opacity-50 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-900/10"
+                                >
+                                    {loading ? "Updating..." : "Update Destination"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => handleSubmit(e, true)}
+                                    className="px-4 py-2 bg-white text-[#14532d] border border-[#14532d]/20 rounded-xl hover:bg-green-50 transition-all transform active:scale-95 disabled:opacity-50 text-[10px] font-black uppercase tracking-widest"
+                                    disabled={loading}
+                                >
+                                    Continue Editing
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

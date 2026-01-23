@@ -113,153 +113,143 @@ const ItineraryMasterAdd = () => {
             <div className="flex-1">
                 <AdminTopbar />
 
-                <div className="p-4">
-                    {/* Header */}
-                    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h1 className="text-xl font-bold text-gray-800 mb-1">Add Itinerary Master</h1>
-                                <p className="text-xs text-gray-600">Create reusable itinerary day templates</p>
-                            </div>
+                <div className="p-3">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="flex items-center gap-2 mb-3">
                             <button
                                 onClick={() => navigate('/admin/itinerary-masters')}
-                                className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300 transition"
+                                className="p-1 px-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-[10px] font-bold flex items-center gap-1 uppercase tracking-tight"
                             >
-                                Back to List
+                                Back
                             </button>
-                        </div>
-                    </div>
-
-                    {/* Messages */}
-                    {message && (
-                        <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm flex items-center gap-2">
-                            <i className="fas fa-check-circle"></i>
-                            {message}
-                        </div>
-                    )}
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm flex items-center gap-2">
-                            <i className="fas fa-times-circle"></i>
-                            {error}
-                        </div>
-                    )}
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm overflow-hidden max-w-4xl">
-                        {/* Destination Field */}
-                        <div className="border-b border-gray-100 p-4 bg-gray-50">
-                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
-                                Destination: <span className="text-gray-400 normal-case">(Optional)</span>
-                            </label>
-                            <SearchableSelect
-                                options={destinations.map(d => ({ value: d.id, label: d.name }))}
-                                value={form.destination}
-                                onChange={(val) => setForm({ ...form, destination: val })}
-                                placeholder="Select Destination (Global)"
-                                disabled={loading}
-                            />
-                            <p className="text-[10px] text-gray-500 mt-1">
-                                Categorize templates under a city for easier filtering in packages
-                            </p>
-                        </div>
-                        {/* Name Field */}
-                        <div className="border-b border-gray-100 p-4">
-                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
-                                Name (Internal ID): <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                name="name"
-                                value={form.name}
-                                onChange={handleChange}
-                                className="w-full max-w-xl border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
-                                placeholder="e.g. thailand_bangkok_day1"
-                                required
-                                disabled={loading}
-                            />
-                            <p className="text-[10px] text-gray-400 mt-1">Unique identifier (lowercase, underscores only)</p>
+                            <h1 className="text-xl font-bold text-gray-900">Add Itinerary Master</h1>
                         </div>
 
-                        {/* Title Field */}
-                        <div className="border-b border-gray-100 p-4 bg-gray-50">
-                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
-                                Title (Display Name): <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                name="title"
-                                value={form.title}
-                                onChange={handleChange}
-                                className="w-full max-w-xl border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
-                                placeholder="e.g. Arrival and Leisure"
-                                required
-                                disabled={loading}
-                            />
-                        </div>
+                        {/* Messages */}
+                        {message && (
+                            <div className="mb-3 p-2 bg-green-50 ring-1 ring-green-200 text-green-700 rounded text-xs font-bold animate-in fade-in slide-in-from-top-2">
+                                {message}
+                            </div>
+                        )}
+                        {error && (
+                            <div className="mb-3 p-2 bg-red-50 ring-1 ring-red-200 text-red-700 rounded text-xs font-bold animate-in fade-in slide-in-from-top-2">
+                                {error}
+                            </div>
+                        )}
 
-                        {/* Description Field */}
-                        <div className="border-b border-gray-100 p-4">
-                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
-                                Description:*
-                            </label>
-                            <textarea
-                                name="description"
-                                value={form.description}
-                                onChange={handleChange}
-                                rows="4"
-                                className="w-full border border-gray-300 px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d]"
-                                placeholder="Description of activities..."
-                                required
-                                disabled={loading}
-                            />
-                        </div>
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="p-4 space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Destination Category
+                                        </label>
+                                        <SearchableSelect
+                                            options={destinations.map(d => ({ value: d.id, label: d.name }))}
+                                            value={form.destination}
+                                            onChange={(val) => setForm({ ...form, destination: val })}
+                                            placeholder="Global/Generic"
+                                            disabled={loading}
+                                        />
+                                        <p className="text-[9px] text-gray-400 italic">For easier template filtering in packages.</p>
+                                    </div>
 
-                        {/* Image Field */}
-                        <div className="border-b border-gray-100 p-4 bg-gray-50">
-                            <label className="block text-gray-700 font-bold text-xs uppercase mb-1">
-                                Image (Optional):
-                            </label>
-                            <input
-                                id="imageInput"
-                                type="file"
-                                name="image"
-                                onChange={handleChange}
-                                accept="image/*"
-                                className="w-full max-w-xl text-xs text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-[#14532d] file:text-white"
-                                disabled={loading}
-                            />
-                            {form.image && (
-                                <div className="mt-1 text-[10px] text-green-600 font-bold">
-                                    ✓ {form.image.name}
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Internal ID <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            name="name"
+                                            value={form.name}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic font-medium"
+                                            placeholder="e.g. thailand_day1"
+                                            required
+                                            disabled={loading}
+                                        />
+                                        <p className="text-[9px] text-gray-400 italic">Lowercase, underscores only.</p>
+                                    </div>
+
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Display Title <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            name="title"
+                                            value={form.title}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic font-medium"
+                                            placeholder="e.g. Arrival & Leisure"
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs lg:col-span-2">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Activities Description <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            name="description"
+                                            value={form.description}
+                                            onChange={handleChange}
+                                            rows="2"
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all resize-none font-medium"
+                                            placeholder="Detail the day's itinerary..."
+                                            required
+                                            disabled={loading}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Cover Image
+                                        </label>
+                                        <div className="flex flex-col gap-1">
+                                            <input
+                                                id="imageInput"
+                                                type="file"
+                                                name="image"
+                                                onChange={handleChange}
+                                                accept="image/*"
+                                                className="w-full text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] cursor-pointer"
+                                                disabled={loading}
+                                            />
+                                            {form.image && <span className="text-[9px] text-[#14532d] font-bold">✓ {form.image.name}</span>}
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
 
-                        {/* Action Buttons */}
-                        <div className="bg-white p-4 flex gap-2 border-t border-gray-100">
-                            <button
-                                type="submit"
-                                className="bg-[#14532d] text-white px-4 py-1.5 rounded hover:bg-[#0f4a24] transition text-sm font-semibold"
-                                disabled={loading}
-                            >
-                                {loading ? "Saving..." : "SAVE"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleSaveAndAddAnother}
-                                className="bg-[#1f7a45] text-white px-4 py-1.5 rounded hover:bg-[#1a6338] transition text-sm font-semibold"
-                                disabled={loading}
-                            >
-                                {loading ? "Saving..." : "Save + New"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleSaveAndContinue}
-                                className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded hover:bg-gray-300 transition text-sm font-semibold"
-                                disabled={loading}
-                            >
-                                {loading ? "Saving..." : "Save + Continue"}
-                            </button>
-                        </div>
-                    </form>
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap justify-end gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="px-8 py-2 bg-[#14532d] text-white rounded-xl hover:bg-[#0f4a24] transition-all transform active:scale-95 disabled:opacity-50 text-xs font-bold uppercase tracking-widest shadow-lg shadow-green-900/20"
+                                >
+                                    {loading ? "Saving..." : "Save Master"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSaveAndAddAnother}
+                                    disabled={loading}
+                                    className="px-6 py-2 bg-white text-[#14532d] border border-gray-200 rounded-xl hover:bg-gray-50 transition-all transform active:scale-95 disabled:opacity-50 text-xs font-bold uppercase tracking-widest"
+                                >
+                                    Save + New
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSaveAndContinue}
+                                    disabled={loading}
+                                    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all transform active:scale-95 disabled:opacity-50 text-xs font-bold uppercase tracking-widest"
+                                >
+                                    Save + Stay
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

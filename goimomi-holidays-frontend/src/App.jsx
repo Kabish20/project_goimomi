@@ -61,6 +61,7 @@ import VisaApplicationEdit from "./pages/admin/VisaApplicationEdit";
 import AdminVisaAdd from "./pages/admin/AdminVisaAdd";
 import AdminVisaEdit from "./pages/admin/AdminVisaEdit";
 
+
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
@@ -143,6 +144,8 @@ const App = () => {
             <Route path="/admin/visas/edit/:id" element={<AdminVisaEdit />} />
             <Route path="/admin/visa-applications" element={<VisaApplicationManage />} />
             <Route path="/admin/visa-applications/edit/:id" element={<VisaApplicationEdit />} />
+
+
 
           </Route>
         </Routes>

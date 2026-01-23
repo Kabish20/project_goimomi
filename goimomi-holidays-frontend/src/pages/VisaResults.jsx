@@ -1,30 +1,64 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CheckCircle, Home, Plane, Calendar, Search, X, Copy } from "lucide-react";
+import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown } from "lucide-react";
 
 const VisaResults = () => {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const [visas, setVisas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeDocPopup, setActiveDocPopup] = useState(null);
 
-    const citizenOf = searchParams.get("citizenOf") || "India";
-    const goingTo = searchParams.get("goingTo") || "";
-    const departureDate = searchParams.get("departureDate") || "";
-    const returnDate = searchParams.get("returnDate") || "";
+    // Search state managed locally for interactivity
+    const [citizenOf, setCitizenOf] = useState(searchParams.get("citizenOf") || "India");
+    const [goingTo, setGoingTo] = useState(searchParams.get("goingTo") || "");
+    const [departureDate, setDepartureDate] = useState(searchParams.get("departureDate") || "");
+    const [returnDate, setReturnDate] = useState(searchParams.get("returnDate") || "");
+
+    // Dropdown and Search Logic
+    const [countries, setCountries] = useState([]);
+    const [showCitizenDropdown, setShowCitizenDropdown] = useState(false);
+    const [showGoingToDropdown, setShowGoingToDropdown] = useState(false);
+    const [citizenSearch, setCitizenSearch] = useState(searchParams.get("citizenOf") || "India");
+    const [goingToSearch, setGoingToSearch] = useState(searchParams.get("goingTo") || "");
+
+    const citizenRef = useRef(null);
+    const goingToRef = useRef(null);
 
     useEffect(() => {
-        if (goingTo) {
-            fetchVisas();
+        fetchVisas();
+        fetchCountries();
+    }, [searchParams.get("goingTo")]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (citizenRef.current && !citizenRef.current.contains(event.target)) {
+                setShowCitizenDropdown(false);
+            }
+            if (goingToRef.current && !goingToRef.current.contains(event.target)) {
+                setShowGoingToDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const fetchCountries = async () => {
+        try {
+            const response = await axios.get("/api/countries/");
+            setCountries(response.data);
+        } catch (error) {
+            console.error("Error fetching countries:", error);
         }
-    }, [goingTo]);
+    };
 
     const fetchVisas = async () => {
+        const country = searchParams.get("goingTo");
+        if (!country) return;
         try {
             setLoading(true);
-            const response = await axios.get(`/api/visas/?country=${goingTo}`);
+            const response = await axios.get(`/api/visas/?country=${country}`);
             setVisas(response.data);
         } catch (error) {
             console.error("Error fetching visas:", error);
@@ -33,19 +67,47 @@ const VisaResults = () => {
         }
     };
 
-    const calculateEstimatedArrival = (processingTime, departureDate) => {
-        if (!departureDate) return "N/A";
+    const handleSearchRefresh = () => {
+        if (!goingTo) {
+            alert("Please select a destination country");
+            return;
+        }
+        const params = new URLSearchParams({
+            citizenOf,
+            goingTo,
+            departureDate,
+            returnDate
+        });
+        setSearchParams(params);
+    };
 
-        const departure = new Date(departureDate);
-        const processingDays = parseInt(processingTime) || 3;
-        const estimatedDate = new Date(departure);
-        estimatedDate.setDate(estimatedDate.getDate() - processingDays);
+    const filteredCitizenCountries = countries.filter(c =>
+        c.name.toLowerCase().includes(citizenSearch.toLowerCase())
+    );
 
-        const day = estimatedDate.getDate();
-        const month = estimatedDate.toLocaleDateString('en-GB', { month: 'short' });
-        const year = estimatedDate.getFullYear();
+    const filteredGoingToCountries = countries.filter(c =>
+        c.name.toLowerCase().includes(goingToSearch.toLowerCase())
+    );
 
-        return `${day}${getDaySuffix(day)} ${month}, ${year}`;
+    const calculateEstimatedArrival = (processingTime, depDate) => {
+        if (!depDate) return "N/A";
+
+        try {
+            const departure = new Date(depDate);
+            if (isNaN(departure.getTime())) return "N/A";
+
+            const processingDays = parseInt(processingTime) || 3;
+            const estimatedDate = new Date(departure);
+            estimatedDate.setDate(estimatedDate.getDate() - processingDays);
+
+            const day = estimatedDate.getDate();
+            const month = estimatedDate.toLocaleDateString('en-GB', { month: 'short' });
+            const year = estimatedDate.getFullYear();
+
+            return `${day}${getDaySuffix(day)} ${month}, ${year}`;
+        } catch (e) {
+            return "N/A";
+        }
     };
 
     const getDaySuffix = (day) => {
@@ -71,7 +133,6 @@ const VisaResults = () => {
 
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text);
-        // Optional: Add toast notification here
     };
 
     if (loading) {
@@ -87,52 +148,138 @@ const VisaResults = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Search Bar - Sticky */}
-            <div className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-6xl mx-auto px-4 py-4">
-                    <div className="flex flex-col md:flex-row gap-2">
+            {/* Search Bar - Sticky & Interactive */}
+            <div className="bg-white shadow-sm sticky top-0 z-50 py-2">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex flex-col md:flex-row gap-2 bg-white rounded-2xl p-1 border border-gray-100 shadow-sm">
                         {/* Citizen Of */}
-                        <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-200">
-                            <Home size={18} className="text-gray-400" />
-                            <div className="flex-1">
-                                <div className="text-xs text-gray-400 mb-0.5">Citizen of</div>
-                                <div className="text-sm font-medium text-gray-700">{citizenOf}</div>
+                        <div className="flex-1 relative" ref={citizenRef}>
+                            <div
+                                className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors cursor-pointer"
+                                onClick={() => setShowCitizenDropdown(!showCitizenDropdown)}
+                            >
+                                <Home size={16} className="text-gray-400" />
+                                <div className="flex-1">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Citizen of</p>
+                                    <input
+                                        type="text"
+                                        value={citizenSearch}
+                                        onChange={(e) => {
+                                            setCitizenSearch(e.target.value);
+                                            setShowCitizenDropdown(true);
+                                        }}
+                                        className="w-full outline-none text-sm text-gray-900 font-bold placeholder:text-gray-300"
+                                        placeholder="Country"
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </div>
+                                <ChevronDown size={14} className={`text-gray-400 transition-transform ${showCitizenDropdown ? 'rotate-180' : ''}`} />
                             </div>
+
+                            {showCitizenDropdown && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-48 overflow-y-auto z-50">
+                                    {filteredCitizenCountries.length > 0 ? (
+                                        filteredCitizenCountries.map((country) => (
+                                            <div
+                                                key={country.id}
+                                                className={`px-3 py-2 text-sm hover:bg-green-50 cursor-pointer flex items-center gap-2 ${citizenOf === country.name ? 'text-[#14532d] font-bold' : 'text-gray-700'}`}
+                                                onClick={() => {
+                                                    setCitizenOf(country.name);
+                                                    setCitizenSearch(country.name);
+                                                    setShowCitizenDropdown(false);
+                                                }}
+                                            >
+                                                {country.name}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="px-3 py-2 text-xs text-gray-400 text-center italic">No results</div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Going To */}
-                        <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-200">
-                            <Plane size={18} className="text-gray-400" />
-                            <div className="flex-1">
-                                <div className="text-xs text-gray-400 mb-0.5">Going to</div>
-                                <div className="text-sm font-medium text-gray-700">{goingTo}</div>
+                        <div className="flex-1 relative" ref={goingToRef}>
+                            <div
+                                className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 hover:border-gray-200 transition-colors cursor-pointer"
+                                onClick={() => setShowGoingToDropdown(!showGoingToDropdown)}
+                            >
+                                <Plane size={16} className="text-gray-400" />
+                                <div className="flex-1">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Going to</p>
+                                    <input
+                                        type="text"
+                                        value={goingToSearch}
+                                        onChange={(e) => {
+                                            setGoingToSearch(e.target.value);
+                                            setShowGoingToDropdown(true);
+                                        }}
+                                        className="w-full outline-none text-sm text-gray-900 font-bold placeholder:text-gray-300"
+                                        placeholder="Destination"
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </div>
+                                <ChevronDown size={14} className={`text-gray-400 transition-transform ${showGoingToDropdown ? 'rotate-180' : ''}`} />
                             </div>
+
+                            {showGoingToDropdown && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-48 overflow-y-auto z-50">
+                                    {filteredGoingToCountries.length > 0 ? (
+                                        filteredGoingToCountries.map((country) => (
+                                            <div
+                                                key={country.id}
+                                                className={`px-3 py-2 text-sm hover:bg-green-50 cursor-pointer flex items-center gap-2 ${goingTo === country.name ? 'text-[#14532d] font-bold' : 'text-gray-700'}`}
+                                                onClick={() => {
+                                                    setGoingTo(country.name);
+                                                    setGoingToSearch(country.name);
+                                                    setShowGoingToDropdown(false);
+                                                }}
+                                            >
+                                                {country.name}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="px-3 py-2 text-xs text-gray-400 text-center italic">No results</div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Departure Date */}
-                        <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-200">
-                            <Calendar size={18} className="text-gray-400" />
+                        <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100">
+                            <Calendar size={16} className="text-gray-400" />
                             <div className="flex-1">
-                                <div className="text-xs text-gray-400 mb-0.5">Departure Date</div>
-                                <div className="text-sm font-medium text-gray-700">{departureDate || "Not specified"}</div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Departure</p>
+                                <input
+                                    type="date"
+                                    value={departureDate}
+                                    onChange={(e) => setDepartureDate(e.target.value)}
+                                    className="w-full outline-none text-sm text-gray-900 font-bold"
+                                />
                             </div>
                         </div>
 
                         {/* Return Date */}
-                        <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-200">
-                            <Calendar size={18} className="text-gray-400" />
+                        <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100">
+                            <Calendar size={16} className="text-gray-400" />
                             <div className="flex-1">
-                                <div className="text-xs text-gray-400 mb-0.5">Return Date</div>
-                                <div className="text-sm font-medium text-gray-700">{returnDate || "Not specified"}</div>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Return</p>
+                                <input
+                                    type="date"
+                                    value={returnDate}
+                                    onChange={(e) => setReturnDate(e.target.value)}
+                                    className="w-full outline-none text-sm text-gray-900 font-bold"
+                                />
                             </div>
                         </div>
 
                         {/* Search Button */}
                         <button
-                            onClick={() => navigate("/visa")}
-                            className="px-6 py-3 bg-[#14532d] hover:bg-[#0f4a24] text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
+                            onClick={handleSearchRefresh}
+                            className="px-6 py-2 bg-[#14532d] hover:bg-[#0f4a24] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
                         >
-                            <Search size={18} />
+                            <Search size={16} />
                             Search
                         </button>
                     </div>
@@ -158,9 +305,9 @@ const VisaResults = () => {
                                 key={visa.id}
                                 className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative"
                             >
-                                {/* Header */}
-                                <div className="bg-[#14532d] text-white px-6 py-3 rounded-t-2xl">
-                                    <h3 className="text-lg font-bold">{visa.title}</h3>
+                                {/* Header - Images Removed */}
+                                <div className="bg-[#14532d] text-white px-6 py-4 rounded-t-2xl">
+                                    <h3 className="text-xl font-bold">{visa.title}</h3>
                                 </div>
 
                                 {/* Content Container */}
@@ -175,7 +322,7 @@ const VisaResults = () => {
 
                                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                                         {/* Details Grid */}
-                                        <div className="flex-1 grid grid-cols-6 gap-6 bg-gray-50/50 p-4 rounded-xl w-full">
+                                        <div className="flex-1 grid grid-cols-7 gap-6 bg-gray-50/50 p-4 rounded-xl w-full">
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Type</span>
                                                 <span className="text-sm font-semibold text-gray-900 line-clamp-1">{visa.visa_type}</span>
@@ -199,14 +346,14 @@ const VisaResults = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setActiveDocPopup(activeDocPopup === visa.id ? null : visa.id);
+                                                        setActiveDocPopup(activeDocPopup === `doc_${visa.id}` ? null : `doc_${visa.id}`);
                                                     }}
                                                     className="text-sm font-semibold text-[#14532d] hover:underline text-left"
                                                 >
                                                     View Here
                                                 </button>
 
-                                                {activeDocPopup === visa.id && (
+                                                {activeDocPopup === `doc_${visa.id}` && (
                                                     <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-5 animate-in fade-in zoom-in-95 duration-200">
                                                         <div className="flex justify-between items-center mb-4">
                                                             <h4 className="font-bold text-gray-900">Documents</h4>
@@ -243,6 +390,56 @@ const VisaResults = () => {
                                                 )}
                                             </div>
 
+                                            {/* Photography - Popup */}
+                                            <div className="flex flex-col gap-1 relative">
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Photo</span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveDocPopup(activeDocPopup === `photo_${visa.id}` ? null : `photo_${visa.id}`);
+                                                    }}
+                                                    className="text-sm font-semibold text-[#14532d] hover:underline text-left"
+                                                >
+                                                    View Here
+                                                </button>
+
+                                                {activeDocPopup === `photo_${visa.id}` && (
+                                                    <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-5 animate-in fade-in zoom-in-95 duration-200">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <h4 className="font-bold text-gray-900">Photography</h4>
+                                                            <div className="flex items-center gap-3">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleCopy(visa.photography_required);
+                                                                    }}
+                                                                    className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                                                                >
+                                                                    <Copy size={14} />
+                                                                    <span className="text-xs font-medium">Copy</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setActiveDocPopup(null);
+                                                                    }}
+                                                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                                                >
+                                                                    <X size={18} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <ul className="list-disc pl-4 space-y-2">
+                                                            {visa.photography_required ? visa.photography_required.split(',').map((req, idx) => (
+                                                                <li key={idx} className="text-sm text-gray-700 leading-relaxed pl-1">{req.trim()}</li>
+                                                            )) : (
+                                                                <li className="text-sm text-gray-500 italic">No specific photography requirements.</li>
+                                                            )}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Processing Time</span>
                                                 <span className="text-sm font-semibold text-gray-900">{visa.processing_time}</span>
@@ -261,7 +458,7 @@ const VisaResults = () => {
                                                 onClick={() => handleSelect(visa)}
                                                 className="px-8 py-2 bg-white border border-[#14532d] text-[#14532d] rounded-full font-semibold hover:bg-[#14532d] hover:text-white transition-all text-sm"
                                             >
-                                                Select
+                                                Apply
                                             </button>
                                         </div>
                                     </div>

@@ -103,9 +103,11 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
   const travelerSummary = () => {
     const adults = roomDetails.reduce((s, r) => s + r.adults, 0);
     const children = roomDetails.reduce((s, r) => s + r.children, 0);
+    const infants = roomDetails.reduce((s, r) => s + (r.infants || 0), 0);
 
     let txt = `${rooms} rooms, ${adults} adults`;
     if (children > 0) txt += `, ${children} children`;
+    if (infants > 0) txt += `, ${infants} infants`;
     return txt;
   };
 
@@ -114,7 +116,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
 
     let updated = [...roomDetails];
     if (count > updated.length) {
-      updated.push({ adults: 2, children: 0 });
+      updated.push({ adults: 2, children: 0, infants: 0 });
     } else {
       updated = updated.slice(0, count);
     }
@@ -131,6 +133,12 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
   const updateChildren = (i, val) => {
     const copy = [...roomDetails];
     copy[i].children = Math.max(0, copy[i].children + val);
+    setRoomDetails(copy);
+  };
+
+  const updateInfants = (i, val) => {
+    const copy = [...roomDetails];
+    copy[i].infants = Math.max(0, (copy[i].infants || 0) + val);
     setRoomDetails(copy);
   };
 
@@ -199,6 +207,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
 
     const totalAdults = roomDetails.reduce((s, r) => s + r.adults, 0);
     const totalChildren = roomDetails.reduce((s, r) => s + r.children, 0);
+    const totalInfants = roomDetails.reduce((s, r) => s + (r.infants || 0), 0);
 
     const payload = {
       package_type: packageType,
@@ -210,6 +219,7 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
       room_details: roomDetails,
       adults: totalAdults,
       children: totalChildren,
+      infants: totalInfants,
       message: message,
       star_rating: starRating,
       budget: budget,
@@ -559,24 +569,34 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
                         <div key={i} className="border-t py-3">
                           <p className="font-semibold mb-2">Room {i + 1}</p>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-3 gap-2">
                             {/* Adults */}
                             <div>
-                              <p className="text-sm">Adults (12+)</p>
-                              <div className="flex justify-between border rounded px-3 py-2">
-                                <button onClick={() => updateAdults(i, -1)}>-</button>
-                                <span>{room.adults}</span>
-                                <button onClick={() => updateAdults(i, 1)}>+</button>
+                              <p className="text-[10px] uppercase font-bold text-gray-400">Adults (12+)</p>
+                              <div className="flex justify-between items-center border rounded px-2 py-1 mt-1">
+                                <button type="button" onClick={() => updateAdults(i, -1)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded">-</button>
+                                <span className="text-sm">{room.adults}</span>
+                                <button type="button" onClick={() => updateAdults(i, 1)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded">+</button>
                               </div>
                             </div>
 
                             {/* Children */}
                             <div>
-                              <p className="text-sm">Children</p>
-                              <div className="flex justify-between border rounded px-3 py-2">
-                                <button onClick={() => updateChildren(i, -1)}>-</button>
-                                <span>{room.children}</span>
-                                <button onClick={() => updateChildren(i, 1)}>+</button>
+                              <p className="text-[10px] uppercase font-bold text-gray-400">Children (2-12)</p>
+                              <div className="flex justify-between items-center border rounded px-2 py-1 mt-1">
+                                <button type="button" onClick={() => updateChildren(i, -1)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded">-</button>
+                                <span className="text-sm">{room.children}</span>
+                                <button type="button" onClick={() => updateChildren(i, 1)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded">+</button>
+                              </div>
+                            </div>
+
+                            {/* Infants */}
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-gray-400">Infants (0-2)</p>
+                              <div className="flex justify-between items-center border rounded px-2 py-1 mt-1">
+                                <button type="button" onClick={() => updateInfants(i, -1)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded">-</button>
+                                <span className="text-sm">{room.infants || 0}</span>
+                                <button type="button" onClick={() => updateInfants(i, 1)} className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded">+</button>
                               </div>
                             </div>
                           </div>

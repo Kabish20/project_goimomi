@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay, 
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination, 
-    ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country
+    ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument
 )
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -282,12 +282,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class VisaSerializer(serializers.ModelSerializer):
+    country_details = serializers.SerializerMethodField()
+
     class Meta:
         model = Visa
         fields = "__all__"
 
+    def get_country_details(self, obj):
+        try:
+            country = Country.objects.filter(name=obj.country).first()
+            if country:
+                return CountrySerializer(country).data
+        except Exception:
+            pass
+        return None
+
+
+class VisaAdditionalDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VisaAdditionalDocument
+        fields = "__all__"
+
 
 class VisaApplicantSerializer(serializers.ModelSerializer):
+    additional_documents = VisaAdditionalDocumentSerializer(many=True, read_only=True)
+
     class Meta:
         model = VisaApplicant
         fields = "__all__"

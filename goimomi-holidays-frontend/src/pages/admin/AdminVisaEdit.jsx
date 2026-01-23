@@ -21,19 +21,16 @@ const AdminVisaEdit = () => {
     const [formData, setFormData] = useState({
         country: "",
         title: "",
-        entry_type: "Single",
+        entry_type: "Single-Entry Visa",
         validity: "30 days",
         duration: "30 days",
         processing_time: "3-5 Business Days",
         price: "",
         documents_required: "Passport Front, Photo",
-        visa_type: "E-Visa",
+        photography_required: "",
+        visa_type: "✈️ Tourist Visa",
         is_active: true,
-        header_image: null,
-        card_image: null,
     });
-    const [headerPreview, setHeaderPreview] = useState(null);
-    const [cardPreview, setCardPreview] = useState(null);
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countries, setCountries] = useState([]);
@@ -55,11 +52,7 @@ const AdminVisaEdit = () => {
             const data = response.data;
             setFormData({
                 ...data,
-                header_image: null,
-                card_image: null
             });
-            setHeaderPreview(getImageUrl(data.header_image));
-            setCardPreview(getImageUrl(data.card_image));
         } catch (error) {
             console.error("Error fetching visa:", error);
             setStatusMessage({ text: "Failed to fetch visa details", type: "error" });
@@ -97,11 +90,7 @@ const AdminVisaEdit = () => {
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                if (formData[key] instanceof File) {
-                    data.append(key, formData[key]);
-                } else if (key !== 'header_image' && key !== 'card_image') {
-                    data.append(key, formData[key]);
-                }
+                data.append(key, formData[key]);
             });
 
             await axios.put(`/api/visas/${id}/`, data, {
@@ -129,67 +118,67 @@ const AdminVisaEdit = () => {
             <AdminSidebar />
             <div className="flex-1">
                 <AdminTopbar />
-                <div className="p-4">
-                    <div className="max-w-5xl mx-auto">
-                        <div className="flex items-center gap-2 mb-4">
+                <div className="p-3">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="flex items-center gap-2 mb-3">
                             <button
                                 onClick={() => navigate("/admin/visas")}
-                                className="p-1 px-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-xs font-semibold flex items-center gap-1"
+                                className="p-1 px-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-[10px] font-bold flex items-center gap-1 uppercase tracking-tight"
                             >
-                                <ArrowLeft size={14} /> Back
+                                <ArrowLeft size={12} /> Back
                             </button>
-                            <h1 className="text-xl font-bold text-gray-800">Edit Visa</h1>
+                            <h1 className="text-xl font-bold text-gray-900">Edit Visa</h1>
                         </div>
 
                         {statusMessage.text && (
-                            <div className={`p-3 rounded mb-4 text-sm font-medium ${statusMessage.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            <div className={`p-2 rounded mb-3 text-xs font-bold ring-1 overflow-hidden animate-in fade-in slide-in-from-top-2 ${statusMessage.type === "success" ? "bg-green-50 text-green-700 ring-green-200" : "bg-red-50 text-red-700 ring-red-200"
                                 }`}>
                                 {statusMessage.text}
                             </div>
                         )}
 
-                        <form onSubmit={(e) => handleSubmit(e)} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <form onSubmit={(e) => handleSubmit(e)} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             <div className="p-4 space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
+                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
                                             Country <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
                                             <div
-                                                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all cursor-pointer flex items-center justify-between bg-white"
+                                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all cursor-pointer flex items-center justify-between bg-gray-50/50 hover:bg-white"
                                                 onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
                                             >
-                                                <span className={formData.country ? "text-gray-900" : "text-gray-500"}>
+                                                <span className={formData.country ? "text-gray-900 font-medium" : "text-gray-400 italic"}>
                                                     {formData.country || "Select Country"}
                                                 </span>
-                                                <ChevronDown size={16} className="text-gray-500" />
+                                                <ChevronDown size={14} className="text-gray-400" />
                                             </div>
 
                                             {isCountryDropdownOpen && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden flex flex-col">
-                                                    <div className="p-2 border-b border-gray-100">
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-48 overflow-hidden flex flex-col scale-in-center">
+                                                    <div className="p-2 border-b border-gray-50">
                                                         <div className="relative">
-                                                            <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                            <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
                                                             <input
                                                                 type="text"
                                                                 value={countrySearchTerm}
                                                                 onChange={(e) => setCountrySearchTerm(e.target.value)}
-                                                                placeholder="Search country..."
-                                                                className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded bg-gray-50 focus:outline-none focus:border-[#14532d]"
+                                                                placeholder="Search..."
+                                                                className="w-full pl-7 pr-3 py-1 text-xs border border-gray-100 rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#14532d]"
                                                                 autoFocus
                                                                 onClick={(e) => e.stopPropagation()}
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="overflow-y-auto flex-1">
+                                                    <div className="overflow-y-auto flex-1 text-xs">
                                                         {countries.filter(c => c.name.toLowerCase().includes(countrySearchTerm.toLowerCase())).length > 0 ? (
                                                             countries
                                                                 .filter(c => c.name.toLowerCase().includes(countrySearchTerm.toLowerCase()))
                                                                 .map((c) => (
                                                                     <div
                                                                         key={c.id}
-                                                                        className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 ${formData.country === c.name ? "bg-[#14532d]/10 text-[#14532d] font-medium" : "text-gray-700"}`}
+                                                                        className={`px-3 py-1.5 cursor-pointer hover:bg-green-50 hover:text-[#14532d] transition-colors ${formData.country === c.name ? "bg-[#14532d] text-white font-bold" : "text-gray-600"}`}
                                                                         onClick={() => {
                                                                             setFormData({ ...formData, country: c.name });
                                                                             setIsCountryDropdownOpen(false);
@@ -200,7 +189,7 @@ const AdminVisaEdit = () => {
                                                                     </div>
                                                                 ))
                                                         ) : (
-                                                            <div className="px-3 py-2 text-sm text-gray-500 text-center">No countries found</div>
+                                                            <div className="px-3 py-2 text-[10px] text-gray-400 text-center uppercase font-bold italic">No results</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -208,8 +197,8 @@ const AdminVisaEdit = () => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
                                             Visa Title <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -217,29 +206,56 @@ const AdminVisaEdit = () => {
                                             name="title"
                                             value={formData.title}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
-                                            placeholder="e.g. Tourist Visa"
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic placeholder:text-gray-300 font-medium"
                                             required
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Entry Type
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Visa Category
+                                        </label>
+                                        <select
+                                            name="visa_type"
+                                            value={formData.visa_type}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all bg-white"
+                                        >
+                                            <option value="✈️ Tourist Visa">✈️ Tourist Visa</option>
+                                            <option value="💼 Business Visa">💼 Business Visa</option>
+                                            <option value="🎓 Student Visa">🎓 Student Visa</option>
+                                            <option value="👨💼 Work / Employment Visa">Work / Employment</option>
+                                            <option value="👨👩👧 Family / Dependent Visa">Family / Dependent</option>
+                                            <option value="❤️ Marriage / Fiancé(e) Visa">Marriage / Fiancé(e)</option>
+                                            <option value="🏡 Permanent Residence">Residency</option>
+                                            <option value="🛂 Transit Visa">Transit Visa</option>
+                                            <option value="🩺 Medical Visa">Medical Visa</option>
+                                            <option value="🌍 Diplomatic / Official Visa">Official Visa</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Entry Policy
                                         </label>
                                         <select
                                             name="entry_type"
                                             value={formData.entry_type}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all bg-white"
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all bg-white"
                                         >
-                                            <option value="Single">Single</option>
-                                            <option value="Multiple">Multiple</option>
+                                            <option value="Single-Entry Visa">Single-Entry</option>
+                                            <option value="Double-Entry Visa">Double-Entry</option>
+                                            <option value="Multiple-Entry Visa">Multiple-Entry</option>
+                                            <option value="Transit Visa">Transit</option>
+                                            <option value="Visa on Arrival">On Arrival</option>
+                                            <option value="Electronic Visa (e-Visa)">E-Visa</option>
+                                            <option value="Re-Entry Visa">Re-Entry</option>
                                         </select>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
                                             Validity
                                         </label>
                                         <input
@@ -247,153 +263,112 @@ const AdminVisaEdit = () => {
                                             name="validity"
                                             value={formData.validity}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
-                                            placeholder="e.g. 30 days"
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all"
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Duration
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Stay Duration
                                         </label>
                                         <input
                                             type="text"
                                             name="duration"
                                             value={formData.duration}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
-                                            placeholder="e.g. 30 days"
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all"
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Processing Time
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Processing
                                         </label>
                                         <input
                                             type="text"
                                             name="processing_time"
                                             value={formData.processing_time}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
-                                            placeholder="e.g. 3-5 Business Days"
+                                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all"
                                         />
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Price <span className="text-red-500">*</span>
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Price (₹) <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="number"
                                             name="price"
                                             value={formData.price}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
-                                            placeholder="e.g. 150"
+                                            className="w-full px-4 py-1.5 bg-green-50 border border-green-100 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all font-bold text-[#14532d]"
                                             required
                                         />
                                     </div>
+                                </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Visa Type
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Required Documents
                                         </label>
-                                        <select
-                                            name="visa_type"
-                                            value={formData.visa_type}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all bg-white"
-                                        >
-                                            <option value="E-Visa">E-Visa</option>
-                                            <option value="Sticker Visa">Sticker Visa</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="space-y-1 md:col-span-2">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Documents Required
-                                        </label>
-                                        <input
-                                            type="text"
+                                        <textarea
                                             name="documents_required"
                                             value={formData.documents_required}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all"
-                                            placeholder="e.g. Passport Front, Photo"
-                                        />
+                                            rows="2"
+                                            placeholder="Passport, Photo, etc..."
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all resize-none"
+                                        ></textarea>
                                     </div>
 
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Header Image
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Photo Requirements
                                         </label>
-                                        <div className="flex flex-col gap-2">
-                                            <input
-                                                type="file"
-                                                name="header_image"
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all bg-white"
-                                            />
-                                            {headerPreview && (
-                                                <div className="relative w-full h-32 rounded-md overflow-hidden border border-gray-200">
-                                                    <img src={headerPreview} alt="Header Preview" className="w-full h-full object-cover" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="block text-xs font-bold text-gray-700 uppercase">
-                                            Card Image
-                                        </label>
-                                        <div className="flex flex-col gap-2">
-                                            <input
-                                                type="file"
-                                                name="card_image"
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all bg-white"
-                                            />
-                                            {cardPreview && (
-                                                <div className="relative w-full h-32 rounded-md overflow-hidden border border-gray-200">
-                                                    <img src={cardPreview} alt="Card Preview" className="w-full h-full object-cover" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center space-x-2 md:col-span-2 pt-2">
-                                        <input
-                                            type="checkbox"
-                                            id="is_active"
-                                            name="is_active"
-                                            checked={formData.is_active}
+                                        <textarea
+                                            name="photography_required"
+                                            value={formData.photography_required}
                                             onChange={handleChange}
-                                            className="w-4 h-4 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded"
-                                        />
-                                        <label htmlFor="is_active" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                            Active Status
-                                        </label>
+                                            rows="2"
+                                            placeholder="White background, etc..."
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all resize-none"
+                                        ></textarea>
                                     </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 px-1">
+                                    <input
+                                        type="checkbox"
+                                        name="is_active"
+                                        checked={formData.is_active}
+                                        onChange={handleChange}
+                                        id="is_active"
+                                        className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
+                                    />
+                                    <label htmlFor="is_active" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
+                                        Active & Visible on Website
+                                    </label>
                                 </div>
                             </div>
 
-                            <div className="px-4 py-3 bg-gray-50 text-right sm:px-6 flex gap-2 justify-end border-t border-gray-200">
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap justify-end gap-3">
                                 <button
                                     type="submit"
                                     onClick={() => handleSubmit(null, "save")}
                                     disabled={isSubmitting}
-                                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#14532d] hover:bg-[#0f4a24] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#14532d] disabled:opacity-50 transition-colors"
+                                    className="px-6 py-2 bg-[#14532d] text-white rounded-xl hover:bg-[#0f4a24] transition-all transform active:scale-95 disabled:opacity-50 text-xs font-bold uppercase tracking-widest shadow-lg shadow-green-900/20"
                                 >
-                                    {isSubmitting ? "Saving..." : <><Save size={16} className="mr-2" /> Save Changes</>}
+                                    {isSubmitting ? "Updating..." : "Save Changes"}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleSubmit(null, "continue")}
                                     disabled={isSubmitting}
-                                    className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#14532d] disabled:opacity-50 transition-colors"
+                                    className="px-6 py-2 bg-white text-[#14532d] border border-gray-200 rounded-xl hover:bg-gray-50 transition-all transform active:scale-95 disabled:opacity-50 text-xs font-bold uppercase tracking-widest"
                                 >
-                                    Save & Continue Editing
+                                    Update & Stay
                                 </button>
                             </div>
                         </form>

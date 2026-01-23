@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus } from "lucide-react";
+import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
@@ -24,13 +24,15 @@ const VisaApplication = () => {
         { id: "submit", label: "Submit" }
     ];
 
-    const [currentStep, setCurrentStep] = useState("internal_id");
-
-    // Form State
-    const [applicationType, setApplicationType] = useState("Individual");
-    const [internalId, setInternalId] = useState("");
-    const [groupName, setGroupName] = useState("");
+    const [visaData, setVisaData] = useState(visa || null);
+    const [isLoadingVisa, setIsLoadingVisa] = useState(!visa);
     const [selectedVisaType, setSelectedVisaType] = useState(visa?.title || "");
+
+    useEffect(() => {
+        if (visaData) {
+            setSelectedVisaType(visaData.title);
+        }
+    }, [visaData]);
 
     // Data State
     const [countries, setCountries] = useState([]);
@@ -66,15 +68,73 @@ const VisaApplication = () => {
     const groupNameRef = useRef(null);
     const travelerRef = useRef(null);
 
-    const VISA_FEES = visa?.price || 2250;
+    const [currentStep, setCurrentStep] = useState("internal_id");
+
+    // Form State
+    const [applicationType, setApplicationType] = useState("Individual");
+    const [internalId, setInternalId] = useState("");
+    const [groupName, setGroupName] = useState("");
+
+    useEffect(() => {
+        if (!visa && id) {
+            const fetchVisa = async () => {
+                try {
+                    setIsLoadingVisa(true);
+                    const response = await axios.get(`/api/visas/${id}/`);
+                    setVisaData(response.data);
+                } catch (error) {
+                    console.error("Error fetching visa:", error);
+                } finally {
+                    setIsLoadingVisa(false);
+                }
+            };
+            fetchVisa();
+        }
+    }, [visa, id]);
+
+    // Use visaData instead of visa for the rest of the component
+    const currentVisa = visaData;
+    const VISA_FEES = Number(currentVisa?.price) || 2250;
     const SERVICE_FEES = 0;
-    const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * applicants.length;
+    const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * (applicants?.length || 1);
+
+    const calculateEstimatedArrival = (processingTime, depDate) => {
+        if (!depDate) return "Selecting dates...";
+        try {
+            const departure = new Date(depDate);
+            if (isNaN(departure.getTime())) return "Invalid Date";
+
+            // Extract the first number from processing time (e.g. "4-5 days" -> 4)
+            const processingDays = parseInt(processingTime) || 3;
+            const estimatedDate = new Date(departure);
+            estimatedDate.setDate(estimatedDate.getDate() - processingDays);
+
+            const day = estimatedDate.getDate();
+            const month = estimatedDate.toLocaleDateString('en-GB', { month: 'short' });
+            const year = estimatedDate.getFullYear();
+
+            return `${day}${getDaySuffix(day)} ${month}, ${year}`;
+        } catch (e) {
+            return "N/A";
+        }
+    };
+
+    const getDaySuffix = (day) => {
+        if (isNaN(day)) return "";
+        if (day > 3 && day < 21) return 'th';
+        switch (day % 10) {
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
+        }
+    };
 
     useEffect(() => {
         const fetchCountries = async () => {
             try {
                 const response = await axios.get("/api/countries/");
-                setCountries(response.data);
+                setCountries(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Error fetching countries:", error);
             }
@@ -83,12 +143,16 @@ const VisaApplication = () => {
     }, []);
 
     const handleApplicantChange = (index, field, value) => {
-        const updated = [...applicants];
-        updated[index][field] = value;
-        setApplicants(updated);
-        // Clear error for this field when it changes
-        setErrors(prevErrors => {
-            const newErrors = { ...prevErrors };
+        if (!applicants[index]) return;
+        setApplicants(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+
+        // Clear error for this field
+        setErrors(prev => {
+            const newErrors = { ...prev };
             delete newErrors[`applicant_${index}_${field}`];
             return newErrors;
         });
@@ -96,13 +160,19 @@ const VisaApplication = () => {
 
     const handleFileChange = (index, field, file) => {
         if (file) {
-            const updated = [...applicants];
-            updated[index][field] = file;
-            updated[index][`${field}_preview`] = URL.createObjectURL(file);
-            setApplicants(updated);
-            // Clear error for this file field when it changes
-            setErrors(prevErrors => {
-                const newErrors = { ...prevErrors };
+            setApplicants(prev => {
+                const updated = [...prev];
+                updated[index] = {
+                    ...updated[index],
+                    [field]: file,
+                    [`${field}_preview`]: URL.createObjectURL(file)
+                };
+                return updated;
+            });
+
+            // Clear error
+            setErrors(prev => {
+                const newErrors = { ...prev };
                 delete newErrors[`applicant_${index}_${field}`];
                 return newErrors;
             });
@@ -110,34 +180,64 @@ const VisaApplication = () => {
     };
 
     const removeFile = (index, field) => {
-        const updated = [...applicants];
-        updated[index][field] = null;
-        updated[index][`${field}_preview`] = null;
-        setApplicants(updated);
+        setApplicants(prev => {
+            const updated = [...prev];
+            if (!updated[index]) return prev;
+            updated[index] = {
+                ...updated[index],
+                [field]: null,
+                [`${field}_preview`]: null
+            };
+            return updated;
+        });
     };
 
     const addAdditionalDocument = (applicantIndex) => {
-        const updated = [...applicants];
-        updated[applicantIndex].additional_documents.push({
-            id: Date.now() + Math.random(),
-            file: null,
-            preview: null
+        setApplicants(prev => {
+            const updated = [...prev];
+            if (!updated[applicantIndex]) return prev;
+            updated[applicantIndex] = {
+                ...updated[applicantIndex],
+                additional_documents: [
+                    ...updated[applicantIndex].additional_documents,
+                    { id: Date.now() + Math.random(), file: null, preview: null }
+                ]
+            };
+            return updated;
         });
-        setApplicants(updated);
     };
 
     const removeAdditionalDocument = (applicantIndex, docIndex) => {
-        const updated = [...applicants];
-        updated[applicantIndex].additional_documents.splice(docIndex, 1);
-        setApplicants(updated);
+        setApplicants(prev => {
+            const updated = [...prev];
+            if (!updated[applicantIndex]) return prev;
+            const newDocs = [...updated[applicantIndex].additional_documents];
+            newDocs.splice(docIndex, 1);
+            updated[applicantIndex] = {
+                ...updated[applicantIndex],
+                additional_documents: newDocs
+            };
+            return updated;
+        });
     };
 
     const handleAdditionalFileChange = (applicantIndex, docIndex, file) => {
         if (file) {
-            const updated = [...applicants];
-            updated[applicantIndex].additional_documents[docIndex].file = file;
-            updated[applicantIndex].additional_documents[docIndex].preview = URL.createObjectURL(file);
-            setApplicants(updated);
+            setApplicants(prev => {
+                const updated = [...prev];
+                if (!updated[applicantIndex]) return prev;
+                const newDocs = [...updated[applicantIndex].additional_documents];
+                newDocs[docIndex] = {
+                    ...newDocs[docIndex],
+                    file: file,
+                    preview: URL.createObjectURL(file)
+                };
+                updated[applicantIndex] = {
+                    ...updated[applicantIndex],
+                    additional_documents: newDocs
+                };
+                return updated;
+            });
         }
     };
 
@@ -370,7 +470,8 @@ const VisaApplication = () => {
         return false;
     };
 
-    if (!visa) return <div className="p-10 text-center">Loading...</div>;
+    if (isLoadingVisa) return <div className="p-10 text-center">Loading...</div>;
+    if (!currentVisa) return <div className="p-10 text-center">Visa not found</div>;
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
@@ -432,12 +533,42 @@ const VisaApplication = () => {
                         className="px-6 py-2 bg-[#14532d] text-white rounded-full font-medium hover:bg-[#0f4a24] text-sm shadow-sm flex items-center gap-2"
                         style={{ backgroundColor: '#14532d' }}
                     >
-                        {submitting ? "Saving..." : "Review and Save"}
+                        {submitting ? "Applying..." : "Apply"}
                     </button>
                 </div>
 
-                <div className="space-y-8">
+                {/* Header Section without Images */}
+                <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-[#14532d] text-white p-6 md:p-10">
+                    <div className="max-w-4xl">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div>
+                                <h1 className="text-3xl font-bold mb-2">{currentVisa?.title || "Visa Application"}</h1>
+                                <div className="flex flex-wrap items-center gap-3 text-green-100 opacity-90 text-sm">
+                                    <span className="flex items-center gap-1 bg-green-900/40 px-2 py-1 rounded"><MapPin size={14} /> {currentVisa?.country || "Destination"}</span>
+                                    <span>•</span>
+                                    <span className="bg-green-900/40 px-2 py-1 rounded">{currentVisa?.visa_type || "Visa"}</span>
+                                    <span>•</span>
+                                    <span className="bg-green-900/40 px-2 py-1 rounded">{currentVisa?.entry_type || "Entry"}</span>
+                                </div>
+                            </div>
 
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <CheckCircle size={18} className="text-green-300" />
+                                    <span className="text-xs uppercase font-bold tracking-wider text-green-200">Estimated Arrival</span>
+                                </div>
+                                <div className="text-xl font-bold">
+                                    {calculateEstimatedArrival(currentVisa?.processing_time, departureDate)}
+                                </div>
+                                <div className="text-[10px] text-green-200 mt-1 opacity-80 uppercase tracking-tighter">
+                                    Based on {currentVisa?.processing_time || "standard"} processing
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-8">
                     {/* Section 1: Application Type */}
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                         <h2 className="text-lg font-bold text-gray-900 mb-4">Are You Applying For</h2>
@@ -727,7 +858,12 @@ const VisaApplication = () => {
                             <div>
                                 <h3 className="text-md font-bold text-gray-900 mb-1">Upload Traveler Photo</h3>
                                 <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-3xl">
-                                    Vietnam requires a passport-sized photo of the traveler. You can upload a selfie of the traveler.
+                                    {currentVisa?.country || "The country"} requires a passport-sized photo of the traveler.
+                                    {currentVisa?.photography_required ? (
+                                        <span className="block mt-1 font-medium text-gray-700">Requirements: {currentVisa.photography_required}</span>
+                                    ) : (
+                                        " You can upload a selfie of the traveler."
+                                    )}
                                 </p>
 
                                 <div className={`border-2 border-dashed ${errors[`applicant_${index}_photo`] ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-2xl p-6 text-center hover:bg-gray-50 transition-colors w-full md:w-1/2 relative group cursor-pointer`}>
@@ -831,7 +967,7 @@ const VisaApplication = () => {
                                                             <img src={doc.preview} alt="Document Preview" className="h-40 mx-auto object-cover rounded-lg shadow-sm" />
                                                         )}
                                                         <div className="mt-2 text-[#14532d] font-semibold text-sm flex items-center justify-center gap-2">
-                                                            <CheckCircle size={16} /> File Selected: {doc.file.name}
+                                                            <CheckCircle size={16} /> File Selected: {doc.file?.name || 'Selected'}
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -872,21 +1008,33 @@ const VisaApplication = () => {
                     <h3 className="text-xl font-bold text-gray-900 mb-6">Visa Information</h3>
                     <div className="space-y-4 mb-8">
                         <div>
-                            <p className="text-sm text-gray-500 font-medium">Vietnam - {selectedVisaType}</p>
+                            <p className="text-xs text-gray-500 uppercase font-bold mb-0.5">Destination</p>
+                            <p className="text-sm text-gray-900 font-semibold">{currentVisa?.country || "Destination"} - {selectedVisaType || "Visa"}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500 font-medium">Travelers: <span className="text-gray-900">{applicants.length}</span></p>
+                            <p className="text-xs text-gray-500 uppercase font-bold mb-0.5">Citizen of</p>
+                            <p className="text-sm text-gray-900 font-semibold">{citizenOf}</p>
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500 font-medium">Travel Dates: <span className="text-gray-900">{departureDate} - {returnDate}</span></p>
+                            <p className="text-xs text-gray-500 uppercase font-bold mb-0.5">Travel Particulars</p>
+                            <p className="text-sm text-gray-900 font-semibold">
+                                {applicants?.length || 1} Traveler(s) • {currentVisa?.entry_type || "Entry"}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-500 uppercase font-bold mb-0.5">Dates</p>
+                            <p className="text-sm text-gray-900 font-semibold">{departureDate || "N/A"} - {returnDate || "N/A"}</p>
                         </div>
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">Expected Visa Approval</h3>
-                    <div className="flex items-center gap-2 text-gray-700 mb-8 font-medium">
-                        <CalendarIcon />
-                        {/* Calculate approx date, +3 days from now */}
-                        {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US')}
+                    <div className="bg-green-50 border border-green-100 rounded-xl p-4 mb-8">
+                        <div className="flex items-center gap-2 text-[#14532d] mb-1">
+                            <CalendarIcon />
+                            <span className="text-xs font-bold uppercase tracking-wider">Expected Approval</span>
+                        </div>
+                        <div className="text-lg font-bold text-[#14532d]">
+                            {calculateEstimatedArrival(currentVisa?.processing_time, departureDate)}
+                        </div>
                     </div>
 
                     <div className="bg-gray-50 rounded-xl p-4 mb-6">
@@ -906,7 +1054,7 @@ const VisaApplication = () => {
                         onClick={handleSubmit}
                         className="w-full py-4 bg-[#14532d] text-white rounded-xl font-bold hover:bg-[#0f4a24] shadow-lg transition-all flex items-center justify-center gap-2"
                     >
-                        {submitting ? "Processing..." : "Review and Save"}
+                        {submitting ? "Applying..." : "Apply"}
                     </button>
                 </div>
             </div>

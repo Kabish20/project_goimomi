@@ -227,7 +227,7 @@ const UmrahEnquiryManage = () => {
                         <p className="text-sm font-semibold text-gray-500 mb-1">Room Breakdown:</p>
                         {selectedEnquiry.room_details.map((room, idx) => (
                           <p key={idx} className="text-sm text-gray-600">
-                            Room {idx + 1}: {room.adults} Adults, {room.children} Children
+                            Room {idx + 1}: {room.adults} Adults, {room.children} Children, {room.infants || 0} Infants
                           </p>
                         ))}
                       </div>
