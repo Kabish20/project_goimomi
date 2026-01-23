@@ -11,9 +11,9 @@ const VisaApplication = () => {
     const navigate = useNavigate();
 
     const visa = location.state?.visa;
+    const [appDepartureDate, setAppDepartureDate] = useState(location.state?.departureDate || "");
+    const [appReturnDate, setAppReturnDate] = useState(location.state?.returnDate || "");
     const citizenOf = location.state?.citizenOf || "India";
-    const departureDate = location.state?.departureDate || "";
-    const returnDate = location.state?.returnDate || "";
 
     // Steps for Sidebar
     const steps = [
@@ -99,7 +99,7 @@ const VisaApplication = () => {
     const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * (applicants?.length || 1);
 
     const calculateEstimatedArrival = (processingTime, depDate) => {
-        if (!depDate) return "Selecting dates...";
+        if (!depDate) return "Pick your dates";
         try {
             const departure = new Date(depDate);
             if (isNaN(departure.getTime())) return "Invalid Date";
@@ -272,16 +272,17 @@ const VisaApplication = () => {
         let newErrors = {};
         let isValid = true;
 
-        // Internal ID and Group Name are not marked as required in the UI, so skipping validation for them for now.
-        // If they become required, add checks here:
-        // if (!internalId.trim()) {
-        //      newErrors.internal_id = "Internal ID is required";
-        //      isValid = false;
-        // }
-        // if (applicationType === "Group" && !groupName.trim()) {
-        //      newErrors.group_name = "Group Name is required for group applications";
-        //      isValid = false;
-        // }
+        if (!appDepartureDate) {
+            newErrors.departure_date = "Departure date is required";
+            isValid = false;
+        }
+        if (!appReturnDate) {
+            newErrors.return_date = "Return date is required";
+            isValid = false;
+        } else if (appDepartureDate && new Date(appReturnDate) <= new Date(appDepartureDate)) {
+            newErrors.return_date = "Return date must be after departure date";
+            isValid = false;
+        }
 
         applicants.forEach((applicant, index) => {
             // Passport Number
@@ -403,8 +404,8 @@ const VisaApplication = () => {
             formData.append("application_type", applicationType);
             formData.append("internal_id", internalId);
             formData.append("group_name", groupName);
-            formData.append("departure_date", departureDate);
-            formData.append("return_date", returnDate);
+            formData.append("departure_date", appDepartureDate);
+            formData.append("return_date", appReturnDate);
             formData.append("total_price", TOTAL_PRICE);
 
             // Filter out previews and nulls
@@ -558,7 +559,7 @@ const VisaApplication = () => {
                                     <span className="text-xs uppercase font-bold tracking-wider text-green-200">Estimated Arrival</span>
                                 </div>
                                 <div className="text-xl font-bold">
-                                    {calculateEstimatedArrival(currentVisa?.processing_time, departureDate)}
+                                    {calculateEstimatedArrival(currentVisa?.processing_time, appDepartureDate)}
                                 </div>
                                 <div className="text-[10px] text-green-200 mt-1 opacity-80 uppercase tracking-tighter">
                                     Based on {currentVisa?.processing_time || "standard"} processing
@@ -572,6 +573,43 @@ const VisaApplication = () => {
                     {/* Section 1: Application Type */}
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
                         <h2 className="text-lg font-bold text-gray-900 mb-4">Are You Applying For</h2>
+
+                        <div className="grid md:grid-cols-2 gap-4 text-sm mb-6">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 mb-2">Departure Date <span className="text-red-500">*</span></label>
+                                <input
+                                    type="date"
+                                    className={`w-full px-3 py-2 rounded-xl border ${errors.departure_date ? 'border-red-500' : 'border-gray-200'} focus:border-[#14532d] outline-none transition-colors bg-gray-50/50 text-sm`}
+                                    value={appDepartureDate}
+                                    onChange={(e) => {
+                                        setAppDepartureDate(e.target.value);
+                                        setErrors(prev => {
+                                            const next = { ...prev };
+                                            delete next.departure_date;
+                                            return next;
+                                        });
+                                    }}
+                                />
+                                {errors.departure_date && <p className="text-red-500 text-xs mt-1">{errors.departure_date}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 mb-2">Return Date <span className="text-red-500">*</span></label>
+                                <input
+                                    type="date"
+                                    className={`w-full px-3 py-2 rounded-xl border ${errors.return_date ? 'border-red-500' : 'border-gray-200'} focus:border-[#14532d] outline-none transition-colors bg-gray-50/50 text-sm`}
+                                    value={appReturnDate}
+                                    onChange={(e) => {
+                                        setAppReturnDate(e.target.value);
+                                        setErrors(prev => {
+                                            const next = { ...prev };
+                                            delete next.return_date;
+                                            return next;
+                                        });
+                                    }}
+                                />
+                                {errors.return_date && <p className="text-red-500 text-xs mt-1">{errors.return_date}</p>}
+                            </div>
+                        </div>
 
                         <div className="flex gap-3 mb-6">
                             <button
@@ -1023,7 +1061,7 @@ const VisaApplication = () => {
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 uppercase font-bold mb-0.5">Dates</p>
-                            <p className="text-sm text-gray-900 font-semibold">{departureDate || "N/A"} - {returnDate || "N/A"}</p>
+                            <p className="text-sm text-gray-900 font-semibold">{appDepartureDate || "N/A"} - {appReturnDate || "N/A"}</p>
                         </div>
                     </div>
 
@@ -1033,7 +1071,7 @@ const VisaApplication = () => {
                             <span className="text-xs font-bold uppercase tracking-wider">Expected Approval</span>
                         </div>
                         <div className="text-lg font-bold text-[#14532d]">
-                            {calculateEstimatedArrival(currentVisa?.processing_time, departureDate)}
+                            {calculateEstimatedArrival(currentVisa?.processing_time, appDepartureDate)}
                         </div>
                     </div>
 
