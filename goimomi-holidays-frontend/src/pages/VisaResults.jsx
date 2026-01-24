@@ -144,6 +144,15 @@ const VisaResults = () => {
         navigator.clipboard.writeText(text);
     };
 
+    const formatDate = (dateString) => {
+        if (!dateString) return "N/A";
+        return new Date(dateString).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -157,7 +166,7 @@ const VisaResults = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Search Bar - Sticky & Interactive */}
+            {/* Search Bar - Sticky & Interactive (Restored) */}
             <div className="bg-white shadow-sm sticky top-0 z-50 py-2">
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="flex flex-col md:flex-row gap-2 bg-white rounded-2xl p-1 border border-gray-100 shadow-sm">
