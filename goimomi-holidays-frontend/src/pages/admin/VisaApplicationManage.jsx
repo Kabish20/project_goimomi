@@ -5,6 +5,16 @@ import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 
+// Helper to fix image URLs
+const getImageUrl = (url) => {
+  if (!url) return "";
+  if (typeof url !== "string") return url;
+  if (url.startsWith("http")) {
+    return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+  }
+  return url;
+};
+
 const VisaApplicationManage = () => {
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
@@ -13,6 +23,9 @@ const VisaApplicationManage = () => {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editingApplicantId, setEditingApplicantId] = useState(null);
+  const [editApplicantData, setEditApplicantData] = useState({});
+  const [isUpdatingApplicant, setIsUpdatingApplicant] = useState(false);
   const navigate = useNavigate();
 
   const API_BASE_URL = "/api";
@@ -55,6 +68,74 @@ const VisaApplicationManage = () => {
   const closeModal = () => {
     setShowModal(false);
     setSelectedApplication(null);
+    setEditingApplicantId(null);
+    setEditApplicantData({});
+  };
+
+  const handleStartEditApplicant = (applicant) => {
+    setEditingApplicantId(applicant.id);
+    setEditApplicantData({ ...applicant, additional_documents: undefined });
+  };
+
+  const handleCancelEditApplicant = () => {
+    setEditingApplicantId(null);
+    setEditApplicantData({});
+  };
+
+  const handleSaveApplicant = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      setIsUpdatingApplicant(true);
+
+      // IMPORTANT: Send ONLY individual text fields that we want to update.
+      // We must EXCLUDE image fields like 'passport_front' and 'photo' if they are 
+      // URLs (strings) because DRF standard ImageField will try to validate them as 
+      // file uploads and fail.
+      const fieldsToInclude = [
+        'first_name', 'last_name', 'passport_number', 'nationality',
+        'sex', 'dob', 'place_of_birth', 'place_of_issue',
+        'marital_status', 'phone', 'date_of_issue', 'date_of_expiry'
+      ];
+
+      const dataToSend = {};
+      fieldsToInclude.forEach(key => {
+        if (editApplicantData[key] !== undefined) {
+          dataToSend[key] = editApplicantData[key];
+        }
+      });
+
+      await axios.patch(`/api/visa-applicants/${editingApplicantId}/`, dataToSend);
+
+      // Update both main list and current view state locally
+      const updateDataAcrossState = (prev) => prev.map(app => {
+        if (app.id === selectedApplication.id) {
+          const updatedApplicants = app.applicants.map(a =>
+            a.id === editingApplicantId ? { ...a, ...dataToSend } : a
+          );
+          return { ...app, applicants: updatedApplicants };
+        }
+        return app;
+      });
+
+      setApplications(updateDataAcrossState);
+      setSelectedApplication(prev => {
+        const updatedApplicants = prev.applicants.map(a =>
+          a.id === editingApplicantId ? { ...a, ...dataToSend } : a
+        );
+        return { ...prev, applicants: updatedApplicants };
+      });
+
+      setEditingApplicantId(null);
+      setEditApplicantData({});
+      alert("Applicant details updated successfully!");
+    } catch (err) {
+      console.error("Error updating applicant:", err);
+      // Show backend error if available
+      const backendError = err.response?.data ? JSON.stringify(err.response.data) : "Network error";
+      alert(`Failed to update applicant details: ${backendError}`);
+    } finally {
+      setIsUpdatingApplicant(false);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -261,23 +342,97 @@ const VisaApplicationManage = () => {
                         <div className="flex flex-col md:flex-row justify-between gap-4">
                           {/* Applicant Info */}
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="bg-[#14532d] text-white text-xs font-bold px-2 py-0.5 rounded-full">#{index + 1}</span>
-                              <h4 className="font-bold text-gray-900">{applicant.first_name} {applicant.last_name}</h4>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <span className="bg-[#14532d] text-white text-xs font-bold px-2 py-0.5 rounded-full">#{index + 1}</span>
+                                <h4 className="font-bold text-gray-900">{applicant.first_name} {applicant.last_name}</h4>
+                              </div>
+                              {editingApplicantId !== applicant.id ? (
+                                <button
+                                  onClick={() => handleStartEditApplicant(applicant)}
+                                  className="p-1.5 text-gray-400 hover:text-[#14532d] hover:bg-green-50 rounded-lg transition-colors"
+                                  title="Edit Applicant Data"
+                                >
+                                  <Edit size={16} />
+                                </button>
+                              ) : (
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={handleSaveApplicant}
+                                    disabled={isUpdatingApplicant}
+                                    className="px-3 py-1 bg-[#14532d] text-white text-xs font-bold rounded-lg hover:bg-[#0f4a24] disabled:opacity-50"
+                                  >
+                                    {isUpdatingApplicant ? "..." : "Save"}
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEditApplicant}
+                                    className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600">
-                              <p>Passport: <span className="font-medium text-gray-900">{applicant.passport_number}</span></p>
-                              <p>Nationality: <span className="font-medium text-gray-900">{applicant.nationality}</span></p>
-                              <p>DOB: <span className="font-medium text-gray-900">{applicant.dob}</span></p>
-                              <p>Sex: <span className="font-medium text-gray-900">{applicant.sex}</span></p>
-                            </div>
+
+                            {editingApplicantId === applicant.id ? (
+                              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                                {[
+                                  { label: 'First Name', name: 'first_name' },
+                                  { label: 'Last Name', name: 'last_name' },
+                                  { label: 'Passport', name: 'passport_number' },
+                                  { label: 'Nationality', name: 'nationality' },
+                                  { label: 'DOB', name: 'dob', type: 'date' },
+                                  { label: 'Sex', name: 'sex', type: 'select', options: ['Male', 'Female', 'Other'] },
+                                  { label: 'Marital', name: 'marital_status', type: 'select', options: ['Single', 'Married', 'Divorced', 'Widowed'] },
+                                  { label: 'POB', name: 'place_of_birth' },
+                                  { label: 'POI', name: 'place_of_issue' },
+                                  { label: 'Issued', name: 'date_of_issue', type: 'date' },
+                                  { label: 'Expiry', name: 'date_of_expiry', type: 'date' },
+                                  { label: 'Phone', name: 'phone' },
+                                ].map((field) => (
+                                  <div key={field.name} className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{field.label}</label>
+                                    {field.type === 'select' ? (
+                                      <select
+                                        value={editApplicantData[field.name] || ''}
+                                        onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
+                                        className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#14532d] outline-none"
+                                      >
+                                        {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                      </select>
+                                    ) : (
+                                      <input
+                                        type={field.type || 'text'}
+                                        value={editApplicantData[field.name] || ''}
+                                        onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
+                                        className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#14532d] outline-none"
+                                      />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm text-gray-600">
+                                <p>Passport: <span className="font-medium text-gray-900">{applicant.passport_number}</span></p>
+                                <p>Nationality: <span className="font-medium text-gray-900">{applicant.nationality}</span></p>
+                                <p>DOB: <span className="font-medium text-gray-900">{applicant.dob}</span></p>
+                                <p>Sex: <span className="font-medium text-gray-900">{applicant.sex}</span></p>
+                                <p>Marital: <span className="font-medium text-gray-900">{applicant.marital_status}</span></p>
+                                <p>POB: <span className="font-medium text-gray-900">{applicant.place_of_birth}</span></p>
+                                <p>POI: <span className="font-medium text-gray-900">{applicant.place_of_issue}</span></p>
+                                <p>Issued: <span className="font-medium text-gray-900">{applicant.date_of_issue}</span></p>
+                                <p>Expiry: <span className="font-medium text-gray-900">{applicant.date_of_expiry}</span></p>
+                                <p>Phone: <span className="font-medium text-gray-900">{applicant.phone}</span></p>
+                              </div>
+                            )}
                           </div>
 
                           {/* Documents */}
-                          <div className="flex flex-col gap-2 min-w-[200px]">
+                          <div className="flex flex-col gap-2 min-w-[200px] pt-10 md:pt-0">
                             {applicant.passport_front ? (
                               <a
-                                href={applicant.passport_front}
+                                href={getImageUrl(applicant.passport_front)}
+                                download={`Passport_${applicant.first_name}_${applicant.last_name}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
@@ -290,7 +445,8 @@ const VisaApplicationManage = () => {
 
                             {applicant.photo ? (
                               <a
-                                href={applicant.photo}
+                                href={getImageUrl(applicant.photo)}
+                                download={`Photo_${applicant.first_name}_${applicant.last_name}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
@@ -305,7 +461,8 @@ const VisaApplicationManage = () => {
                             {applicant.additional_documents && applicant.additional_documents.map((doc, dIdx) => (
                               <a
                                 key={dIdx}
-                                href={doc.file}
+                                href={getImageUrl(doc.file)}
+                                download={doc.document_name || `Doc_${dIdx + 1}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"

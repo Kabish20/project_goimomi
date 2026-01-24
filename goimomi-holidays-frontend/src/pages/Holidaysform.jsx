@@ -14,7 +14,7 @@ const HOLIDAY_TYPES = [
   "Ayurveda", "Yoga", "Medical Tourism", "Business", "MICE", "Educational", "Festival Tour"
 ];
 
-const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
+const HolidaysForm = ({ isOpen, onClose, packageType }) => {
   const [step, setStep] = useState(1);
 
   // Step 1 States (Umrah-style)
@@ -853,4 +853,4 @@ const HolidaysFormModal = ({ isOpen, onClose, packageType }) => {
   );
 };
 
-export default HolidaysFormModal;
+export default HolidaysForm;

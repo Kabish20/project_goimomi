@@ -22,7 +22,6 @@ const AdminCountryEdit = () => {
         name: "",
         code: "",
         header_image: null,
-        video: null,
     });
     const [headerPreview, setHeaderPreview] = useState(null);
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
@@ -35,7 +34,6 @@ const AdminCountryEdit = () => {
             setFormData({
                 ...data,
                 header_image: null,
-                video: data.video // Keep URL if exists
             });
             setHeaderPreview(getImageUrl(data.header_image));
         } catch (error) {
@@ -76,10 +74,7 @@ const AdminCountryEdit = () => {
             Object.keys(formData).forEach(key => {
                 if (formData[key] instanceof File) {
                     data.append(key, formData[key]);
-                } else if (key !== 'header_image' && key !== 'video') {
-                    // For PUT, only send non-file fields if not changed.
-                    // But here we need to send name/code unless we use partial=True logic.
-                    // Assuming partial update is safer or sending all strings.
+                } else if (key !== 'header_image') {
                     data.append(key, formData[key]);
                 }
             });
@@ -169,33 +164,6 @@ const AdminCountryEdit = () => {
                                                 <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-inner group">
                                                     <img src={headerPreview} alt="Header Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                                                     <div className="absolute inset-x-0 bottom-0 bg-black/40 text-white text-[9px] font-bold p-1 text-center backdrop-blur-sm">Current Header</div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1 text-xs">
-                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
-                                            Hero Video
-                                        </label>
-                                        <div className="flex flex-col gap-2">
-                                            <input
-                                                type="file"
-                                                name="video"
-                                                accept="video/*"
-                                                onChange={handleChange}
-                                                className="w-full text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100 cursor-pointer"
-                                            />
-                                            {formData.video && typeof formData.video === 'string' && (
-                                                <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 bg-black shadow-inner group">
-                                                    <video
-                                                        src={getImageUrl(formData.video)}
-                                                        className="w-full h-full object-cover"
-                                                        muted
-                                                        onMouseOver={e => e.target.play()}
-                                                        onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
-                                                    />
-                                                    <div className="absolute inset-x-0 bottom-0 bg-black/40 text-white text-[9px] font-bold p-1 text-center backdrop-blur-sm">Hover to Preview Video</div>
                                                 </div>
                                             )}
                                         </div>

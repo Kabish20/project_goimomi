@@ -15,6 +15,7 @@ router.register("nationalities", NationalityViewSet)
 router.register("umrah-destinations", UmrahDestinationViewSet)
 router.register("visas", VisaViewSet)
 router.register("visa-applications", VisaApplicationViewSet)
+router.register("visa-applicants", VisaApplicantViewSet)
 router.register("countries", CountryViewSet)
 
 urlpatterns = [

@@ -1,6 +1,6 @@
 import React from "react";
-import PlanTripHolidays from "../pages/Holidaysform.jsx";
-import PlanTripUmrah from "../pages/umrahform.jsx";
+import PlanTripHolidays from "../pages/HolidaysForm.jsx";
+import UmrahForm from "../pages/UmrahForm.jsx";
 
 const FormModal = ({ isOpen, onClose, packageType }) => {
   if (!isOpen) return null;
@@ -8,7 +8,7 @@ const FormModal = ({ isOpen, onClose, packageType }) => {
   const isUmrah = packageType && packageType.toLowerCase().includes("umrah");
 
   return isUmrah ? (
-    <PlanTripUmrah
+    <UmrahForm
       packageType={packageType}
       isOpen={isOpen}
       onClose={onClose}

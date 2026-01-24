@@ -10,7 +10,7 @@ import {
   FaCheckCircle,
   FaPhoneAlt,
 } from "react-icons/fa";
-import HolidaysFormModal from "../pages/Holidaysform.jsx";
+import HolidaysForm from "../pages/HolidaysForm.jsx";
 import { useNavigate } from "react-router-dom";
 
 // Images
@@ -266,7 +266,7 @@ const CustomizedHolidays = () => {
         </div>
       </section>
 
-      <HolidaysFormModal
+      <HolidaysForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         packageType={selectedPackage}

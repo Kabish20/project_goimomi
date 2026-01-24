@@ -19,6 +19,8 @@ const AdminVisaAdd = () => {
         photography_required: "",
         visa_type: "✈️ Tourist Visa",
         is_active: true,
+        header_image: null,
+        card_image: null,
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,6 +91,8 @@ const AdminVisaAdd = () => {
                     photography_required: "",
                     visa_type: "✈️ Tourist Visa",
                     is_active: true,
+                    header_image: null,
+                    card_image: null,
                 });
                 setStatusMessage({ text: "Visa added successfully! Add another one.", type: "success" });
                 setIsSubmitting(false);
@@ -343,6 +347,33 @@ const AdminVisaAdd = () => {
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                <div className="space-y-1 text-xs">
+                                    <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                        Header Image
+                                    </label>
+                                    <input
+                                        type="file"
+                                        name="header_image"
+                                        onChange={handleChange}
+                                        accept="image/*"
+                                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all bg-white file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
+                                    />
+                                </div>
+                                <div className="space-y-1 text-xs">
+                                    <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                        Card Image
+                                    </label>
+                                    <input
+                                        type="file"
+                                        name="card_image"
+                                        onChange={handleChange}
+                                        accept="image/*"
+                                        className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all bg-white file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-wrap justify-end gap-3">
                                 <button
                                     type="submit"
@@ -377,3 +408,4 @@ const AdminVisaAdd = () => {
 };
 
 export default AdminVisaAdd;
+

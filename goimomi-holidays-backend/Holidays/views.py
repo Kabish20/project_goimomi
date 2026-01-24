@@ -231,6 +231,14 @@ class VisaApplicationViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+class VisaApplicantViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = VisaApplicant.objects.all()
+    serializer_class = VisaApplicantSerializer
+    pagination_class = None
+
+
 class CountryViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]

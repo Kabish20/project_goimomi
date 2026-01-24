@@ -11,6 +11,9 @@ const AdminDashboard = () => {
     destinations: 0,
     packages: 0,
     enquiries: 0,
+    cabEnquiries: 0,
+    cruiseEnquiries: 0,
+    hotelEnquiries: 0,
     holidayEnquiries: 0,
     umrahEnquiries: 0,
     startingCities: 0,
@@ -107,7 +110,13 @@ const AdminDashboard = () => {
               break;
             case 'enquiries':
               newStats.enquiries = count;
-              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'General' })));
+              newStats.cabEnquiries = response.data.filter(e => e.enquiry_type === 'Cab').length;
+              newStats.cruiseEnquiries = response.data.filter(e => e.enquiry_type === 'Cruise').length;
+              newStats.hotelEnquiries = response.data.filter(e => e.enquiry_type === 'Hotel').length;
+              allEnquiries.push(...response.data.map(item => ({
+                ...item,
+                type: item.enquiry_type || 'General'
+              })));
               break;
             case 'holiday-enquiries':
               newStats.holidayEnquiries = count;
@@ -234,7 +243,10 @@ const AdminDashboard = () => {
                 <AdminCard title="Holiday Packages" count={stats.packages} link="/admin/packages" />
                 <AdminCard title="Starting Cities" count={stats.startingCities} link="/admin/starting-cities" />
                 <AdminCard title="Itinerary Masters" count={stats.itineraryMasters} link="/admin/itinerary-masters" />
-                <AdminCard title="Goimomi Enquiries" count={stats.enquiries} link="/admin/enquiries" />
+                <AdminCard title="All Enquiries" count={stats.enquiries} link="/admin/enquiries" />
+                <AdminCard title="Cab Enquiries" count={stats.cabEnquiries} link="/admin/cab-enquiries" />
+                <AdminCard title="Cruise Enquiries" count={stats.cruiseEnquiries} link="/admin/cruise-enquiries" />
+                <AdminCard title="Hotel Enquiries" count={stats.hotelEnquiries} link="/admin/hotel-enquiries" />
                 <AdminCard title="Holiday Enquiries" count={stats.holidayEnquiries} link="/admin/holiday-enquiries" />
                 <AdminCard title="Umrah Enquiries" count={stats.umrahEnquiries} link="/admin/umrah-enquiries" />
                 <AdminCard title="Nationalities" count={stats.nationalities} link="/admin/nationalities" />
@@ -273,9 +285,12 @@ const AdminDashboard = () => {
                           <tr key={`${enquiry.type}-${enquiry.id}`} className="border-b hover:bg-gray-50 transition-colors">
                             <td className="py-3 px-2 font-medium">{getEnquiryName(enquiry)}</td>
                             <td className="py-3 px-2">
-                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${enquiry.type === 'General' ? 'bg-blue-100 text-blue-700' :
-                                enquiry.type === 'Holiday' ? 'bg-green-100 text-green-700' :
-                                  'bg-purple-100 text-purple-700'
+                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${enquiry.type === 'Holiday' ? 'bg-green-100 text-green-700' :
+                                enquiry.type === 'Umrah' ? 'bg-purple-100 text-purple-700' :
+                                  enquiry.type === 'Cab' ? 'bg-amber-100 text-amber-700' :
+                                    enquiry.type === 'Cruise' ? 'bg-sky-100 text-sky-700' :
+                                      enquiry.type === 'Hotel' ? 'bg-orange-100 text-orange-700' :
+                                        'bg-blue-100 text-blue-700'
                                 }`}>
                                 {enquiry.type}
                               </span>

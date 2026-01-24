@@ -4,7 +4,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import SuccessModal from "../components/SuccessModal";
 
-const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
+const UmrahForm = ({ isOpen, onClose, packageType }) => {
   const [step, setStep] = useState(1);
 
   // STEP 1 States
@@ -742,4 +742,4 @@ const UmrahFormOnly = ({ isOpen, onClose, packageType }) => {
   );
 };
 
-export default UmrahFormOnly;
+export default UmrahForm;

@@ -5,6 +5,15 @@ import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
+const getImageUrl = (url) => {
+    if (!url) return "";
+    if (typeof url !== "string") return url;
+    if (url.startsWith("http")) {
+        return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+    }
+    return url;
+};
+
 const VisaApplication = () => {
     const { id } = useParams();
     const location = useLocation();
@@ -538,31 +547,48 @@ const VisaApplication = () => {
                     </button>
                 </div>
 
-                {/* Header Section without Images */}
-                <div className="mb-8 rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-[#14532d] text-white p-6 md:p-10">
-                    <div className="max-w-4xl">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                            <div>
-                                <h1 className="text-3xl font-bold mb-2">{currentVisa?.title || "Visa Application"}</h1>
-                                <div className="flex flex-wrap items-center gap-3 text-green-100 opacity-90 text-sm">
-                                    <span className="flex items-center gap-1 bg-green-900/40 px-2 py-1 rounded"><MapPin size={14} /> {currentVisa?.country || "Destination"}</span>
-                                    <span>•</span>
-                                    <span className="bg-green-900/40 px-2 py-1 rounded">{currentVisa?.visa_type || "Visa"}</span>
-                                    <span>•</span>
-                                    <span className="bg-green-900/40 px-2 py-1 rounded">{currentVisa?.entry_type || "Entry"}</span>
-                                </div>
-                            </div>
+                {/* Header Section with Background Image/Video */}
+                <div className="relative mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-[#14532d] min-h-[200px] flex items-center">
+                    {currentVisa?.header_image && (
+                        <img
+                            src={getImageUrl(currentVisa.header_image)}
+                            alt={currentVisa.title}
+                            className="absolute inset-0 w-full h-full object-cover opacity-40"
+                        />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#14532d] via-[#14532d]/80 to-transparent" />
 
-                            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <CheckCircle size={18} className="text-green-300" />
-                                    <span className="text-xs uppercase font-bold tracking-wider text-green-200">Estimated Arrival</span>
+                    <div className="relative z-10 p-6 md:p-10 w-full">
+                        <div className="max-w-4xl">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div>
+                                    <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3 drop-shadow-md">
+                                        {currentVisa?.title || "Visa Application"}
+                                    </h1>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-white border border-white/30 uppercase tracking-widest">
+                                            <MapPin size={12} /> {currentVisa?.country || "Destination"}
+                                        </span>
+                                        <span className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-white border border-white/30 uppercase tracking-widest">
+                                            {currentVisa?.visa_type || "Tourist Visa"}
+                                        </span>
+                                        <span className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-white border border-white/30 uppercase tracking-widest">
+                                            {currentVisa?.entry_type || "Single Entry"}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="text-xl font-bold">
-                                    {calculateEstimatedArrival(currentVisa?.processing_time, appDepartureDate)}
-                                </div>
-                                <div className="text-[10px] text-green-200 mt-1 opacity-80 uppercase tracking-tighter">
-                                    Based on {currentVisa?.processing_time || "standard"} processing
+
+                                <div className="bg-white/10 backdrop-blur-xl border border-white/30 p-5 rounded-2xl shadow-xl min-w-[200px]">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <CheckCircle size={18} className="text-green-400" />
+                                        <span className="text-[10px] uppercase font-black tracking-[0.2em] text-green-300">Estimated Arrival</span>
+                                    </div>
+                                    <div className="text-2xl font-black text-white">
+                                        {calculateEstimatedArrival(currentVisa?.processing_time, appDepartureDate)}
+                                    </div>
+                                    <div className="text-[10px] text-green-200 mt-1 opacity-90 font-bold uppercase tracking-widest">
+                                        {currentVisa?.processing_time || "3-5 Business Days"} Processing
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -12,6 +12,9 @@ const menu = [
     items: [
       "Destinations",
       "Enquiries",
+      "Cab Enquiries",
+      "Cruise Enquiries",
+      "Hotel Enquiries",
       "Holiday Enquiries",
       "Holiday Packages",
       "Itinerary Masters",
@@ -104,6 +107,18 @@ const AdminSidebar = () => {
     navigate("/admin/umrah-destinations");
   };
 
+  const handleChangeCabEnquiry = () => {
+    navigate("/admin/cab-enquiries");
+  };
+
+  const handleChangeCruiseEnquiry = () => {
+    navigate("/admin/cruise-enquiries");
+  };
+
+  const handleChangeHotelEnquiry = () => {
+    navigate("/admin/hotel-enquiries");
+  };
+
   const handleAddUmrahDestinations = () => {
     navigate("/admin/umrah-destinations/add");
   };
@@ -169,6 +184,12 @@ const AdminSidebar = () => {
         return handleChangeNationalities;
       case "Umrah Destinations":
         return handleChangeUmrahDestinations;
+      case "Cab Enquiries":
+        return handleChangeCabEnquiry;
+      case "Cruise Enquiries":
+        return handleChangeCruiseEnquiry;
+      case "Hotel Enquiries":
+        return handleChangeHotelEnquiry;
       case "Visas":
         return handleChangeVisa;
       case "Visa Applications":

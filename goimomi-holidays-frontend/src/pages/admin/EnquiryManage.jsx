@@ -112,6 +112,7 @@ const EnquiryManage = () => {
                 <thead className="bg-[#14532d] text-white">
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Name</th>
+                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Type</th>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Contact</th>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Purpose</th>
                     <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Date</th>
@@ -129,6 +130,15 @@ const EnquiryManage = () => {
                     filteredEnquiries.map((enquiry) => (
                       <tr key={enquiry.id} className="hover:bg-gray-50 transition-colors">
                         <td className="py-4 px-6 font-medium text-gray-900 border-r">{enquiry.name}</td>
+                        <td className="py-4 px-6 border-r">
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${enquiry.enquiry_type === 'Cab' ? 'bg-amber-100 text-amber-700' :
+                            enquiry.enquiry_type === 'Cruise' ? 'bg-sky-100 text-sky-700' :
+                              enquiry.enquiry_type === 'Hotel' ? 'bg-orange-100 text-orange-700' :
+                                'bg-blue-100 text-blue-700'
+                            }`}>
+                            {enquiry.enquiry_type || 'General'}
+                          </span>
+                        </td>
                         <td className="py-4 px-6 border-r">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-sm">
@@ -197,6 +207,7 @@ const EnquiryManage = () => {
                   <div>
                     <h3 className="font-semibold text-gray-700">Contact Information</h3>
                     <p><strong>Name:</strong> {selectedEnquiry.name}</p>
+                    <p><strong>Type:</strong> <span className="font-bold text-[#14532d]">{selectedEnquiry.enquiry_type || "General"}</span></p>
                     <p><strong>Email:</strong> {selectedEnquiry.email || "N/A"}</p>
                     <p><strong>Phone:</strong> {selectedEnquiry.phone}</p>
                   </div>

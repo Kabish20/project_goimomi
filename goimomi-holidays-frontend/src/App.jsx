@@ -14,14 +14,14 @@ import ContactSuccess from './pages/ContactSuccess.jsx'
 import CustomizedHolidays from './pages/CustomizedHolidays.jsx'
 import CustomizedUmrah from './pages/CustomizedUmrah.jsx'
 import Holidays from './pages/Holidays.jsx'
-import PlanTrip from './pages/Holidaysform.jsx'
-import Cab from './pages/cab.jsx'
-import Cruise from './pages/curise.jsx'
+import PlanTrip from './pages/HolidaysForm.jsx'
+import Cab from './pages/Cab.jsx'
+import Cruise from './pages/Cruise.jsx'
 import VisaSearch from './pages/VisaSearch.jsx'
 import VisaResults from './pages/VisaResults.jsx'
 import VisaApplication from './pages/VisaApplication.jsx'
 
-import Hotel from './pages/hotel.jsx'
+import Hotel from './pages/Hotel.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsConditions from './pages/TermsConditions.jsx'
 import CancellationPolicy from './pages/CancellationPolicy.jsx'
@@ -56,11 +56,13 @@ import UmrahDestinationManage from "./pages/admin/UmrahDestinationManage";
 import UmrahDestinationAdd from "./pages/admin/UmrahDestinationAdd";
 import UmrahDestinationEdit from "./pages/admin/UmrahDestinationEdit";
 import AdminVisaManage from "./pages/admin/AdminVisaManage";
-import VisaApplicationManage from "./pages/admin/VisaApplicationManage";
-import VisaApplicationEdit from "./pages/admin/VisaApplicationEdit";
 import AdminVisaAdd from "./pages/admin/AdminVisaAdd";
 import AdminVisaEdit from "./pages/admin/AdminVisaEdit";
-
+import VisaApplicationManage from "./pages/admin/VisaApplicationManage";
+import VisaApplicationEdit from "./pages/admin/VisaApplicationEdit";
+import CabEnquiryManage from "./pages/admin/CabEnquiryManage";
+import CruiseEnquiryManage from "./pages/admin/CruiseEnquiryManage";
+import HotelEnquiryManage from "./pages/admin/HotelEnquiryManage";
 
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -144,6 +146,9 @@ const App = () => {
             <Route path="/admin/visas/edit/:id" element={<AdminVisaEdit />} />
             <Route path="/admin/visa-applications" element={<VisaApplicationManage />} />
             <Route path="/admin/visa-applications/edit/:id" element={<VisaApplicationEdit />} />
+            <Route path="/admin/cab-enquiries" element={<CabEnquiryManage />} />
+            <Route path="/admin/cruise-enquiries" element={<CruiseEnquiryManage />} />
+            <Route path="/admin/hotel-enquiries" element={<HotelEnquiryManage />} />
 
 
 

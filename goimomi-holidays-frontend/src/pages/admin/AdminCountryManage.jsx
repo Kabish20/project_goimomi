@@ -118,7 +118,6 @@ const AdminCountryManage = () => {
                                                 <td className="py-4 px-6 text-gray-600 border-r">{c.code || "-"}</td>
                                                 <td className="py-4 px-6 text-center border-r">
                                                     <div className="flex flex-col items-center gap-1 text-xs text-gray-500">
-                                                        {c.video ? <span className="text-green-600 font-bold">Video ✓</span> : <span>No Video</span>}
                                                         {c.header_image ? <span className="text-green-600 font-bold">Header ✓</span> : <span>No Header</span>}
                                                     </div>
                                                 </td>

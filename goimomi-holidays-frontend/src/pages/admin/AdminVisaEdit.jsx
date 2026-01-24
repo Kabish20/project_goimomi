@@ -30,7 +30,11 @@ const AdminVisaEdit = () => {
         photography_required: "",
         visa_type: "✈️ Tourist Visa",
         is_active: true,
+        header_image: null,
+        card_image: null,
     });
+    const [headerPreview, setHeaderPreview] = useState("");
+    const [cardPreview, setCardPreview] = useState("");
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countries, setCountries] = useState([]);
@@ -52,7 +56,11 @@ const AdminVisaEdit = () => {
             const data = response.data;
             setFormData({
                 ...data,
+                header_image: null,
+                card_image: null,
             });
+            if (data.header_image) setHeaderPreview(getImageUrl(data.header_image));
+            if (data.card_image) setCardPreview(getImageUrl(data.card_image));
         } catch (error) {
             console.error("Error fetching visa:", error);
             setStatusMessage({ text: "Failed to fetch visa details", type: "error" });
@@ -67,7 +75,12 @@ const AdminVisaEdit = () => {
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
         if (type === "file") {
-            setFormData({ ...formData, [name]: files[0] });
+            const file = files[0];
+            setFormData({ ...formData, [name]: file });
+
+            // Create preview
+            if (name === "header_image") setHeaderPreview(URL.createObjectURL(file));
+            if (name === "card_image") setCardPreview(URL.createObjectURL(file));
         } else {
             setFormData({
                 ...formData,
@@ -90,7 +103,13 @@ const AdminVisaEdit = () => {
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                data.append(key, formData[key]);
+                // Only append files if they are File objects
+                if (formData[key] instanceof File) {
+                    data.append(key, formData[key]);
+                } else if (key !== 'header_image' && key !== 'card_image' && key !== 'country_details') {
+                    // Append other fields, but skip existing image fields if they aren't new files
+                    data.append(key, formData[key]);
+                }
             });
 
             await axios.put(`/api/visas/${id}/`, data, {
@@ -350,6 +369,48 @@ const AdminVisaEdit = () => {
                                     <label htmlFor="is_active" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
                                         Active & Visible on Website
                                     </label>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                        Header Image
+                                    </label>
+                                    <div className="space-y-2">
+                                        {headerPreview && (
+                                            <div className="relative w-full h-24 rounded-lg overflow-hidden border border-gray-200">
+                                                <img src={headerPreview} alt="Header Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            name="header_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="w-full text-[10px] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                        Card Image
+                                    </label>
+                                    <div className="space-y-2">
+                                        {cardPreview && (
+                                            <div className="relative w-full h-24 rounded-lg overflow-hidden border border-gray-200">
+                                                <img src={cardPreview} alt="Card Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            name="card_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="w-full text-[10px] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100 transition-all"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 

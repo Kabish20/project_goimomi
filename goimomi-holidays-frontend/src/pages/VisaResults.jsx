@@ -3,6 +3,15 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown } from "lucide-react";
 
+const getImageUrl = (url) => {
+    if (!url) return "";
+    if (typeof url !== "string") return url;
+    if (url.startsWith("http")) {
+        return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
+    }
+    return url;
+};
+
 const VisaResults = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -305,9 +314,22 @@ const VisaResults = () => {
                                 key={visa.id}
                                 className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative"
                             >
-                                {/* Header - Images Removed */}
-                                <div className="bg-[#14532d] text-white px-6 py-4 rounded-t-2xl">
-                                    <h3 className="text-xl font-bold">{visa.title}</h3>
+                                {/* Header with Background Image/Video */}
+                                <div className="relative h-20 md:h-24 rounded-t-2xl overflow-hidden bg-[#14532d]">
+                                    {visa.card_image && (
+                                        <img
+                                            src={getImageUrl(visa.card_image)}
+                                            alt={visa.title}
+                                            className="absolute inset-0 w-full h-full object-cover opacity-60"
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#14532d] to-transparent" />
+                                    <div className="absolute bottom-3 left-6 text-white">
+                                        <h3 className="text-xl md:text-2xl font-bold drop-shadow-md">{visa.title}</h3>
+                                        {visa.country_details?.name && (
+                                            <p className="text-xs font-medium text-green-100 uppercase tracking-widest">{visa.country_details.name}</p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Content Container */}

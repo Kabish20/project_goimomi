@@ -11,7 +11,6 @@ const AdminCountryAdd = () => {
         name: "",
         code: "",
         header_image: null,
-        video: null,
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +54,6 @@ const AdminCountryAdd = () => {
                     name: "",
                     code: "",
                     header_image: null,
-                    video: null,
                 });
                 setStatusMessage({ text: "Country added successfully! Add another one.", type: "success" });
                 setIsSubmitting(false);
@@ -137,23 +135,6 @@ const AdminCountryAdd = () => {
                                                 accept="image/*"
                                                 className="w-full text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100 cursor-pointer"
                                             />
-                                            <span className="text-[9px] text-gray-400 italic">Static image for non-video users.</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1 text-xs lg:col-span-1">
-                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
-                                            Hero Video
-                                        </label>
-                                        <div className="flex flex-col gap-1">
-                                            <input
-                                                type="file"
-                                                name="video"
-                                                accept="video/*"
-                                                onChange={handleChange}
-                                                className="w-full text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100 cursor-pointer"
-                                            />
-                                            <span className="text-[9px] text-gray-400 italic">Recommended for high-conversion headers.</span>
                                         </div>
                                     </div>
                                 </div>

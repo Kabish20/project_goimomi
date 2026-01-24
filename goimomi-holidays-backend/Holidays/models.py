@@ -68,7 +68,9 @@ class Enquiry(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20)
+    destination = models.CharField(max_length=200, blank=True, null=True)
     purpose = models.TextField(blank=True, null=True)
+    enquiry_type = models.CharField(max_length=50, default="General") # General, Cab, Cruise
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -286,6 +288,9 @@ class Visa(models.Model):
         ('🌍 Diplomatic / Official Visa', '🌍 Diplomatic / Official Visa'),
     ]
     visa_type = models.CharField(max_length=100, choices=VISA_TYPES, default='✈️ Tourist Visa')
+    header_image = models.ImageField(upload_to="visas/headers/", blank=True, null=True)
+    card_image = models.ImageField(upload_to="visas/cards/", blank=True, null=True)
+    video = models.FileField(upload_to="visas/videos/", blank=True, null=True, help_text="Upload a video for the visa page header")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
