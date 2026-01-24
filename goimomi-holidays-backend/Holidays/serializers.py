@@ -286,7 +286,12 @@ class VisaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Visa
-        fields = "__all__"
+        fields = [
+            'id', 'country', 'title', 'entry_type', 'validity', 'duration', 
+            'processing_time', 'price', 'documents_required', 'photography_required', 
+            'visa_type', 'card_image', 'is_active', 
+            'created_at', 'country_details'
+        ]
 
     def get_country_details(self, obj):
         try:
@@ -320,7 +325,11 @@ class VisaApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VisaApplication
-        fields = "__all__"
+        fields = [
+            'id', 'visa', 'application_type', 'internal_id', 'group_name', 
+            'departure_date', 'return_date', 'total_price', 'status', 
+            'created_at', 'applicants', 'visa_country', 'visa_title'
+        ]
 
 
 class CountrySerializer(serializers.ModelSerializer):

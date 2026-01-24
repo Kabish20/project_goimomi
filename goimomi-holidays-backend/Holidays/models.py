@@ -243,8 +243,8 @@ class UmrahDestination(models.Model):
 class Country(models.Model):
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=3, blank=True, null=True)
-    header_image = models.ImageField(upload_to="countries/headers/", blank=True, null=True)
-    video = models.FileField(upload_to="countries/videos/", blank=True, null=True, help_text="Upload a video for the country header")
+    # header_image = models.ImageField(upload_to="countries/headers/", blank=True, null=True)
+    # video = models.FileField(upload_to="countries/videos/", blank=True, null=True, help_text="Upload a video for the country header")
     
     class Meta:
         verbose_name_plural = "Countries"
@@ -288,9 +288,9 @@ class Visa(models.Model):
         ('🌍 Diplomatic / Official Visa', '🌍 Diplomatic / Official Visa'),
     ]
     visa_type = models.CharField(max_length=100, choices=VISA_TYPES, default='✈️ Tourist Visa')
-    header_image = models.ImageField(upload_to="visas/headers/", blank=True, null=True)
+    # header_image = models.ImageField(upload_to="visas/headers/", blank=True, null=True)
     card_image = models.ImageField(upload_to="visas/cards/", blank=True, null=True)
-    video = models.FileField(upload_to="visas/videos/", blank=True, null=True, help_text="Upload a video for the visa page header")
+    # video = models.FileField(upload_to="visas/videos/", blank=True, null=True, help_text="Upload a video for the visa page header")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

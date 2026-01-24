@@ -19,8 +19,6 @@ class AdminLoginView(APIView):
         
         user = authenticate(username=username, password=password)
         
-        user = authenticate(username=username, password=password)
-        
         with open("login_debug.log", "a") as f:
             f.write(f"Login attempt for username='{username}'\n")
             if user:
@@ -154,22 +152,14 @@ class VisaViewSet(ModelViewSet):
 
     def get_queryset(self):
         queryset = Visa.objects.all()
-        
         is_all = self.request.query_params.get('all', 'false').lower() == 'true'
         
-        # In list view, we filter by is_active unless 'all=true' is passed
-        if self.action == 'list' and not is_all:
-            queryset = queryset.filter(is_active=True)
-        # For other actions (retrieve, update, etc.), we want the full queryset
-        elif self.action != 'list':
+        # Admin view or explicit 'all' param
+        if getattr(self, 'action', 'list') != 'list' or is_all:
             return queryset
 
+        # Default filtering for public view
         country = self.request.query_params.get('country', None)
-        
-        if is_all:
-            return queryset
-            
-        # Default for users
         queryset = queryset.filter(is_active=True)
         if country:
             queryset = queryset.filter(country__iexact=country)

@@ -51,7 +51,17 @@ const AdminVisaEdit = () => {
             const response = await axios.get(`/api/visas/${id}/`);
             const data = response.data;
             setFormData({
-                ...data,
+                country: data.country || "",
+                title: data.title || "",
+                visa_type: data.visa_type || "✈️ Tourist Visa",
+                entry_type: data.entry_type || "Single-Entry Visa",
+                validity: data.validity || "",
+                duration: data.duration || "",
+                processing_time: data.processing_time || "",
+                price: data.price || "",
+                documents_required: data.documents_required || "",
+                photography_required: data.photography_required || "",
+                is_active: data.is_active ?? true,
             });
         } catch (error) {
             console.error("Error fetching visa:", error);
@@ -80,24 +90,48 @@ const AdminVisaEdit = () => {
             return;
         }
 
-        setIsSubmitting(true);
-        setStatusMessage({ text: "", type: "" });
-
         try {
-            const data = new FormData();
-            Object.keys(formData).forEach(key => {
-                if (key !== 'country_details') {
-                    data.append(key, formData[key]);
-                }
-            });
+            setIsSubmitting(true);
+            setStatusMessage({ text: "", type: "" });
 
-            await axios.put(`/api/visas/${id}/`, data, {
-                headers: { "Content-Type": "multipart/form-data" }
+            // Construct a clean payload
+            const payload = {
+                country: String(formData.country || "").trim(),
+                title: String(formData.title || "").trim(),
+                visa_type: String(formData.visa_type || ""),
+                entry_type: String(formData.entry_type || ""),
+                validity: String(formData.validity || "").trim(),
+                duration: String(formData.duration || "").trim(),
+                processing_time: String(formData.processing_time || "").trim(),
+                price: parseInt(formData.price) || 0,
+                documents_required: String(formData.documents_required || "").trim(),
+                photography_required: String(formData.photography_required || "").trim(),
+                is_active: Boolean(formData.is_active)
+            };
+
+            const response = await axios.patch(`/api/visas/${id}/`, payload, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
             });
 
             if (action === "continue") {
                 setStatusMessage({ text: "Visa updated successfully!", type: "success" });
-                fetchVisa();
+                const fresh = await axios.get(`/api/visas/${id}/`);
+                setFormData({
+                    country: fresh.data.country || "",
+                    title: fresh.data.title || "",
+                    visa_type: fresh.data.visa_type || "✈️ Tourist Visa",
+                    entry_type: fresh.data.entry_type || "Single-Entry Visa",
+                    validity: fresh.data.validity || "",
+                    duration: fresh.data.duration || "",
+                    processing_time: fresh.data.processing_time || "",
+                    price: fresh.data.price || "",
+                    documents_required: fresh.data.documents_required || "",
+                    photography_required: fresh.data.photography_required || "",
+                    is_active: fresh.data.is_active ?? true,
+                });
                 setIsSubmitting(false);
             } else if (action === "another") {
                 navigate("/admin/visas/add");
@@ -105,8 +139,13 @@ const AdminVisaEdit = () => {
                 navigate("/admin/visas");
             }
         } catch (error) {
-            console.error("Error updating visa:", error);
-            setStatusMessage({ text: "Failed to update visa. Please try again.", type: "error" });
+            console.error("Update Error:", error);
+            const errorData = error.response?.data;
+            let errorMessage = "Failed to update visa.";
+            if (errorData && typeof errorData === 'object') {
+                errorMessage = Object.entries(errorData).map(([k, v]) => `${k}: ${v}`).join(', ');
+            }
+            setStatusMessage({ text: errorMessage, type: "error" });
             setIsSubmitting(false);
         }
     };

@@ -139,6 +139,41 @@ class ItineraryMasterAdmin(admin.ModelAdmin):
     search_fields = ("name", "title", "description")
 
 
+@admin.register(Nationality)
+class NationalityAdmin(admin.ModelAdmin):
+    list_display = ('country', 'nationality', 'continent')
+    list_filter = ('continent',)
+    search_fields = ('country', 'nationality')
 
+@admin.register(UmrahDestination)
+class UmrahDestinationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'country')
+    list_filter = ('country',)
+    search_fields = ('name', 'country')
 
+@admin.register(Country)
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code')
+    search_fields = ('name', 'code')
+
+@admin.register(Visa)
+class VisaAdmin(admin.ModelAdmin):
+    list_display = ('country', 'title', 'price', 'entry_type', 'is_active')
+    list_filter = ('country', 'entry_type', 'is_active')
+    search_fields = ('country', 'title')
+
+class VisaApplicantInline(admin.TabularInline):
+    model = VisaApplicant
+    extra = 0
+
+@admin.register(VisaApplication)
+class VisaApplicationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'visa', 'application_type', 'total_price', 'status', 'created_at')
+    list_filter = ('status', 'application_type')
+    inlines = [VisaApplicantInline]
+
+@admin.register(VisaApplicant)
+class VisaApplicantAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'passport_number', 'nationality')
+    search_fields = ('first_name', 'last_name', 'passport_number')
 
