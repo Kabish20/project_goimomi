@@ -44,9 +44,8 @@ const AdminVisaManage = () => {
 
     const handleStatusToggle = async (visa) => {
         try {
-            const updatedVisa = { ...visa, is_active: !visa.is_active };
-            await axios.put(`/api/visas/${visa.id}/`, updatedVisa);
-            setVisas(visas.map((v) => (v.id === visa.id ? updatedVisa : v)));
+            await axios.patch(`/api/visas/${visa.id}/`, { is_active: !visa.is_active });
+            setVisas(visas.map((v) => (v.id === visa.id ? { ...v, is_active: !v.is_active } : v)));
             setStatusMessage({
                 text: `Visa ${!visa.is_active ? "activated" : "deactivated"} successfully`,
                 type: "success",

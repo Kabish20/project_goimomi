@@ -765,7 +765,7 @@ const HolidayPackageEdit = () => {
                                                     const currentDays = parseInt(formData.days || 1, 10);
                                                     if (currentDays > 1) {
                                                         setFormData(prev => ({ ...prev, days: (currentDays - 1).toString() }));
-                                                        removeRow(setPackageDestinations, i);
+                                                        // useEffect will handle the slicing of packageDestinations and itineraryDays
                                                     }
                                                 }}
                                                 className="text-red-500 hover:text-red-700 font-bold transition-transform hover:scale-125"
@@ -783,7 +783,7 @@ const HolidayPackageEdit = () => {
                                         onClick={() => {
                                             const newDays = parseInt(formData.days || 1, 10) + 1;
                                             setFormData(prev => ({ ...prev, days: newDays.toString() }));
-                                            addRow(setPackageDestinations, { destination: "", nights: 1 });
+                                            // useEffect will handle adding the row
                                         }}
                                         className="flex items-center gap-1 text-[#14532d] hover:text-[#0f4a24] font-semibold text-sm"
                                     >

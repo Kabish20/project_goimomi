@@ -131,7 +131,7 @@ const HolidayDetails = () => {
             </div>
           </div>
           <div className="border-t pt-4">
-            <p className="text-gray-600 font-medium">{pkg.nights}Nights / {pkg.days}Days</p>
+            <p className="text-gray-600 font-medium">{pkg.days}Days / {pkg.nights}Nights</p>
           </div>
 
           <button
