@@ -67,9 +67,8 @@ const HolidayPackageManage = () => {
   const handleStatusToggle = async (pkg) => {
     try {
       setLoading(true);
-      const updatedPkg = { ...pkg, is_active: !pkg.is_active };
-      // Sending only necessary data for update if possible, but put usually expects full object
-      await axios.put(`${API_BASE_URL}/packages/${pkg.id}/`, updatedPkg);
+      // Use PATCH to only update is_active without needing full package data
+      await axios.patch(`${API_BASE_URL}/packages/${pkg.id}/`, { is_active: !pkg.is_active });
       setMessage(`Package ${!pkg.is_active ? "activated" : "deactivated"} successfully!`);
       fetchPackages();
     } catch (err) {

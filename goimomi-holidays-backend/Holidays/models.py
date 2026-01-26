@@ -95,8 +95,8 @@ class HolidayPackage(models.Model):
     group_size = models.PositiveIntegerField(default=0)
     with_flight = models.BooleanField(default=False)
 
-    header_image = models.ImageField(upload_to="packages/headers/")
-    card_image = models.ImageField(upload_to="packages/cards/")
+    header_image = models.ImageField(upload_to="packages/headers/", null=True, blank=True)
+    card_image = models.ImageField(upload_to="packages/cards/", null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

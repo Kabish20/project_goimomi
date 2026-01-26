@@ -55,6 +55,7 @@ const HolidayPackageAdd = () => {
     header_image: null,
     card_image: null,
     with_flight: false,
+    is_active: true,
   });
 
   const [startingCities, setStartingCities] = useState([]);
@@ -198,28 +199,25 @@ const HolidayPackageAdd = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = "Title is required";
-    if (!formData.description.trim()) newErrors.description = "Description is required";
-    if (!formData.category) newErrors.category = "Category is required";
-    if (!formData.starting_city) newErrors.starting_city = "Starting city is required";
-    if (!formData.days || formData.days <= 0) newErrors.days = "Days must be greater than 0";
-    if (!formData.offer_price || formData.offer_price <= 0) newErrors.offer_price = "Offer price is required";
-    if (!formData.header_image) newErrors.header_image = "Header image is required";
-    if (!formData.card_image) newErrors.card_image = "Card image is required";
+    if (!formData.title?.trim()) newErrors.title = "Package title is required";
+    if (!formData.description?.trim()) newErrors.description = "Package description is required";
+    if (!formData.category) newErrors.category = "Please select a category";
+    if (!formData.starting_city) newErrors.starting_city = "Please select a starting city";
+    if (!formData.days || parseInt(formData.days) <= 0) newErrors.days = "Duration (days) must be at least 1";
+    if (!formData.offer_price || parseFloat(formData.offer_price) <= 0) newErrors.offer_price = "Offer price must be greater than 0";
 
-    if (packageDestinations.length === 0) {
-      newErrors.packageDestinations = "At least one destination is required";
+    if (packageDestinations.length === 0 && parseInt(formData.days) > 1) {
+      newErrors.packageDestinations = "At least one destination night is required";
     } else {
       packageDestinations.forEach((dest, index) => {
-        if (!dest.destination) newErrors[`dest_${index}`] = "Required";
-        if (!dest.nights || dest.nights <= 0) newErrors[`nights_${index}`] = "Required";
+        if (!dest.destination) newErrors[`dest_${index}`] = "City required";
       });
     }
 
     // Itinerary validations
     itineraryDays.forEach((day, index) => {
       if (!day.title || !day.title.trim()) {
-        newErrors[`itinerary_title_${index}`] = "Title required";
+        newErrors[`itinerary_title_${index}`] = "Itinerary title required (e.g. Arrival)";
       }
     });
 
@@ -253,6 +251,7 @@ const HolidayPackageAdd = () => {
       formDataToSend.append("Offer_price", formData.offer_price);
       if (formData.price) formDataToSend.append("price", formData.price);
       formDataToSend.append("with_flight", formData.with_flight);
+      formDataToSend.append("is_active", formData.is_active);
 
       // Add main images
       if (formData.header_image) {
@@ -308,6 +307,7 @@ const HolidayPackageAdd = () => {
           price: "",
           header_image: null,
           card_image: null,
+          is_active: true,
         });
         setPackageDestinations([{ destination: "", nights: 1 }]);
         setItineraryDays([{ day: "1", title: "", description: "", master_template: "", image: null }]);
@@ -459,6 +459,32 @@ const HolidayPackageAdd = () => {
                     </label>
                   </div>
                 </div>
+
+                <div className="mb-1">
+                  <span className="text-gray-700 font-semibold text-xs uppercase block mb-1">Status:</span>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="is_active"
+                        checked={formData.is_active === true}
+                        onChange={() => setFormData({ ...formData, is_active: true })}
+                        className="w-3 h-3 text-[#14532d] focus:ring-[#14532d]"
+                      />
+                      <span className="text-gray-700 text-sm">Active</span>
+                    </label>
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="is_active"
+                        checked={formData.is_active === false}
+                        onChange={() => setFormData({ ...formData, is_active: false })}
+                        className="w-3 h-3 text-[#14532d] focus:ring-[#14532d]"
+                      />
+                      <span className="text-gray-700 text-sm">Inactive</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             </Section>
 
@@ -538,24 +564,50 @@ const HolidayPackageAdd = () => {
             {/* IMAGES */}
             <Section title="Images">
               <label className="block mb-3">
-                <span className="text-gray-700 font-semibold text-xs uppercase">Header image:*</span>
-                <Input
-                  type="file"
-                  name="header_image"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  error={errors.header_image}
-                />
+                <span className="text-gray-700 font-semibold text-xs uppercase">Header image:</span>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    name="header_image"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    error={errors.header_image}
+                    key={formData.header_image ? 'header-has-file' : 'header-no-file'}
+                  />
+                  {formData.header_image && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, header_image: null })}
+                      className="text-red-500 hover:text-red-700 font-bold"
+                    >
+                      ✖
+                    </button>
+                  )}
+                </div>
+                {formData.header_image && <p className="text-green-600 text-[10px] mt-1">Selected: {formData.header_image.name}</p>}
               </label>
               <label className="block">
-                <span className="text-gray-700 font-semibold text-xs uppercase">Card image:*</span>
-                <Input
-                  type="file"
-                  name="card_image"
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  error={errors.card_image}
-                />
+                <span className="text-gray-700 font-semibold text-xs uppercase">Card image:</span>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    name="card_image"
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    error={errors.card_image}
+                    key={formData.card_image ? 'card-has-file' : 'card-no-file'}
+                  />
+                  {formData.card_image && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, card_image: null })}
+                      className="text-red-500 hover:text-red-700 font-bold"
+                    >
+                      ✖
+                    </button>
+                  )}
+                </div>
+                {formData.card_image && <p className="text-green-600 text-[10px] mt-1">Selected: {formData.card_image.name}</p>}
               </label>
             </Section>
 
@@ -594,8 +646,9 @@ const HolidayPackageAdd = () => {
                         onClick={() => {
                           const currentDays = parseInt(formData.days || 1, 10);
                           if (currentDays > 1) {
-                            setFormData(prev => ({ ...prev, days: (currentDays - 1).toString() }));
-                            setPackageDestinations(prev => prev.filter((_, idx) => idx !== i));
+                            const newDays = (currentDays - 1).toString();
+                            setFormData(prev => ({ ...prev, days: newDays }));
+                            // useEffect will handle the slicing of packageDestinations
                           }
                         }}
                         className="text-red-500 hover:text-red-700 font-bold text-sm transition-transform hover:scale-125"
@@ -720,19 +773,33 @@ const HolidayPackageAdd = () => {
                       />
                     </div>
 
-                    {/* Image */}
                     <div className="col-span-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const copy = [...itineraryDays];
-                          copy[i].image = e.target.files[0];
-                          setItineraryDays(copy);
-                        }}
-                        className="w-full text-[10px] text-gray-500 file:mr-1 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
-                      />
-                      {row.image && <p className="text-green-600 text-[9px] mt-0.5">File selected: {row.image.name}</p>}
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const copy = [...itineraryDays];
+                            copy[i].image = e.target.files[0];
+                            setItineraryDays(copy);
+                          }}
+                          className="w-full text-[10px] text-gray-500 file:mr-1 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
+                        />
+                        {row.image && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const copy = [...itineraryDays];
+                              copy[i].image = null;
+                              setItineraryDays(copy);
+                            }}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            ✖
+                          </button>
+                        )}
+                      </div>
+                      {row.image && <p className="text-green-600 text-[9px] mt-0.5">File: {row.image.name}</p>}
                     </div>
 
                   </div>
