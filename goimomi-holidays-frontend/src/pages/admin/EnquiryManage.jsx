@@ -1,246 +1,170 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Search, Eye, Trash2, Mail, Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Hotel, MapPin, Ship, Sun, Moon, MessageSquare } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 
 const EnquiryManage = () => {
-  const [enquiries, setEnquiries] = useState([]);
-  const [filteredEnquiries, setFilteredEnquiries] = useState([]);
+  const [counts, setCounts] = useState({
+    general: 0,
+    hotel: 0,
+    holiday: 0,
+    umrah: 0,
+    cab: 0,
+    cruise: 0
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const API_BASE_URL = "/api";
 
   useEffect(() => {
-    fetchEnquiries();
+    fetchCounts();
   }, []);
 
-  const fetchEnquiries = async () => {
+  const fetchCounts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/enquiry-form/`);
-      setEnquiries(response.data);
-      setFilteredEnquiries(response.data);
+      const [generalRes, holidayRes, umrahRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/enquiry-form/`),
+        axios.get(`${API_BASE_URL}/holiday-form/`),
+        axios.get(`${API_BASE_URL}/umrah-form/`)
+      ]);
+
+      const generalData = generalRes.data || [];
+      const holidayData = holidayRes.data || [];
+      const umrahData = umrahRes.data || [];
+
+      setCounts({
+        general: generalData.filter(e => !e.enquiry_type || e.enquiry_type === 'General').length,
+        hotel: generalData.filter(e => e.enquiry_type === 'Hotel').length,
+        cab: generalData.filter(e => e.enquiry_type === 'Cab').length,
+        cruise: generalData.filter(e => e.enquiry_type === 'Cruise').length,
+        holiday: holidayData.length,
+        umrah: umrahData.length
+      });
       setError("");
     } catch (err) {
-      console.error("Error fetching enquiries:", err);
-      setError(`Failed to load enquiries: ${err.message}`);
+      console.error("Error fetching counts:", err);
+      setError("Failed to load enquiry statistics.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const filtered = enquiries.filter(enquiry =>
-      enquiry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enquiry.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enquiry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      enquiry.purpose?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredEnquiries(filtered);
-  }, [searchTerm, enquiries]);
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this enquiry?")) {
-      try {
-        setLoading(true);
-        await axios.delete(`${API_BASE_URL}/enquiry-form/${id}/`);
-        fetchEnquiries();
-      } catch (err) {
-        console.error("Error deleting enquiry:", err);
-        setError("Failed to delete enquiry. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+  const statCards = [
+    {
+      title: "Hotel Enquiries",
+      count: counts.hotel,
+      icon: <Hotel size={24} />,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      path: "/admin/hotel-enquiries"
+    },
+    {
+      title: "Holiday Enquiries",
+      count: counts.holiday,
+      icon: <Sun size={24} />,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      path: "/admin/holiday-enquiries"
+    },
+    {
+      title: "Umrah Enquiries",
+      count: counts.umrah,
+      icon: <Moon size={24} />,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      path: "/admin/umrah-enquiries"
+    },
+    {
+      title: "Cab Enquiries",
+      count: counts.cab,
+      icon: <MapPin size={24} />,
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
+      path: "/admin/cab-enquiries"
+    },
+    {
+      title: "Cruise Enquiries",
+      count: counts.cruise,
+      icon: <Ship size={24} />,
+      color: "text-sky-600",
+      bgColor: "bg-sky-50",
+      path: "/admin/cruise-enquiries"
+    },
+    {
+      title: "General Enquiries",
+      count: counts.general,
+      icon: <MessageSquare size={24} />,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      path: "/admin/general-enquiries"
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
-  };
+  ];
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className="flex bg-gray-50 min-h-screen">
       <AdminSidebar />
       <div className="flex-1">
         <AdminTopbar />
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-semibold text-gray-800">Manage Goimomi Enquiries</h1>
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Enquiries Dashboard</h1>
+              <p className="text-gray-500 mt-1">Overview of all customer requests and bookings</p>
+            </div>
             <button
-              onClick={fetchEnquiries}
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+              onClick={fetchCounts}
+              className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition shadow-sm"
             >
-              Refresh List
+              Refresh Data
             </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
-              <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search enquiries by name, phone, or purpose..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d]"
-              />
-            </div>
-          </div>
-
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">
               {error}
             </div>
           )}
 
-          {loading && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
-              <p className="mt-2 text-gray-600">Loading enquiries...</p>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="bg-white h-48 rounded-2xl animate-pulse shadow-sm border border-gray-100"></div>
+              ))}
             </div>
-          )}
-
-          <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[#14532d] text-white">
-                  <tr>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Name</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Type</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Contact</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Purpose</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Date</th>
-                    <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredEnquiries.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="text-center py-10 text-gray-500">
-                        {searchTerm ? `No enquiries match "${searchTerm}"` : "No enquiries found."}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredEnquiries.map((enquiry) => (
-                      <tr key={enquiry.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-6 font-medium text-gray-900 border-r">{enquiry.name}</td>
-                        <td className="py-4 px-6 border-r">
-                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${enquiry.enquiry_type === 'Cab' ? 'bg-amber-100 text-amber-700' :
-                            enquiry.enquiry_type === 'Cruise' ? 'bg-sky-100 text-sky-700' :
-                              enquiry.enquiry_type === 'Hotel' ? 'bg-orange-100 text-orange-700' :
-                                'bg-blue-100 text-blue-700'
-                            }`}>
-                            {enquiry.enquiry_type || 'General'}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 border-r">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Phone size={14} className="text-gray-400" />
-                              {enquiry.phone}
-                            </div>
-                            {enquiry.email && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Mail size={14} className="text-gray-400" />
-                                {enquiry.email}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="max-w-xs">
-                            <p className="text-sm text-gray-600 truncate">
-                              {enquiry.purpose}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm">
-                          {formatDate(enquiry.created_at)}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => setSelectedEnquiry(enquiry)}
-                              className="flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                            >
-                              <Eye size={12} />
-                              View
-                            </button>
-                            <button
-                              onClick={() => handleDelete(enquiry.id)}
-                              className="flex items-center gap-1 bg-red-600 text-white px-3 py-1 rounded text-sm"
-                            >
-                              <Trash2 size={12} />
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Enquiry Detail Modal */}
-          {selectedEnquiry && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-xl font-semibold">Enquiry Details</h2>
-                  <button
-                    onClick={() => setSelectedEnquiry(null)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-700">Contact Information</h3>
-                    <p><strong>Name:</strong> {selectedEnquiry.name}</p>
-                    <p><strong>Type:</strong> <span className="font-bold text-[#14532d]">{selectedEnquiry.enquiry_type || "General"}</span></p>
-                    <p><strong>Email:</strong> {selectedEnquiry.email || "N/A"}</p>
-                    <p><strong>Phone:</strong> {selectedEnquiry.phone}</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {statCards.map((card, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => navigate(card.path)}
+                  className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden"
+                >
+                  <div className={`absolute top-0 right-0 p-3 ${card.bgColor} ${card.color} rounded-bl-2xl opacity-80 group-hover:opacity-100 transition-opacity`}>
+                    {card.icon}
                   </div>
 
-                  <div>
-                    <h3 className="font-semibold text-gray-700">Enquiry Details</h3>
-                    <p><strong>Purpose of Visit:</strong></p>
-                    <p className="mt-1 text-gray-600 bg-gray-50 p-3 rounded border">
-                      {selectedEnquiry.purpose || "No details provided"}
-                    </p>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-gray-600 group-hover:text-gray-900 transition-colors uppercase tracking-tight">
+                      {card.title}
+                    </h3>
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-6xl font-black ${card.color}`}>
+                        {card.count}
+                      </span>
+                      <span className="text-gray-400 font-medium uppercase text-xs tracking-widest">Requests</span>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="font-semibold text-gray-700">Timestamp</h3>
-                    <p>Submitted: {formatDate(selectedEnquiry.created_at)}</p>
+                  <div className="mt-8 flex items-center gap-1 text-sm font-bold text-[#14532d] opacity-0 group-hover:opacity-100 transition-opacity">
+                    View Details <span>→</span>
                   </div>
                 </div>
-
-                <div className="mt-6 flex gap-3">
-                  <button
-                    onClick={() => setSelectedEnquiry(null)}
-                    className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={() => handleDelete(selectedEnquiry.id)}
-                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                  >
-                    Delete Enquiry
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
           )}
         </div>

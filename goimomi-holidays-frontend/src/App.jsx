@@ -63,6 +63,10 @@ import VisaApplicationEdit from "./pages/admin/VisaApplicationEdit";
 import CabEnquiryManage from "./pages/admin/CabEnquiryManage";
 import CruiseEnquiryManage from "./pages/admin/CruiseEnquiryManage";
 import HotelEnquiryManage from "./pages/admin/HotelEnquiryManage";
+import GeneralEnquiryManage from "./pages/admin/GeneralEnquiryManage";
+import SupplierManage from "./pages/admin/SupplierManage";
+import SupplierAdd from "./pages/admin/SupplierAdd";
+import SupplierEdit from "./pages/admin/SupplierEdit";
 
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -149,6 +153,10 @@ const App = () => {
             <Route path="/admin/cab-enquiries" element={<CabEnquiryManage />} />
             <Route path="/admin/cruise-enquiries" element={<CruiseEnquiryManage />} />
             <Route path="/admin/hotel-enquiries" element={<HotelEnquiryManage />} />
+            <Route path="/admin/general-enquiries" element={<GeneralEnquiryManage />} />
+            <Route path="/admin/suppliers" element={<SupplierManage />} />
+            <Route path="/admin/suppliers/add" element={<SupplierAdd />} />
+            <Route path="/admin/suppliers/edit/:id" element={<SupplierEdit />} />
 
 
 

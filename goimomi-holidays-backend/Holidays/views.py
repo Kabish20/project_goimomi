@@ -235,3 +235,10 @@ class CountryViewSet(ModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
     pagination_class = None
+
+class SupplierViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Supplier.objects.all().order_by('-created_at')
+    serializer_class = SupplierSerializer
+    pagination_class = None

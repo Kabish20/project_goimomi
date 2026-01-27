@@ -26,7 +26,7 @@ const Navbar = () => {
     "flex flex-col items-center justify-center text-xs hover:text-goimomi-primary active:scale-90 transition-transform duration-200 focus:outline-none";
 
   return (
-    <header className="w-full">
+    <header className="w-full sticky top-0 z-[100]">
       {/* Top bar */}
       <div className="bg-goimomi-primary text-white text-sm hidden md:block">
         <div className="max-w-10xl mx-auto flex items-center justify-between px-4 py-2">
@@ -58,7 +58,7 @@ const Navbar = () => {
       </div>
 
       {/* Main navbar */}
-      <div className="border-b sticky top-0 bg-white z-50">
+      <div className="border-b bg-white">
         <div className="max-w-8xl mx-auto flex items-center justify-between px-4 py-3">
 
           {/* Logo */}
