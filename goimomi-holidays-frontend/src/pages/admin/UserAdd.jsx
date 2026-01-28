@@ -68,11 +68,11 @@ const UserAdd = () => {
     };
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="p-6 text-black max-w-4xl bg-white rounded shadow">
                         <h1 className="text-xl font-semibold mb-4">Add user</h1>
 

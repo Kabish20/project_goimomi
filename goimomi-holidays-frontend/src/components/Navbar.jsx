@@ -1,11 +1,13 @@
 import React, { useRef, useEffect } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import logo from '../assets/goimomilogo.png'
+import AdminLogin from '../pages/AdminLogin'
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [desktopHoliday, setDesktopHoliday] = React.useState(false)
   const [mobileHoliday, setMobileHoliday] = React.useState(false)
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = React.useState(false)
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -21,6 +23,18 @@ const Navbar = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Lock body scroll when admin login is open
+  useEffect(() => {
+    if (isAdminLoginOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isAdminLoginOpen]);
 
   const animatedButton =
     "flex flex-col items-center justify-center text-xs hover:text-goimomi-primary active:scale-90 transition-transform duration-200 focus:outline-none";
@@ -47,12 +61,12 @@ const Navbar = () => {
             >
               Agent Login
             </a>
-            <Link
-              to="/admin-login"
-              className="bg-white text-goimomi-primary rounded-full px-3 py-1 font-medium"
+            <button
+              onClick={() => setIsAdminLoginOpen(true)}
+              className="bg-white text-goimomi-primary rounded-full px-4 py-1.5 font-bold hover:bg-green-50 transition-colors shadow-sm"
             >
               Admin Login
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -346,19 +360,25 @@ const Navbar = () => {
                 >
                   Agent Login
                 </a>
-                <Link
-                  to="/admin-login"
-                  className="w-full text-center border-2 border-goimomi-primary text-goimomi-primary rounded-lg py-2 font-medium"
-                  onClick={() => setMobileOpen(false)}
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setIsAdminLoginOpen(true);
+                  }}
+                  className="w-full text-center border-2 border-goimomi-primary text-goimomi-primary rounded-lg py-2 font-bold hover:bg-goimomi-primary/5 transition-colors"
                 >
                   Admin Login
-                </Link>
+                </button>
               </div>
 
             </div>
           </div>
         )}
       </div>
+      <AdminLogin
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+      />
     </header>
   );
 };

@@ -76,7 +76,7 @@ const EnquiryForm = ({ isOpen, onClose }) => {
         }}
         message="Your enquiry has been submitted successfully! Our team will contact you shortly."
       />
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4">
         <div className="bg-white w-full max-w-[320px] rounded-xl shadow-xl p-5 relative">
           <button
             onClick={onClose}

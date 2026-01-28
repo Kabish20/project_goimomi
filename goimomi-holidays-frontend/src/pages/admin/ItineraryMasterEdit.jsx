@@ -126,7 +126,7 @@ const ItineraryMasterEdit = () => {
 
     if (loading) {
         return (
-            <div className="flex bg-gray-100 min-h-screen">
+            <div className="flex bg-gray-100 h-full overflow-hidden">
                 <AdminSidebar />
                 <div className="flex-1 p-10 flex justify-center items-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
@@ -136,13 +136,13 @@ const ItineraryMasterEdit = () => {
     }
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
 
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
 
-                <div className="p-3">
+                <div className="flex-1 overflow-y-auto p-3">
                     <div className="max-w-6xl mx-auto">
                         <div className="flex items-center gap-2 mb-3">
                             <button

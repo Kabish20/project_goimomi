@@ -181,8 +181,8 @@ const AdminSidebar = () => {
       <div key={item.name}>
         <li
           onClick={() => handleRowClick(item)}
-          className={`group flex justify-between items-center px-3 py-3 border-b border-white/5 hover:bg-white/10 transition-all ${getChangeHandler(item) || isDropdown ? "cursor-pointer" : "cursor-default"
-            } ${isChild ? "pl-10 bg-black/20" : ""}`}
+          className={`group flex justify-between items-center px-3 py-3 border-b border-white/5 hover:bg-white/20 transition-all ${getChangeHandler(item) || isDropdown ? "cursor-pointer" : "cursor-default"
+            } ${isChild ? "pl-10 bg-black/10" : ""}`}
           title={isCollapsed ? item.name : ""}
         >
           <div className="flex items-center gap-3">
@@ -237,27 +237,26 @@ const AdminSidebar = () => {
 
   return (
     <aside
-      className={`${isCollapsed ? "w-20" : "w-80"} bg-[#0f2f1f] text-white h-screen sticky top-0 transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
+      className={`${isCollapsed ? "w-20" : "w-80"} bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
     >
       {/* Header */}
       <div className={`p-6 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
         {!isCollapsed && (
           <h2
-            className="text-xl font-bold tracking-tighter text-white cursor-pointer hover:text-green-400 transition-colors"
+            className="text-xl font-bold tracking-tighter text-white cursor-pointer hover:text-green-200 transition-colors"
             onClick={() => navigate("/admin-dashboard")}
           >
-            GOIMOMI <span className="text-green-500">ADMIN</span>
+            GOIMOMI <span className="text-white opacity-80">ADMIN</span>
           </h2>
         )}
         {isCollapsed && (
-          <div onClick={() => navigate("/admin-dashboard")} className="cursor-pointer bg-green-500 w-8 h-8 rounded flex items-center justify-center font-bold">G</div>
+          <div onClick={() => navigate("/admin-dashboard")} className="cursor-pointer bg-[#1f7a45] w-8 h-8 rounded flex items-center justify-center font-bold">G</div>
         )}
       </div>
 
-      {/* Toggle Button - Fold Partition */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-20 bg-[#14532d] border border-white/10 text-white rounded-full p-1 shadow-xl hover:bg-green-600 hover:scale-110 transition-all z-[60]"
+        className="absolute -right-3 top-1/2 -translate-y-1/2 bg-[#14532d] border border-white/10 text-white rounded-full p-1 shadow-xl hover:bg-[#1a6338] hover:scale-110 transition-all z-[60]"
       >
         {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
@@ -284,7 +283,7 @@ const AdminSidebar = () => {
       <div className="p-4 border-t border-white/10">
         <button
           onClick={() => navigate("/admin-dashboard")}
-          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-3"} p-3 rounded-xl bg-white/5 hover:bg-green-600 transition-all`}
+          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-3"} p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all`}
           title="Dashboard"
         >
           <LayoutDashboard size={20} className="text-green-400" />

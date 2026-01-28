@@ -16,6 +16,7 @@ router.register("umrah-destinations", UmrahDestinationViewSet)
 router.register("visas", VisaViewSet)
 router.register("visa-applications", VisaApplicationViewSet)
 router.register("visa-applicants", VisaApplicantViewSet)
+router.register("additional-documents", VisaAdditionalDocumentViewSet)
 router.register("countries", CountryViewSet)
 router.register("suppliers", SupplierViewSet)
 

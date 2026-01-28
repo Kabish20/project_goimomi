@@ -81,9 +81,9 @@ const NationalityEdit = () => {
 
     if (isLoading) {
         return (
-            <div className="flex bg-gray-100 min-h-screen">
+            <div className="flex bg-gray-100 h-full overflow-hidden">
                 <AdminSidebar />
-                <div className="flex-1">
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
                     <AdminTopbar />
                     <div className="p-6 flex justify-center items-center min-h-[60vh]">
                         <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
@@ -94,11 +94,11 @@ const NationalityEdit = () => {
     }
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-center justify-between gap-4 mb-8">
                             <div className="flex items-center gap-4">

@@ -80,11 +80,11 @@ const UsersList = () => {
     );
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="flex justify-between items-start">
                         <div className="flex-1 mr-6">
                             <h1 className="text-xl font-semibold text-gray-800 mb-4">Select user to change</h1>

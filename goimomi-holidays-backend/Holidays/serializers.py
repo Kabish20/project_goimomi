@@ -317,13 +317,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 class VisaSerializer(serializers.ModelSerializer):
     country_details = serializers.SerializerMethodField()
+    supplier_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Visa
         fields = [
             'id', 'country', 'title', 'entry_type', 'validity', 'duration', 
-            'processing_time', 'price', 'documents_required', 'photography_required', 
-            'visa_type', 'card_image', 'is_active', 
+            'processing_time', 'cost_price', 'service_charge', 'selling_price', 
+            'documents_required', 'photography_required', 
+            'visa_type', 'card_image', 'is_active', 'supplier', 'supplier_details',
             'created_at', 'country_details'
         ]
 
@@ -336,6 +338,16 @@ class VisaSerializer(serializers.ModelSerializer):
             pass
         return None
 
+    def get_supplier_details(self, obj):
+        if obj.supplier:
+            return {
+                'id': obj.supplier.id,
+                'company_name': obj.supplier.company_name,
+                'contact_person': obj.supplier.contact_person,
+                'contact_no': obj.supplier.contact_no
+            }
+        return None
+
 
 class VisaAdditionalDocumentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -345,6 +357,8 @@ class VisaAdditionalDocumentSerializer(serializers.ModelSerializer):
 
 class VisaApplicantSerializer(serializers.ModelSerializer):
     additional_documents = VisaAdditionalDocumentSerializer(many=True, read_only=True)
+    passport_front = serializers.ImageField(allow_null=True, required=False)
+    photo = serializers.ImageField(allow_null=True, required=False)
 
     class Meta:
         model = VisaApplicant
@@ -356,13 +370,16 @@ class VisaApplicationSerializer(serializers.ModelSerializer):
     applicants = VisaApplicantSerializer(many=True, read_only=True)
     visa_country = serializers.CharField(source='visa.country', read_only=True)
     visa_title = serializers.CharField(source='visa.title', read_only=True)
+    visa_cost_price = serializers.IntegerField(source='visa.cost_price', read_only=True)
+    visa_service_charge = serializers.IntegerField(source='visa.service_charge', read_only=True)
 
     class Meta:
         model = VisaApplication
         fields = [
             'id', 'visa', 'application_type', 'internal_id', 'group_name', 
             'departure_date', 'return_date', 'total_price', 'status', 
-            'created_at', 'applicants', 'visa_country', 'visa_title'
+            'created_at', 'applicants', 'visa_country', 'visa_title',
+            'visa_cost_price', 'visa_service_charge'
         ]
 
 

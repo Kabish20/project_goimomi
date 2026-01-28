@@ -14,20 +14,27 @@ const AdminVisaAdd = () => {
         validity: "30 days",
         duration: "30 days",
         processing_time: "3-5 Business Days",
-        price: "",
+        cost_price: 0,
+        service_charge: 0,
+        selling_price: 0,
         documents_required: "Passport Front, Photo",
         photography_required: "",
         visa_type: "✈️ Tourist Visa",
         is_active: true,
+        supplier_id: "",
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [countries, setCountries] = useState([]);
     const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
     const [countrySearchTerm, setCountrySearchTerm] = useState("");
+    const [suppliers, setSuppliers] = useState([]);
+    const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
+    const [supplierSearchTerm, setSupplierSearchTerm] = useState("");
 
     useEffect(() => {
         fetchCountries();
+        fetchSuppliers();
     }, []);
 
     const fetchCountries = async () => {
@@ -39,14 +46,36 @@ const AdminVisaAdd = () => {
         }
     };
 
+    const fetchSuppliers = async () => {
+        try {
+            const response = await axios.get("/api/suppliers/");
+            // Filter suppliers who provide Visa services
+            const visaSuppliers = response.data.filter(supplier =>
+                supplier.services && supplier.services.includes("Visa")
+            );
+            setSuppliers(visaSuppliers);
+        } catch (error) {
+            console.error("Error fetching suppliers:", error);
+        }
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
         if (type === "file") {
             setFormData({ ...formData, [name]: files[0] });
         } else {
-            setFormData({
-                ...formData,
-                [name]: type === "checkbox" ? checked : value,
+            const updatedValue = type === "checkbox" ? checked : value;
+            setFormData(prev => {
+                const newData = { ...prev, [name]: updatedValue };
+
+                // Auto-calculate selling price if cost or service charge changes
+                if (name === "cost_price" || name === "service_charge") {
+                    const cost = parseFloat(name === "cost_price" ? value : prev.cost_price) || 0;
+                    const service = parseFloat(name === "service_charge" ? value : prev.service_charge) || 0;
+                    newData.selling_price = cost + service;
+                }
+
+                return newData;
             });
         }
     };
@@ -54,8 +83,8 @@ const AdminVisaAdd = () => {
     const handleSubmit = async (e, action = "save") => {
         if (e) e.preventDefault();
 
-        if (!formData.country || !formData.title || !formData.price) {
-            setStatusMessage({ text: "Please fill in all required fields.", type: "error" });
+        if (!formData.country || !formData.title || formData.selling_price <= 0) {
+            setStatusMessage({ text: "Please fill in all required fields. Selling price must be greater than 0.", type: "error" });
             return;
         }
 
@@ -84,11 +113,14 @@ const AdminVisaAdd = () => {
                     validity: "30 days",
                     duration: "30 days",
                     processing_time: "3-5 Business Days",
-                    price: "",
+                    cost_price: 0,
+                    service_charge: 0,
+                    selling_price: 0,
                     documents_required: "Passport Front, Photo",
                     photography_required: "",
                     visa_type: "✈️ Tourist Visa",
                     is_active: true,
+                    supplier_id: "",
                 });
                 setStatusMessage({ text: "Visa added successfully! Add another one.", type: "success" });
                 setIsSubmitting(false);
@@ -103,11 +135,11 @@ const AdminVisaAdd = () => {
     };
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-3">
+                <div className="flex-1 overflow-y-auto p-3">
                     <div className="max-w-6xl mx-auto">
                         <div className="flex items-center gap-2 mb-3">
                             <button
@@ -283,18 +315,112 @@ const AdminVisaAdd = () => {
                                         />
                                     </div>
 
-                                    <div className="space-y-1 text-xs">
-                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
-                                            Price (₹) <span className="text-red-500">*</span>
+                                    <div className="space-y-1 text-xs text-blue-600">
+                                        <label className="block font-bold text-blue-400 uppercase tracking-widest">
+                                            Cost Price (₹)
                                         </label>
                                         <input
                                             type="number"
-                                            name="price"
-                                            value={formData.price}
+                                            name="cost_price"
+                                            value={formData.cost_price}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-1.5 bg-green-50 border border-green-100 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all font-bold text-[#14532d]"
+                                            className="w-full px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
                                             required
                                         />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs text-orange-600">
+                                        <label className="block font-bold text-orange-400 uppercase tracking-widest">
+                                            Service Charge (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="service_charge"
+                                            value={formData.service_charge}
+                                            onChange={handleChange}
+                                            className="w-full px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs text-green-600">
+                                        <label className="block font-bold text-green-400 uppercase tracking-widest">
+                                            Selling Price (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="selling_price"
+                                            value={formData.selling_price}
+                                            readOnly
+                                            className="w-full px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg outline-none transition-all font-bold cursor-not-allowed"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 text-xs">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Supplier
+                                        </label>
+                                        <div className="relative">
+                                            <div
+                                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] focus:border-transparent outline-none transition-all cursor-pointer flex items-center justify-between bg-gray-50/50 hover:bg-white"
+                                                onClick={() => setIsSupplierDropdownOpen(!isSupplierDropdownOpen)}
+                                            >
+                                                <span className={formData.supplier_id ? "text-gray-900 font-medium" : "text-gray-400 italic"}>
+                                                    {formData.supplier_id ? suppliers.find(s => s.id === parseInt(formData.supplier_id))?.company_name : "Select Supplier"}
+                                                </span>
+                                                <ChevronDown size={14} className="text-gray-400" />
+                                            </div>
+
+                                            {isSupplierDropdownOpen && (
+                                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-48 overflow-hidden flex flex-col scale-in-center">
+                                                    <div className="p-2 border-b border-gray-50">
+                                                        <div className="relative">
+                                                            <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                            <input
+                                                                type="text"
+                                                                value={supplierSearchTerm}
+                                                                onChange={(e) => setSupplierSearchTerm(e.target.value)}
+                                                                placeholder="Search..."
+                                                                className="w-full pl-7 pr-3 py-1 text-xs border border-gray-100 rounded bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#14532d]"
+                                                                autoFocus
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="overflow-y-auto flex-1">
+                                                        <div
+                                                            className={`px-3 py-1.5 text-xs cursor-pointer hover:bg-gray-50 transition-colors ${!formData.supplier_id ? "bg-gray-100 font-bold" : "text-gray-600"}`}
+                                                            onClick={() => {
+                                                                setFormData({ ...formData, supplier_id: "" });
+                                                                setIsSupplierDropdownOpen(false);
+                                                                setSupplierSearchTerm("");
+                                                            }}
+                                                        >
+                                                            None (No Supplier)
+                                                        </div>
+                                                        {suppliers.filter(s => s.company_name.toLowerCase().includes(supplierSearchTerm.toLowerCase())).length > 0 ? (
+                                                            suppliers
+                                                                .filter(s => s.company_name.toLowerCase().includes(supplierSearchTerm.toLowerCase()))
+                                                                .map((s) => (
+                                                                    <div
+                                                                        key={s.id}
+                                                                        className={`px-3 py-1.5 text-xs cursor-pointer hover:bg-green-50 hover:text-[#14532d] transition-colors ${formData.supplier_id === s.id.toString() ? "bg-[#14532d] text-white font-bold" : "text-gray-600"}`}
+                                                                        onClick={() => {
+                                                                            setFormData({ ...formData, supplier_id: s.id.toString() });
+                                                                            setIsSupplierDropdownOpen(false);
+                                                                            setSupplierSearchTerm("");
+                                                                        }}
+                                                                    >
+                                                                        {s.company_name}
+                                                                    </div>
+                                                                ))
+                                                        ) : (
+                                                            <div className="px-3 py-2 text-[10px] text-gray-400 text-center uppercase font-bold italic">No results</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 

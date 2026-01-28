@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
@@ -72,15 +72,16 @@ import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 const App = () => {
-  return (
-    <div className="min-h-screen flex flex-col">
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
 
-      {/* 👇 ScrollToTop FIX */}
+  return (
+    <div className={`flex flex-col ${isAdminPath ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       <ScrollToTop />
 
       <Navbar />
 
-      <main className="flex-1">
+      <main className={`flex-1 ${isAdminPath ? 'flex flex-col min-h-0 overflow-hidden' : ''}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -157,17 +158,13 @@ const App = () => {
             <Route path="/admin/suppliers" element={<SupplierManage />} />
             <Route path="/admin/suppliers/add" element={<SupplierAdd />} />
             <Route path="/admin/suppliers/edit/:id" element={<SupplierEdit />} />
-
-
-
           </Route>
         </Routes>
       </main>
 
-
-      <Footer />
+      {!isAdminPath && <Footer />}
     </div>
-  )
-}
+  );
+};
 
 export default App

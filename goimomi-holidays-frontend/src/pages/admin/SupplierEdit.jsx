@@ -159,9 +159,9 @@ const SupplierEdit = () => {
 
     if (loading) {
         return (
-            <div className="flex bg-gray-100 min-h-screen">
+            <div className="flex bg-gray-100 h-full overflow-hidden">
                 <AdminSidebar />
-                <div className="flex-1">
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
                     <AdminTopbar />
                     <div className="flex items-center justify-center h-[calc(100vh-64px)]">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#14532d]"></div>
@@ -172,11 +172,11 @@ const SupplierEdit = () => {
     }
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-center gap-2 mb-6">
                             <button

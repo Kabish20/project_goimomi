@@ -271,7 +271,9 @@ class Visa(models.Model):
     validity = models.CharField(max_length=50, default="30 days")
     duration = models.CharField(max_length=50, default="30 days")
     processing_time = models.CharField(max_length=100)
-    price = models.IntegerField()
+    cost_price = models.IntegerField(default=0)
+    service_charge = models.IntegerField(default=0)
+    selling_price = models.IntegerField(default=0)
     documents_required = models.TextField(blank=True, help_text="Comma-separated list")
     photography_required = models.TextField(blank=True, help_text="Comma-separated list of photography requirements")
     # Individual Overrides (Optional) - REMOVED AS PER REQUEST
@@ -291,11 +293,12 @@ class Visa(models.Model):
     # header_image = models.ImageField(upload_to="visas/headers/", blank=True, null=True)
     card_image = models.ImageField(upload_to="visas/cards/", blank=True, null=True)
     # video = models.FileField(upload_to="visas/videos/", blank=True, null=True, help_text="Upload a video for the visa page header")
+    supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='visas')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['country', 'price']
+        ordering = ['country', 'selling_price']
 
     def __str__(self):
         return f"{self.country} - {self.title}"
@@ -353,8 +356,8 @@ class VisaApplicant(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     date_of_issue = models.DateField()
     date_of_expiry = models.DateField()
-    passport_front = models.ImageField(upload_to='visa_apps/passports/')
-    photo = models.ImageField(upload_to='visa_apps/photos/')
+    passport_front = models.ImageField(upload_to='visa_apps/passports/', blank=True, null=True)
+    photo = models.ImageField(upload_to='visa_apps/photos/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.passport_number})"

@@ -103,8 +103,8 @@ const VisaApplication = () => {
 
     // Use visaData instead of visa for the rest of the component
     const currentVisa = visaData;
-    const VISA_FEES = Number(currentVisa?.price) || 2250;
-    const SERVICE_FEES = 0;
+    const VISA_FEES = Number(currentVisa?.cost_price) || 0;
+    const SERVICE_FEES = Number(currentVisa?.service_charge) || 0;
     const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * (applicants?.length || 1);
 
     const calculateEstimatedArrival = (processingTime, depDate) => {
@@ -1105,10 +1105,7 @@ const VisaApplication = () => {
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-bold text-gray-900">Price Details</h3>
                         </div>
-
-
-
-                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex justify-between items-center mt-4">
                             <span className="text-gray-900 font-bold">Total Amount</span>
                             <span className="text-2xl font-bold text-[#14532d]">₹{TOTAL_PRICE.toLocaleString()}</span>
                         </div>

@@ -499,7 +499,7 @@ const VisaResults = () => {
                                             {/* Price and Action */}
                                             <div className="flex flex-row md:flex-col items-center md:items-end gap-4 min-w-[150px]">
                                                 <div className="flex items-center gap-1">
-                                                    <span className="text-xl font-bold text-gray-900">₹{visa.price.toLocaleString()}</span>
+                                                    <span className="text-xl font-bold text-gray-900">₹{visa.selling_price?.toLocaleString()}</span>
                                                     <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>

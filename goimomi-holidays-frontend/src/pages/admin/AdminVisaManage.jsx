@@ -63,11 +63,11 @@ const AdminVisaManage = () => {
     );
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h1 className="text-xl font-semibold text-gray-800">Select visa to change</h1>
                         <button
@@ -111,7 +111,7 @@ const AdminVisaManage = () => {
                                         <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Title</th>
                                         <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Entry Type</th>
                                         <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Validity</th>
-                                        <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Price</th>
+                                        <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Selling Price</th>
                                         <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Active</th>
                                         <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
                                     </tr>
@@ -136,7 +136,9 @@ const AdminVisaManage = () => {
                                                 <td className="py-4 px-6 text-gray-600 border-r">{v.title}</td>
                                                 <td className="py-4 px-6 text-gray-600 border-r">{v.entry_type}</td>
                                                 <td className="py-4 px-6 text-gray-600 border-r">{v.validity}</td>
-                                                <td className="py-4 px-6 text-gray-900 font-medium border-r">₹{v.price}</td>
+                                                <td className="py-4 px-6 border-r text-sm font-bold text-gray-900">
+                                                    ₹{v.selling_price}
+                                                </td>
                                                 <td className="py-4 px-6 text-center border-r">
                                                     <button
                                                         onClick={() => handleStatusToggle(v)}

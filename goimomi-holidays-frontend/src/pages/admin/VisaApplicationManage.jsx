@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Search, Eye, Download, X, Calendar, User, Edit, Trash2 } from "lucide-react";
+import { Search, Eye, Download, X, Calendar, User, Edit, Trash2, Upload, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -20,12 +20,16 @@ const VisaApplicationManage = () => {
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedApplication, setSelectedApplication] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedApplication, setSelectedApplication] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null); // For image preview modal
+  const [showImageModal, setShowImageModal] = useState(false);
   const [editingApplicantId, setEditingApplicantId] = useState(null);
   const [editApplicantData, setEditApplicantData] = useState({});
   const [isUpdatingApplicant, setIsUpdatingApplicant] = useState(false);
+  const [uploadingDocFor, setUploadingDocFor] = useState(null); // { applicantId, field }
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
   const API_BASE_URL = "/api";
@@ -33,6 +37,18 @@ const VisaApplicationManage = () => {
   useEffect(() => {
     fetchApplications();
   }, []);
+
+  // Disable body scroll when modal is open
+  useEffect(() => {
+    if (showModal || showImageModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showModal, showImageModal]);
 
   const fetchApplications = async () => {
     try {
@@ -60,8 +76,8 @@ const VisaApplicationManage = () => {
     setFilteredApplications(filtered);
   }, [searchTerm, applications]);
 
-  const handleView = (application) => {
-    setSelectedApplication(application);
+  const handleView = (app) => {
+    setSelectedApplication(app);
     setShowModal(true);
   };
 
@@ -69,73 +85,6 @@ const VisaApplicationManage = () => {
     setShowModal(false);
     setSelectedApplication(null);
     setEditingApplicantId(null);
-    setEditApplicantData({});
-  };
-
-  const handleStartEditApplicant = (applicant) => {
-    setEditingApplicantId(applicant.id);
-    setEditApplicantData({ ...applicant, additional_documents: undefined });
-  };
-
-  const handleCancelEditApplicant = () => {
-    setEditingApplicantId(null);
-    setEditApplicantData({});
-  };
-
-  const handleSaveApplicant = async (e) => {
-    if (e) e.preventDefault();
-    try {
-      setIsUpdatingApplicant(true);
-
-      // IMPORTANT: Send ONLY individual text fields that we want to update.
-      // We must EXCLUDE image fields like 'passport_front' and 'photo' if they are 
-      // URLs (strings) because DRF standard ImageField will try to validate them as 
-      // file uploads and fail.
-      const fieldsToInclude = [
-        'first_name', 'last_name', 'passport_number', 'nationality',
-        'sex', 'dob', 'place_of_birth', 'place_of_issue',
-        'marital_status', 'phone', 'date_of_issue', 'date_of_expiry'
-      ];
-
-      const dataToSend = {};
-      fieldsToInclude.forEach(key => {
-        if (editApplicantData[key] !== undefined) {
-          dataToSend[key] = editApplicantData[key];
-        }
-      });
-
-      await axios.patch(`/api/visa-applicants/${editingApplicantId}/`, dataToSend);
-
-      // Update both main list and current view state locally
-      const updateDataAcrossState = (prev) => prev.map(app => {
-        if (app.id === selectedApplication.id) {
-          const updatedApplicants = app.applicants.map(a =>
-            a.id === editingApplicantId ? { ...a, ...dataToSend } : a
-          );
-          return { ...app, applicants: updatedApplicants };
-        }
-        return app;
-      });
-
-      setApplications(updateDataAcrossState);
-      setSelectedApplication(prev => {
-        const updatedApplicants = prev.applicants.map(a =>
-          a.id === editingApplicantId ? { ...a, ...dataToSend } : a
-        );
-        return { ...prev, applicants: updatedApplicants };
-      });
-
-      setEditingApplicantId(null);
-      setEditApplicantData({});
-      alert("Applicant details updated successfully!");
-    } catch (err) {
-      console.error("Error updating applicant:", err);
-      // Show backend error if available
-      const backendError = err.response?.data ? JSON.stringify(err.response.data) : "Network error";
-      alert(`Failed to update applicant details: ${backendError}`);
-    } finally {
-      setIsUpdatingApplicant(false);
-    }
   };
 
   const formatDate = (dateString) => {
@@ -152,10 +101,6 @@ const VisaApplicationManage = () => {
       try {
         await axios.delete(`${API_BASE_URL}/visa-applications/${id}/`);
         setApplications(applications.filter(app => app.id !== id));
-        // Filtered applications will update automatically via useEffect dependent on 'applications'
-        // But since useEffect depends on searchTerm and applications, and setApplications updates state, 
-        // the effect will run. However, it's safer to update filtered list immediately or ensure effect runs.
-        // The existing useEffect [searchTerm, applications] will handle it.
       } catch (err) {
         console.error("Error deleting application:", err);
         alert("Failed to delete application");
@@ -163,12 +108,166 @@ const VisaApplicationManage = () => {
     }
   };
 
+  // Document Management within the list view
+  const handleUploadPassport = async (applicantId, file) => {
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('passport_front', file);
+      await axios.patch(`/api/visa-applicants/${applicantId}/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      await fetchApplications();
+      // Update selected application to show new doc
+      const updatedApp = applications.find(a => a.id === selectedApplication.id);
+      setSelectedApplication(updatedApp);
+      alert('Passport uploaded successfully!');
+    } catch (err) {
+      alert('Failed to upload passport');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleUploadPhoto = async (applicantId, file) => {
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('photo', file);
+      await axios.patch(`/api/visa-applicants/${applicantId}/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      await fetchApplications();
+      const updatedApp = applications.find(a => a.id === selectedApplication.id);
+      setSelectedApplication(updatedApp);
+      alert('Photo uploaded successfully!');
+    } catch (err) {
+      alert('Failed to upload photo');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleUploadAdditionalDoc = async (applicantId, file, documentName) => {
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('document_name', documentName || file.name);
+      formData.append('applicant', applicantId);
+      await axios.post(`/api/additional-documents/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      await fetchApplications();
+      const updatedApp = applications.find(a => a.id === selectedApplication.id);
+      setSelectedApplication(updatedApp);
+      alert('Additional document uploaded successfully!');
+    } catch (err) {
+      alert('Failed to upload additional document');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeletePassport = async (applicantId) => {
+    if (!window.confirm('Are you sure you want to delete this passport?')) return;
+    try {
+      setIsUploading(true);
+      await axios.patch(`/api/visa-applicants/${applicantId}/`, { passport_front: '' });
+      await fetchApplications();
+      const updatedApp = applications.find(a => a.id === selectedApplication.id);
+      setSelectedApplication(updatedApp);
+      alert('Passport deleted successfully!');
+    } catch (err) {
+      alert('Failed to delete passport');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeletePhoto = async (applicantId) => {
+    if (!window.confirm('Are you sure you want to delete this photo?')) return;
+    try {
+      setIsUploading(true);
+      await axios.patch(`/api/visa-applicants/${applicantId}/`, { photo: '' });
+      await fetchApplications();
+      const updatedApp = applications.find(a => a.id === selectedApplication.id);
+      setSelectedApplication(updatedApp);
+      alert('Photo deleted successfully!');
+    } catch (err) {
+      alert('Failed to delete photo');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteAdditionalDoc = async (docId, applicantId) => {
+    if (!window.confirm('Are you sure you want to delete this document?')) return;
+    try {
+      setIsUploading(true);
+      await axios.delete(`/api/additional-documents/${docId}/`);
+      await fetchApplications();
+      const updatedApp = applications.find(a => a.id === selectedApplication.id);
+      setSelectedApplication(updatedApp);
+      alert('Document deleted successfully!');
+    } catch (err) {
+      alert('Failed to delete document');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Applicant Data Editing
+  const handleStartEditApplicant = (applicant) => {
+    setEditingApplicantId(applicant.id);
+    setEditApplicantData({ ...applicant, additional_documents: undefined });
+  };
+
+  const handleCancelEditApplicant = () => {
+    setEditingApplicantId(null);
+    setEditApplicantData({});
+  };
+
+  const handleSaveApplicant = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      setIsUpdatingApplicant(true);
+      const fieldsToInclude = [
+        'first_name', 'last_name', 'passport_number', 'nationality',
+        'sex', 'dob', 'place_of_birth', 'place_of_issue',
+        'marital_status', 'phone', 'date_of_issue', 'date_of_expiry'
+      ];
+
+      const dataToSend = {};
+      fieldsToInclude.forEach(key => {
+        if (editApplicantData[key] !== undefined) {
+          dataToSend[key] = editApplicantData[key];
+        }
+      });
+
+      await axios.patch(`/api/visa-applicants/${editingApplicantId}/`, dataToSend);
+
+      await fetchApplications();
+      const updatedApp = applications.find(a => a.id === selectedApplication.id);
+      setSelectedApplication(updatedApp);
+
+      setEditingApplicantId(null);
+      setEditApplicantData({});
+      alert("Applicant details updated successfully!");
+    } catch (err) {
+      console.error("Error updating applicant:", err);
+      alert(`Failed to update applicant details`);
+    } finally {
+      setIsUpdatingApplicant(false);
+    }
+  };
+
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className="flex bg-gray-100 h-full w-full overflow-hidden relative">
       <AdminSidebar />
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden relative">
         <AdminTopbar />
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar relative">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-semibold text-gray-800">Manage Visa Applications</h1>
             <button
@@ -261,7 +360,7 @@ const VisaApplicationManage = () => {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => handleView(app)}
-                              className="text-[#14532d] hover:text-[#0f4a24] p-2 rounded-full hover:bg-green-50 transition-colors"
+                              className="text-emerald-600 hover:text-emerald-800 p-2 rounded-full hover:bg-emerald-50 transition-colors"
                               title="View Details & Documents"
                             >
                               <Eye size={18} />
@@ -294,197 +393,348 @@ const VisaApplicationManage = () => {
 
       {/* Modal for Details & Documents */}
       {showModal && selectedApplication && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
-            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center z-10">
-              <h2 className="text-xl font-bold text-gray-800">Application Details #{selectedApplication.id}</h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+              <div className="flex items-center gap-4">
+                <div className="bg-green-50 p-3 rounded-xl">
+                  <User size={24} className="text-[#14532d]" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">Application #{selectedApplication.id}</h2>
+                  <p className="text-sm text-gray-500">{selectedApplication.visa_country} - {selectedApplication.visa_title}</p>
+                </div>
+              </div>
+              <button
+                onClick={closeModal}
+                className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-colors"
+              >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="p-6 space-y-8">
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 p-4 rounded-xl">
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Visa</label>
-                  <p className="font-semibold text-gray-900">{selectedApplication.visa_country} - {selectedApplication.visa_title}</p>
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-gray-50">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Basic Info Card */}
+                <div className="lg:col-span-1 space-y-6">
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Basic Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <span className="block text-xs text-gray-400 font-bold uppercase transition-all mb-1">Status</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${selectedApplication.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          {selectedApplication.status}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-xs text-gray-400 font-bold uppercase transition-all mb-1">Total Price</span>
+                        <span className="text-lg font-bold text-[#14532d]">₹{selectedApplication.total_price}</span>
+                      </div>
+                      <div>
+                        <span className="block text-xs text-gray-400 font-bold uppercase transition-all mb-1">Departure</span>
+                        <span className="text-gray-700 font-medium">{formatDate(selectedApplication.departure_date)}</span>
+                      </div>
+                      <div>
+                        <span className="block text-xs text-gray-400 font-bold uppercase transition-all mb-1">Return</span>
+                        <span className="text-gray-700 font-medium">{formatDate(selectedApplication.return_date)}</span>
+                      </div>
+                      <div>
+                        <span className="block text-xs text-gray-400 font-bold uppercase transition-all mb-1">Internal Reference</span>
+                        <span className="text-gray-700 font-medium">{selectedApplication.internal_id || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Type</label>
-                  <p className="font-semibold text-gray-900">{selectedApplication.application_type} {selectedApplication.group_name ? `(${selectedApplication.group_name})` : ''}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Internal ID</label>
-                  <p className="font-semibold text-gray-900">{selectedApplication.internal_id || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Price</label>
-                  <p className="font-semibold text-gray-900">₹{selectedApplication.total_price}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Created At</label>
-                  <p className="font-semibold text-gray-900">{new Date(selectedApplication.created_at).toLocaleString()}</p>
-                </div>
-              </div>
 
-              {/* Applicants & Documents */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <User size={20} className="text-[#14532d]" />
-                  Applicants & Documents
-                </h3>
+                {/* Applicants & Documents Section */}
+                <div className="lg:col-span-2 space-y-6">
+                  {selectedApplication.applicants?.map((applicant, index) => (
+                    <div key={applicant.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <span className="bg-[#14532d] text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">
+                            {index + 1}
+                          </span>
+                          {applicant.first_name} {applicant.last_name}
+                        </h4>
+                        {editingApplicantId !== applicant.id ? (
+                          <button
+                            onClick={() => handleStartEditApplicant(applicant)}
+                            className="p-1.5 text-gray-400 hover:text-[#14532d] hover:bg-green-50 rounded-lg transition-colors"
+                            title="Edit Applicant Data"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleSaveApplicant}
+                              disabled={isUpdatingApplicant}
+                              className="px-3 py-1 bg-[#14532d] text-white text-xs font-bold rounded-lg hover:bg-[#0f4a24] disabled:opacity-50"
+                            >
+                              {isUpdatingApplicant ? "Wait..." : "Save"}
+                            </button>
+                            <button
+                              onClick={handleCancelEditApplicant}
+                              className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
-                <div className="space-y-4">
-                  {selectedApplication.applicants && selectedApplication.applicants.length > 0 ? (
-                    selectedApplication.applicants.map((applicant, index) => (
-                      <div key={index} className="border border-gray-200 rounded-xl p-4 hover:border-[#14532d] transition-colors">
-                        <div className="flex flex-col md:flex-row justify-between gap-4">
-                          {/* Applicant Info */}
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-2">
-                                <span className="bg-[#14532d] text-white text-xs font-bold px-2 py-0.5 rounded-full">#{index + 1}</span>
-                                <h4 className="font-bold text-gray-900">{applicant.first_name} {applicant.last_name}</h4>
+                      <div className="p-6">
+                        {editingApplicantId === applicant.id ? (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                            {[
+                              { label: 'First Name', name: 'first_name' },
+                              { label: 'Last Name', name: 'last_name' },
+                              { label: 'Passport', name: 'passport_number' },
+                              { label: 'Nationality', name: 'nationality' },
+                              { label: 'DOB', name: 'dob', type: 'date' },
+                              { label: 'Sex', name: 'sex', type: 'select', options: ['Male', 'Female', 'Other'] },
+                              { label: 'Marital', name: 'marital_status', type: 'select', options: ['Single', 'Married', 'Divorced', 'Widowed'] },
+                              { label: 'POB', name: 'place_of_birth' },
+                              { label: 'POI', name: 'place_of_issue' },
+                              { label: 'Issued', name: 'date_of_issue', type: 'date' },
+                              { label: 'Expiry', name: 'date_of_expiry', type: 'date' },
+                              { label: 'Phone', name: 'phone' },
+                            ].map((field) => (
+                              <div key={field.name} className="space-y-1">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{field.label}</label>
+                                {field.type === 'select' ? (
+                                  <select
+                                    value={editApplicantData[field.name] || ''}
+                                    onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
+                                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none"
+                                  >
+                                    <option value="">Select</option>
+                                    {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type={field.type || 'text'}
+                                    value={editApplicantData[field.name] || ''}
+                                    onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
+                                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none"
+                                  />
+                                )}
                               </div>
-                              {editingApplicantId !== applicant.id ? (
-                                <button
-                                  onClick={() => handleStartEditApplicant(applicant)}
-                                  className="p-1.5 text-gray-400 hover:text-[#14532d] hover:bg-green-50 rounded-lg transition-colors"
-                                  title="Edit Applicant Data"
-                                >
-                                  <Edit size={16} />
-                                </button>
-                              ) : (
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6 text-sm text-gray-600">
+                            <div>
+                              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Passport</span>
+                              <span className="font-semibold text-gray-900">{applicant.passport_number || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nationality</span>
+                              <span className="font-semibold text-gray-900">{applicant.nationality || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">DOB</span>
+                              <span className="font-semibold text-gray-900">{applicant.dob || 'N/A'}</span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* Passport Document */}
+                          <div className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Passport Front</label>
+                            {applicant.passport_front ? (
+                              <div className="flex flex-col gap-2">
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={handleSaveApplicant}
-                                    disabled={isUpdatingApplicant}
-                                    className="px-3 py-1 bg-[#14532d] text-white text-xs font-bold rounded-lg hover:bg-[#0f4a24] disabled:opacity-50"
+                                    onClick={() => {
+                                      setImagePreview(getImageUrl(applicant.passport_front));
+                                      setShowImageModal(true);
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-[10px] font-bold"
                                   >
-                                    {isUpdatingApplicant ? "..." : "Save"}
+                                    <Eye size={12} /> View
                                   </button>
-                                  <button
-                                    onClick={handleCancelEditApplicant}
-                                    className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-200"
+                                  <a
+                                    href={getImageUrl(applicant.passport_front)}
+                                    download={`Passport_${applicant.first_name}`}
+                                    className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-[10px] font-bold"
                                   >
-                                    Cancel
-                                  </button>
+                                    <Download size={12} /> Save
+                                  </a>
                                 </div>
-                              )}
-                            </div>
-
-                            {editingApplicantId === applicant.id ? (
-                              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                                {[
-                                  { label: 'First Name', name: 'first_name' },
-                                  { label: 'Last Name', name: 'last_name' },
-                                  { label: 'Passport', name: 'passport_number' },
-                                  { label: 'Nationality', name: 'nationality' },
-                                  { label: 'DOB', name: 'dob', type: 'date' },
-                                  { label: 'Sex', name: 'sex', type: 'select', options: ['Male', 'Female', 'Other'] },
-                                  { label: 'Marital', name: 'marital_status', type: 'select', options: ['Single', 'Married', 'Divorced', 'Widowed'] },
-                                  { label: 'POB', name: 'place_of_birth' },
-                                  { label: 'POI', name: 'place_of_issue' },
-                                  { label: 'Issued', name: 'date_of_issue', type: 'date' },
-                                  { label: 'Expiry', name: 'date_of_expiry', type: 'date' },
-                                  { label: 'Phone', name: 'phone' },
-                                ].map((field) => (
-                                  <div key={field.name} className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{field.label}</label>
-                                    {field.type === 'select' ? (
-                                      <select
-                                        value={editApplicantData[field.name] || ''}
-                                        onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
-                                        className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#14532d] outline-none"
-                                      >
-                                        {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                      </select>
-                                    ) : (
-                                      <input
-                                        type={field.type || 'text'}
-                                        value={editApplicantData[field.name] || ''}
-                                        onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
-                                        className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#14532d] outline-none"
-                                      />
-                                    )}
-                                  </div>
-                                ))}
+                                <button
+                                  onClick={() => handleDeletePassport(applicant.id)}
+                                  className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-[10px] font-bold"
+                                >
+                                  <Trash2 size={12} /> Delete
+                                </button>
                               </div>
                             ) : (
-                              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm text-gray-600">
-                                <p>Passport: <span className="font-medium text-gray-900">{applicant.passport_number}</span></p>
-                                <p>Nationality: <span className="font-medium text-gray-900">{applicant.nationality}</span></p>
-                                <p>DOB: <span className="font-medium text-gray-900">{applicant.dob}</span></p>
-                                <p>Sex: <span className="font-medium text-gray-900">{applicant.sex}</span></p>
-                                <p>Marital: <span className="font-medium text-gray-900">{applicant.marital_status}</span></p>
-                                <p>POB: <span className="font-medium text-gray-900">{applicant.place_of_birth}</span></p>
-                                <p>POI: <span className="font-medium text-gray-900">{applicant.place_of_issue}</span></p>
-                                <p>Issued: <span className="font-medium text-gray-900">{applicant.date_of_issue}</span></p>
-                                <p>Expiry: <span className="font-medium text-gray-900">{applicant.date_of_expiry}</span></p>
-                                <p>Phone: <span className="font-medium text-gray-900">{applicant.phone}</span></p>
+                              <div>
+                                <input
+                                  type="file"
+                                  id={`passport-${applicant.id}`}
+                                  className="hidden"
+                                  onChange={(e) => e.target.files[0] && handleUploadPassport(applicant.id, e.target.files[0])}
+                                />
+                                <label htmlFor={`passport-${applicant.id}`} className="flex items-center justify-center gap-2 px-3 py-4 bg-white border border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-green-50 hover:border-[#14532d] hover:text-[#14532d] transition-all text-gray-500 text-xs font-bold">
+                                  <Upload size={14} /> Upload Passport
+                                </label>
                               </div>
                             )}
                           </div>
 
-                          {/* Documents */}
-                          <div className="flex flex-col gap-2 min-w-[200px] pt-10 md:pt-0">
-                            {applicant.passport_front ? (
-                              <a
-                                href={getImageUrl(applicant.passport_front)}
-                                download={`Passport_${applicant.first_name}_${applicant.last_name}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
-                              >
-                                <Download size={16} /> Download Passport
-                              </a>
-                            ) : (
-                              <span className="text-sm text-gray-400 italic px-4 py-2">No Passport Uploaded</span>
-                            )}
-
+                          {/* Photo Document */}
+                          <div className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Photo</label>
                             {applicant.photo ? (
-                              <a
-                                href={getImageUrl(applicant.photo)}
-                                download={`Photo_${applicant.first_name}_${applicant.last_name}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
-                              >
-                                <Download size={16} /> Download Photo
-                              </a>
+                              <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setImagePreview(getImageUrl(applicant.photo));
+                                      setShowImageModal(true);
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-[10px] font-bold"
+                                  >
+                                    <Eye size={12} /> View
+                                  </button>
+                                  <a
+                                    href={getImageUrl(applicant.photo)}
+                                    download={`Photo_${applicant.first_name}`}
+                                    className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-[10px] font-bold"
+                                  >
+                                    <Download size={12} /> Save
+                                  </a>
+                                </div>
+                                <button
+                                  onClick={() => handleDeletePhoto(applicant.id)}
+                                  className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-[10px] font-bold"
+                                >
+                                  <Trash2 size={12} /> Delete
+                                </button>
+                              </div>
                             ) : (
-                              <span className="text-sm text-gray-400 italic px-4 py-2">No Photo Uploaded</span>
+                              <div>
+                                <input
+                                  type="file"
+                                  id={`photo-${applicant.id}`}
+                                  className="hidden"
+                                  onChange={(e) => e.target.files[0] && handleUploadPhoto(applicant.id, e.target.files[0])}
+                                />
+                                <label htmlFor={`photo-${applicant.id}`} className="flex items-center justify-center gap-2 px-3 py-4 bg-white border border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-green-50 hover:border-[#14532d] hover:text-[#14532d] transition-all text-gray-500 text-xs font-bold">
+                                  <Upload size={14} /> Upload Photo
+                                </label>
+                              </div>
                             )}
+                          </div>
 
-                            {/* Additional Documents */}
-                            {applicant.additional_documents && applicant.additional_documents.map((doc, dIdx) => (
-                              <a
-                                key={dIdx}
-                                href={getImageUrl(doc.file)}
-                                download={doc.document_name || `Doc_${dIdx + 1}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
-                              >
-                                <Download size={16} /> {doc.document_name || `Doc ${dIdx + 1}`}
-                              </a>
-                            ))}
+                          {/* Additional Docs */}
+                          <div className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Additional Docs</label>
+                            <div className="space-y-2">
+                              {applicant.additional_documents?.map((doc) => (
+                                <div key={doc.id} className="bg-white p-2 rounded-lg border border-gray-100 shadow-sm flex items-center justify-between gap-2">
+                                  <span className="text-[9px] font-bold text-gray-600 truncate flex-1">{doc.document_name}</span>
+                                  <div className="flex gap-1">
+                                    <button
+                                      onClick={() => {
+                                        setImagePreview(getImageUrl(doc.file));
+                                        setShowImageModal(true);
+                                      }}
+                                      className="p-1 hover:text-blue-600"
+                                    ><Eye size={10} /></button>
+                                    <button
+                                      onClick={() => handleDeleteAdditionalDoc(doc.id, applicant.id)}
+                                      className="p-1 hover:text-red-600"
+                                    ><Trash2 size={10} /></button>
+                                  </div>
+                                </div>
+                              ))}
+                              <input
+                                type="file"
+                                id={`add-doc-${applicant.id}`}
+                                className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files[0]) {
+                                    const name = prompt("Document Name (e.g. Bank Statement):", e.target.files[0].name);
+                                    handleUploadAdditionalDoc(applicant.id, e.target.files[0], name);
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`add-doc-${applicant.id}`} className="flex items-center justify-center gap-1 px-3 py-2 bg-white border border-dashed border-gray-200 rounded-lg cursor-pointer hover:bg-green-50 hover:border-[#14532d] hover:text-[#14532d] transition-all text-gray-400 text-[10px] font-bold">
+                                <Plus size={12} /> Add More
+                              </label>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 italic">No applicant details found.</p>
-                  )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end">
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-100 flex justify-end gap-4 bg-white sticky bottom-0 z-10">
               <button
                 onClick={closeModal}
-                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium transition-colors"
+                className="px-6 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors font-bold text-sm shadow-sm"
+              >
+                Close View
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {showImageModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4 backdrop-blur-sm">
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0">
+              <h3 className="font-bold text-gray-800">Document Preview</h3>
+              <button
+                onClick={() => setShowImageModal(false)}
+                className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4 bg-gray-50 flex items-center justify-center min-h-[300px]">
+              {imagePreview?.toLowerCase().endsWith('.pdf') ? (
+                <iframe
+                  src={`${imagePreview}#toolbar=0`}
+                  className="w-full h-full min-h-[600px] border-none rounded-lg"
+                  title="PDF Preview"
+                />
+              ) : (
+                <img
+                  src={imagePreview}
+                  alt="Document Preview"
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
+                    console.error('Image load failed:', imagePreview);
+                  }}
+                />
+              )}
+            </div>
+            <div className="p-4 border-t border-gray-100 bg-white flex justify-end gap-3 sticky bottom-0">
+              <a
+                href={imagePreview}
+                download
+                className="px-4 py-2 bg-[#14532d] text-white rounded-lg hover:bg-[#0f4a24] transition-colors flex items-center gap-2 text-sm font-medium"
+              >
+                <Download size={16} /> Download
+              </a>
+              <button
+                onClick={() => setShowImageModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
               >
                 Close
               </button>

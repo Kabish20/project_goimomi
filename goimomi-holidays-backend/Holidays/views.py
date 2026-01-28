@@ -229,6 +229,14 @@ class VisaApplicantViewSet(ModelViewSet):
     pagination_class = None
 
 
+class VisaAdditionalDocumentViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = VisaAdditionalDocument.objects.all()
+    serializer_class = VisaAdditionalDocumentSerializer
+    pagination_class = None
+
+
 class CountryViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]

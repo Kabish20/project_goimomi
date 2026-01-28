@@ -158,7 +158,7 @@ class CountryAdmin(admin.ModelAdmin):
 
 @admin.register(Visa)
 class VisaAdmin(admin.ModelAdmin):
-    list_display = ('country', 'title', 'price', 'entry_type', 'is_active')
+    list_display = ('country', 'title', 'cost_price', 'service_charge', 'selling_price', 'entry_type', 'is_active')
     list_filter = ('country', 'entry_type', 'is_active')
     search_fields = ('country', 'title')
 

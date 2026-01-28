@@ -4,7 +4,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { User, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
-const AdminLogin = () => {
+const AdminLogin = ({ isOpen, onClose }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -27,6 +27,8 @@ const AdminLogin = () => {
                 localStorage.setItem("refreshToken", response.data.refresh);
                 const user = jwtDecode(response.data.access);
                 localStorage.setItem("adminUser", JSON.stringify(user));
+
+                if (onClose) onClose();
                 navigate("/admin-dashboard");
             }
         } catch (err) {
@@ -40,76 +42,79 @@ const AdminLogin = () => {
         }
     };
 
-    return (
-        <div
-            className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative overflow-hidden"
-            style={{ backgroundImage: "url('/login-bg.png')" }}
-        >
-            {/* Overlay for better contrast */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+    if (isOpen === false) return null;
 
-            {/* Decorative Elements */}
-            <div className="absolute top-10 left-10 text-white flex items-center gap-3 animate-in fade-in slide-in-from-left duration-700">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30">
-                    <ShieldCheck className="text-white" size={28} />
-                </div>
-                <div>
-                    <h1 className="text-xl font-bold tracking-tight">Goimomi Holidays</h1>
-                    <p className="text-xs text-white/70 uppercase tracking-widest">Administrator Portal</p>
-                </div>
-            </div>
+    return (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+            {/* Overlay for better contrast */}
+            <div
+                className="absolute inset-0 bg-black/60 backdrop-blur-md transition-all duration-500"
+                onClick={onClose}
+            ></div>
 
             {/* Login Card */}
-            <div className="w-full max-w-[360px] mx-4 relative z-10 animate-in fade-in zoom-in duration-500">
-                <div className="bg-white/10 backdrop-blur-xl p-6 rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
-                    <div className="text-center mb-6">
-                        <div className="inline-flex items-center justify-center w-14 h-14 bg-green-500/20 rounded-full mb-3 border border-green-500/30">
-                            <Lock className="text-green-400" size={24} />
+            <div className="w-full max-w-[360px] relative z-10 animate-in fade-in zoom-in duration-300">
+                <div className="bg-white/10 backdrop-blur-2xl p-8 rounded-3xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] overflow-hidden relative">
+                    {/* Close Button */}
+                    {onClose && (
+                        <button
+                            onClick={onClose}
+                            className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+                        >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
+
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4 border border-green-500/30">
+                            <Lock className="text-green-400" size={28} />
                         </div>
-                        <h2 className="text-2xl font-bold text-white tracking-tight">Admin Login</h2>
-                        <p className="text-white/60 mt-1 text-xs uppercase tracking-widest">Secure Access</p>
+                        <h2 className="text-3xl font-bold text-white tracking-tight">Admin Login</h2>
+                        <p className="text-white/40 mt-1.5 text-xs uppercase tracking-[0.2em] font-medium">Secure Access</p>
                     </div>
 
                     {error && (
-                        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/40 backdrop-blur-md text-red-100 rounded-xl text-[11px] text-center flex items-center justify-center gap-2">
+                        <div className="mb-6 p-3.5 bg-red-500/20 border border-red-500/40 backdrop-blur-md text-red-100 rounded-2xl text-[11px] text-center font-medium animate-shake">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-white/60 uppercase ml-1 tracking-wider">
+                    <form onSubmit={handleLogin} className="space-y-5">
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-white/50 uppercase ml-1 tracking-widest">
                                 Username
                             </label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <User className="text-white/40 group-focus-within:text-green-400 transition-colors" size={16} />
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-transform group-focus-within:scale-110">
+                                    <User className="text-white/30 group-focus-within:text-green-400 transition-colors" size={18} />
                                 </div>
                                 <input
                                     type="text"
                                     required
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-green-500/50 transition-all duration-300 backdrop-blur-sm"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:bg-white/10 transition-all duration-300 backdrop-blur-sm"
                                     placeholder="Username"
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-white/60 uppercase ml-1 tracking-wider">
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-white/50 uppercase ml-1 tracking-widest">
                                 Password
                             </label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <Lock className="text-white/40 group-focus-within:text-green-400 transition-colors" size={16} />
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-transform group-focus-within:scale-110">
+                                    <Lock className="text-white/30 group-focus-within:text-green-400 transition-colors" size={18} />
                                 </div>
                                 <input
                                     type="password"
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-green-500/50 transition-all duration-300 backdrop-blur-sm"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:bg-white/10 transition-all duration-300 backdrop-blur-sm"
                                     placeholder="Password"
                                 />
                             </div>
@@ -118,21 +123,17 @@ const AdminLogin = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full group relative bg-green-600 hover:bg-green-50 text-green-600 font-bold hover:text-[#14532d] py-2.5 rounded-xl text-sm transition-all duration-300 transform active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 overflow-hidden border border-green-500/20"
-                            style={{ backgroundColor: isLoading ? '#16a34a' : 'white' }}
+                            className="w-full group relative bg-white hover:bg-green-500 text-[#14532d] hover:text-white font-bold py-3.5 rounded-2xl text-sm transition-all duration-500 transform active:scale-[0.98] shadow-[0_10px_20px_-10px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 overflow-hidden border border-white/20 mt-4"
                         >
                             {isLoading ? (
                                 <div className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <span className="text-white">Verifying...</span>
+                                    <div className="w-5 h-5 border-2 border-[#14532d] border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Verifying...</span>
                                 </div>
                             ) : (
                                 <>
                                     <span>Sign In</span>
-                                    <ArrowRight className="group-hover:translate-x-1 transition-transform" size={16} />
+                                    <ArrowRight className="group-hover:translate-x-1.5 transition-transform" size={18} />
                                 </>
                             )}
                         </button>

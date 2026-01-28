@@ -79,9 +79,9 @@ const UserEdit = () => {
     };
 
     if (loading) return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
                 <div className="p-6 flex justify-center items-center h-[60vh]">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#14532d]"></div>
@@ -91,11 +91,11 @@ const UserEdit = () => {
     );
 
     return (
-        <div className="flex bg-gray-100 min-h-screen">
+        <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                         {/* Header */}
                         <div className="p-6 border-b border-gray-100 flex justify-between items-start bg-white">
