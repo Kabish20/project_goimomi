@@ -21,7 +21,10 @@ const AdminVisaAdd = () => {
         photography_required: "",
         visa_type: "✈️ Tourist Visa",
         is_active: true,
+        is_popular: false,
         supplier_id: "",
+        card_image: null,
+        card_image_preview: null,
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,8 +65,17 @@ const AdminVisaAdd = () => {
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
         if (type === "file") {
-            setFormData({ ...formData, [name]: files[0] });
+            const file = files[0];
+            setFormData({
+                ...formData,
+                [name]: file,
+                [`${name}_preview`]: file ? URL.createObjectURL(file) : null
+            });
         } else {
+            if (name === "is_popular" && checked && !formData.card_image) {
+                setStatusMessage({ text: "Please upload a card image before marking as popular.", type: "error" });
+                return;
+            }
             const updatedValue = type === "checkbox" ? checked : value;
             setFormData(prev => {
                 const newData = { ...prev, [name]: updatedValue };
@@ -94,7 +106,7 @@ const AdminVisaAdd = () => {
         try {
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                if (formData[key] !== null) {
+                if (formData[key] !== null && !key.endsWith('_preview')) {
                     data.append(key, formData[key]);
                 }
             });
@@ -120,7 +132,10 @@ const AdminVisaAdd = () => {
                     photography_required: "",
                     visa_type: "✈️ Tourist Visa",
                     is_active: true,
+                    is_popular: false,
                     supplier_id: "",
+                    card_image: null,
+                    card_image_preview: null,
                 });
                 setStatusMessage({ text: "Visa added successfully! Add another one.", type: "success" });
                 setIsSubmitting(false);
@@ -454,18 +469,54 @@ const AdminVisaAdd = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 px-1">
-                                    <input
-                                        type="checkbox"
-                                        name="is_active"
-                                        checked={formData.is_active}
-                                        onChange={handleChange}
-                                        id="is_active"
-                                        className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
-                                    />
-                                    <label htmlFor="is_active" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
-                                        Active & Visible on Website
+                                <div className="flex flex-wrap gap-4 px-1">
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            name="is_active"
+                                            checked={formData.is_active}
+                                            onChange={handleChange}
+                                            id="is_active"
+                                            className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
+                                        />
+                                        <label htmlFor="is_active" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
+                                            Active & Visible on Website
+                                        </label>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            name="is_popular"
+                                            checked={formData.is_popular}
+                                            onChange={handleChange}
+                                            id="is_popular"
+                                            className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
+                                        />
+                                        <label htmlFor="is_popular" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
+                                            Popular Visa (Home & Landing)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1 text-xs px-1">
+                                    <label className="block font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                        Card Image (For Popular Display)
                                     </label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="file"
+                                            name="card_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="flex-1 max-w-sm px-3 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
+                                        />
+                                        {formData.card_image_preview && (
+                                            <div className="h-10 w-10 rounded border border-gray-200 overflow-hidden shadow-sm">
+                                                <img src={formData.card_image_preview} alt="Preview" className="h-full w-full object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 

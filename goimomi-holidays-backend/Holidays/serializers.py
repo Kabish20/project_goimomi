@@ -325,7 +325,7 @@ class VisaSerializer(serializers.ModelSerializer):
             'id', 'country', 'title', 'entry_type', 'validity', 'duration', 
             'processing_time', 'cost_price', 'service_charge', 'selling_price', 
             'documents_required', 'photography_required', 
-            'visa_type', 'card_image', 'is_active', 'supplier', 'supplier_details',
+            'visa_type', 'card_image', 'is_active', 'is_popular', 'supplier', 'supplier_details',
             'created_at', 'country_details'
         ]
 

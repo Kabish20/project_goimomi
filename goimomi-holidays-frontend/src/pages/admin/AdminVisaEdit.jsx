@@ -32,7 +32,11 @@ const AdminVisaEdit = () => {
         photography_required: "",
         visa_type: "✈️ Tourist Visa",
         is_active: true,
+        is_popular: false,
         supplier: null,
+        card_image: null,
+        card_image_preview: null,
+        existing_card_image: null,
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,7 +86,11 @@ const AdminVisaEdit = () => {
                 documents_required: data.documents_required || "",
                 photography_required: data.photography_required || "",
                 is_active: data.is_active ?? true,
+                is_popular: data.is_popular ?? false,
                 supplier: data.supplier || null,
+                card_image: null,
+                card_image_preview: null,
+                existing_card_image: data.card_image || null,
             });
         } catch (error) {
             console.error("Error fetching visa:", error);
@@ -97,21 +105,33 @@ const AdminVisaEdit = () => {
     }, [fetchCountries, fetchSuppliers, fetchVisa]);
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        const updatedValue = type === "checkbox" ? checked : value;
-
-        setFormData(prev => {
-            const newData = { ...prev, [name]: updatedValue };
-
-            // Auto-calculate selling price if cost or service charge changes
-            if (name === "cost_price" || name === "service_charge") {
-                const cost = parseFloat(name === "cost_price" ? value : prev.cost_price) || 0;
-                const service = parseFloat(name === "service_charge" ? value : prev.service_charge) || 0;
-                newData.selling_price = cost + service;
+        const { name, value, type, checked, files } = e.target;
+        if (type === "file") {
+            const file = files[0];
+            setFormData({
+                ...formData,
+                [name]: file,
+                [`${name}_preview`]: file ? URL.createObjectURL(file) : null
+            });
+        } else {
+            if (name === "is_popular" && checked && !formData.card_image && !formData.existing_card_image) {
+                setStatusMessage({ text: "Please upload a card image before marking as popular.", type: "error" });
+                return;
             }
+            const updatedValue = type === "checkbox" ? checked : value;
+            setFormData(prev => {
+                const newData = { ...prev, [name]: updatedValue };
 
-            return newData;
-        });
+                // Auto-calculate selling price if cost or service charge changes
+                if (name === "cost_price" || name === "service_charge") {
+                    const cost = parseFloat(name === "cost_price" ? value : prev.cost_price) || 0;
+                    const service = parseFloat(name === "service_charge" ? value : prev.service_charge) || 0;
+                    newData.selling_price = cost + service;
+                }
+
+                return newData;
+            });
+        }
     };
 
     const handleSubmit = async (e, action = "save") => {
@@ -126,28 +146,18 @@ const AdminVisaEdit = () => {
             setIsSubmitting(true);
             setStatusMessage({ text: "", type: "" });
 
-            // Construct a clean payload
-            const payload = {
-                country: String(formData.country || "").trim(),
-                title: String(formData.title || "").trim(),
-                visa_type: String(formData.visa_type || ""),
-                entry_type: String(formData.entry_type || ""),
-                validity: String(formData.validity || "").trim(),
-                duration: String(formData.duration || "").trim(),
-                processing_time: String(formData.processing_time || "").trim(),
-                cost_price: parseInt(formData.cost_price) || 0,
-                service_charge: parseInt(formData.service_charge) || 0,
-                selling_price: parseInt(formData.selling_price) || 0,
-                documents_required: String(formData.documents_required || "").trim(),
-                photography_required: String(formData.photography_required || "").trim(),
-                is_active: Boolean(formData.is_active),
-                supplier: formData.supplier || null
-            };
+            const data = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'card_image') {
+                    if (formData[key]) data.append(key, formData[key]);
+                } else if (!key.includes('preview') && !key.includes('existing')) {
+                    if (formData[key] !== null) data.append(key, formData[key]);
+                }
+            });
 
-            const response = await axios.patch(`/api/visas/${id}/`, payload, {
+            const response = await axios.patch(`/api/visas/${id}/`, data, {
                 headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
+                    "Content-Type": "multipart/form-data"
                 }
             });
 
@@ -168,7 +178,11 @@ const AdminVisaEdit = () => {
                     documents_required: fresh.data.documents_required || "",
                     photography_required: fresh.data.photography_required || "",
                     is_active: fresh.data.is_active ?? true,
+                    is_popular: fresh.data.is_popular ?? false,
                     supplier: fresh.data.supplier || null,
+                    card_image: null,
+                    card_image_preview: null,
+                    existing_card_image: fresh.data.card_image || null,
                 });
                 setIsSubmitting(false);
             } else if (action === "another") {
@@ -507,18 +521,63 @@ const AdminVisaEdit = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 px-1">
-                                    <input
-                                        type="checkbox"
-                                        name="is_active"
-                                        checked={formData.is_active}
-                                        onChange={handleChange}
-                                        id="is_active"
-                                        className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
-                                    />
-                                    <label htmlFor="is_active" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
-                                        Active & Visible on Website
+                                <div className="flex flex-wrap gap-4 px-1">
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            name="is_active"
+                                            checked={formData.is_active}
+                                            onChange={handleChange}
+                                            id="is_active"
+                                            className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
+                                        />
+                                        <label htmlFor="is_active" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
+                                            Active & Visible on Website
+                                        </label>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            name="is_popular"
+                                            checked={formData.is_popular}
+                                            onChange={handleChange}
+                                            id="is_popular"
+                                            className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
+                                        />
+                                        <label htmlFor="is_popular" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
+                                            Popular Visa (Home & Landing Page)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1 text-xs px-1">
+                                    <label className="block font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                        Card Image (For Popular Display)
                                     </label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="file"
+                                            name="card_image"
+                                            onChange={handleChange}
+                                            accept="image/*"
+                                            className="flex-1 max-w-sm px-3 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
+                                        />
+                                        {(formData.card_image_preview || formData.existing_card_image) && (
+                                            <div className="h-10 w-10 rounded border border-gray-200 overflow-hidden shadow-sm relative group">
+                                                <img
+                                                    src={formData.card_image_preview || getImageUrl(formData.existing_card_image)}
+                                                    alt="Preview"
+                                                    className="h-full w-full object-cover"
+                                                />
+                                                {formData.card_image_preview && (
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <span className="text-[8px] text-white font-bold uppercase">New</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 

@@ -12,10 +12,14 @@ const DestinationEdit = () => {
         region: "",
         city: "",
         country: "",
+        card_image: null,
+        is_popular: false,
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [existingImage, setExistingImage] = useState(null);
 
     const API_BASE_URL = "/api";
 
@@ -29,7 +33,10 @@ const DestinationEdit = () => {
                 region: data.region || "",
                 city: data.city || "",
                 country: data.country || "",
+                card_image: null,
+                is_popular: data.is_popular || false,
             });
+            setExistingImage(data.card_image);
         } catch (err) {
             console.error("Error fetching destination:", err);
             setError("Failed to load destination data.");
@@ -43,10 +50,21 @@ const DestinationEdit = () => {
     }, [fetchDestination]);
 
     const handleChange = (e) => {
-        if (e.target.name === "image") {
-            setForm({ ...form, image: e.target.files[0] });
+        const { name, value, type, checked, files } = e.target;
+        if (type === "file") {
+            const file = files[0];
+            setForm({ ...form, [name]: file });
+            if (file) {
+                setPreviewUrl(URL.createObjectURL(file));
+            }
+        } else if (type === "checkbox") {
+            if (name === "is_popular" && checked && !form.card_image && !existingImage) {
+                setError("Please upload a card image before marking as popular.");
+                return;
+            }
+            setForm({ ...form, [name]: checked });
         } else {
-            setForm({ ...form, [e.target.name]: e.target.value });
+            setForm({ ...form, [name]: value });
         }
         setMessage("");
         setError("");
@@ -63,6 +81,10 @@ const DestinationEdit = () => {
         formData.append("region", form.region);
         formData.append("city", form.city);
         formData.append("country", form.country);
+        formData.append("is_popular", form.is_popular);
+        if (form.card_image) {
+            formData.append("card_image", form.card_image);
+        }
 
         try {
             const response = await axios.put(`${API_BASE_URL}/destinations/${id}/`, formData, {
@@ -73,6 +95,11 @@ const DestinationEdit = () => {
 
             if (response.status === 200) {
                 setMessage("Destination updated successfully!");
+                if (response.data.card_image) {
+                    setExistingImage(response.data.card_image);
+                    setPreviewUrl(null);
+                    setForm(prev => ({ ...prev, card_image: null }));
+                }
 
                 if (!continueEditing) {
                     setTimeout(() => navigate("/admin/destinations"), 1500);
@@ -176,6 +203,59 @@ const DestinationEdit = () => {
                                             className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all placeholder:italic font-medium"
                                             disabled={loading}
                                         />
+                                    </div>
+
+                                    {/* Card Image upload */}
+                                    <div className="space-y-1 text-xs md:col-span-2">
+                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                            Card Image (For Home/Popular)
+                                        </label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex-1">
+                                                <input
+                                                    type="file"
+                                                    name="card_image"
+                                                    onChange={handleChange}
+                                                    accept="image/*"
+                                                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all text-gray-500 font-medium file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
+                                                />
+                                                <p className="mt-1 text-[9px] text-gray-400 italic">Recommended size: 800x600px. JPG, PNG</p>
+                                            </div>
+                                            {(previewUrl || existingImage) && (
+                                                <div className="h-16 w-16 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
+                                                    <img
+                                                        src={previewUrl || existingImage}
+                                                        alt="Preview"
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                    {previewUrl && (
+                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <span className="text-[8px] text-white font-bold uppercase">New</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Popular checkbox */}
+                                    <div className="md:col-span-2 pt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer group w-fit">
+                                            <div className="relative">
+                                                <input
+                                                    type="checkbox"
+                                                    name="is_popular"
+                                                    checked={form.is_popular}
+                                                    onChange={handleChange}
+                                                    className="peer sr-only"
+                                                />
+                                                <div className="h-4 w-8 bg-gray-200 rounded-full transition-colors peer-checked:bg-[#14532d]"></div>
+                                                <div className="absolute top-0.5 left-0.5 h-3 w-3 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-4"></div>
+                                            </div>
+                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-[#14532d] transition-colors">
+                                                Show on Website Frontend (Popular Section)
+                                            </span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

@@ -184,6 +184,8 @@ class Destination(models.Model):
     region = models.CharField(max_length=100, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
+    card_image = models.ImageField(upload_to="destinations/cards/", null=True, blank=True)
+    is_popular = models.BooleanField(default=False)
     
     def __str__(self):
         return self.name
@@ -295,6 +297,7 @@ class Visa(models.Model):
     # video = models.FileField(upload_to="visas/videos/", blank=True, null=True, help_text="Upload a video for the visa page header")
     supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='visas')
     is_active = models.BooleanField(default=True)
+    is_popular = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

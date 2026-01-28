@@ -101,6 +101,13 @@ class DestinationViewSet(ModelViewSet):
     serializer_class = DestinationSerializer
     pagination_class = None
 
+    def get_queryset(self):
+        queryset = Destination.objects.all()
+        is_popular = self.request.query_params.get('is_popular', None)
+        if is_popular is not None:
+            queryset = queryset.filter(is_popular=is_popular.lower() == 'true')
+        return queryset
+
 
 class StartingCityViewSet(ModelViewSet):
     authentication_classes = []
@@ -160,9 +167,15 @@ class VisaViewSet(ModelViewSet):
 
         # Default filtering for public view
         country = self.request.query_params.get('country', None)
+        is_popular = self.request.query_params.get('is_popular', None)
+        
         queryset = queryset.filter(is_active=True)
+        
         if country:
             queryset = queryset.filter(country__iexact=country)
+            
+        if is_popular is not None:
+            queryset = queryset.filter(is_popular=is_popular.lower() == 'true')
             
         return queryset
 

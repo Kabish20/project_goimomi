@@ -19,26 +19,32 @@ const VisaSearch = () => {
     const [showGoingToDropdown, setShowGoingToDropdown] = useState(false);
     const [citizenSearch, setCitizenSearch] = useState("India");
     const [goingToSearch, setGoingToSearch] = useState("");
+    const [popularDestinations, setPopularDestinations] = useState([]);
+    const [popularVisas, setPopularVisas] = useState([]);
 
     const citizenRef = useRef(null);
     const goingToRef = useRef(null);
 
-    // Fetch Countries
+    // Fetch Initial Data
     useEffect(() => {
-        const fetchCountries = async () => {
+        const fetchInitialData = async () => {
+            setLoading(true);
             try {
-                const response = await axios.get("/api/countries/");
-                // Extract names if the API returns objects, assuming list of objects with 'name' property
-                // or list of strings. Adjust based on actual API response.
-                // Based on previous populate script, it creates objects. Serializer likely returns objects.
-                // Let's assume the serializer returns { id, name, code... } or just a list.
-                // Ideally, we check the structure. If it's a list of objects, we map to names.
-                setCountries(response.data);
+                const [countriesRes, popularDestRes, popularVisasRes] = await Promise.all([
+                    axios.get("/api/countries/"),
+                    axios.get("/api/destinations/?is_popular=true"),
+                    axios.get("/api/visas/?is_popular=true")
+                ]);
+                setCountries(countriesRes.data);
+                setPopularDestinations(popularDestRes.data);
+                setPopularVisas(popularVisasRes.data);
             } catch (error) {
-                console.error("Error fetching countries:", error);
+                console.error("Error fetching initial data:", error);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchCountries();
+        fetchInitialData();
     }, []);
 
     // Close dropdowns when clicking outside
@@ -267,7 +273,129 @@ const VisaSearch = () => {
                 </div>
             </div>
 
+            {/* Trending Visa Countries (UAE, Saudi, etc.) */}
+            <div className="max-w-6xl mx-auto px-4 py-12">
+                <div className="flex flex-col mb-8">
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#14532d] mb-1">Quick Explore</span>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Trending Visa Countries</h2>
+                </div>
 
+                <div className="flex flex-wrap gap-4">
+                    {["United Arab Emirates", "Saudi Arabia", "Azerbaijan", "Singapore", "Thailand", "Vietnam", "Malaysia", "Qatar"].map((country) => (
+                        <button
+                            key={country}
+                            onClick={() => {
+                                setGoingTo(country);
+                                setGoingToSearch(country);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="px-6 py-3 bg-white hover:bg-[#14532d] hover:text-white text-gray-700 rounded-2xl shadow-sm border border-gray-100 font-bold text-xs uppercase tracking-widest transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center gap-2"
+                        >
+                            <MapPin size={14} className="opacity-50" />
+                            {country}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Popular Destinations for Visa */}
+            <div className="max-w-6xl mx-auto px-4 py-20 border-t border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                    <div>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Popular Destinations</h2>
+                        <p className="text-gray-500 font-medium">Top picks for your next international adventure</p>
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#14532d]"></div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {popularDestinations.map((dest) => (
+                            <div
+                                key={dest.id}
+                                onClick={() => {
+                                    setGoingTo(dest.name);
+                                    setGoingToSearch(dest.name);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="group cursor-pointer"
+                            >
+                                <div className="aspect-[3/4] rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-xl transition-all duration-500">
+                                    <img
+                                        src={dest.card_image || "/placeholder.jpg"}
+                                        alt={dest.name}
+                                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                                    <div className="absolute bottom-4 left-4 right-4">
+                                        <h3 className="text-white font-bold text-sm tracking-wide">{dest.name}</h3>
+                                        <p className="text-white/70 text-[10px] uppercase font-black tracking-widest">{dest.country}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Popular Visas Section */}
+            <div className="bg-gray-100/50 py-20">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#14532d]">Trending Now</span>
+                            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Most Applied Visas</h2>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {popularVisas.map((visa) => (
+                            <div
+                                key={visa.id}
+                                className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-transparent transition-all duration-500 group"
+                            >
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="h-14 w-14 rounded-2xl bg-green-50 flex items-center justify-center group-hover:bg-[#14532d] transition-colors duration-500">
+                                        <Plane className="text-[#14532d] group-hover:text-white transition-colors duration-500" size={24} />
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starts at</p>
+                                        <p className="text-2xl font-black text-[#14532d]">₹{visa.selling_price}</p>
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xl font-bold text-gray-900 mb-2">{visa.title}</h3>
+                                <p className="text-gray-500 text-xs font-medium mb-6 uppercase tracking-widest">{visa.country}</p>
+
+                                <div className="space-y-3 mb-8">
+                                    <div className="flex items-center gap-3 text-xs text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                        <span>Type: <b>{visa.visa_type}</b></span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                        <span>Validity: <b>{visa.validity}</b></span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                        <span>Process: <b>{visa.processing_time}</b></span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => navigate(`/visa/apply/${visa.id}`)}
+                                    className="w-full py-4 bg-gray-50 text-gray-900 rounded-2xl text-xs font-black uppercase tracking-widest group-hover:bg-[#14532d] group-hover:text-white transition-all duration-500 shadow-sm"
+                                >
+                                    Apply Now
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

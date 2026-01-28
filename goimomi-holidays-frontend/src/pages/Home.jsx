@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { MapPin } from "lucide-react";
 import EnquiryForm from "../components/EnquiryForm";
 
 // WhatsApp Chat Widget Component
@@ -146,8 +148,13 @@ import user2 from "../assets/user2.png";
 import user3 from "../assets/user3.png";
 
 const Home = () => {
-  const [isFormOpen, setIsFormOpen] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const [popularDestinations, setPopularDestinations] = useState([]);
+  const [popularVisas, setPopularVisas] = useState([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(true);
+  const [loadingVisas, setLoadingVisas] = useState(true);
+
   const heroContent = [
     { title: "Discover Ancient Streets", subtitle: "Historic tours and cultural experiences to bring the past alive." },
     { title: "Explore Blue Seas", subtitle: "Relax on pristine beaches with crystal-clear waters." },
@@ -156,6 +163,25 @@ const Home = () => {
     { title: "Scale Majestic Peaks", subtitle: "Adventure awaits in the heart of the world's most stunning mountains." },
     { title: "Discover Turkey's Wonders", subtitle: "Where East meets West in a fusion of history and beauty." }
   ];
+
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const destRes = await axios.get("/api/destinations/?is_popular=true");
+        setPopularDestinations(destRes.data);
+        setLoadingDestinations(false);
+
+        const visaRes = await axios.get("/api/visas/?is_popular=true");
+        setPopularVisas(visaRes.data);
+        setLoadingVisas(false);
+      } catch (err) {
+        console.error("Error fetching home data:", err);
+        setLoadingDestinations(false);
+        setLoadingVisas(false);
+      }
+    };
+    fetchHomeData();
+  }, []);
 
   useEffect(() => {
     if (!isFormOpen) {
@@ -212,32 +238,74 @@ const Home = () => {
           Discover amazing places around the world
         </p>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-10">
-          {[
-            { img: maldives, title: "Maldives Luxury Escape", price: "₹29,500" },
-            { img: dubai, title: "Dubai Desert & City Adventure", price: "₹35,000" },
-            { img: singapore, title: "Singapore City & Island Getaway", price: "₹30,000" },
-            { img: paris, title: "Paris Romantic Getaway", price: "₹45,000" },
-            { img: santorini, title: "Santorini Greek Island Paradise", price: "₹42,000" },
-            { img: bali, title: "Bali Tropical Adventure", price: "₹28,000" }
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
-              style={{ animationDelay: `${i * 0.2}s` }}
-            >
-              <img src={item.img} className="h-52 w-full object-cover" />
-              <div className="p-5 space-y-3">
-                <h3 className="text-xl font-semibold">{item.title}</h3>
-                <p className="text-sm text-gray-600">Experience unparalleled beauty...</p>
-                <p className="font-semibold text-lg text-[#14532d]">{item.price}</p>
-                <button className="bg-[#14532d] text-white px-4 py-2 rounded-lg">
-                  View Details
-                </button>
+        {loadingDestinations ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#14532d]"></div>
+          </div>
+        ) : Array.isArray(popularDestinations) && popularDestinations.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-8 mt-10">
+            {popularDestinations.map((item, i) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                <div className="relative h-52 overflow-hidden">
+                  <img
+                    src={item.card_image || maldives}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    alt={item.name}
+                  />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase text-[#14532d] shadow-sm">
+                    {item.country}
+                  </div>
+                </div>
+                <div className="p-5 space-y-3">
+                  <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
+                  <p className="text-sm text-gray-500 line-clamp-2 italic">
+                    {item.region ? `${item.region}, ` : ''}{item.country}
+                  </p>
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">Available Visas</span>
+                    <Link
+                      to={`/visa/results?citizenOf=India&goingTo=${encodeURIComponent(item.name)}`}
+                      className="bg-[#14532d] text-white px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#0f4a24] transition-all transform active:scale-95 shadow-md shadow-green-900/10"
+                    >
+                      Check Visa
+                    </Link>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8 mt-10">
+            {[
+              { img: maldives, title: "Maldives Luxury Escape", price: "₹29,500" },
+              { img: dubai, title: "Dubai Desert & City Adventure", price: "₹35,000" },
+              { img: singapore, title: "Singapore City & Island Getaway", price: "₹30,000" },
+              { img: paris, title: "Paris Romantic Getaway", price: "₹45,000" },
+              { img: santorini, title: "Santorini Greek Island Paradise", price: "₹42,000" },
+              { img: bali, title: "Bali Tropical Adventure", price: "₹28,000" }
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                <img src={item.img} className="h-52 w-full object-cover" />
+                <div className="p-5 space-y-3">
+                  <h3 className="text-xl font-semibold">{item.title}</h3>
+                  <p className="text-sm text-gray-600">Experience unparalleled beauty...</p>
+                  <p className="font-semibold text-lg text-[#14532d]">{item.price}</p>
+                  <button className="bg-[#14532d] text-white px-4 py-2 rounded-lg">
+                    View Details
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ---------------- SPECIAL OFFERS ---------------- */}
@@ -291,49 +359,127 @@ const Home = () => {
           Fast & Reliable Visa Processing for Your Next Trip
         </p>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-10">
+        {loadingVisas ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#14532d]"></div>
+          </div>
+        ) : Array.isArray(popularVisas) && popularVisas.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-8 mt-10">
+            {popularVisas.map((item, i) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                <div className="relative h-56 overflow-hidden">
+                  <img
+                    src={item.card_image || singaporeVisa}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    alt={item.title}
+                  />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+                    <span className="text-[10px] font-black uppercase tracking-tighter text-[#14532d]">{item.country}</span>
+                  </div>
+                </div>
+                <div className="p-6 space-y-4">
+                  <h3 className="text-2xl font-black text-gray-800 tracking-tight">{item.title}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-[10px] px-2 py-0.5 bg-green-50 text-[#14532d] rounded-full font-bold uppercase tracking-tighter ring-1 ring-[#14532d]/20">
+                      {item.visa_type}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-bold uppercase tracking-tighter ring-1 ring-blue-700/20">
+                      {item.duration}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starting from</p>
+                      <p className="text-2xl font-black text-[#14532d]">₹{item.selling_price}</p>
+                    </div>
+                    <Link
+                      to={`/visa/apply/${item.id}`}
+                      className="bg-[#14532d] text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#0f4a24] transition-all transform active:scale-95 shadow-lg shadow-green-900/20"
+                    >
+                      Apply Now
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8 mt-10">
+            {[
+              { img: dubaiVisa, title: "Dubai Visa", price: "Starting ₹6,500", country: "United Arab Emirates" },
+              { img: saudiVisa, title: "Saudi Arabia Visa", price: "Starting ₹12,000", country: "Kingdom of Saudi Arabia" },
+              { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "Starting ₹4,500", country: "Azerbaijan" },
+              { img: thailandOffer, title: "Thailand Visa", price: "Starting ₹3,200", country: "Thailand" },
+              { img: singaporeVisa, title: "Singapore Visa", price: "Starting ₹2,800", country: "Singapore" },
+              { img: vietnamVisa, title: "Vietnam Visa", price: "Starting ₹3,500", country: "Vietnam" }
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              >
+                <div className="relative">
+                  <img src={item.img} className="h-56 w-full object-cover" />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+                    <span className="text-xs font-bold text-[#14532d]">{item.country}</span>
+                  </div>
+                </div>
+                <div className="p-6 space-y-4">
+                  <h3 className="text-2xl font-bold text-gray-800">{item.title}</h3>
+                  <div className="flex items-center justify-between pt-2">
+                    <p className="font-bold text-xl text-[#14532d]">{item.price}</p>
+                    <Link
+                      to="/visa"
+                      className="bg-[#14532d] text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-[#0f4a24] transition-all shadow-md active:scale-95"
+                    >
+                      Apply Now
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Trending Visa Destinations (UAE, Saudi, etc.) */}
+      <section className="py-12 px-6 max-w-7xl mx-auto border-t border-gray-100">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#14532d] mb-1">Quick Links</span>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight leading-none">Popular Visa Countries</h2>
+          </div>
+          <Link to="/visa" className="text-xs font-bold text-[#14532d] uppercase tracking-widest hover:underline mt-4 md:mt-0">View All Destinations →</Link>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
           {[
-            { img: dubaiVisa, title: "Dubai Visa", price: "Starting ₹6,500", country: "United Arab Emirates" },
-            { img: saudiVisa, title: "Saudi Arabia Visa", price: "Starting ₹12,000", country: "Kingdom of Saudi Arabia" },
-            { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "Starting ₹4,500", country: "Azerbaijan" },
-            { img: thailandOffer, title: "Thailand Visa", price: "Starting ₹3,200", country: "Thailand" },
-            { img: singaporeVisa, title: "Singapore Visa", price: "Starting ₹2,800", country: "Singapore" },
-            { img: vietnamVisa, title: "Vietnam Visa", price: "Starting ₹3,500", country: "Vietnam" }
+            { name: "UAE", full: "United Arab Emirates" },
+            { name: "Saudi", full: "Saudi Arabia" },
+            { name: "Azerbaijan", full: "Azerbaijan" },
+            { name: "Singapore", full: "Singapore" },
+            { name: "Thailand", full: "Thailand" },
+            { name: "Vietnam", full: "Vietnam" },
+            { name: "Malaysia", full: "Malaysia" },
+            { name: "Qatar", full: "Qatar" }
           ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
-              style={{ animationDelay: `${i * 0.2}s` }}
+            <Link
+              key={item.name}
+              to={`/visa/results?citizenOf=India&goingTo=${encodeURIComponent(item.full)}`}
+              className="flex flex-col items-center justify-center p-4 bg-white hover:bg-green-50 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group fade-up"
+              style={{ animationDelay: `${i * 0.05}s` }}
             >
-              <div className="relative">
-                <img src={item.img} className="h-56 w-full object-cover" />
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
-                  <span className="text-xs font-bold text-[#14532d]">{item.country}</span>
-                </div>
+              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-2 group-hover:bg-[#14532d] transition-colors">
+                <MapPin size={16} className="text-[#14532d] group-hover:text-white" />
               </div>
-              <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-bold text-gray-800">{item.title}</h3>
-                <div className="flex items-center text-sm text-gray-500 space-x-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Quick Processing</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Online Selection</span>
-                </div>
-                <div className="flex items-center justify-between pt-2">
-                  <p className="font-bold text-xl text-[#14532d]">{item.price}</p>
-                  <Link
-                    to="/visa"
-                    className="bg-[#14532d] text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-[#0f4a24] transition-all shadow-md active:scale-95"
-                  >
-                    Apply Now
-                  </Link>
-                </div>
-              </div>
-            </div>
+              <span className="text-[10px] font-black text-gray-900 uppercase tracking-tighter text-center">
+                {item.name}
+              </span>
+            </Link>
           ))}
         </div>
       </section>
