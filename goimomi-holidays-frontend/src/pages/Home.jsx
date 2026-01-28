@@ -132,6 +132,13 @@ import gallery6 from "../assets/TravelGallery/desert.png";
 import gallery7 from "../assets/TravelGallery/Abroad.png";
 import gallery8 from "../assets/TravelGallery/umrah.png";
 
+// VISAS
+import dubaiVisa from "../assets/Visa/dubai.png";
+import singaporeVisa from "../assets/Visa/singapore.png";
+import saudiVisa from "../assets/Visa/saudi.png";
+import azerbaijanVisa from "../assets/Visa/azerbaijan.png";
+import vietnamVisa from "../assets/Visa/vietnam.png";
+
 
 // TESTIMONIALS
 import user1 from "../assets/user1.png";
@@ -269,6 +276,62 @@ const Home = () => {
                 <button className="bg-[#14532d] text-white w-full py-2 rounded-lg font-semibold">
                   Book Now
                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------------- POPULAR VISAS ---------------- */}
+      <section className="py-16 px-6 max-w-7xl mx-auto">
+        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
+          Popular Visas
+        </h2>
+        <p className="text-center text-gray-600 mt-2 fade-up">
+          Fast & Reliable Visa Processing for Your Next Trip
+        </p>
+
+        <div className="grid md:grid-cols-3 gap-8 mt-10">
+          {[
+            { img: dubaiVisa, title: "Dubai Visa", price: "Starting ₹6,500", country: "United Arab Emirates" },
+            { img: saudiVisa, title: "Saudi Arabia Visa", price: "Starting ₹12,000", country: "Kingdom of Saudi Arabia" },
+            { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "Starting ₹4,500", country: "Azerbaijan" },
+            { img: thailandOffer, title: "Thailand Visa", price: "Starting ₹3,200", country: "Thailand" },
+            { img: singaporeVisa, title: "Singapore Visa", price: "Starting ₹2,800", country: "Singapore" },
+            { img: vietnamVisa, title: "Vietnam Visa", price: "Starting ₹3,500", country: "Vietnam" }
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
+              style={{ animationDelay: `${i * 0.2}s` }}
+            >
+              <div className="relative">
+                <img src={item.img} className="h-56 w-full object-cover" />
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+                  <span className="text-xs font-bold text-[#14532d]">{item.country}</span>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <h3 className="text-2xl font-bold text-gray-800">{item.title}</h3>
+                <div className="flex items-center text-sm text-gray-500 space-x-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Quick Processing</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Online Selection</span>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <p className="font-bold text-xl text-[#14532d]">{item.price}</p>
+                  <Link
+                    to="/visa"
+                    className="bg-[#14532d] text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-[#0f4a24] transition-all shadow-md active:scale-95"
+                  >
+                    Apply Now
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
