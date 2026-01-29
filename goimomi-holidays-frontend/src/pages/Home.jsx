@@ -191,6 +191,20 @@ const Home = () => {
     }
   }, [isFormOpen]);
 
+  // Auto-open enquiry form on page load (once per session)
+  useEffect(() => {
+    const hasShownPopup = sessionStorage.getItem('enquiryPopupShown');
+
+    if (!hasShownPopup) {
+      const timer = setTimeout(() => {
+        setIsFormOpen(true);
+        sessionStorage.setItem('enquiryPopupShown', 'true');
+      }, 3000); // Opens after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const handleCloseForm = () => {
     setIsFormOpen(false);
   };
@@ -350,7 +364,7 @@ const Home = () => {
         </div>
       </section>
 
-      
+
 
       {/* ---------------- POPULAR VISAS ---------------- */}
       <section className="py-16 px-6 max-w-7xl mx-auto">
@@ -572,7 +586,7 @@ const Home = () => {
 
         </div>
       </section>
-          
+
 
       {/* WhatsApp Widget */}
       <WhatsAppWidget
