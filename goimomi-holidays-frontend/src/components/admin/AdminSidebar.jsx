@@ -29,10 +29,11 @@ const menu = [
     title: "Holidays",
     items: [
       {
-        name: "Destinations",
+        name: "Countries",
         icon: <Globe size={18} />,
         isDropdown: true,
         children: [
+          { name: "Manage Countries", key: "Countries" },
           { name: "Holiday Destinations", key: "Destinations" },
           { name: "Umrah Destinations" },
         ]
@@ -60,7 +61,7 @@ const menu = [
         ]
       },
       { name: "Nationalities", icon: <Flag size={18} /> },
-      { name: "Countries", icon: <Globe size={18} /> },
+
       { name: "Starting Cities", icon: <MapPin size={18} /> },
       {
         name: "Visas",

@@ -32,7 +32,7 @@ const VisaSearch = () => {
             try {
                 const [countriesRes, popularDestRes, popularVisasRes] = await Promise.all([
                     axios.get("/api/countries/"),
-                    axios.get("/api/destinations/?is_popular=true"),
+                    axios.get("/api/destinations/"),
                     axios.get("/api/visas/?is_popular=true")
                 ]);
                 setCountries(countriesRes.data);
@@ -248,11 +248,11 @@ const VisaSearch = () => {
 
 
 
-            {/* Popular Destinations for Visa */}
+            {/* Destinations for Visa */}
             <div className="max-w-6xl mx-auto px-4 py-20 border-t border-gray-100">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
                     <div>
-                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Popular Destinations</h2>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Popular Visas</h2>
                         <p className="text-gray-500 font-medium">Top picks for your next international adventure</p>
                     </div>
                 </div>
@@ -263,13 +263,11 @@ const VisaSearch = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {popularDestinations.map((dest) => (
+                        {popularDestinations.filter(dest => dest.card_image).map((dest) => (
                             <div
                                 key={dest.id}
                                 onClick={() => {
-                                    setGoingTo(dest.name);
-                                    setGoingToSearch(dest.name);
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    navigate(`/visa/results?citizenOf=${encodeURIComponent(citizenOf)}&goingTo=${encodeURIComponent(dest.country)}`);
                                 }}
                                 className="group cursor-pointer"
                             >
@@ -291,61 +289,7 @@ const VisaSearch = () => {
                 )}
             </div>
 
-            {/* Popular Visas Section */}
-            <div className="bg-gray-100/50 py-20">
-                <div className="max-w-6xl mx-auto px-4">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-                        <div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#14532d]">Trending Now</span>
-                            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Most Applied Visas</h2>
-                        </div>
-                    </div>
 
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {popularVisas.map((visa) => (
-                            <div
-                                key={visa.id}
-                                className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-transparent transition-all duration-500 group"
-                            >
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="h-14 w-14 rounded-2xl bg-green-50 flex items-center justify-center group-hover:bg-[#14532d] transition-colors duration-500">
-                                        <Plane className="text-[#14532d] group-hover:text-white transition-colors duration-500" size={24} />
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starts at</p>
-                                        <p className="text-2xl font-black text-[#14532d]">₹{visa.selling_price}</p>
-                                    </div>
-                                </div>
-
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">{visa.title}</h3>
-                                <p className="text-gray-500 text-xs font-medium mb-6 uppercase tracking-widest">{visa.country}</p>
-
-                                <div className="space-y-3 mb-8">
-                                    <div className="flex items-center gap-3 text-xs text-gray-600">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                        <span>Type: <b>{visa.visa_type}</b></span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs text-gray-600">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                        <span>Validity: <b>{visa.validity}</b></span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs text-gray-600">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                                        <span>Process: <b>{visa.processing_time}</b></span>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={() => navigate(`/visa/apply/${visa.id}`)}
-                                    className="w-full py-4 bg-gray-50 text-gray-900 rounded-2xl text-xs font-black uppercase tracking-widest group-hover:bg-[#14532d] group-hover:text-white transition-all duration-500 shadow-sm"
-                                >
-                                    Apply Now
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
 
             {/* Features Section */}
             <div className="max-w-6xl mx-auto px-4 py-20 border-t border-gray-100">

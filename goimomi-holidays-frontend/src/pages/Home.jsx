@@ -167,8 +167,8 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const destRes = await axios.get("/api/destinations/?is_popular=true");
-        setPopularDestinations(destRes.data);
+        // const destRes = await axios.get("/api/destinations/?is_popular=true");
+        // setPopularDestinations(destRes.data);
         setLoadingDestinations(false);
 
         const visaRes = await axios.get("/api/visas/?is_popular=true");
@@ -317,6 +317,8 @@ const Home = () => {
           </div>
         )}
       </section>
+
+
 
       {/* ---------------- SPECIAL OFFERS ---------------- */}
       <section className="py-16 px-6 bg-gray-50">
