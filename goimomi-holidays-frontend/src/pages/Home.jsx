@@ -192,17 +192,13 @@ const Home = () => {
   }, [isFormOpen]);
 
   // Auto-open enquiry form on page load (once per session)
+  // Auto-open enquiry form on page load
   useEffect(() => {
-    const hasShownPopup = sessionStorage.getItem('enquiryPopupShown');
+    const timer = setTimeout(() => {
+      setIsFormOpen(true);
+    }, 3000); // Opens after 3 seconds
 
-    if (!hasShownPopup) {
-      const timer = setTimeout(() => {
-        setIsFormOpen(true);
-        sessionStorage.setItem('enquiryPopupShown', 'true');
-      }, 3000); // Opens after 3 seconds
-
-      return () => clearTimeout(timer);
-    }
+    return () => clearTimeout(timer);
   }, []);
 
   const handleCloseForm = () => {
@@ -264,7 +260,7 @@ const Home = () => {
                 className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
-                <div className="relative h-52 overflow-hidden">
+                <div className="relative h-40 overflow-hidden">
                   <img
                     src={item.card_image || maldives}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -274,8 +270,8 @@ const Home = () => {
                     {item.country}
                   </div>
                 </div>
-                <div className="p-5 space-y-3">
-                  <h3 className="text-xl font-bold text-gray-800">{item.name}</h3>
+                <div className="p-3 space-y-2">
+                  <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
                   <p className="text-sm text-gray-500 line-clamp-2 italic">
                     {item.region ? `${item.region}, ` : ''}{item.country}
                   </p>
@@ -307,9 +303,9 @@ const Home = () => {
                 className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
-                <img src={item.img} className="h-52 w-full object-cover" />
-                <div className="p-5 space-y-3">
-                  <h3 className="text-xl font-semibold">{item.title}</h3>
+                <img src={item.img} className="h-40 w-full object-cover" />
+                <div className="p-3 space-y-2">
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
                   <p className="text-sm text-gray-600">Experience unparalleled beauty...</p>
                   <p className="font-semibold text-lg text-[#14532d]">{item.price}</p>
                   <button className="bg-[#14532d] text-white px-4 py-2 rounded-lg">
@@ -346,14 +342,14 @@ const Home = () => {
               style={{ animationDelay: `${i * 0.2}s` }}
             >
               <div className="relative">
-                <img src={offer.img} className="h-52 w-full object-cover" />
+                <img src={offer.img} className="h-40 w-full object-cover" />
                 <span className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                   {offer.discount}
                 </span>
               </div>
 
-              <div className="p-5 space-y-3">
-                <h3 className="text-lg font-semibold">{offer.title}</h3>
+              <div className="p-3 space-y-2">
+                <h3 className="text-base font-semibold">{offer.title}</h3>
                 <p className="text-gray-600 text-sm">Exclusive holiday offer curated for you...</p>
                 <button className="bg-[#14532d] text-white w-full py-2 rounded-lg font-semibold">
                   Book Now
@@ -387,7 +383,7 @@ const Home = () => {
                 className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
-                <div className="relative h-56 overflow-hidden">
+                <div className="relative h-40 overflow-hidden">
                   <img
                     src={item.card_image || singaporeVisa}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -397,8 +393,8 @@ const Home = () => {
                     <span className="text-[10px] font-black uppercase tracking-tighter text-[#14532d]">{item.country}</span>
                   </div>
                 </div>
-                <div className="p-6 space-y-4">
-                  <h3 className="text-2xl font-black text-gray-800 tracking-tight">{item.title}</h3>
+                <div className="p-4 space-y-2">
+                  <h3 className="text-lg font-black text-gray-800 tracking-tight">{item.title}</h3>
                   <div className="flex flex-wrap gap-2">
                     <span className="text-[10px] px-2 py-0.5 bg-green-50 text-[#14532d] rounded-full font-bold uppercase tracking-tighter ring-1 ring-[#14532d]/20">
                       {item.visa_type}
@@ -439,13 +435,13 @@ const Home = () => {
                 style={{ animationDelay: `${i * 0.2}s` }}
               >
                 <div className="relative">
-                  <img src={item.img} className="h-56 w-full object-cover" />
+                  <img src={item.img} className="h-40 w-full object-cover" />
                   <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
                     <span className="text-xs font-bold text-[#14532d]">{item.country}</span>
                   </div>
                 </div>
-                <div className="p-6 space-y-4">
-                  <h3 className="text-2xl font-bold text-gray-800">{item.title}</h3>
+                <div className="p-4 space-y-2">
+                  <h3 className="text-lg font-bold text-gray-800">{item.title}</h3>
                   <div className="flex items-center justify-between pt-2">
                     <p className="font-bold text-xl text-[#14532d]">{item.price}</p>
                     <Link
