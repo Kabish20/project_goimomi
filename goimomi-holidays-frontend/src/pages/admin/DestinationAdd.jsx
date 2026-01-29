@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import { X } from "lucide-react";
 
 const DestinationAdd = () => {
   const navigate = useNavigate();
@@ -42,6 +43,11 @@ const DestinationAdd = () => {
     setError("");
   };
 
+  const handleRemoveImage = () => {
+    setForm(prev => ({ ...prev, card_image: null }));
+    setPreviewUrl(null);
+  };
+
   const [errors, setErrors] = useState({});
 
   const validateForm = () => {
@@ -54,6 +60,13 @@ const DestinationAdd = () => {
 
   const handleSubmit = async (e, continueEditing = false) => {
     if (e) e.preventDefault();
+
+    // Safety check for is_popular
+    if (form.is_popular && !form.card_image) {
+      setError("Please upload a card image before marking as popular.");
+      return;
+    }
+
     if (!validateForm()) {
       setError("Please fix the errors in the form.");
       return;
@@ -235,8 +248,15 @@ const DestinationAdd = () => {
                         <p className="mt-1 text-[9px] text-gray-400 italic">Recommended size: 800x600px. JPG, PNG</p>
                       </div>
                       {previewUrl && (
-                        <div className="h-16 w-16 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                        <div className="h-16 w-16 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group">
                           <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={10} />
+                          </button>
                         </div>
                       )}
                     </div>

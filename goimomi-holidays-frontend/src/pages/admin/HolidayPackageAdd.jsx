@@ -4,6 +4,7 @@ import axios from "axios";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
+import { X } from "lucide-react";
 
 /* ---------- UI helpers ---------- */
 const Section = ({ title, children, className = "bg-white border border-gray-300 p-3" }) => (
@@ -575,16 +576,18 @@ const HolidayPackageAdd = () => {
                     key={formData.header_image ? 'header-has-file' : 'header-no-file'}
                   />
                   {formData.header_image && (
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, header_image: null })}
-                      className="text-red-500 hover:text-red-700 font-bold"
-                    >
-                      ✖
-                    </button>
+                    <div className="h-10 w-10 relative group">
+                      <img src={URL.createObjectURL(formData.header_image)} alt="Preview" className="h-full w-full object-cover rounded border" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, header_image: null })}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
                   )}
                 </div>
-                {formData.header_image && <p className="text-green-600 text-[10px] mt-1">Selected: {formData.header_image.name}</p>}
               </label>
               <label className="block">
                 <span className="text-gray-700 font-semibold text-xs uppercase">Card image:</span>
@@ -598,16 +601,18 @@ const HolidayPackageAdd = () => {
                     key={formData.card_image ? 'card-has-file' : 'card-no-file'}
                   />
                   {formData.card_image && (
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, card_image: null })}
-                      className="text-red-500 hover:text-red-700 font-bold"
-                    >
-                      ✖
-                    </button>
+                    <div className="h-10 w-10 relative group">
+                      <img src={URL.createObjectURL(formData.card_image)} alt="Preview" className="h-full w-full object-cover rounded border" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, card_image: null })}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
                   )}
                 </div>
-                {formData.card_image && <p className="text-green-600 text-[10px] mt-1">Selected: {formData.card_image.name}</p>}
               </label>
             </Section>
 
@@ -783,23 +788,25 @@ const HolidayPackageAdd = () => {
                             copy[i].image = e.target.files[0];
                             setItineraryDays(copy);
                           }}
-                          className="w-full text-[10px] text-gray-500 file:mr-1 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
+                          className="flex-1 w-full text-[10px] text-gray-500 file:mr-1 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
                         />
                         {row.image && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const copy = [...itineraryDays];
-                              copy[i].image = null;
-                              setItineraryDays(copy);
-                            }}
-                            className="text-red-500 hover:text-red-700 text-xs"
-                          >
-                            ✖
-                          </button>
+                          <div className="h-8 w-8 relative group shrink-0">
+                            <img src={URL.createObjectURL(row.image)} alt="Preview" className="h-full w-full object-cover rounded border" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const copy = [...itineraryDays];
+                                copy[i].image = null;
+                                setItineraryDays(copy);
+                              }}
+                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                            >
+                              <X size={8} />
+                            </button>
+                          </div>
                         )}
                       </div>
-                      {row.image && <p className="text-green-600 text-[9px] mt-0.5">File: {row.image.name}</p>}
                     </div>
 
                   </div>

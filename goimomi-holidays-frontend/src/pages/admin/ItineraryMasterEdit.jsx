@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -81,6 +82,11 @@ const ItineraryMasterEdit = () => {
         setError("");
     };
 
+    const handleRemoveImage = () => {
+        setForm(prev => ({ ...prev, image: null }));
+        setExistingImage(null);
+    };
+
     const handleSubmit = async (e) => {
         if (e) e.preventDefault();
         setSaving(true);
@@ -96,6 +102,8 @@ const ItineraryMasterEdit = () => {
         }
         if (form.image) {
             formData.append("image", form.image);
+        } else if (existingImage === null) {
+            formData.append("image", ""); // Force clear on backend
         }
 
         try {
@@ -240,7 +248,13 @@ const ItineraryMasterEdit = () => {
                                             {existingImage && (
                                                 <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-inner group w-32">
                                                     <img src={existingImage} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                                                    <div className="absolute inset-x-0 bottom-0 bg-black/40 text-white text-[8px] font-bold p-0.5 text-center backdrop-blur-sm">Current</div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleRemoveImage}
+                                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <X size={10} />
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>

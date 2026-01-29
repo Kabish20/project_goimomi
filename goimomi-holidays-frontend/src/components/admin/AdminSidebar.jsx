@@ -60,6 +60,7 @@ const menu = [
         ]
       },
       { name: "Nationalities", icon: <Flag size={18} /> },
+      { name: "Countries", icon: <Globe size={18} /> },
       { name: "Starting Cities", icon: <MapPin size={18} /> },
       {
         name: "Visas",
@@ -136,6 +137,7 @@ const AdminSidebar = () => {
       case "Umrah Enquiries": return handleAddUmrahEnquiry;
       case "Umrah Destinations": return handleAddUmrahDestinations;
       case "Visas": return handleAddVisa;
+      case "Countries": return () => navigate("/admin/countries/add");
       case "Suppliers": return () => navigate("/admin/suppliers/add");
       default: return undefined;
     }
@@ -159,6 +161,7 @@ const AdminSidebar = () => {
       case "Hotel Enquiries": return handleChangeHotelEnquiry;
       case "Visas": return handleChangeVisa;
       case "Visa Applications": return handleChangeVisaApplication;
+      case "Countries": return () => navigate("/admin/countries");
       case "Suppliers": return () => navigate("/admin/suppliers");
       default: return undefined;
     }

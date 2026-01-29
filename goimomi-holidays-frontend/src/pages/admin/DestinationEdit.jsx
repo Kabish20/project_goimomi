@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 
@@ -70,8 +71,21 @@ const DestinationEdit = () => {
         setError("");
     };
 
+    const handleRemoveImage = () => {
+        setForm(prev => ({ ...prev, card_image: null }));
+        setPreviewUrl(null);
+        setExistingImage(null);
+    };
+
     const handleSubmit = async (e, continueEditing = false) => {
         if (e) e.preventDefault();
+
+        // Safety check for is_popular
+        if (form.is_popular && !form.card_image && !existingImage) {
+            setError("Please upload a card image before marking as popular.");
+            return;
+        }
+
         setLoading(true);
         setMessage("");
         setError("");
@@ -84,6 +98,8 @@ const DestinationEdit = () => {
         formData.append("is_popular", form.is_popular);
         if (form.card_image) {
             formData.append("card_image", form.card_image);
+        } else if (!existingImage) {
+            formData.append("card_image", ""); // Clear image on backend
         }
 
         try {
@@ -228,11 +244,13 @@ const DestinationEdit = () => {
                                                         alt="Preview"
                                                         className="h-full w-full object-cover"
                                                     />
-                                                    {previewUrl && (
-                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <span className="text-[8px] text-white font-bold uppercase">New</span>
-                                                        </div>
-                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleRemoveImage}
+                                                        className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <X size={10} />
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>

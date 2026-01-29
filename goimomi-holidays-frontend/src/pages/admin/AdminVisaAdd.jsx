@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ArrowLeft, Save, Plus, ChevronDown, Search } from "lucide-react";
+import { ArrowLeft, Save, Plus, ChevronDown, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -62,6 +62,14 @@ const AdminVisaAdd = () => {
         }
     };
 
+    const handleRemoveImage = () => {
+        setFormData(prev => ({
+            ...prev,
+            card_image: null,
+            card_image_preview: null
+        }));
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
         if (type === "file") {
@@ -94,6 +102,12 @@ const AdminVisaAdd = () => {
 
     const handleSubmit = async (e, action = "save") => {
         if (e) e.preventDefault();
+
+        // Safety check for is_popular
+        if (formData.is_popular && !formData.card_image) {
+            setStatusMessage({ text: "Please upload a card image before marking as popular.", type: "error" });
+            return;
+        }
 
         if (!formData.country || !formData.title || formData.selling_price <= 0) {
             setStatusMessage({ text: "Please fill in all required fields. Selling price must be greater than 0.", type: "error" });
@@ -512,8 +526,15 @@ const AdminVisaAdd = () => {
                                             className="flex-1 max-w-sm px-3 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
                                         />
                                         {formData.card_image_preview && (
-                                            <div className="h-10 w-10 rounded border border-gray-200 overflow-hidden shadow-sm">
+                                            <div className="h-10 w-10 rounded border border-gray-200 overflow-hidden shadow-sm relative group">
                                                 <img src={formData.card_image_preview} alt="Preview" className="h-full w-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveImage}
+                                                    className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={8} />
+                                                </button>
                                             </div>
                                         )}
                                     </div>

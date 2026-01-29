@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
+import { X } from "lucide-react";
 
 const ItineraryMasterAdd = () => {
     const navigate = useNavigate();
@@ -42,6 +43,12 @@ const ItineraryMasterAdd = () => {
         }
         setMessage("");
         setError("");
+    };
+
+    const handleRemoveImage = () => {
+        setForm(prev => ({ ...prev, image: null }));
+        const fileInput = document.getElementById("imageInput");
+        if (fileInput) fileInput.value = "";
     };
 
     const handleSubmit = async (e, continueEditing = false) => {
@@ -207,17 +214,28 @@ const ItineraryMasterAdd = () => {
                                         <label className="block font-bold text-gray-400 uppercase tracking-widest">
                                             Cover Image
                                         </label>
-                                        <div className="flex flex-col gap-1">
+                                        <div className="flex items-center gap-3">
                                             <input
                                                 id="imageInput"
                                                 type="file"
                                                 name="image"
                                                 onChange={handleChange}
                                                 accept="image/*"
-                                                className="w-full text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] cursor-pointer"
+                                                className="flex-1 text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] cursor-pointer"
                                                 disabled={loading}
                                             />
-                                            {form.image && <span className="text-[9px] text-[#14532d] font-bold">✓ {form.image.name}</span>}
+                                            {form.image && (
+                                                <div className="h-10 w-10 rounded border border-gray-200 overflow-hidden shadow-sm relative group">
+                                                    <img src={URL.createObjectURL(form.image)} alt="Preview" className="h-full w-full object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleRemoveImage}
+                                                        className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <X size={8} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

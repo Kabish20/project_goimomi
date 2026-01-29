@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { MapPin } from "lucide-react";
+import { MapPin, Zap, ShieldCheck, Headphones } from "lucide-react";
 import EnquiryForm from "../components/EnquiryForm";
 
 // WhatsApp Chat Widget Component
@@ -350,6 +350,8 @@ const Home = () => {
         </div>
       </section>
 
+      
+
       {/* ---------------- POPULAR VISAS ---------------- */}
       <section className="py-16 px-6 max-w-7xl mx-auto">
         <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
@@ -444,44 +446,6 @@ const Home = () => {
             ))}
           </div>
         )}
-      </section>
-
-      {/* Trending Visa Destinations (UAE, Saudi, etc.) */}
-      <section className="py-12 px-6 max-w-7xl mx-auto border-t border-gray-100">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#14532d] mb-1">Quick Links</span>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight leading-none">Popular Visa Countries</h2>
-          </div>
-          <Link to="/visa" className="text-xs font-bold text-[#14532d] uppercase tracking-widest hover:underline mt-4 md:mt-0">View All Destinations →</Link>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-          {[
-            { name: "UAE", full: "United Arab Emirates" },
-            { name: "Saudi", full: "Saudi Arabia" },
-            { name: "Azerbaijan", full: "Azerbaijan" },
-            { name: "Singapore", full: "Singapore" },
-            { name: "Thailand", full: "Thailand" },
-            { name: "Vietnam", full: "Vietnam" },
-            { name: "Malaysia", full: "Malaysia" },
-            { name: "Qatar", full: "Qatar" }
-          ].map((item, i) => (
-            <Link
-              key={item.name}
-              to={`/visa/results?citizenOf=India&goingTo=${encodeURIComponent(item.full)}`}
-              className="flex flex-col items-center justify-center p-4 bg-white hover:bg-green-50 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group fade-up"
-              style={{ animationDelay: `${i * 0.05}s` }}
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-2 group-hover:bg-[#14532d] transition-colors">
-                <MapPin size={16} className="text-[#14532d] group-hover:text-white" />
-              </div>
-              <span className="text-[10px] font-black text-gray-900 uppercase tracking-tighter text-center">
-                {item.name}
-              </span>
-            </Link>
-          ))}
-        </div>
       </section>
 
       {/* ---------------- GALLERY ---------------- */}
@@ -608,6 +572,7 @@ const Home = () => {
 
         </div>
       </section>
+          
 
       {/* WhatsApp Widget */}
       <WhatsAppWidget

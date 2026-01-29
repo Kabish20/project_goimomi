@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
+import { X } from "lucide-react";
 
 /* ---------- UI helpers (same as Add) ---------- */
 const Section = ({ title, children, className = "bg-white border border-gray-300 p-3" }) => (
@@ -648,17 +649,16 @@ const HolidayPackageEdit = () => {
                                 <label className="block">
                                     <span className="text-gray-700 font-medium mb-1 block">Header image:</span>
                                     {headerPreview && (
-                                        <div className="mb-2 relative inline-block">
+                                        <div className="mb-2 relative inline-block group">
                                             <img src={headerPreview} alt="Header Preview" className="h-32 object-cover rounded border" />
                                             <button
                                                 type="button"
                                                 onClick={() => { setHeaderPreview(null); setFormData({ ...formData, header_image: null }); }}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 shadow-md"
-                                                title="Remove existing image"
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                                title="Remove image"
                                             >
-                                                ✖
+                                                <X size={12} />
                                             </button>
-                                            <p className="text-xs text-gray-500">Current Image</p>
                                         </div>
                                     )}
                                     <div className="flex items-center gap-2">
@@ -675,13 +675,7 @@ const HolidayPackageEdit = () => {
                                             error={errors.header_image}
                                         />
                                         {formData.header_image && (
-                                            <button
-                                                type="button"
-                                                onClick={() => { setFormData({ ...formData, header_image: null }); setHeaderPreview(null); }}
-                                                className="text-red-500 hover:text-red-700 font-bold"
-                                            >
-                                                ✖
-                                            </button>
+                                            <span className="text-xs text-green-600 font-medium">New selected</span>
                                         )}
                                     </div>
                                     <p className="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
@@ -689,17 +683,16 @@ const HolidayPackageEdit = () => {
                                 <label className="block">
                                     <span className="text-gray-700 font-medium mb-1 block">Card image:</span>
                                     {cardPreview && (
-                                        <div className="mb-2 relative inline-block">
+                                        <div className="mb-2 relative inline-block group">
                                             <img src={cardPreview} alt="Card Preview" className="h-32 object-cover rounded border" />
                                             <button
                                                 type="button"
                                                 onClick={() => { setCardPreview(null); setFormData({ ...formData, card_image: null }); }}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 shadow-md"
-                                                title="Remove existing image"
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                                title="Remove image"
                                             >
-                                                ✖
+                                                <X size={12} />
                                             </button>
-                                            <p className="text-xs text-gray-500">Current Image</p>
                                         </div>
                                     )}
                                     <div className="flex items-center gap-2">
@@ -716,13 +709,7 @@ const HolidayPackageEdit = () => {
                                             error={errors.card_image}
                                         />
                                         {formData.card_image && (
-                                            <button
-                                                type="button"
-                                                onClick={() => { setFormData({ ...formData, card_image: null }); setCardPreview(null); }}
-                                                className="text-red-500 hover:text-red-700 font-bold"
-                                            >
-                                                ✖
-                                            </button>
+                                            <span className="text-xs text-green-600 font-medium">New selected</span>
                                         )}
                                     </div>
                                     <p className="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
@@ -891,10 +878,10 @@ const HolidayPackageEdit = () => {
                                                             copy[i].existing_image = null;
                                                             setItineraryDays(copy);
                                                         }}
-                                                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] hover:bg-red-600 shadow-md"
+                                                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                                                         title="Remove existing image"
                                                     >
-                                                        ✖
+                                                        <X size={10} />
                                                     </button>
                                                 </div>
                                             )}

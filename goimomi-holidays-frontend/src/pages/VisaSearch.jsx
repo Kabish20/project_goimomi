@@ -244,59 +244,9 @@ const VisaSearch = () => {
                 </div>
             </div>
 
-            {/* Features Section */}
-            <div className="max-w-6xl mx-auto px-4 py-12">
-                <div className="grid md:grid-cols-3 gap-8">
-                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
-                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Zap size={32} className="text-[#14532d]" />
-                        </div>
-                        <h3 className="font-bold text-lg mb-2 text-gray-900">Fast Processing</h3>
-                        <p className="text-gray-600 text-sm">Get your visa processed quickly with our express services</p>
-                    </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
-                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <ShieldCheck size={32} className="text-[#14532d]" />
-                        </div>
-                        <h3 className="font-bold text-lg mb-2 text-gray-900">100% Secure</h3>
-                        <p className="text-gray-600 text-sm">Your data is protected with bank-level security</p>
-                    </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
-                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Headphones size={32} className="text-[#14532d]" />
-                        </div>
-                        <h3 className="font-bold text-lg mb-2 text-gray-900">24/7 Support</h3>
-                        <p className="text-gray-600 text-sm">Our team is always ready to assist you</p>
-                    </div>
-                </div>
-            </div>
 
-            {/* Trending Visa Countries (UAE, Saudi, etc.) */}
-            <div className="max-w-6xl mx-auto px-4 py-12">
-                <div className="flex flex-col mb-8">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#14532d] mb-1">Quick Explore</span>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Trending Visa Countries</h2>
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                    {["United Arab Emirates", "Saudi Arabia", "Azerbaijan", "Singapore", "Thailand", "Vietnam", "Malaysia", "Qatar"].map((country) => (
-                        <button
-                            key={country}
-                            onClick={() => {
-                                setGoingTo(country);
-                                setGoingToSearch(country);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            className="px-6 py-3 bg-white hover:bg-[#14532d] hover:text-white text-gray-700 rounded-2xl shadow-sm border border-gray-100 font-bold text-xs uppercase tracking-widest transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center gap-2"
-                        >
-                            <MapPin size={14} className="opacity-50" />
-                            {country}
-                        </button>
-                    ))}
-                </div>
-            </div>
 
             {/* Popular Destinations for Visa */}
             <div className="max-w-6xl mx-auto px-4 py-20 border-t border-gray-100">
@@ -393,6 +343,35 @@ const VisaSearch = () => {
                                 </button>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Features Section */}
+            <div className="max-w-6xl mx-auto px-4 py-20 border-t border-gray-100">
+                <div className="grid md:grid-cols-3 gap-8">
+                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Zap size={32} className="text-[#14532d]" />
+                        </div>
+                        <h3 className="font-bold text-lg mb-2 text-gray-900">Fast Processing</h3>
+                        <p className="text-gray-600 text-sm">Get your visa processed quickly with our express services</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <ShieldCheck size={32} className="text-[#14532d]" />
+                        </div>
+                        <h3 className="font-bold text-lg mb-2 text-gray-900">100% Secure</h3>
+                        <p className="text-gray-600 text-sm">Your data is protected with bank-level security</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow border border-gray-100">
+                        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Headphones size={32} className="text-[#14532d]" />
+                        </div>
+                        <h3 className="font-bold text-lg mb-2 text-gray-900">24/7 Support</h3>
+                        <p className="text-gray-600 text-sm">Our team is always ready to assist you</p>
                     </div>
                 </div>
             </div>
