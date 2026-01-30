@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown } from "lucide-react";
+import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle } from "lucide-react";
 
 const getImageUrl = (url) => {
     if (!url) return "";
@@ -18,6 +18,7 @@ const VisaResults = () => {
     const [visas, setVisas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeDocPopup, setActiveDocPopup] = useState(null);
+    const [viewDetailsVisa, setViewDetailsVisa] = useState(null);
 
     // Search state managed locally for interactivity
     const [citizenOf, setCitizenOf] = useState(searchParams.get("citizenOf") || "India");
@@ -352,6 +353,112 @@ const VisaResults = () => {
                                             />
                                         )}
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#14532d] to-transparent" />
+
+                                        {/* Share Bar */}
+                                        <div className="absolute top-2 right-4 hidden md:flex items-center gap-3 bg-black/20 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 z-10 transition-all hover:bg-black/30">
+                                            <div className="flex items-center gap-1.5 text-white/90 font-bold text-[10px] uppercase tracking-wider">
+                                                <Share2 size={12} className="text-white/70" />
+                                                <span>Share By :</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const text = `Hello, please find details with regards to your visa query for:
+
+${visa.country_details?.name || visa.country}
+
+1 Adult
+
+${visa.visa_type}
+
+Below mentioned prices are the total price(s) inclusive of taxes:
+
+-------------------------------------------------------------
+
+VISA: ${visa.title}
+Country: ${visa.country_details?.name || visa.country}
+Type: ${visa.visa_type}
+Entry: ${visa.entry_type}
+Validity: ${visa.validity || "N/A"}
+Duration: ${visa.duration || "N/A"}
+Processing Time: ${visa.processing_time}
+Price: ₹${visa.selling_price?.toLocaleString()}
+
+-------------------------------------------------------------
+
+Thank you for choosing goimomi.com
+
+In case of any support :
+
+📞 Contact : +91 6382220393
+✉️ Email : hello@goimomi.com
+
+Terms & Conditions:
+Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
+                                                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                                    }}
+                                                    className="flex items-center gap-1 text-green-400 hover:text-green-300 font-bold text-[10px] transition-colors"
+                                                >
+                                                    <MessageCircle size={12} />
+                                                    Whatsapp
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const subject = `Visa Information: ${visa.title} for ${visa.country_details?.name || visa.country}`;
+                                                        const body = `Hello, please find details with regards to your visa query for:
+
+${visa.country_details?.name || visa.country}
+
+1 Adult
+
+${visa.visa_type}
+
+Below mentioned prices are the total price(s) inclusive of taxes:
+
+-------------------------------------------------------------
+
+VISA: ${visa.title}
+Country: ${visa.country_details?.name || visa.country}
+Type: ${visa.visa_type}
+Entry: ${visa.entry_type}
+Validity: ${visa.validity || "N/A"}
+Duration: ${visa.duration || "N/A"}
+Processing Time: ${visa.processing_time}
+Price: ₹${visa.selling_price?.toLocaleString()}
+
+-------------------------------------------------------------
+
+Thank you for choosing goimomi.com
+
+In case of any support :
+
+📞 Contact : +91 6382220393
+✉️ Email : hello@goimomi.com
+
+Terms & Conditions:
+Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
+                                                        window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                                                    }}
+                                                    className="flex items-center gap-1 text-orange-400 hover:text-orange-300 font-bold text-[10px] transition-colors"
+                                                >
+                                                    <Mail size={12} />
+                                                    Email
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setViewDetailsVisa(visa);
+                                                    }}
+                                                    className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 font-bold text-[10px] transition-colors"
+                                                >
+                                                    <Eye size={12} />
+                                                    View
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <div className="absolute bottom-3 left-6 text-white">
                                             <h3 className="text-xl md:text-2xl font-bold drop-shadow-md">{visa.title}</h3>
                                             {visa.country_details?.name && (
@@ -519,6 +626,86 @@ const VisaResults = () => {
                     </div>
                 )}
             </div>
+
+            {/* View Details Modal */}
+            {viewDetailsVisa && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsVisa(null)}>
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center px-4 py-3 border-b">
+                            <button
+                                onClick={() => {
+                                    const text = `Hello, please find details with regards to your visa query for:
+${viewDetailsVisa.country_details?.name || viewDetailsVisa.country}
+1 Adult
+${viewDetailsVisa.visa_type}
+
+Below mentioned prices are the total price(s) inclusive of taxes:
+-------------------------------------------------------------
+VISA: ${viewDetailsVisa.title}
+Country: ${viewDetailsVisa.country_details?.name || viewDetailsVisa.country}
+Type: ${viewDetailsVisa.visa_type}
+Entry: ${viewDetailsVisa.entry_type}
+Validity: ${viewDetailsVisa.validity || "N/A"}
+Duration: ${viewDetailsVisa.duration || "N/A"}
+Processing Time: ${viewDetailsVisa.processing_time}
+Price: ₹${viewDetailsVisa.selling_price?.toLocaleString()}
+-------------------------------------------------------------
+Thank you for choosing goimomi.com
+In case of any support :
+Contact : +91 6382220393
+Email : hello@goimomi.com
+
+Terms & Conditions:
+Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
+                                    navigator.clipboard.writeText(text);
+                                    alert("Details copied to clipboard!");
+                                }}
+                                className="flex items-center gap-1.5 text-orange-500 font-bold text-[10px] hover:bg-orange-50 px-2.5 py-1.5 rounded-lg transition-colors border border-orange-100"
+                            >
+                                <Copy size={12} />
+                                Copy
+                            </button>
+                            <h3 className="text-base font-bold text-gray-800">View Details</h3>
+                            <button onClick={() => setViewDetailsVisa(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-5 max-h-[70vh] overflow-y-auto">
+                            <div className="font-sans text-[12px] text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                <p>Hello, please find details with regards to your visa query for:</p>
+                                <p className="font-bold">{viewDetailsVisa.country_details?.name || viewDetailsVisa.country}</p>
+                                <p>1 Adult</p>
+                                <p>{viewDetailsVisa.visa_type}</p>
+                                <br />
+                                <p>Below mentioned prices are the total price(s) inclusive of taxes:</p>
+                                <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
+                                <div className="space-y-0.5">
+                                    <p><span className="font-bold">VISA:</span> {viewDetailsVisa.title}</p>
+                                    <p><span className="font-bold">Country:</span> {viewDetailsVisa.country_details?.name || viewDetailsVisa.country}</p>
+                                    <p><span className="font-bold">Type:</span> {viewDetailsVisa.visa_type}</p>
+                                    <p><span className="font-bold">Entry:</span> {viewDetailsVisa.entry_type}</p>
+                                    <p><span className="font-bold">Validity:</span> {viewDetailsVisa.validity || "N/A"}</p>
+                                    <p><span className="font-bold">Duration:</span> {viewDetailsVisa.duration || "N/A"}</p>
+                                    <p><span className="font-bold">Processing Time:</span> {viewDetailsVisa.processing_time}</p>
+                                    <p><span className="font-bold">Price:</span> ₹{viewDetailsVisa.selling_price?.toLocaleString()}</p>
+                                </div>
+                                <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
+                                <p>Thank you for choosing goimomi.com</p>
+                                <p>In case of any support :</p>
+                                <p><span className="inline-block w-4 text-center">📞</span> Contact : <span className="font-bold">+91 6382220393</span></p>
+                                <p><span className="inline-block w-4 text-center">✉️</span> Email : <span className="font-bold">hello@goimomi.com</span></p>
+                                <br />
+                                <div className="border-t border-gray-100 pt-3 mt-1">
+                                    <p className="font-bold text-[10px] text-gray-900 mb-1 tracking-wider uppercase">Terms & Conditions:</p>
+                                    <p className="text-gray-500 text-[10px] leading-relaxed italic">
+                                        Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
