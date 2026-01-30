@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MapPin, Zap, ShieldCheck, Headphones } from "lucide-react";
 import EnquiryForm from "../components/EnquiryForm";
@@ -148,6 +148,7 @@ import user2 from "../assets/user2.png";
 import user3 from "../assets/user3.png";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [popularDestinations, setPopularDestinations] = useState([]);
@@ -291,12 +292,12 @@ const Home = () => {
         ) : (
           <div className="grid md:grid-cols-3 gap-8 mt-10">
             {[
-              { img: maldives, title: "Maldives Luxury Escape", price: "₹29,500" },
-              { img: dubai, title: "Dubai Desert & City Adventure", price: "₹35,000" },
-              { img: singapore, title: "Singapore City & Island Getaway", price: "₹30,000" },
-              { img: paris, title: "Paris Romantic Getaway", price: "₹45,000" },
-              { img: santorini, title: "Santorini Greek Island Paradise", price: "₹42,000" },
-              { img: bali, title: "Bali Tropical Adventure", price: "₹28,000" }
+              { img: maldives, title: "Maldives Luxury Escape", price: "₹29,500", destination: "Maldives" },
+              { img: dubai, title: "Dubai Desert & City Adventure", price: "₹35,000", destination: "Dubai" },
+              { img: singapore, title: "Singapore City & Island Getaway", price: "₹30,000", destination: "Singapore" },
+              { img: paris, title: "Paris Romantic Getaway", price: "₹45,000", destination: "Paris" },
+              { img: santorini, title: "Santorini Greek Island Paradise", price: "₹42,000", destination: "Santorini" },
+              { img: bali, title: "Bali Tropical Adventure", price: "₹28,000", destination: "Bali" }
             ].map((item, i) => (
               <div
                 key={i}
@@ -308,7 +309,10 @@ const Home = () => {
                   <h3 className="text-lg font-semibold">{item.title}</h3>
                   <p className="text-sm text-gray-600">Experience unparalleled beauty...</p>
                   <p className="font-semibold text-lg text-[#14532d]">{item.price}</p>
-                  <button className="bg-[#14532d] text-white px-4 py-2 rounded-lg">
+                  <button
+                    onClick={() => navigate('/holidays?category=International', { state: { filter: item.destination } })}
+                    className="bg-[#14532d] text-white px-4 py-2 rounded-lg hover:bg-[#0f4022] transition-colors"
+                  >
                     View Details
                   </button>
                 </div>
