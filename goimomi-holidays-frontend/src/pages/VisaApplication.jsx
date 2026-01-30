@@ -107,37 +107,7 @@ const VisaApplication = () => {
     const SERVICE_FEES = Number(currentVisa?.service_charge) || 0;
     const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * (applicants?.length || 1);
 
-    const calculateEstimatedArrival = (processingTime, depDate) => {
-        if (!depDate) return "Pick your dates";
-        try {
-            const departure = new Date(depDate);
-            if (isNaN(departure.getTime())) return "Invalid Date";
 
-            // Extract the first number from processing time (e.g. "4-5 days" -> 4)
-            const processingDays = parseInt(processingTime) || 3;
-            const estimatedDate = new Date(departure);
-            estimatedDate.setDate(estimatedDate.getDate() - processingDays);
-
-            const day = estimatedDate.getDate();
-            const month = estimatedDate.toLocaleDateString('en-GB', { month: 'short' });
-            const year = estimatedDate.getFullYear();
-
-            return `${day}${getDaySuffix(day)} ${month}, ${year}`;
-        } catch (e) {
-            return "N/A";
-        }
-    };
-
-    const getDaySuffix = (day) => {
-        if (isNaN(day)) return "";
-        if (day > 3 && day < 21) return 'th';
-        switch (day % 10) {
-            case 1: return 'st';
-            case 2: return 'nd';
-            case 3: return 'rd';
-            default: return 'th';
-        }
-    };
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -578,18 +548,7 @@ const VisaApplication = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white/10 backdrop-blur-xl border border-white/30 p-5 rounded-2xl shadow-xl min-w-[200px]">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <CheckCircle size={18} className="text-green-400" />
-                                        <span className="text-[10px] uppercase font-black tracking-[0.2em] text-green-300">Estimated Arrival</span>
-                                    </div>
-                                    <div className="text-2xl font-black text-white">
-                                        {calculateEstimatedArrival(currentVisa?.processing_time, appDepartureDate)}
-                                    </div>
-                                    <div className="text-[10px] text-green-200 mt-1 opacity-90 font-bold uppercase tracking-widest">
-                                        {currentVisa?.processing_time || "3-5 Business Days"} Processing
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -1091,15 +1050,7 @@ const VisaApplication = () => {
                         </div>
                     </div>
 
-                    <div className="bg-green-50 border border-green-100 rounded-xl p-4 mb-8">
-                        <div className="flex items-center gap-2 text-[#14532d] mb-1">
-                            <CalendarIcon />
-                            <span className="text-xs font-bold uppercase tracking-wider">Expected Approval</span>
-                        </div>
-                        <div className="text-lg font-bold text-[#14532d]">
-                            {calculateEstimatedArrival(currentVisa?.processing_time, appDepartureDate)}
-                        </div>
-                    </div>
+
 
                     <div className="bg-gray-50 rounded-xl p-4 mb-6">
                         <div className="flex justify-between items-center">
@@ -1124,10 +1075,6 @@ const VisaApplication = () => {
 };
 
 // Helper components
-const CalendarIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-);
+
 
 export default VisaApplication;

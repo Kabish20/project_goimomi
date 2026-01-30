@@ -1,0 +1,28 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+goimomi-holidays-backend/.env
+goimomi-holidays-backend/mig_out.txt
+goimomi-holidays-backend/db.sqlite3
+
+# Node
+node_modules/
+goimomi-holidays-frontend/dist/
+goimomi-holidays-frontend/.env
+
+# Local development
+.env
+.env.local
+.env.*.local

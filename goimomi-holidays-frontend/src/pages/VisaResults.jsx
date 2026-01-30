@@ -116,36 +116,7 @@ const VisaResults = () => {
         c.name.toLowerCase().includes(goingToSearch.toLowerCase())
     );
 
-    const calculateEstimatedArrival = (processingTime, depDate) => {
-        if (!depDate) return "N/A";
 
-        try {
-            const departure = new Date(depDate);
-            if (isNaN(departure.getTime())) return "N/A";
-
-            const processingDays = parseInt(processingTime) || 3;
-            const estimatedDate = new Date(departure);
-            estimatedDate.setDate(estimatedDate.getDate() - processingDays);
-
-            const day = estimatedDate.getDate();
-            const month = estimatedDate.toLocaleDateString('en-GB', { month: 'short' });
-            const year = estimatedDate.getFullYear();
-
-            return `${day}${getDaySuffix(day)} ${month}, ${year}`;
-        } catch (e) {
-            return "N/A";
-        }
-    };
-
-    const getDaySuffix = (day) => {
-        if (day > 3 && day < 21) return 'th';
-        switch (day % 10) {
-            case 1: return 'st';
-            case 2: return 'nd';
-            case 3: return 'rd';
-            default: return 'th';
-        }
-    };
 
     const handleSelect = (visa) => {
         navigate(`/visa/apply/${visa.id}`, {
@@ -469,13 +440,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
                                     {/* Content Container */}
                                     <div className="p-6">
-                                        {/* Estimated Arrival Badge */}
-                                        <div className="flex items-center gap-3 mb-6 bg-green-50/50 p-2 rounded-lg w-fit">
-                                            <CheckCircle size={20} className="text-[#14532d]" fill="white" />
-                                            <span className="text-[#14532d] font-medium text-sm">
-                                                Estimated visa arrival by <span className="font-bold">{calculateEstimatedArrival(visa.processing_time, departureDate)}</span>
-                                            </span>
-                                        </div>
+
 
                                         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                                             {/* Details Grid */}
