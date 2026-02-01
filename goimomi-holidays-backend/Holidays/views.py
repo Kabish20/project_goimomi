@@ -8,6 +8,8 @@ from rest_framework.permissions import AllowAny # Import AllowAny
 from django.contrib.auth import authenticate
 from .models import *
 from .serializers import *
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 @authentication_classes([])
@@ -263,3 +265,26 @@ class SupplierViewSet(ModelViewSet):
     queryset = Supplier.objects.all().order_by('-created_at')
     serializer_class = SupplierSerializer
     pagination_class = None
+
+@authentication_classes([])
+@permission_classes([AllowAny])
+class SendVisaDetailsAPI(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        subject = request.data.get("subject")
+        body = request.data.get("body")
+        
+        if not email or not subject or not body:
+            return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            send_mail(
+                subject,
+                body,
+                settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'hello@goimomi.com',
+                [email],
+                fail_silently=False,
+            )
+            return Response({"success": "Email sent successfully"})
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

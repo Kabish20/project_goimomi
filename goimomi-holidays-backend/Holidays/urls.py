@@ -23,4 +23,5 @@ router.register("suppliers", SupplierViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('admin-login/', AdminLoginView.as_view(), name='admin-login'),
+    path('send-visa-details/', SendVisaDetailsAPI.as_view(), name='send-visa-details'),
 ]

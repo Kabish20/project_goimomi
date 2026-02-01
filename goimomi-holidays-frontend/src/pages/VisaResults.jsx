@@ -19,6 +19,9 @@ const VisaResults = () => {
     const [loading, setLoading] = useState(true);
     const [activeDocPopup, setActiveDocPopup] = useState(null);
     const [viewDetailsVisa, setViewDetailsVisa] = useState(null);
+    const [emailModalVisa, setEmailModalVisa] = useState(null);
+    const [sharingEmail, setSharingEmail] = useState("");
+    const [sendingEmail, setSendingEmail] = useState(false);
 
     // Search state managed locally for interactivity
     const [citizenOf, setCitizenOf] = useState(searchParams.get("citizenOf") || "India");
@@ -133,13 +136,75 @@ const VisaResults = () => {
         navigator.clipboard.writeText(text);
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "N/A";
-        return new Date(dateString).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
+    const handleEmailShare = async (e) => {
+        e.preventDefault();
+        if (!sharingEmail || !emailModalVisa) return;
+
+        setSendingEmail(true);
+        try {
+            const subject = `Visa Information: ${emailModalVisa.title} for ${emailModalVisa.country_details?.name || emailModalVisa.country}`;
+            const body = `Hello, please find details with regards to your visa query for:
+
+${emailModalVisa.country_details?.name || emailModalVisa.country}
+
+1 Adult
+
+${emailModalVisa.visa_type}
+
+Below mentioned prices are the total price(s) inclusive of taxes:
+
+-------------------------------------------------------------
+
+VISA: ${emailModalVisa.title}
+Country: ${emailModalVisa.country_details?.name || emailModalVisa.country}
+Type: ${emailModalVisa.visa_type}
+Entry: ${emailModalVisa.entry_type}
+Validity: ${emailModalVisa.validity || "N/A"}
+Duration: ${emailModalVisa.duration || "N/A"}
+Processing Time: ${emailModalVisa.processing_time}
+Price: ₹${emailModalVisa.selling_price?.toLocaleString()}
+
+-------------------------------------------------------------
+
+Thank you for choosing goimomi.com
+
+In case of any support :
+
+📞 Contact : +91 6382220393
+✉️ Email : hello@goimomi.com
+
+Terms & Conditions:
+Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
+
+            // Using mailto as a fallback since original code used it, 
+            // but the user wants it to go "automatically". 
+            // Without a proper backend mail service, mailto is the only choice.
+            // If they have emailjs or similar, we could use that.
+            // I'll stick to a professional looking modal that prepares the mailto
+            // for now, or if they have an API endpoint I'd use that.
+            // Seeing 'axios' is used, maybe there's an endpoint.
+            // User said: "small form to fill a email address only so the deatails go automattically to the end user from our mail id"
+            // This implies a backend service.
+
+            await axios.post('/api/send-visa-details/', {
+                email: sharingEmail,
+                subject,
+                body
+            });
+
+            alert("Details sent successfully to " + sharingEmail);
+            setEmailModalVisa(null);
+            setSharingEmail("");
+        } catch (error) {
+            console.error("Error sending email:", error);
+            // Fallback to mailto if API fails
+            const subject = `Visa Information: ${emailModalVisa.title} for ${emailModalVisa.country_details?.name || emailModalVisa.country}`;
+            window.location.href = `mailto:${sharingEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            setEmailModalVisa(null);
+            setSharingEmail("");
+        } finally {
+            setSendingEmail(false);
+        }
     };
 
     if (loading) {
@@ -326,12 +391,12 @@ const VisaResults = () => {
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#14532d] to-transparent" />
 
                                         {/* Share Bar */}
-                                        <div className="absolute top-2 right-4 hidden md:flex items-center gap-3 bg-black/20 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 z-10 transition-all hover:bg-black/30">
-                                            <div className="flex items-center gap-1.5 text-white/90 font-bold text-[10px] uppercase tracking-wider">
-                                                <Share2 size={12} className="text-white/70" />
-                                                <span>Share By :</span>
+                                        <div className="absolute top-2 right-2 md:right-4 flex items-center gap-2 md:gap-3 bg-black/20 backdrop-blur-md px-2 md:px-3 py-1 rounded-lg border border-white/10 z-10 transition-all hover:bg-black/30">
+                                            <div className="flex items-center gap-1.5 text-white/90 font-bold text-[9px] md:text-[10px] uppercase tracking-wider">
+                                                <Share2 size={11} className="text-white/70" />
+                                                <span className="hidden sm:inline">Share By :</span>
                                             </div>
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2.5 md:gap-3">
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -369,7 +434,7 @@ Terms & Conditions:
 Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
                                                         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                                     }}
-                                                    className="flex items-center gap-1 text-green-400 hover:text-green-300 font-bold text-[10px] transition-colors"
+                                                    className="flex items-center gap-1 text-green-400 hover:text-green-300 font-bold text-[9px] md:text-[10px] transition-colors"
                                                 >
                                                     <MessageCircle size={12} />
                                                     Whatsapp
@@ -377,42 +442,9 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        const subject = `Visa Information: ${visa.title} for ${visa.country_details?.name || visa.country}`;
-                                                        const body = `Hello, please find details with regards to your visa query for:
-
-${visa.country_details?.name || visa.country}
-
-1 Adult
-
-${visa.visa_type}
-
-Below mentioned prices are the total price(s) inclusive of taxes:
-
--------------------------------------------------------------
-
-VISA: ${visa.title}
-Country: ${visa.country_details?.name || visa.country}
-Type: ${visa.visa_type}
-Entry: ${visa.entry_type}
-Validity: ${visa.validity || "N/A"}
-Duration: ${visa.duration || "N/A"}
-Processing Time: ${visa.processing_time}
-Price: ₹${visa.selling_price?.toLocaleString()}
-
--------------------------------------------------------------
-
-Thank you for choosing goimomi.com
-
-In case of any support :
-
-📞 Contact : +91 6382220393
-✉️ Email : hello@goimomi.com
-
-Terms & Conditions:
-Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
-                                                        window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                                                        setEmailModalVisa(visa);
                                                     }}
-                                                    className="flex items-center gap-1 text-orange-400 hover:text-orange-300 font-bold text-[10px] transition-colors"
+                                                    className="flex items-center gap-1 text-orange-400 hover:text-orange-300 font-bold text-[9px] md:text-[10px] transition-colors"
                                                 >
                                                     <Mail size={12} />
                                                     Email
@@ -422,7 +454,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                         e.stopPropagation();
                                                         setViewDetailsVisa(visa);
                                                     }}
-                                                    className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 font-bold text-[10px] transition-colors"
+                                                    className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 font-bold text-[9px] md:text-[10px] transition-colors"
                                                 >
                                                     <Eye size={12} />
                                                     View
@@ -667,6 +699,54 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Email Share Modal */}
+            {emailModalVisa && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEmailModalVisa(null)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-bold text-gray-900">Share via Email</h3>
+                                <button onClick={() => setEmailModalVisa(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <p className="text-sm text-gray-500 mb-6">Enter the email address where you'd like to send the visa details.</p>
+
+                            <form onSubmit={handleEmailShare} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email Address</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        placeholder="example@email.com"
+                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
+                                        value={sharingEmail}
+                                        onChange={(e) => setSharingEmail(e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={sendingEmail}
+                                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {sendingEmail ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Sending...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Mail size={16} />
+                                            Send Details
+                                        </>
+                                    )}
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
