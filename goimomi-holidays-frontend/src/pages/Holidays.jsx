@@ -160,7 +160,7 @@ const Holidays = () => {
                 <input
                   type="text"
                   placeholder="Search destination..."
-                  className="w-full p-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-green-700"
+                  className="w-full p-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-[#14532d]"
                   value={destSearch}
                   onChange={(e) => setDestSearch(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
@@ -332,7 +332,7 @@ const Holidays = () => {
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#14532d]"></div>
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-xl shadow-md p-20 text-center">

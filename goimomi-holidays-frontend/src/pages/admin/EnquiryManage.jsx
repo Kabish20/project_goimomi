@@ -59,8 +59,8 @@ const EnquiryManage = () => {
       title: "Hotel Enquiries",
       count: counts.hotel,
       icon: <Hotel size={24} />,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-[#14532d]",
+      bgColor: "bg-green-50",
       path: "/admin/hotel-enquiries"
     },
     {

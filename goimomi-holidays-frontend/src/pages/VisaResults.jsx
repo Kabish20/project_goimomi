@@ -268,7 +268,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#14532d] mx-auto"></div>
                     <p className="mt-4 text-gray-600">Searching for visas...</p>
                 </div>
             </div>
@@ -444,7 +444,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                             toggleVisaSelection(visa);
                                         }}
                                     >
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedVisas.some(v => v.id === visa.id) ? 'bg-green-600 border-green-600' : 'bg-white/50 backdrop-blur-sm border-white'}`}>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedVisas.some(v => v.id === visa.id) ? 'bg-[#14532d] border-[#14532d]' : 'bg-white/50 backdrop-blur-sm border-white'}`}>
                                             {selectedVisas.some(v => v.id === visa.id) && <CheckCircle size={14} className="text-white" />}
                                         </div>
                                     </div>
@@ -503,7 +503,7 @@ Terms & Conditions:
 Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
                                                         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                                     }}
-                                                    className="flex items-center gap-1 text-green-400 hover:text-green-300 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                    className="flex items-center gap-1 text-[#14532d] hover:text-[#0f3d21] font-bold text-[9px] md:text-[10px] transition-colors"
                                                 >
                                                     <MessageCircle size={12} />
                                                     Whatsapp
@@ -836,7 +836,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={handleBulkWhatsApp}
-                                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                                className="flex items-center gap-2 bg-[#14532d] hover:bg-[#0f4a24] px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
                             >
                                 <MessageCircle size={14} />
                                 Share WhatsApp

@@ -73,7 +73,7 @@ const HotelEnquiryManage = () => {
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="bg-orange-600 p-2 rounded-lg text-white">
+                            <div className="bg-[#14532d] p-2 rounded-lg text-white">
                                 <Hotel size={24} />
                             </div>
                             <div>
@@ -98,7 +98,7 @@ const HotelEnquiryManage = () => {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search by name, phone, or hotel location..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all shadow-sm"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm"
                             />
                         </div>
                     </div>
@@ -111,7 +111,7 @@ const HotelEnquiryManage = () => {
 
                     {loading && (
                         <div className="text-center py-12">
-                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
                             <p className="mt-2 text-gray-600">Loading hotel enquiries...</p>
                         </div>
                     )}
@@ -148,7 +148,7 @@ const HotelEnquiryManage = () => {
                                                     <td className="py-4 px-6">
                                                         <div className="space-y-1">
                                                             <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                                <Phone size={14} className="text-orange-600" />
+                                                                <Phone size={14} className="text-[#14532d]" />
                                                                 {enquiry.phone}
                                                             </div>
                                                             {enquiry.email && (
@@ -161,7 +161,7 @@ const HotelEnquiryManage = () => {
                                                     </td>
                                                     <td className="py-4 px-6">
                                                         <div className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                                                            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                                                            <span className="w-2 h-2 rounded-full bg-[#14532d]"></span>
                                                             {enquiry.destination}
                                                         </div>
                                                     </td>
@@ -199,7 +199,7 @@ const HotelEnquiryManage = () => {
                     {selectedEnquiry && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-                                <div className="bg-orange-600 p-6 text-white flex justify-between items-center">
+                                <div className="bg-[#14532d] p-6 text-white flex justify-between items-center">
                                     <h2 className="text-xl font-bold flex items-center gap-2">
                                         <Hotel size={20} /> Hotel Enquiry Details
                                     </h2>
@@ -219,7 +219,7 @@ const HotelEnquiryManage = () => {
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-xs font-bold text-gray-400 uppercase">Location/Hotel</p>
-                                            <p className="font-semibold text-orange-600">
+                                            <p className="font-semibold text-[#14532d]">
                                                 {selectedEnquiry.destination}
                                             </p>
                                         </div>
@@ -229,12 +229,12 @@ const HotelEnquiryManage = () => {
                                         <p className="text-xs font-bold text-gray-400 uppercase">Contact Details</p>
                                         <div className="space-y-2 mt-2">
                                             <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                                <Phone size={18} className="text-orange-600" />
+                                                <Phone size={18} className="text-[#14532d]" />
                                                 <span className="font-medium">{selectedEnquiry.phone}</span>
                                             </div>
                                             {selectedEnquiry.email && (
                                                 <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                                    <Mail size={18} className="text-orange-600" />
+                                                    <Mail size={18} className="text-[#14532d]" />
                                                     <span className="font-medium">{selectedEnquiry.email}</span>
                                                 </div>
                                             )}
@@ -264,7 +264,7 @@ const HotelEnquiryManage = () => {
                                         onClick={() => {
                                             window.open(`mailto:${selectedEnquiry.email}`);
                                         }}
-                                        className="flex-1 bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20"
+                                        className="flex-1 bg-[#14532d] text-white py-3 rounded-xl font-bold hover:bg-[#0f3d21] transition-colors shadow-lg shadow-[#14532d]/20"
                                     >
                                         Email Customer
                                     </button>
