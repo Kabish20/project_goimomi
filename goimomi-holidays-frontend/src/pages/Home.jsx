@@ -191,13 +191,18 @@ const Home = () => {
   }, [isFormOpen]);
 
   // Auto-open enquiry form on page load (once per session)
-  // Auto-open enquiry form on page load
+  // Auto-open enquiry form on page load (once per session)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsFormOpen(true);
-    }, 3000); // Opens after 3 seconds
+    const hasShown = sessionStorage.getItem("enquiryFormShown");
 
-    return () => clearTimeout(timer);
+    if (!hasShown) {
+      const timer = setTimeout(() => {
+        setIsFormOpen(true);
+        sessionStorage.setItem("enquiryFormShown", "true");
+      }, 3000); // Opens after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleCloseForm = () => {

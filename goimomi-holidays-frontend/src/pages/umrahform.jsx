@@ -297,8 +297,8 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
         }}
         message="Your Umrah enquiry has been submitted successfully! Our team will contact you shortly."
       />
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-xl p-4 max-h-[90vh] overflow-y-auto relative">
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4">
+        <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto scrollbar-hide">
 
           {/* Close button */}
           <button

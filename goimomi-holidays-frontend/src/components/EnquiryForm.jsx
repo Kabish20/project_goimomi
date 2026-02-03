@@ -77,7 +77,7 @@ const EnquiryForm = ({ isOpen, onClose }) => {
         message="Your enquiry has been submitted successfully! Our team will contact you shortly."
       />
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4">
-        <div className="bg-white w-full max-w-[320px] rounded-xl shadow-xl p-5 relative">
+        <div className="bg-white w-full max-w-[320px] rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
