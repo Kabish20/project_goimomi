@@ -503,17 +503,17 @@ Terms & Conditions:
 Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
                                                         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                                     }}
-                                                    className="flex items-center gap-1 text-[#14532d] hover:text-[#0f3d21] font-bold text-[9px] md:text-[10px] transition-colors"
+                                                    className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors"
                                                 >
                                                     <MessageCircle size={12} />
-                                                    Whatsapp
+                                                    WhatsApp
                                                 </button>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setEmailModalVisa(visa);
                                                     }}
-                                                    className="flex items-center gap-1 text-[#14532d] hover:text-[#0f3d21] font-bold text-[9px] md:text-[10px] transition-colors"
+                                                    className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors"
                                                 >
                                                     <Mail size={12} />
                                                     Email
@@ -836,14 +836,14 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={handleBulkWhatsApp}
-                                className="flex items-center gap-2 bg-[#14532d] hover:bg-[#0f4a24] px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 text-white"
                             >
                                 <MessageCircle size={14} />
                                 Share WhatsApp
                             </button>
                             <button
                                 onClick={handleBulkEmailInitiate}
-                                className="flex items-center gap-2 bg-[#14532d] hover:bg-[#0f4a24] px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 text-white"
                             >
                                 <Mail size={14} />
                                 Share Email
