@@ -415,8 +415,8 @@ const AdminVisaEdit = () => {
                                         />
                                     </div>
 
-                                    <div className="space-y-1 text-xs text-orange-600">
-                                        <label className="block font-bold text-orange-400 uppercase tracking-widest">
+                                    <div className="space-y-1 text-xs text-[#14532d]">
+                                        <label className="block font-bold text-green-700 uppercase tracking-widest">
                                             Service Charge (₹)
                                         </label>
                                         <input
@@ -424,7 +424,7 @@ const AdminVisaEdit = () => {
                                             name="service_charge"
                                             value={formData.service_charge}
                                             onChange={handleChange}
-                                            className="w-full px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold"
+                                            className="w-full px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all font-bold"
                                             required
                                         />
                                     </div>

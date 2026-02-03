@@ -22,6 +22,8 @@ const VisaResults = () => {
     const [emailModalVisa, setEmailModalVisa] = useState(null);
     const [sharingEmail, setSharingEmail] = useState("");
     const [sendingEmail, setSendingEmail] = useState(false);
+    const [selectedVisas, setSelectedVisas] = useState([]);
+    const [isBulkSharing, setIsBulkSharing] = useState(false);
 
     // Search state managed locally for interactivity
     const [citizenOf, setCitizenOf] = useState(searchParams.get("citizenOf") || "India");
@@ -136,14 +138,72 @@ const VisaResults = () => {
         navigator.clipboard.writeText(text);
     };
 
+    const toggleVisaSelection = (visa) => {
+        setSelectedVisas(prev =>
+            prev.some(v => v.id === visa.id)
+                ? prev.filter(v => v.id !== visa.id)
+                : [...prev, visa]
+        );
+    };
+
+    const getSelectedVisasData = () => {
+        return selectedVisas;
+    };
+
+    const generateBulkShareText = (selectedData) => {
+        let text = `Hello, please find details with regards to your visa query for Multiple Options:\n\n`;
+
+        selectedData.forEach((visa, index) => {
+            text += `OPTION ${index + 1}:\n`;
+            text += `VISA: ${visa.title}\n`;
+            text += `Country: ${visa.country_details?.name || visa.country}\n`;
+            text += `Type: ${visa.visa_type}\n`;
+            text += `Entry: ${visa.entry_type}\n`;
+            text += `Price: ₹${visa.selling_price?.toLocaleString()}\n`;
+            text += `-------------------------------------------------------------\n\n`;
+        });
+
+        text += `Thank you for choosing goimomi.com\n\n`;
+        text += `In case of any support :\n`;
+        text += `📞 Contact : +91 6382220393\n`;
+        text += `✉️ Email : hello@goimomi.com\n\n`;
+        text += `Terms & Conditions: Visa approval depends on authorities. Fees non-refundable.`;
+
+        return text;
+    };
+
+    const handleBulkWhatsApp = () => {
+        const selectedData = getSelectedVisasData();
+        if (selectedData.length === 0) return;
+        const text = generateBulkShareText(selectedData);
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    };
+
+    const handleBulkEmailInitiate = () => {
+        const selectedData = getSelectedVisasData();
+        if (selectedData.length === 0) return;
+        setIsBulkSharing(true);
+        setEmailModalVisa({
+            title: `${selectedData.length} Selected Visas`,
+            isBulk: true,
+            data: selectedData
+        });
+    };
+
     const handleEmailShare = async (e) => {
         e.preventDefault();
         if (!sharingEmail || !emailModalVisa) return;
 
         setSendingEmail(true);
         try {
-            const subject = `Visa Information: ${emailModalVisa.title} for ${emailModalVisa.country_details?.name || emailModalVisa.country}`;
-            const body = `Hello, please find details with regards to your visa query for:
+            const selectedData = emailModalVisa.isBulk ? emailModalVisa.data : [emailModalVisa];
+            const subject = emailModalVisa.isBulk
+                ? `Visa Information: Multiple Options for ${selectedData[0]?.country_details?.name || selectedData[0]?.country}`
+                : `Visa Information: ${emailModalVisa.title} for ${emailModalVisa.country_details?.name || emailModalVisa.country}`;
+
+            const body = emailModalVisa.isBulk
+                ? generateBulkShareText(selectedData)
+                : `Hello, please find details with regards to your visa query for:
 
 ${emailModalVisa.country_details?.name || emailModalVisa.country}
 
@@ -176,16 +236,6 @@ In case of any support :
 Terms & Conditions:
 Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
 
-            // Using mailto as a fallback since original code used it, 
-            // but the user wants it to go "automatically". 
-            // Without a proper backend mail service, mailto is the only choice.
-            // If they have emailjs or similar, we could use that.
-            // I'll stick to a professional looking modal that prepares the mailto
-            // for now, or if they have an API endpoint I'd use that.
-            // Seeing 'axios' is used, maybe there's an endpoint.
-            // User said: "small form to fill a email address only so the deatails go automattically to the end user from our mail id"
-            // This implies a backend service.
-
             await axios.post('/api/send-visa-details/', {
                 email: sharingEmail,
                 subject,
@@ -195,13 +245,20 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
             alert("Details sent successfully to " + sharingEmail);
             setEmailModalVisa(null);
             setSharingEmail("");
+            setIsBulkSharing(false);
         } catch (error) {
             console.error("Error sending email:", error);
-            // Fallback to mailto if API fails
-            const subject = `Visa Information: ${emailModalVisa.title} for ${emailModalVisa.country_details?.name || emailModalVisa.country}`;
+            const selectedData = emailModalVisa.isBulk ? emailModalVisa.data : [emailModalVisa];
+            const subject = emailModalVisa.isBulk
+                ? `Visa Information: Multiple Options`
+                : `Visa Information: ${emailModalVisa.title}`;
+            const body = emailModalVisa.isBulk
+                ? generateBulkShareText(selectedData)
+                : `Hello...`; // Simplified for fallback
             window.location.href = `mailto:${sharingEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             setEmailModalVisa(null);
             setSharingEmail("");
+            setIsBulkSharing(false);
         } finally {
             setSendingEmail(false);
         }
@@ -377,8 +434,20 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                             return (
                                 <div
                                     key={visa.id}
-                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative"
+                                    className={`bg-white rounded-2xl shadow-sm border transition-all relative ${selectedVisas.some(v => v.id === visa.id) ? 'border-green-500 ring-2 ring-green-500/10' : 'border-gray-100'}`}
                                 >
+                                    {/* Selection Checkbox */}
+                                    <div
+                                        className="absolute top-4 left-4 z-20 cursor-pointer"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleVisaSelection(visa);
+                                        }}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedVisas.some(v => v.id === visa.id) ? 'bg-green-600 border-green-600' : 'bg-white/50 backdrop-blur-sm border-white'}`}>
+                                            {selectedVisas.some(v => v.id === visa.id) && <CheckCircle size={14} className="text-white" />}
+                                        </div>
+                                    </div>
                                     {/* Header with Background Image/Video */}
                                     <div className="relative h-20 md:h-24 rounded-t-2xl overflow-hidden bg-[#14532d]">
                                         {visa.card_image && (
@@ -444,7 +513,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                         e.stopPropagation();
                                                         setEmailModalVisa(visa);
                                                     }}
-                                                    className="flex items-center gap-1 text-orange-400 hover:text-orange-300 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                    className="flex items-center gap-1 text-[#14532d] hover:text-[#0f3d21] font-bold text-[9px] md:text-[10px] transition-colors"
                                                 >
                                                     <Mail size={12} />
                                                     Email
@@ -657,7 +726,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                     navigator.clipboard.writeText(text);
                                     alert("Details copied to clipboard!");
                                 }}
-                                className="flex items-center gap-1.5 text-orange-500 font-bold text-[10px] hover:bg-orange-50 px-2.5 py-1.5 rounded-lg transition-colors border border-orange-100"
+                                className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors border border-green-100"
                             >
                                 <Copy size={12} />
                                 Copy
@@ -723,7 +792,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                         type="email"
                                         required
                                         placeholder="example@email.com"
-                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm"
+                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d]/20 focus:border-[#14532d] outline-none transition-all text-sm"
                                         value={sharingEmail}
                                         onChange={(e) => setSharingEmail(e.target.value)}
                                         autoFocus
@@ -732,7 +801,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                 <button
                                     type="submit"
                                     disabled={sendingEmail}
-                                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="w-full py-3 bg-[#14532d] hover:bg-[#0f4a24] text-white rounded-xl font-bold text-sm shadow-lg shadow-[#14532d]/30 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {sendingEmail ? (
                                         <>
@@ -747,6 +816,38 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                     )}
                                 </button>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Multi-Share Bar */}
+            {selectedVisas.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] w-[90%] max-w-lg">
+                    <div className="bg-[#14532d] text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom-10">
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold">{selectedVisas.length} Visas Selected</span>
+                            <button
+                                onClick={() => setSelectedVisas([])}
+                                className="text-[10px] text-green-200 hover:text-white underline text-left"
+                            >
+                                Clear Selection
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleBulkWhatsApp}
+                                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                            >
+                                <MessageCircle size={14} />
+                                Share WhatsApp
+                            </button>
+                            <button
+                                onClick={handleBulkEmailInitiate}
+                                className="flex items-center gap-2 bg-[#14532d] hover:bg-[#0f4a24] px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                            >
+                                <Mail size={14} />
+                                Share Email
+                            </button>
                         </div>
                     </div>
                 </div>

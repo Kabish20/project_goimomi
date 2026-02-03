@@ -289,7 +289,7 @@ const AdminDashboard = () => {
                                 enquiry.type === 'Umrah' ? 'bg-purple-100 text-purple-700' :
                                   enquiry.type === 'Cab' ? 'bg-amber-100 text-amber-700' :
                                     enquiry.type === 'Cruise' ? 'bg-sky-100 text-sky-700' :
-                                      enquiry.type === 'Hotel' ? 'bg-orange-100 text-orange-700' :
+                                      enquiry.type === 'Hotel' ? 'bg-green-100 text-green-700' :
                                         'bg-blue-100 text-blue-700'
                                 }`}>
                                 {enquiry.type}

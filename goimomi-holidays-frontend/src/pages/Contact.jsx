@@ -143,6 +143,16 @@ const Contact = () => {
             </div>
           </div>
 
+          <div className="flex items-center gap-4">
+            <FiMapPin className="text-[#14532d] text-2xl" />
+            <p className="text-gray-700 font-medium leading-tight">
+              8807, Prince Majid Street, <br />
+              2104, Al Aziziyah Dist.,<br />
+              23342, Jeddah, <br />
+              Kingdom of Saudi Arabia
+            </p>
+          </div>
+
           <div className="p-5 bg-[#14532d] text-white rounded-xl shadow-xl max-w-sm">
             <p className="text-lg font-semibold">We're Available 24/7</p>
             <p className="text-sm mt-1 text-gray-300">
