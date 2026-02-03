@@ -143,9 +143,7 @@ import vietnamVisa from "../assets/Visa/vietnam.png";
 
 
 // TESTIMONIALS
-import user1 from "../assets/user1.png";
-import user2 from "../assets/user2.png";
-import user3 from "../assets/user3.png";
+
 
 const Home = () => {
   const navigate = useNavigate();
@@ -485,63 +483,162 @@ const Home = () => {
         </div>
       </section>
       {/* ---------------- TESTIMONIALS ---------------- */}
-      <section className="py-20 px-6">
-        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
-          What Our Travelers Say
-        </h2>
-        <p className="text-center text-gray-600 mt-2 fade-up">
-          Real experiences from our valued customers
-        </p>
+      {/* ---------------- TESTIMONIALS ---------------- */}
+      <section className="py-24 px-6 bg-white relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-green-50 rounded-full blur-3xl opacity-50"></div>
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mt-14">
-
-          {/* Testimonial 1 */}
-          <div className="bg-white p-6 rounded-2xl shadow-xl border fade-up zoom-hover" style={{ animationDelay: "0.2s" }}>
-            <div className="flex items-center gap-3 mb-4">
-              <img src={user1} className="w-12 h-12 rounded-full object-cover" />
-              <div>
-                <h3 className="font-semibold">Priya Sharma</h3>
-                <p className="text-yellow-500 text-sm">★★★★★</p>
-              </div>
-            </div>
-            <p className="text-gray-700 text-sm">
-              "Goimomi made our Maldives honeymoon unforgettable. Perfect service!"
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-[#14532d] tracking-tight fade-up">
+              What Our Travelers Say
+            </h2>
+            <div className="w-24 h-1.5 bg-[#14532d] mx-auto mt-6 rounded-full fade-up" style={{ animationDelay: "0.1s" }}></div>
+            <p className="text-gray-500 mt-6 text-lg font-medium max-w-2xl mx-auto fade-up" style={{ animationDelay: "0.2s" }}>
+              Don't just take our word for it—hear from the explorers who've journeyed with us.
             </p>
-            <p className="mt-4 text-xs text-gray-500">Service: Maldives Package</p>
           </div>
 
-          {/* Testimonial 2 */}
-          <div className="bg-white p-6 rounded-2xl shadow-xl border fade-up zoom-hover" style={{ animationDelay: "0.4s" }}>
-            <div className="flex items-center gap-3 mb-4">
-              <img src={user2} className="w-12 h-12 rounded-full object-cover" />
-              <div>
-                <h3 className="font-semibold">Rajesh Kumar</h3>
-                <p className="text-yellow-500 text-sm">★★★★★</p>
-              </div>
-            </div>
-            <p className="text-gray-700 text-sm">
-              "Our Kerala trip was seamless and memorable thanks to Goimomi Holidays!"
-            </p>
-            <p className="mt-4 text-xs text-gray-500">Service: Kerala Domestic Tour</p>
-          </div>
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={30}
+            slidesPerView={1}
+            pagination={{ clickable: true, dynamicBullets: true }}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            breakpoints={{
+              768: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
+            }}
+            className="testimonial-swiper !pb-16"
+          >
+            {[
+              {
+                name: "Jeswant Fernandez",
+                date: "2 years ago",
+                rating: 5,
+                text: "One stop place for all your travel/tour package needs. They offer the best price and service. Kudos keep it up Team Goimomi!!",
+                initial: "JF",
+                color: "bg-blue-600",
+                service: "Holiday Packages"
+              },
+              {
+                name: "Suba",
+                date: "1 month ago",
+                rating: 5,
+                text: "We booked our room in Vagamon through Goimomi Holidays, and the service was excellent. The booking process was smooth, quick, and completely hassle-free. They provided clear information, helped us choose the right room, and made sure everything was arranged perfectly before our arrival.",
+                initial: "S",
+                color: "bg-emerald-600",
+                service: "Hotel Booking"
+              },
+              {
+                name: "Sai Varadharajan",
+                date: "1 year ago",
+                rating: 5,
+                text: "We booked Bali Trip via Goimomi Travels and Mr. Ismail was the person whom we contacted. They created a group in Telegram and gave information continuously. The driver in Bali was so helpful and friendly. I strongly recommend them for any International trip.",
+                initial: "SV",
+                color: "bg-amber-600",
+                service: "International Tour"
+              },
+              {
+                name: "Ashwin Retnam",
+                date: "3 months ago",
+                rating: 5,
+                text: "Excellent visa processing service! The Goimomi team helped me obtain my UAE visa in less than 24 hours. The team was extremely professional and communicated clearly on every requirement. Highly recommended for anyone looking to process their visa quickly!",
+                initial: "AR",
+                color: "bg-violet-600",
+                service: "Visa Assistance"
+              },
+              {
+                name: "Imthiyaz Immu",
+                date: "9 months ago",
+                rating: 5,
+                text: "FINISHED 5 days ANDAMAN family trip with help of @goimomi holidays Travel partner. Totally satisfied from day 1 to 5 with best Eternity plans and fares. Sure next my international trip will be with Goimomi only.. Just happiest Experience 😍😍",
+                initial: "II",
+                color: "bg-rose-600",
+                service: "Family Vacation"
+              },
+              {
+                name: "Kalaivani Ganesan",
+                date: "5 months ago",
+                rating: 5,
+                text: "Trip itinerary was well planned, visa clearing process they took good care of it. The hotels were good.. total satisfaction trip with goimomi holidays",
+                initial: "KG",
+                color: "bg-cyan-600",
+                service: "Holiday Planning"
+              },
+              {
+                name: "jinesh n janardhanan",
+                date: "a year ago",
+                rating: 5,
+                text: "Dear Goimomi we would like to express our heartfelt gratitude for the exceptional Dubai tour package. Your expertise and attention to detail made our trip truly unforgettable. Every moment was pure magic from the desert safari to the Burj Khalifa tour.",
+                initial: "JJ",
+                color: "bg-indigo-600",
+                service: "Dubai Tour Package"
+              },
+              {
+                name: "Abdul Hafiz",
+                date: "9 months ago",
+                rating: 5,
+                text: "Best price for visa processing. Beautifully organized and well equipped team. They were in touch till we returned to our home. All the best.",
+                initial: "AH",
+                color: "bg-teal-600",
+                service: "Visa Processing"
+              }
+            ].map((testimonial, i) => (
+              <SwiperSlide key={i}>
+                <div className="bg-white p-6 rounded-2xl shadow-lg shadow-gray-200/40 border border-gray-100 flex flex-col h-[310px] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-xl ${testimonial.color} flex items-center justify-center text-white text-lg font-bold shadow-md transform group-hover:rotate-3 transition-transform`}>
+                        {testimonial.initial}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-sm leading-tight">{testimonial.name}</h3>
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">{testimonial.date}</p>
+                      </div>
+                    </div>
+                    <div className="bg-white px-2 py-1 rounded-lg shadow-sm border border-gray-50 uppercase text-[9px] font-black text-[#14532d] flex items-center gap-1">
+                      <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
+                      Review
+                    </div>
+                  </div>
 
-          {/* Testimonial 3 */}
-          <div className="bg-white p-6 rounded-2xl shadow-xl border fade-up zoom-hover" style={{ animationDelay: "0.6s" }}>
-            <div className="flex items-center gap-3 mb-4">
-              <img src={user3} className="w-12 h-12 rounded-full object-cover" />
-              <div>
-                <h3 className="font-semibold">Anjali Singh</h3>
-                <p className="text-yellow-500 text-sm">★★★★☆</p>
-              </div>
-            </div>
-            <p className="text-gray-700 text-sm">
-              "Their team curated a perfect honeymoon package. Everything was professionally handled!"
-            </p>
-            <p className="mt-4 text-xs text-gray-500">Service: Honeymoon Package</p>
-          </div>
+                  <div className="flex mb-3">
+                    {[...Array(5)].map((_, starIdx) => (
+                      <svg
+                        key={starIdx}
+                        className={`w-4 h-4 ${starIdx < testimonial.rating ? 'text-yellow-400 fill-current' : 'text-gray-200'}`}
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
 
+                  <p className="text-gray-600 text-xs leading-relaxed mb-4 line-clamp-4 group-hover:text-gray-700 italic">
+                    "{testimonial.text}"
+                  </p>
+
+                  <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[#14532d]/40 mb-0.5">Service Experience</p>
+                      <p className="text-xs font-bold text-[#14532d]">{testimonial.service}</p>
+                    </div>
+                    <div className="w-7 h-7 rounded-full bg-green-50 flex items-center justify-center">
+                      <svg className="w-3.5 h-3.5 text-[#14532d]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
       </section>
+
 
       {/* ---------------- WHY CHOOSE US SECTION ---------------- */}
       <section className="py-16 px-6 bg-gray-100">

@@ -163,10 +163,10 @@ const VisaResults = () => {
             text += `-------------------------------------------------------------\n\n`;
         });
 
-        text += `Thank you for choosing goimomi.com\n\n`;
+        text += `Thank you for choosing goimomi.com\n`;
         text += `In case of any support :\n`;
-        text += `📞 Contact : +91 6382220393\n`;
-        text += `✉️ Email : hello@goimomi.com\n\n`;
+        text += `Contact : +91 6382220393\n`;
+        text += `Email : hello@goimomi.com\n\n`;
         text += `Terms & Conditions: Visa approval depends on authorities. Fees non-refundable.`;
 
         return text;
@@ -195,26 +195,21 @@ const VisaResults = () => {
         if (!sharingEmail || !emailModalVisa) return;
 
         setSendingEmail(true);
-        try {
-            const selectedData = emailModalVisa.isBulk ? emailModalVisa.data : [emailModalVisa];
-            const subject = emailModalVisa.isBulk
-                ? `Visa Information: Multiple Options for ${selectedData[0]?.country_details?.name || selectedData[0]?.country}`
-                : `Visa Information: ${emailModalVisa.title} for ${emailModalVisa.country_details?.name || emailModalVisa.country}`;
 
-            const body = emailModalVisa.isBulk
-                ? generateBulkShareText(selectedData)
-                : `Hello, please find details with regards to your visa query for:
+        const selectedData = emailModalVisa.isBulk ? emailModalVisa.data : [emailModalVisa];
+        const subject = emailModalVisa.isBulk
+            ? `Visa Information: Multiple Options for ${selectedData[0]?.country_details?.name || selectedData[0]?.country}`
+            : `Visa Information: ${emailModalVisa.country_details?.name || emailModalVisa.country} ${emailModalVisa.title}`;
 
+        const body = emailModalVisa.isBulk
+            ? generateBulkShareText(selectedData)
+            : `Hello, please find details with regards to your visa query for:
 ${emailModalVisa.country_details?.name || emailModalVisa.country}
-
 1 Adult
-
 ${emailModalVisa.visa_type}
 
 Below mentioned prices are the total price(s) inclusive of taxes:
-
 -------------------------------------------------------------
-
 VISA: ${emailModalVisa.title}
 Country: ${emailModalVisa.country_details?.name || emailModalVisa.country}
 Type: ${emailModalVisa.visa_type}
@@ -223,19 +218,16 @@ Validity: ${emailModalVisa.validity || "N/A"}
 Duration: ${emailModalVisa.duration || "N/A"}
 Processing Time: ${emailModalVisa.processing_time}
 Price: ₹${emailModalVisa.selling_price?.toLocaleString()}
-
 -------------------------------------------------------------
-
 Thank you for choosing goimomi.com
-
 In case of any support :
-
-📞 Contact : +91 6382220393
-✉️ Email : hello@goimomi.com
+Contact : +91 6382220393
+Email : hello@goimomi.com
 
 Terms & Conditions:
 Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
 
+        try {
             await axios.post('/api/send-visa-details/', {
                 email: sharingEmail,
                 subject,
@@ -248,13 +240,6 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
             setIsBulkSharing(false);
         } catch (error) {
             console.error("Error sending email:", error);
-            const selectedData = emailModalVisa.isBulk ? emailModalVisa.data : [emailModalVisa];
-            const subject = emailModalVisa.isBulk
-                ? `Visa Information: Multiple Options`
-                : `Visa Information: ${emailModalVisa.title}`;
-            const body = emailModalVisa.isBulk
-                ? generateBulkShareText(selectedData)
-                : `Hello...`; // Simplified for fallback
             window.location.href = `mailto:${sharingEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             setEmailModalVisa(null);
             setSharingEmail("");
@@ -470,17 +455,12 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         const text = `Hello, please find details with regards to your visa query for:
-
 ${visa.country_details?.name || visa.country}
-
 1 Adult
-
 ${visa.visa_type}
 
 Below mentioned prices are the total price(s) inclusive of taxes:
-
 -------------------------------------------------------------
-
 VISA: ${visa.title}
 Country: ${visa.country_details?.name || visa.country}
 Type: ${visa.visa_type}
@@ -489,15 +469,11 @@ Validity: ${visa.validity || "N/A"}
 Duration: ${visa.duration || "N/A"}
 Processing Time: ${visa.processing_time}
 Price: ₹${visa.selling_price?.toLocaleString()}
-
 -------------------------------------------------------------
-
 Thank you for choosing goimomi.com
-
 In case of any support :
-
-📞 Contact : +91 6382220393
-✉️ Email : hello@goimomi.com
+Contact : +91 6382220393
+Email : hello@goimomi.com
 
 Terms & Conditions:
 Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
@@ -758,8 +734,8 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                 <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
                                 <p>Thank you for choosing goimomi.com</p>
                                 <p>In case of any support :</p>
-                                <p><span className="inline-block w-4 text-center">📞</span> Contact : <span className="font-bold">+91 6382220393</span></p>
-                                <p><span className="inline-block w-4 text-center">✉️</span> Email : <span className="font-bold">hello@goimomi.com</span></p>
+                                <p>Contact : <span className="font-bold">+91 6382220393</span></p>
+                                <p>Email : <span className="font-bold">hello@goimomi.com</span></p>
                                 <br />
                                 <div className="border-t border-gray-100 pt-3 mt-1">
                                     <p className="font-bold text-[10px] text-gray-900 mb-1 tracking-wider uppercase">Terms & Conditions:</p>

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "/"
+    baseURL: import.meta.env.PROD ? "https://www.goimomi.com" : ""
 });
 
 api.interceptors.request.use(
