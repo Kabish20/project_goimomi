@@ -24,6 +24,7 @@ const VisaResults = () => {
     const [sendingEmail, setSendingEmail] = useState(false);
     const [selectedVisas, setSelectedVisas] = useState([]);
     const [isBulkSharing, setIsBulkSharing] = useState(false);
+    const [viewBulkData, setViewBulkData] = useState(null);
 
     // Search state managed locally for interactivity
     const [citizenOf, setCitizenOf] = useState(searchParams.get("citizenOf") || "India");
@@ -160,6 +161,9 @@ const VisaResults = () => {
             text += `Type: ${visa.visa_type}\n`;
             text += `Entry: ${visa.entry_type}\n`;
             text += `Price: ₹${visa.selling_price?.toLocaleString()}\n`;
+            text += `Processing Time: ${visa.processing_time}\n`;
+            text += `Documents Required: ${visa.documents_required || "N/A"}\n`;
+            text += `Photography Requirements: ${visa.photography_required || "N/A"}\n`;
             text += `-------------------------------------------------------------\n\n`;
         });
 
@@ -170,6 +174,12 @@ const VisaResults = () => {
         text += `Terms & Conditions: Visa approval depends on authorities. Fees non-refundable.`;
 
         return text;
+    };
+
+    const handleBulkView = () => {
+        const selectedData = getSelectedVisasData();
+        if (selectedData.length === 0) return;
+        setViewBulkData(selectedData);
     };
 
     const handleBulkWhatsApp = () => {
@@ -690,6 +700,8 @@ Entry: ${viewDetailsVisa.entry_type}
 Validity: ${viewDetailsVisa.validity || "N/A"}
 Duration: ${viewDetailsVisa.duration || "N/A"}
 Processing Time: ${viewDetailsVisa.processing_time}
+Documents Required: ${viewDetailsVisa.documents_required || "N/A"}
+Photography Requirements: ${viewDetailsVisa.photography_required || "N/A"}
 Price: ₹${viewDetailsVisa.selling_price?.toLocaleString()}
 -------------------------------------------------------------
 Thank you for choosing goimomi.com
@@ -721,15 +733,40 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                 <br />
                                 <p>Below mentioned prices are the total price(s) inclusive of taxes:</p>
                                 <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
-                                <div className="space-y-0.5">
-                                    <p><span className="font-bold">VISA:</span> {viewDetailsVisa.title}</p>
-                                    <p><span className="font-bold">Country:</span> {viewDetailsVisa.country_details?.name || viewDetailsVisa.country}</p>
-                                    <p><span className="font-bold">Type:</span> {viewDetailsVisa.visa_type}</p>
-                                    <p><span className="font-bold">Entry:</span> {viewDetailsVisa.entry_type}</p>
-                                    <p><span className="font-bold">Validity:</span> {viewDetailsVisa.validity || "N/A"}</p>
-                                    <p><span className="font-bold">Duration:</span> {viewDetailsVisa.duration || "N/A"}</p>
-                                    <p><span className="font-bold">Processing Time:</span> {viewDetailsVisa.processing_time}</p>
-                                    <p><span className="font-bold">Price:</span> ₹{viewDetailsVisa.selling_price?.toLocaleString()}</p>
+                                <div className="space-y-2">
+                                    <div className="space-y-0.5">
+                                        <p><span className="font-bold">VISA:</span> {viewDetailsVisa.title}</p>
+                                        <p><span className="font-bold">Country:</span> {viewDetailsVisa.country_details?.name || viewDetailsVisa.country}</p>
+                                        <p><span className="font-bold">Type:</span> {viewDetailsVisa.visa_type}</p>
+                                        <p><span className="font-bold">Entry:</span> {viewDetailsVisa.entry_type}</p>
+                                        <p><span className="font-bold">Validity:</span> {viewDetailsVisa.validity || "N/A"}</p>
+                                        <p><span className="font-bold">Duration:</span> {viewDetailsVisa.duration || "N/A"}</p>
+                                        <p><span className="font-bold">Processing Time:</span> {viewDetailsVisa.processing_time}</p>
+                                    </div>
+
+                                    {viewDetailsVisa.documents_required && (
+                                        <div>
+                                            <p className="font-bold mb-1">Documents Required:</p>
+                                            <ul className="list-disc pl-4 space-y-0.5">
+                                                {viewDetailsVisa.documents_required.split(',').map((doc, idx) => (
+                                                    <li key={idx} className="text-gray-600">{doc.trim()}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {viewDetailsVisa.photography_required && (
+                                        <div>
+                                            <p className="font-bold mb-1">Photography Requirements:</p>
+                                            <ul className="list-disc pl-4 space-y-0.5">
+                                                {viewDetailsVisa.photography_required.split(',').map((req, idx) => (
+                                                    <li key={idx} className="text-gray-600">{req.trim()}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    <p className="pt-1"><span className="font-bold">Price:</span> ₹{viewDetailsVisa.selling_price?.toLocaleString()}</p>
                                 </div>
                                 <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
                                 <p>Thank you for choosing goimomi.com</p>
@@ -796,6 +833,86 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                     </div>
                 </div>
             )}
+
+            {/* Bulk View Modal */}
+            {viewBulkData && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewBulkData(null)}>
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center px-4 py-3 border-b">
+                            <button
+                                onClick={() => {
+                                    const text = generateBulkShareText(viewBulkData);
+                                    navigator.clipboard.writeText(text);
+                                    alert("All details copied to clipboard!");
+                                }}
+                                className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors border border-green-100"
+                            >
+                                <Copy size={12} />
+                                Copy All
+                            </button>
+                            <h3 className="text-base font-bold text-gray-800">Selected Visas</h3>
+                            <button onClick={() => setViewBulkData(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-5 max-h-[70vh] overflow-y-auto">
+                            <div className="font-sans text-[12px] text-gray-700 leading-relaxed">
+                                <p className="mb-4">Hello, please find details with regards to your visa query for Multiple Options:</p>
+
+                                {viewBulkData.map((visa, index) => (
+                                    <div key={index} className="mb-6 border-b border-gray-100 pb-4 last:border-0 last:mb-0 last:pb-0">
+                                        <p className="font-bold text-[#14532d] mb-2">OPTION {index + 1}</p>
+                                        <div className="space-y-0.5">
+                                            <p><span className="font-bold">VISA:</span> {visa.title}</p>
+                                            <p><span className="font-bold">Country:</span> {visa.country_details?.name || visa.country}</p>
+                                            <p><span className="font-bold">Type:</span> {visa.visa_type}</p>
+                                            <p><span className="font-bold">Entry:</span> {visa.entry_type}</p>
+                                            <p><span className="font-bold">Processing Time:</span> {visa.processing_time}</p>
+
+                                            {visa.documents_required && (
+                                                <div className="mt-1">
+                                                    <p className="font-bold text-[11px]">Documents:</p>
+                                                    <ul className="list-disc pl-4 space-y-0.5">
+                                                        {visa.documents_required.split(',').map((doc, idx) => (
+                                                            <li key={idx} className="text-gray-600">{doc.trim()}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            {visa.photography_required && (
+                                                <div className="mt-1">
+                                                    <p className="font-bold text-[11px]">Photography:</p>
+                                                    <ul className="list-disc pl-4 space-y-0.5">
+                                                        {visa.photography_required.split(',').map((req, idx) => (
+                                                            <li key={idx} className="text-gray-600">{req.trim()}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            <p className="pt-1"><span className="font-bold">Price:</span> ₹{visa.selling_price?.toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
+                                <p>Thank you for choosing goimomi.com</p>
+                                <p>In case of any support :</p>
+                                <p>Contact : <span className="font-bold">+91 6382220393</span></p>
+                                <p>Email : <span className="font-bold">hello@goimomi.com</span></p>
+                                <br />
+                                <div className="border-t border-gray-100 pt-3 mt-1">
+                                    <p className="font-bold text-[10px] text-gray-900 mb-1 tracking-wider uppercase">Terms & Conditions:</p>
+                                    <p className="text-gray-500 text-[10px] leading-relaxed italic">
+                                        Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Multi-Share Bar */}
             {selectedVisas.length > 0 && (
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] w-[90%] max-w-lg">
@@ -810,6 +927,13 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                             </button>
                         </div>
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleBulkView}
+                                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 text-yellow-400"
+                            >
+                                <Eye size={14} />
+                                View
+                            </button>
                             <button
                                 onClick={handleBulkWhatsApp}
                                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 text-white"
@@ -831,5 +955,6 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
         </div>
     );
 };
+
 
 export default VisaResults;
