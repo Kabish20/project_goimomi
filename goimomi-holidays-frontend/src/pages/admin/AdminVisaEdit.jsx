@@ -32,11 +32,7 @@ const AdminVisaEdit = () => {
         photography_required: "",
         visa_type: "✈️ Tourist Visa",
         is_active: true,
-        is_popular: false,
         supplier: null,
-        card_image: null,
-        card_image_preview: null,
-        existing_card_image: null,
     });
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,14 +64,7 @@ const AdminVisaEdit = () => {
         }
     }, []);
 
-    const handleRemoveImage = () => {
-        setFormData(prev => ({
-            ...prev,
-            card_image: null,
-            card_image_preview: null,
-            existing_card_image: null
-        }));
-    };
+
 
     const fetchVisa = useCallback(async () => {
         try {
@@ -95,11 +84,7 @@ const AdminVisaEdit = () => {
                 documents_required: data.documents_required || "",
                 photography_required: data.photography_required || "",
                 is_active: data.is_active ?? true,
-                is_popular: data.is_popular ?? false,
                 supplier: data.supplier || null,
-                card_image: null,
-                card_image_preview: null,
-                existing_card_image: data.card_image || null,
             });
         } catch (error) {
             console.error("Error fetching visa:", error);
@@ -123,10 +108,6 @@ const AdminVisaEdit = () => {
                 [`${name}_preview`]: file ? URL.createObjectURL(file) : null
             });
         } else {
-            if (name === "is_popular" && checked && !formData.card_image && !formData.existing_card_image) {
-                setStatusMessage({ text: "Please upload a card image before marking as popular.", type: "error" });
-                return;
-            }
             const updatedValue = type === "checkbox" ? checked : value;
             setFormData(prev => {
                 const newData = { ...prev, [name]: updatedValue };
@@ -146,11 +127,7 @@ const AdminVisaEdit = () => {
     const handleSubmit = async (e, action = "save") => {
         if (e) e.preventDefault();
 
-        // Safety check for is_popular
-        if (formData.is_popular && !formData.card_image && !formData.existing_card_image) {
-            setStatusMessage({ text: "Please upload a card image before marking as popular.", type: "error" });
-            return;
-        }
+
 
         if (!formData.country || !formData.title || formData.selling_price <= 0) {
             setStatusMessage({ text: "Please fill in all required fields. Selling price must be greater than 0.", type: "error" });
@@ -163,13 +140,7 @@ const AdminVisaEdit = () => {
 
             const data = new FormData();
             Object.keys(formData).forEach(key => {
-                if (key === 'card_image') {
-                    if (formData[key]) {
-                        data.append(key, formData[key]);
-                    } else if (formData.existing_card_image === null) {
-                        data.append(key, ""); // Force clear on backend
-                    }
-                } else if (!key.includes('preview') && !key.includes('existing')) {
+                if (!key.includes('preview') && !key.includes('existing')) {
                     if (formData[key] !== null) data.append(key, formData[key]);
                 }
             });
@@ -197,11 +168,7 @@ const AdminVisaEdit = () => {
                     documents_required: fresh.data.documents_required || "",
                     photography_required: fresh.data.photography_required || "",
                     is_active: fresh.data.is_active ?? true,
-                    is_popular: fresh.data.is_popular ?? false,
                     supplier: fresh.data.supplier || null,
-                    card_image: null,
-                    card_image_preview: null,
-                    existing_card_image: fresh.data.card_image || null,
                 });
                 setIsSubmitting(false);
             } else if (action === "another") {
@@ -555,50 +522,6 @@ const AdminVisaEdit = () => {
                                         </label>
                                     </div>
 
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            name="is_popular"
-                                            checked={formData.is_popular}
-                                            onChange={handleChange}
-                                            id="is_popular"
-                                            className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] border-gray-300 rounded cursor-pointer"
-                                        />
-                                        <label htmlFor="is_popular" className="text-[10px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer">
-                                            Popular Visa (Home & Landing Page)
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1 text-xs px-1">
-                                    <label className="block font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                        Card Image (For Popular Display)
-                                    </label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="file"
-                                            name="card_image"
-                                            onChange={handleChange}
-                                            accept="image/*"
-                                            className="flex-1 max-w-sm px-3 py-1 bg-gray-50 border border-gray-200 rounded text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
-                                        />
-                                        {(formData.card_image_preview || formData.existing_card_image) && (
-                                            <div className="h-10 w-10 rounded border border-gray-200 overflow-hidden shadow-sm relative group">
-                                                <img
-                                                    src={formData.card_image_preview || getImageUrl(formData.existing_card_image)}
-                                                    alt="Preview"
-                                                    className="h-full w-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={handleRemoveImage}
-                                                    className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X size={8} />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
 

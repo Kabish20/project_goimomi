@@ -4,6 +4,8 @@ import axios from "axios";
 import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import visaBg from "../assets/Hero/visa_bg.jpg";
+
 
 const getImageUrl = (url) => {
     if (!url) return "";
@@ -518,7 +520,14 @@ const VisaApplication = () => {
                 </div>
 
                 {/* Header Section with Background Image/Video */}
-                <div className="relative mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-[#14532d] min-h-[200px] flex items-center">
+                <div
+                    className="relative mb-8 rounded-2xl overflow-hidden shadow-lg border border-gray-100 min-h-[200px] flex items-center"
+                    style={{
+                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${visaBg})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                    }}
+                >
                     {currentVisa?.header_image && (
                         <img
                             src={getImageUrl(currentVisa.header_image)}
@@ -526,7 +535,6 @@ const VisaApplication = () => {
                             className="absolute inset-0 w-full h-full object-cover opacity-40"
                         />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#14532d] via-[#14532d]/80 to-transparent" />
 
                     <div className="relative z-10 p-6 md:p-10 w-full">
                         <div className="max-w-4xl">

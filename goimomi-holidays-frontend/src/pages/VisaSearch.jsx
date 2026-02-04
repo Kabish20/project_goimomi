@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Home, Plane, Calendar, MapPin, ChevronDown, Zap, ShieldCheck, Headphones } from "lucide-react";
 import axios from "axios";
+import visaBg from "../assets/Hero/visa_bg.jpg";
 
 const VisaSearch = () => {
     const navigate = useNavigate();
@@ -92,7 +93,14 @@ const VisaSearch = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Hero Section with Search */}
-            <div className="bg-[#14532d] pt-20 pb-32">
+            <div
+                className="relative pt-20 pb-32 overflow-hidden"
+                style={{
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${visaBg})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                }}
+            >
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center text-white mb-12">
                         <h1 className="text-4xl font-bold mb-3">Visa Services</h1>
