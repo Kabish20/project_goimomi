@@ -4,7 +4,7 @@ const SuccessModal = ({ isOpen, onClose, message = 'Your form has been submitted
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1001] p-4">
       <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
