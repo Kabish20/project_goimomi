@@ -15,7 +15,7 @@ const SupplierAdd = () => {
         address_line2: "",
         city: "",
         state: "",
-        country: "",
+        country: "India",
         country_code: "+91",
         contact_no: "",
         contact_person: "",

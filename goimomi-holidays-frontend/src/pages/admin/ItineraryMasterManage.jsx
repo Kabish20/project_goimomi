@@ -68,7 +68,9 @@ const ItineraryMasterManage = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
-        <div className="p-4">
+
+        {/* Main Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-lg font-bold text-gray-800">Manage Itinerary Masters</h1>
             <div className="flex gap-2">
@@ -87,7 +89,7 @@ const ItineraryMasterManage = () => {
               </button>
             </div>
           </div>
-          electoral
+
           {/* Search Bar */}
           <div className="mb-4">
             <div className="relative max-w-sm">
@@ -101,7 +103,7 @@ const ItineraryMasterManage = () => {
               />
             </div>
           </div>
-          electoral
+
           {message && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
               {message}

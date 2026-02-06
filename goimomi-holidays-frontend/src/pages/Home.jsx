@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MapPin, Zap, ShieldCheck, Headphones } from "lucide-react";
-import EnquiryForm from "../components/EnquiryForm";
 
 // WhatsApp Chat Widget Component
 const WhatsAppWidget = ({ isOpen, onClose }) => {
@@ -125,14 +124,20 @@ import switzerlandOffer from "../assets/Specialoffers/switzerland.png";
 import maldivesOffer from "../assets/Specialoffers/maldivesOffer.png";
 
 // GALLERY
-import gallery1 from "../assets/TravelGallery/airport.png";
-import gallery2 from "../assets/TravelGallery/usa.png";
-import gallery3 from "../assets/TravelGallery/turkey.png";
-import gallery4 from "../assets/TravelGallery/card4.png";
-import gallery5 from "../assets/TravelGallery/Cities.png";
-import gallery6 from "../assets/TravelGallery/desert.png";
-import gallery7 from "../assets/TravelGallery/Abroad.png";
-import gallery8 from "../assets/TravelGallery/umrah.png";
+import gallery1 from "../assets/TravelGallery/client1.jpeg";
+import gallery2 from "../assets/TravelGallery/client2.jpeg";
+import gallery3 from "../assets/TravelGallery/client3.jpeg";
+import gallery4 from "../assets/TravelGallery/client4.jpeg";
+import gallery5 from "../assets/TravelGallery/client5.jpeg";
+import gallery6 from "../assets/TravelGallery/client6.jpeg";
+import gallery7 from "../assets/TravelGallery/client7.jpeg";
+import gallery8 from "../assets/TravelGallery/client8.jpeg";
+import gallery9 from "../assets/TravelGallery/client9.jpeg";
+import gallery10 from "../assets/TravelGallery/client10.webp";
+import gallery11 from "../assets/TravelGallery/client11.webp";
+import gallery12 from "../assets/TravelGallery/client12.webp";
+import gallery13 from "../assets/TravelGallery/client13.jpeg";
+import gallery14 from "../assets/TravelGallery/client14.jpeg";
 
 // VISAS
 import dubaiVisa from "../assets/Visa/dubai.png";
@@ -147,7 +152,6 @@ import vietnamVisa from "../assets/Visa/vietnam.png";
 
 const Home = () => {
   const navigate = useNavigate();
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [popularDestinations, setPopularDestinations] = useState([]);
   const [popularVisas, setPopularVisas] = useState([]);
@@ -182,36 +186,9 @@ const Home = () => {
     fetchHomeData();
   }, []);
 
-  useEffect(() => {
-    if (!isFormOpen) {
-      document.body.style.overflow = 'auto';
-    } else {
-      document.body.style.overflow = 'hidden';
-    }
-  }, [isFormOpen]);
-
-  // Auto-open enquiry form on page load (once per session)
-  // Auto-open enquiry form on page load (once per session)
-  useEffect(() => {
-    const hasShown = sessionStorage.getItem("enquiryFormShown");
-
-    if (!hasShown) {
-      const timer = setTimeout(() => {
-        setIsFormOpen(true);
-        sessionStorage.setItem("enquiryFormShown", "true");
-      }, 3000); // Opens after 3 seconds
-
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-  };
 
   return (
     <div className="w-full overflow-hidden bg-white">
-      <EnquiryForm isOpen={isFormOpen} onClose={handleCloseForm} />
       {/* ---------------- HERO SLIDER ---------------- */}
       <section className="relative w-full h-[520px]">
         <Swiper
@@ -476,15 +453,33 @@ const Home = () => {
           Moments captured from our travelers
         </p>
 
-        <div className="grid md:grid-cols-4 gap-6 max-w-7xl mx-auto mt-10">
-          {[gallery1, gallery2, gallery3, gallery4, gallery5, gallery6, gallery7, gallery8].map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              className="rounded-2xl shadow-xl h-64 w-full object-cover fade-up zoom-hover"
-              style={{ animationDelay: `${i * 0.2}s` }}
-            />
-          ))}
+        <div className="mt-10 max-w-7xl mx-auto">
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            loop={true}
+            autoplay={{ delay: 2500, disableOnInteraction: false }}
+            pagination={{ clickable: true, dynamicBullets: true }}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 4 },
+            }}
+            className="travel-gallery-swiper !pb-12"
+          >
+            {[gallery1, gallery2, gallery3, gallery4, gallery5, gallery6, gallery7, gallery8, gallery9, gallery10, gallery11, gallery12, gallery13, gallery14].map((img, i) => (
+              <SwiperSlide key={i}>
+                <div className="relative group overflow-hidden rounded-2xl shadow-xl h-72">
+                  <img
+                    src={img}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    alt={`Travel moment ${i + 1}`}
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-300"></div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
       </section>
       {/* ---------------- TESTIMONIALS ---------------- */}

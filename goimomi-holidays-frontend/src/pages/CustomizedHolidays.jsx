@@ -18,7 +18,7 @@ import heroImg from "../assets/cusholidays.png";
 import beachImg from "../assets/beach & island.png";
 import mountainImg from "../assets/mountain.png";
 import cultureImg from "../assets/temples.png";
-import cardImg from "../assets/TravelGallery/card4.png";
+import cardImg from "../assets/TravelGallery/download.jpeg";
 
 const CustomizedHolidays = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -216,13 +216,13 @@ const CustomizedHolidays = () => {
 
       {/* Contact / CTA */}
       <section
-        className="py-20 bg-[#14532d] text-white bg-cover bg-center"
+        className="py-20 bg-gray-50 text-black bg-cover bg-center"
         style={{ backgroundImage: `url(${cardImg})` }}
       >
         <div className="py-20 text-center max-w-4xl mx-auto">
-          <h2 className="text-center text-4xl font-bold">Plan Your Dream Holiday Today</h2>
+          <h2 className="text-center text-4xl font-bold text-black">Plan Your Dream Holiday Today</h2>
 
-          <p className="text-center mt-3 text-gray-200 max-w-3xl mx-auto">
+          <p className="text-center mt-3 text-black max-w-3xl mx-auto font-medium">
             Our travel experts are here to guide you with personalized travel solutions.
           </p>
 
@@ -331,11 +331,11 @@ const HolidayCard = ({ img, title, price, features, onOpenForm, packageType }) =
 );
 
 const ContactCard = ({ icon, title, subtitle, info }) => (
-  <div className="bg-[#14532d] p-8 rounded-xl text-center border border-indigo-50">
-    <div className="mb-4 flex justify-center">{icon}</div>
-    <h3 className="text-xl font-semibold text-white">{title}</h3>
-    <p className="text-gray-300 mt-1">{subtitle}</p>
-    <p className="text-yellow-400 mt-3 text-lg">{info}</p>
+  <div className="bg-white/80 backdrop-blur-sm p-8 rounded-xl text-center border border-gray-200 shadow-sm">
+    <div className="mb-4 flex justify-center text-[#14532d]">{icon}</div>
+    <h3 className="text-xl font-bold text-black">{title}</h3>
+    <p className="text-gray-700 mt-1 font-medium">{subtitle}</p>
+    <p className="text-[#14532d] mt-3 text-lg font-black">{info}</p>
   </div>
 );
 

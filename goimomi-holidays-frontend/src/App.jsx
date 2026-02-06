@@ -5,6 +5,7 @@ import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import ComingSoon from './components/ComingSoon.jsx'
+import EnquiryForm from './components/EnquiryForm.jsx'
 
 // Pages
 import Home from './pages/Home.jsx'
@@ -77,6 +78,21 @@ import ProtectedRoute from "./components/admin/ProtectedRoute";
 const App = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
+  const [isEnquiryOpen, setIsEnquiryOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    // Only show if not on admin path and hasn't been shown before
+    if (!isAdminPath) {
+      const hasShown = sessionStorage.getItem("generalEnquiryShown");
+      if (!hasShown) {
+        const timer = setTimeout(() => {
+          setIsEnquiryOpen(true);
+          sessionStorage.setItem("generalEnquiryShown", "true");
+        }, 3000); // Open after 3 seconds
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isAdminPath]);
 
   return (
     <div className={`flex flex-col ${isAdminPath ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
@@ -169,6 +185,7 @@ const App = () => {
       </main>
 
       {!isAdminPath && <Footer />}
+      <EnquiryForm isOpen={isEnquiryOpen} onClose={() => setIsEnquiryOpen(false)} />
     </div>
   );
 };
