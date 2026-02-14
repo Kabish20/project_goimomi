@@ -146,6 +146,25 @@ import saudiVisa from "../assets/Visa/saudi.png";
 import azerbaijanVisa from "../assets/Visa/azerbaijan.png";
 import vietnamVisa from "../assets/Visa/vietnam.png";
 
+// VISA DEALS 
+
+import uzbekistanVisa from "../assets/Visa Deals/Uzbekistan.png";
+import turkey from "../assets/Visa Deals/Turkey.png";
+import oman from "../assets/Visa Deals/Oman.png";
+import moroccoVisa from "../assets/Visa Deals/Morocco.png";
+import Laos from "../assets/Visa Deals/Laos.png";
+import Kyrgystan from "../assets/Visa Deals/Kyrgystan.png";
+import Kenya from "../assets/Visa Deals/Kenya.png";
+import Jordan from "../assets/Visa Deals/Jordan.png";
+import Indonesia from "../assets/Visa Deals/Indonesia.png";
+import Ethiopia from "../assets/Visa Deals/Ethiopia.png";
+import Dubai from "../assets/Visa Deals/Dubai.png";
+import cambodia from "../assets/Visa Deals/cambodia.png";
+import Bhutan from "../assets/Visa Deals/Bhutan.png";
+import Bahrain from "../assets/Visa Deals/Bahrain.png";
+import Azerbaijan from "../assets/Visa Deals/Azerbaijan.png";
+import Antigua from "../assets/Visa Deals/Antigua & Barbuda.png";
+
 
 // TESTIMONIALS
 
@@ -444,7 +463,63 @@ const Home = () => {
         )}
       </section>
 
-      {/* ---------------- GALLERY ---------------- */}
+      {/* ---------------- VISA DEALS (GALLERY STYLE) ---------------- */}
+      <section className="py-16 px-6 bg-white">
+        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
+          Visa Deals
+        </h2>
+        <p className="text-center text-gray-600 mt-2 fade-up">
+          Exclusive processing offers for your next trip
+        </p>
+
+        <div className="mt-10 max-w-7xl mx-auto">
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            loop={true}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            pagination={{ clickable: true, dynamicBullets: true }}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 4 },
+            }}
+            className="visa-deals-swiper !pb-12"
+          >
+            {[
+              { img: uzbekistanVisa, country: "Uzbekistan" },
+              { img: turkey, country: "Turkey" },
+              { img: oman, country: "Oman" },
+              { img: moroccoVisa, country: "Morocco" },
+              { img: Laos, country: "Laos" },
+              { img: Kyrgystan, country: "Kyrgyzstan" },
+              { img: Kenya, country: "Kenya" },
+              { img: Jordan, country: "Jordan" },
+              { img: Indonesia, country: "Indonesia" },
+              { img: Ethiopia, country: "Ethiopia" },
+              { img: Dubai, country: "Dubai" },
+              { img: cambodia, country: "Cambodia" },
+              { img: Bhutan, country: "Bhutan" },
+              { img: Bahrain, country: "Bahrain" },
+              { img: Azerbaijan, country: "Azerbaijan" },
+              { img: Antigua, country: "Antigua & Barbuda" }
+            ].map((deal, i) => (
+              <SwiperSlide key={i}>
+                <div
+                  className="relative group overflow-hidden rounded-2xl shadow-xl h-96 cursor-pointer"
+                  onClick={() => navigate(`/visa/results?citizenOf=India&goingTo=${encodeURIComponent(deal.country)}`)}
+                >
+                  <img
+                    src={deal.img}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    alt={`${deal.country} Visa Deal`}
+                  />
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+      </section>
       <section className="py-16 px-6 bg-gray-50">
         <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
           Travel Gallery
@@ -482,7 +557,7 @@ const Home = () => {
           </Swiper>
         </div>
       </section>
-      {/* ---------------- TESTIMONIALS ---------------- */}
+
       {/* ---------------- TESTIMONIALS ---------------- */}
       <section className="py-24 px-6 bg-white relative overflow-hidden">
         {/* Decorative Background Elements */}
@@ -703,7 +778,7 @@ const Home = () => {
           <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.92-3.558 7.94-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.608-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.944-.044-.079-.163-.124-.344-.223z" />
         </svg>
       </button>
-    </div>
+    </div >
   );
 };
 
