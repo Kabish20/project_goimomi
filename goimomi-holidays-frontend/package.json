@@ -12,6 +12,8 @@
   "dependencies": {
     "axios": "^1.6.2",
     "emailjs-com": "^3.2.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.1.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.562.0",
     "react": "^18.2.0",

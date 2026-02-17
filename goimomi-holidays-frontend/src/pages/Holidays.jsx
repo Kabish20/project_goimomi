@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search } from "lucide-react";
+import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown } from "lucide-react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import FormModal from "../components/FormModal";
 
 const Holidays = () => {
@@ -131,6 +133,137 @@ Thank you for choosing goimomi.com
 Contact : +91 6382220393
 Email : hello@goimomi.com`;
     return text;
+  };
+
+  const downloadPackagePDF = async (pkg) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 20;
+
+    // Logo / Header
+    doc.setFillColor(20, 83, 45); // #14532d
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("goimomi.com", 15, 25);
+    doc.setFontSize(10);
+    doc.text("Your Premium Holiday Partner", 15, 32);
+    doc.text("+91 6382220393 | hello@goimomi.com", pageWidth - 15, 30, { align: "right" });
+
+    yPos = 55;
+
+    // Package Title
+    doc.setTextColor(31, 41, 55);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text(pkg.title, 15, yPos);
+    yPos += 10;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${pkg.days} Days / ${pkg.days - 1} Nights | Starting choice - ${pkg.starting_city}`, 15, yPos);
+    yPos += 15;
+
+    // Package Image
+    try {
+      const imgUrl = getImageUrl(pkg.card_image);
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = imgUrl;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+      if (img.complete && img.naturalWidth > 0) {
+        const imgWidth = pageWidth - 30;
+        const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
+        const finalHeight = Math.min(imgHeight, 80);
+        doc.addImage(img, 'JPEG', 15, yPos, imgWidth, finalHeight);
+        yPos += finalHeight + 15;
+      }
+    } catch (e) {
+      console.log("Image load error for PDF", e);
+      yPos += 5;
+    }
+
+    // Highlights & Description
+    const addSection = (title, items) => {
+      if (!items || items.length === 0) return;
+      if (yPos > 250) { doc.addPage(); yPos = 20; }
+      doc.setTextColor(20, 83, 45);
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.text(title, 15, yPos);
+      yPos += 7;
+      doc.setTextColor(75, 85, 99);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+
+      const list = Array.isArray(items) ? items : [items];
+      list.forEach(item => {
+        const text = typeof item === 'object' ? item.text : item;
+        if (text) {
+          const splitText = doc.splitTextToSize(`• ${text}`, pageWidth - 40);
+          doc.text(splitText, 20, yPos);
+          yPos += (splitText.length * 5) + 2;
+          if (yPos > 270) { doc.addPage(); yPos = 20; }
+        }
+      });
+      yPos += 5;
+    };
+
+    addSection("Destinations", pkg.destinations?.map(d => d.name));
+    addSection("Package Highlights", pkg.highlights);
+
+    // Itinerary
+    if (pkg.itinerary && pkg.itinerary.length > 0) {
+      if (yPos > 240) { doc.addPage(); yPos = 20; }
+      doc.setTextColor(20, 83, 45);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Day Wise Itinerary", 15, yPos);
+      yPos += 10;
+
+      pkg.itinerary.forEach((day) => {
+        if (yPos > 250) { doc.addPage(); yPos = 20; }
+        doc.setFillColor(249, 250, 251);
+        doc.roundedRect(15, yPos, pageWidth - 30, 10, 2, 2, 'F');
+        doc.setTextColor(20, 83, 45);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Day ${day.day_number}: ${day.title}`, 20, yPos + 7);
+        yPos += 15;
+
+        if (day.description) {
+          doc.setTextColor(75, 85, 99);
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "normal");
+          const splitDesc = doc.splitTextToSize(day.description, pageWidth - 40);
+          doc.text(splitDesc, 20, yPos);
+          yPos += (splitDesc.length * 4.5) + 5;
+        }
+
+        if (yPos > 270) { doc.addPage(); yPos = 20; }
+      });
+      yPos += 5;
+    }
+
+    addSection("Inclusions", pkg.inclusions);
+    addSection("Exclusions", pkg.exclusions);
+
+
+
+    // Footer
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setTextColor(156, 163, 175);
+      doc.setFontSize(8);
+      doc.text(`Page ${i} of ${totalPages}`, pageWidth - 15, 285, { align: "right" });
+      doc.text("Thank you for choosing goimomi.com | +91 6382220393", 15, 285);
+    }
+
+    doc.save(`GoImomi_${pkg.title.replace(/\s+/g, '_')}.pdf`);
   };
 
   const handleEmailShare = async (e) => {
@@ -494,6 +627,17 @@ Email : hello@goimomi.com`;
                     >
                       <Mail size={12} />
                       Email
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadPackagePDF(pkg);
+                      }}
+                      className="flex items-center gap-1 text-white hover:text-red-400 font-bold text-[9px] transition-colors"
+                      title="Download PDF"
+                    >
+                      <FileDown size={12} />
+                      PDF
                     </button>
                     <button
                       onClick={(e) => {
