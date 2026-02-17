@@ -1,6 +1,6 @@
 import React from "react";
-import PlanTripHolidays from "../pages/HolidaysForm.jsx";
-import UmrahForm from "../pages/UmrahForm.jsx";
+import PlanTripHolidays from "../pages/Holidaysform.jsx";
+import UmrahForm from "../pages/umrahform.jsx";
 
 const FormModal = ({ isOpen, onClose, packageType }) => {
   if (!isOpen) return null;

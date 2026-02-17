@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle } from "lucide-react";
 import FormModal from "../components/FormModal";
 
 const Holidays = () => {
@@ -43,8 +44,12 @@ const Holidays = () => {
   const [isStartCityOpen, setIsStartCityOpen] = useState(false);
   const [startCitySearch, setStartCitySearch] = useState("");
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPkgTitle, setSelectedPkgTitle] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewDetailsPkg, setViewDetailsPkg] = useState(null);
+  const [emailModalPkg, setEmailModalPkg] = useState(null);
+  const [sharingEmail, setSharingEmail] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // ===================== PACKAGE DATA =====================
   const [packages, setPackages] = useState([]);
@@ -101,6 +106,58 @@ const Holidays = () => {
       return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
     }
     return url;
+  };
+
+  const generateShareText = (pkg) => {
+    let text = `Hello, please find details with regards to your holiday query for:
+${pkg.title}
+Duration: ${pkg.days} Days / ${pkg.days - 1} Nights
+Starting From: ₹ ${Number(pkg.Offer_price || 0).toLocaleString()}
+
+${pkg.description ? `Description:\n${pkg.description}\n` : ""}
+Highlights:
+${pkg.highlights?.map(h => `• ${h.text}`).join("\n") || "• Accommodation\n• Daily Breakfast\n• Sightseeing\n• Transfers"}
+
+${pkg.inclusions?.length > 0 ? `Inclusions:\n${pkg.inclusions.map(inc => `• ${inc.text}`).join("\n")}\n` : ""}
+${pkg.exclusions?.length > 0 ? `Exclusions:\n${pkg.exclusions.map(exc => `• ${exc.text}`).join("\n")}\n` : ""}
+Itinerary Summary:
+${pkg.itinerary?.map(day => `Day ${day.day_number}: ${day.title}`).join("\n") || ""}
+
+Destinations: ${pkg.starting_city}${pkg.destinations?.length > 0 ? " • " + pkg.destinations.map(d => d.name).join(" • ") : ""}
+
+Link: ${window.location.origin}/holiday/${pkg.id}
+
+Thank you for choosing goimomi.com
+Contact : +91 6382220393
+Email : hello@goimomi.com`;
+    return text;
+  };
+
+  const handleEmailShare = async (e) => {
+    e.preventDefault();
+    if (!sharingEmail || !emailModalPkg) return;
+    setSendingEmail(true);
+
+    const subject = `Holiday Package Information: ${emailModalPkg.title}`;
+    const body = generateShareText(emailModalPkg);
+
+    try {
+      await axios.post('/api/send-visa-details/', {
+        email: sharingEmail,
+        subject,
+        body
+      });
+      alert("Details sent successfully to " + sharingEmail);
+      setEmailModalPkg(null);
+      setSharingEmail("");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      window.location.href = `mailto:${sharingEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      setEmailModalPkg(null);
+      setSharingEmail("");
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   // ===================== FILTERED LIST =====================
@@ -357,8 +414,51 @@ const Holidays = () => {
             {filtered.map((pkg) => (
               <div
                 key={pkg.id}
-                className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col md:flex-row border border-gray-100"
+                className="relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col md:flex-row border border-gray-100"
               >
+                {/* Share Bar */}
+                <div className="absolute top-3 right-3 flex items-center gap-2 bg-black/60 backdrop-blur-md px-2 py-1.5 rounded-xl border border-white/10 z-20 transition-all hover:bg-black/80 shadow-lg">
+                  <div className="flex items-center gap-1.5 text-white/90 font-bold text-[9px] uppercase tracking-wider border-r border-white/20 pr-2">
+                    <Share2 size={11} className="text-white/70" />
+                    <span className="hidden sm:inline">Share :</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const text = generateShareText(pkg);
+                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                      }}
+                      className="flex items-center gap-1 text-white hover:text-green-400 font-bold text-[9px] transition-colors"
+                      title="Share on WhatsApp"
+                    >
+                      <MessageCircle size={12} />
+                      WhatsApp
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEmailModalPkg(pkg);
+                      }}
+                      className="flex items-center gap-1 text-white hover:text-blue-400 font-bold text-[9px] transition-colors"
+                      title="Share via Email"
+                    >
+                      <Mail size={12} />
+                      Email
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewDetailsPkg(pkg);
+                      }}
+                      className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 font-bold text-[9px] transition-colors"
+                      title="Quick View"
+                    >
+                      <Eye size={12} />
+                      View
+                    </button>
+                  </div>
+                </div>
                 {/* IMAGE SECTION */}
                 <div className="relative w-full md:w-64 h-48 md:h-64 overflow-hidden">
                   <img
@@ -367,6 +467,9 @@ const Holidays = () => {
                     className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
                     alt={pkg.title}
                   />
+
+
+
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
                     <span className="bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium">
                       {pkg.days} Days / {pkg.days - 1} Nights
@@ -421,11 +524,11 @@ const Holidays = () => {
                       <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Starting from</p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-xl font-black text-gray-900 leading-none">
-                          ₹ {(pkg.Offer_price || 0).toLocaleString()}
+                          ₹ {Number(pkg.Offer_price || 0).toLocaleString()}
                         </span>
-                        {pkg.price > pkg.Offer_price && (
+                        {Number(pkg.price) > Number(pkg.Offer_price) && (
                           <span className="text-gray-400 line-through text-sm">
-                            ₹ {pkg.price.toLocaleString()}
+                            ₹ {Number(pkg.price || 0).toLocaleString()}
                           </span>
                         )}
                       </div>
@@ -453,6 +556,139 @@ const Holidays = () => {
         onClose={() => setIsModalOpen(false)}
         packageType={selectedPkgTitle}
       />
+
+      {/* Quick View Details Modal */}
+      {viewDetailsPkg && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsPkg(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-4 py-3 border-b">
+              <button
+                onClick={() => {
+                  const text = generateShareText(viewDetailsPkg);
+                  navigator.clipboard.writeText(text);
+                  alert("Details copied to clipboard!");
+                }}
+                className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors border border-green-100"
+              >
+                <Copy size={12} />
+                Copy
+              </button>
+              <h3 className="text-base font-bold text-gray-800">View Details</h3>
+              <button onClick={() => setViewDetailsPkg(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-5 max-h-[80vh] overflow-y-auto">
+              <div className="font-sans text-[12px] text-gray-700 leading-relaxed whitespace-pre-wrap">
+                <p>Hello, please find details with regards to your holiday query for:</p>
+                <p className="font-bold text-base text-[#14532d]">{viewDetailsPkg.title}</p>
+                <p className="font-medium">{viewDetailsPkg.days} Days / {viewDetailsPkg.days - 1} Nights</p>
+                <br />
+                <p>Below mentioned prices are the total price(s) inclusive of taxes:</p>
+                <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
+
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Starting From:</span> {viewDetailsPkg.starting_city}</p>
+                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Destinations:</span> {viewDetailsPkg.destinations?.map(d => d.name).join(" • ")}</p>
+                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Flight:</span> {viewDetailsPkg.with_flight ? "Included ✈️" : "Excluded"}</p>
+                  </div>
+
+                  <div>
+                    <p className="font-bold uppercase text-[10px] text-gray-500 tracking-wider mb-1">Highlights:</p>
+                    <ul className="list-disc pl-4 space-y-0.5">
+                      {viewDetailsPkg.highlights?.length ? viewDetailsPkg.highlights.map((h, i) => (
+                        <li key={i}>{h.text}</li>
+                      )) : (
+                        <>
+                          <li>Accommodation</li>
+                          <li>Daily Breakfast</li>
+                          <li>Sightseeing</li>
+                          <li>Transfers</li>
+                        </>
+                      )}
+                    </ul>
+                  </div>
+
+                  {viewDetailsPkg.itinerary?.length > 0 && (
+                    <div>
+                      <p className="font-bold uppercase text-[10px] text-gray-500 tracking-wider mb-1">Itinerary Summary:</p>
+                      <div className="space-y-1 pl-1">
+                        {viewDetailsPkg.itinerary.map((day, i) => (
+                          <div key={i} className="flex gap-2">
+                            <span className="font-bold text-[#14532d] shrink-0">D{day.day_number}:</span>
+                            <span>{day.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-2">
+                    <p className="text-xl font-black text-gray-900 leading-none">
+                      Price: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString()}
+                    </p>
+                    <p className="text-gray-500 text-[10px] mt-0.5">*per person inclusive of all taxes</p>
+                  </div>
+                </div>
+
+                <p className="text-gray-400 text-[10px] mt-4">-------------------------------------------------------------</p>
+                <p className="mt-2 text-gray-500 italic">Thank you for choosing goimomi.com</p>
+                <div className="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <p className="font-bold text-[#14532d] flex items-center gap-1">
+                    <MessageCircle size={14} />
+                    +91 6382220393
+                  </p>
+                  <p className="text-gray-500">hello@goimomi.com</p>
+                </div>
+
+                <div className="mt-4 pt-4 border-t flex justify-center">
+                  <button
+                    onClick={() => navigate(`/holiday/${viewDetailsPkg.id}`)}
+                    className="bg-[#14532d] text-white px-8 py-2 rounded-lg text-xs font-bold hover:bg-[#0f4022] transition-colors shadow-lg"
+                  >
+                    View Full Itinerary & Booking
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Share Modal */}
+      {emailModalPkg && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEmailModalPkg(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-gray-900">Share via Email</h3>
+                <button onClick={() => setEmailModalPkg(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mb-6">Enter the email address to share {emailModalPkg.title}.</p>
+              <form onSubmit={handleEmailShare}>
+                <input
+                  type="email"
+                  value={sharingEmail}
+                  onChange={(e) => setSharingEmail(e.target.value)}
+                  placeholder="customer@example.com"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 focus:ring-2 focus:ring-[#14532d] outline-none transition-all"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={sendingEmail}
+                  className="w-full py-3 bg-[#14532d] text-white rounded-xl font-bold hover:bg-[#0f4a24] transition-all disabled:opacity-50"
+                >
+                  {sendingEmail ? "Sending..." : "Send Details"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
