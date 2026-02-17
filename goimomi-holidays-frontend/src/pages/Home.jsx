@@ -102,7 +102,6 @@ import "swiper/css/pagination";
 
 import hero1 from "../assets/Hero/sunset.png";
 import hero2 from "../assets/Hero/bluesea.png";
-import hero3 from "../assets/Hero/old.png";
 import hero4 from "../assets/Hero/stone.png";
 import hero5 from "../assets/mountain.png";
 import hero6 from "../assets/turkey.png";
@@ -147,7 +146,6 @@ import azerbaijanVisa from "../assets/Visa/azerbaijan.png";
 import vietnamVisa from "../assets/Visa/vietnam.png";
 
 // VISA DEALS 
-
 import uzbekistanVisa from "../assets/Visa Deals/Uzbekistan.png";
 import turkey from "../assets/Visa Deals/Turkey.png";
 import oman from "../assets/Visa Deals/Oman.png";
@@ -180,7 +178,6 @@ const Home = () => {
   const heroContent = [
     { title: "Discover Ancient Streets", subtitle: "Historic tours and cultural experiences to bring the past alive." },
     { title: "Explore Blue Seas", subtitle: "Relax on pristine beaches with crystal-clear waters." },
-    { title: "Walk Through Timeless Cities", subtitle: "Experience heritage-rich culture and stunning architecture." },
     { title: "Journey Into Nature", subtitle: "Feel the beauty of untouched landscapes around the world." },
     { title: "Scale Majestic Peaks", subtitle: "Adventure awaits in the heart of the world's most stunning mountains." },
     { title: "Discover Turkey's Wonders", subtitle: "Where East meets West in a fusion of history and beauty." }
@@ -217,7 +214,7 @@ const Home = () => {
           loop={true}
           className="w-full h-full"
         >
-          {[hero1, hero2, hero3, hero4, hero5, hero6].map((img, index) => (
+          {[hero1, hero2, hero4, hero5, hero6].map((img, index) => (
             <SwiperSlide key={index}>
               <div
                 className="w-full h-[520px] bg-cover bg-center"
