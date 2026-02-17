@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle } from "lucide-react";
+import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search } from "lucide-react";
 import FormModal from "../components/FormModal";
 
 const Holidays = () => {
@@ -116,12 +116,12 @@ Starting From: ₹ ${Number(pkg.Offer_price || 0).toLocaleString()}
 
 ${pkg.description ? `Description:\n${pkg.description}\n` : ""}
 Highlights:
-${pkg.highlights?.map(h => `• ${h.text}`).join("\n") || "• Accommodation\n• Daily Breakfast\n• Sightseeing\n• Transfers"}
+${pkg.highlights?.map(h => `• ${h.text}`)?.join("\n") || "• Accommodation\n• Daily Breakfast\n• Sightseeing\n• Transfers"}
 
 ${pkg.inclusions?.length > 0 ? `Inclusions:\n${pkg.inclusions.map(inc => `• ${inc.text}`).join("\n")}\n` : ""}
 ${pkg.exclusions?.length > 0 ? `Exclusions:\n${pkg.exclusions.map(exc => `• ${exc.text}`).join("\n")}\n` : ""}
 Itinerary Summary:
-${pkg.itinerary?.map(day => `Day ${day.day_number}: ${day.title}`).join("\n") || ""}
+${pkg.itinerary?.map(day => `Day ${day.day_number}: ${day.title}`)?.join("\n") || ""}
 
 Destinations: ${pkg.starting_city}${pkg.destinations?.length > 0 ? " • " + pkg.destinations.map(d => d.name).join(" • ") : ""}
 
@@ -193,200 +193,248 @@ Email : hello@goimomi.com`;
     <div className="w-full flex bg-gray-50 min-h-screen">
 
       {/* ====================== LEFT FILTER PANEL ====================== */}
-      <div className="w-[25%] bg-white shadow-md p-6 sticky top-[140px] self-start h-[calc(100vh-140px)] overflow-y-auto hidden md:block">
-        <h3 className="text-xl font-semibold mb-4">Filters</h3>
-
-        {/* DESTINATION (SEARCHABLE) */}
-        <div className="mb-6 relative dest-dropdown-container">
-          <label className="font-semibold block mb-2">Destination</label>
-
-          <div
-            className="w-full p-2 border rounded bg-white cursor-pointer flex justify-between items-center"
-            onClick={() => setIsDestOpen(!isDestOpen)}
-          >
-            <span className={destination ? "text-gray-900" : "text-gray-500"}>
-              {destination || "Any Destination"}
-            </span>
-            <span className="text-xs transition-transform duration-200" style={{ transform: isDestOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-              ▼
-            </span>
+      <div className="w-[18%] min-w-[210px] bg-white border-r border-gray-100 sticky top-[140px] self-start h-[calc(100vh-140px)] overflow-y-auto hidden md:block custom-scrollbar">
+        <div className="p-4 space-y-5">
+          <div className="flex items-center justify-between border-b border-gray-50 pb-2.5">
+            <h3 className="text-[11px] font-black text-gray-900 uppercase tracking-[0.1em]">Filters</h3>
+            <button
+              onClick={() => {
+                setCategory("");
+                setDestination("");
+                setNights("");
+                setStartingCity("");
+                setBudget([0, 200000]);
+                setFlightFilter("All");
+              }}
+              className="text-[9px] font-black text-[#14532d] hover:underline uppercase tracking-tighter"
+            >
+              Reset All
+            </button>
           </div>
 
-          {isDestOpen && (
-            <div className="absolute z-50 mt-1 w-full bg-white border rounded shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-              <div className="p-2 border-b bg-gray-50">
-                <input
-                  type="text"
-                  placeholder="Search destination..."
-                  className="w-full p-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-[#14532d]"
-                  value={destSearch}
-                  onChange={(e) => setDestSearch(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  autoFocus
-                />
-              </div>
-              <ul className="max-h-60 overflow-y-auto py-1">
-                <li
-                  className="px-4 py-2 hover:bg-green-50 cursor-pointer text-sm"
-                  onClick={() => {
-                    setDestination("");
-                    setIsDestOpen(false);
-                    setDestSearch("");
-                  }}
-                >
-                  Any Destination
-                </li>
-                {filteredDestinationsList.length > 0 ? (
-                  filteredDestinationsList.map((dest) => (
-                    <li
-                      key={dest.id}
-                      className={`px-4 py-2 hover:bg-green-50 cursor-pointer text-sm ${destination === dest.name ? 'bg-green-100 font-semibold' : ''}`}
-                      onClick={() => {
-                        setDestination(dest.name);
-                        setIsDestOpen(false);
-                        setDestSearch("");
-                      }}
-                    >
-                      <div className="flex flex-col">
-                        <span>{dest.name}</span>
-                        {dest.country && <span className="text-[10px] text-gray-400 uppercase tracking-tighter">{dest.country}</span>}
-                      </div>
-                    </li>
-                  ))
-                ) : (
-                  <li className="px-4 py-2 text-gray-500 text-sm italic">No results found</li>
-                )}
-              </ul>
+          {/* DESTINATION (SEARCHABLE) */}
+          <div className="relative dest-dropdown-container">
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2 underline decoration-[#14532d]/20 underline-offset-4">
+              Destination
+            </label>
+            <div
+              className="w-full px-3 py-2 bg-gray-50/50 border border-gray-100 rounded-xl cursor-pointer flex justify-between items-center transition-all hover:bg-white hover:border-green-100"
+              onClick={() => setIsDestOpen(!isDestOpen)}
+            >
+              <span className={`text-[11px] truncate ${destination ? "text-gray-900 font-bold" : "text-gray-400 font-medium"}`}>
+                {destination || "Select Destination"}
+              </span>
+              <ChevronDown size={12} className={`text-gray-400 transition-transform duration-300 ${isDestOpen ? 'rotate-180' : ''}`} />
             </div>
-          )}
-        </div>
 
-        {/* FLIGHT FILTER */}
-        <div className="mb-6 border-t pt-4">
-          <label className="font-semibold block mb-3 text-gray-800">Flight</label>
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {["All", "With Flight", "Without Flight"].map((option) => (
-              <label key={option} className="flex items-center gap-1.5 cursor-pointer group">
-                <input
-                  type="radio"
-                  name="flightFilter"
-                  value={option}
-                  checked={flightFilter === option}
-                  onChange={(e) => setFlightFilter(e.target.value)}
-                  className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] cursor-pointer"
-                />
-                <span className={`text-xs ${flightFilter === option ? "text-[#14532d] font-semibold" : "text-gray-600"} group-hover:text-[#14532d]`}>
-                  {option}
-                </span>
+            {isDestOpen && (
+              <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-2 bg-gray-50/50">
+                  <div className="relative">
+                    <Search size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      className="w-full pl-7 pr-2 py-1.5 text-[10px] bg-white border border-gray-100 rounded-lg outline-none focus:border-[#14532d] transition-all"
+                      value={destSearch}
+                      onChange={(e) => setDestSearch(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <ul className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
+                  <li
+                    className={`px-3 py-1.5 hover:bg-green-50 cursor-pointer text-[11px] font-medium transition-colors ${!destination ? 'text-[#14532d] bg-green-50/50' : 'text-gray-600'}`}
+                    onClick={() => {
+                      setDestination("");
+                      setIsDestOpen(false);
+                      setDestSearch("");
+                    }}
+                  >
+                    Any Destination
+                  </li>
+                  {filteredDestinationsList.length > 0 ? (
+                    filteredDestinationsList.map((dest) => (
+                      <li
+                        key={dest.id}
+                        className={`px-3 py-1.5 hover:bg-green-50 cursor-pointer text-[11px] transition-colors ${destination === dest.name ? 'text-[#14532d] bg-green-50/50 font-bold' : 'text-gray-600'}`}
+                        onClick={() => {
+                          setDestination(dest.name);
+                          setIsDestOpen(false);
+                          setDestSearch("");
+                        }}
+                      >
+                        <div className="flex flex-col">
+                          <span>{dest.name}</span>
+                          {dest.country && <span className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">{dest.country}</span>}
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-3 py-2 text-gray-400 text-[9px] text-center italic">No destinations found</li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* FLIGHT FILTER */}
+          <div>
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2 underline decoration-[#14532d]/20 underline-offset-4">
+              Package Type
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {["All", "With Flight", "Without Flight"].map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setFlightFilter(option)}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl text-[9px] font-black transition-all border leading-none ${flightFilter === option
+                    ? "bg-[#14532d] border-[#14532d] text-white shadow-sm"
+                    : "bg-gray-50/40 border-gray-50 text-gray-400 hover:border-gray-200 hover:bg-white"
+                    }`}
+                  title={option}
+                >
+                  <span className="text-center">
+                    {option === "All" ? "ALL" : option === "With Flight" ? "FLIGHT" : "NO FLT"}
+                  </span>
+                  {flightFilter === option && <CheckCircle size={8} />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* NIGHTS */}
+          <div>
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2 underline decoration-[#14532d]/20 underline-offset-4">
+              Duration (Nights)
+            </label>
+            <div className="relative group">
+              <select
+                className="w-full px-3 py-2 bg-gray-50/50 border border-gray-100 rounded-xl outline-none text-[11px] font-bold text-gray-900 appearance-none cursor-pointer transition-all hover:bg-white hover:border-green-100"
+                value={nights}
+                onChange={(e) => setNights(e.target.value)}
+              >
+                <option value="">Any Duration</option>
+                {[...Array(29)].map((_, i) => (
+                  <option key={i + 2} value={i + 2}>{i + 2} Nights</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none transition-colors" />
+            </div>
+          </div>
+
+          {/* STARTING CITY (SEARCHABLE) */}
+          <div className="relative startcity-dropdown-container">
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2 underline decoration-[#14532d]/20 underline-offset-4">
+              Starting From
+            </label>
+            <div
+              className="w-full px-3 py-2 bg-gray-50/50 border border-gray-100 rounded-xl cursor-pointer flex justify-between items-center transition-all hover:bg-white hover:border-green-100"
+              onClick={() => setIsStartCityOpen(!isStartCityOpen)}
+            >
+              <span className={`text-[11px] truncate ${startingCity ? "text-gray-900 font-bold" : "text-gray-400 font-medium"}`}>
+                {startingCity || "Select City"}
+              </span>
+              <ChevronDown size={12} className={`text-gray-400 transition-transform duration-300 ${isStartCityOpen ? 'rotate-180' : ''}`} />
+            </div>
+
+            {isStartCityOpen && (
+              <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-2 bg-gray-50/50">
+                  <div className="relative">
+                    <Search size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search city..."
+                      className="w-full pl-7 pr-2 py-1.5 text-[10px] bg-white border border-gray-100 rounded-lg outline-none focus:border-[#14532d] transition-all"
+                      value={startCitySearch}
+                      onChange={(e) => setStartCitySearch(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <ul className="max-h-48 overflow-y-auto py-1 custom-scrollbar">
+                  <li
+                    className={`px-3 py-1.5 hover:bg-green-50 cursor-pointer text-[11px] font-medium transition-colors ${!startingCity ? 'text-[#14532d] bg-green-50/50' : 'text-gray-600'}`}
+                    onClick={() => {
+                      setStartingCity("");
+                      setIsStartCityOpen(false);
+                      setStartCitySearch("");
+                    }}
+                  >
+                    Any City
+                  </li>
+                  {filteredStartingCitiesList.length > 0 ? (
+                    filteredStartingCitiesList.map((city) => (
+                      <li
+                        key={city.id}
+                        className={`px-3 py-1.5 hover:bg-green-50 cursor-pointer text-[11px] transition-colors ${startingCity === city.name ? 'text-[#14532d] bg-green-50/50 font-bold' : 'text-gray-600'}`}
+                        onClick={() => {
+                          setStartingCity(city.name);
+                          setIsStartCityOpen(false);
+                          setStartCitySearch("");
+                        }}
+                      >
+                        <div className="flex flex-col">
+                          <span>{city.name}</span>
+                          {city.region && <span className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">{city.region}</span>}
+                        </div>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-3 py-2 text-gray-400 text-[9px] text-center italic">No cities found</li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* BUDGET */}
+          <div className="pt-1">
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest underline decoration-[#14532d]/20 underline-offset-4">
+                Budget
               </label>
-            ))}
-          </div>
-        </div>
-
-        {/* NIGHTS */}
-        <div className="mb-6">
-          <label className="font-semibold">Total Nights</label>
-          <select
-            className="w-full p-2 border rounded mt-2"
-            value={nights}
-            onChange={(e) => setNights(e.target.value)}
-          >
-            <option value="">Any</option>
-            {[...Array(29)].map((_, i) => (
-              <option key={i + 2} value={i + 2}>{i + 2} Nights</option>
-            ))}
-          </select>
-        </div>
-
-        {/* STARTING CITY (SEARCHABLE) */}
-        <div className="mb-6 relative startcity-dropdown-container">
-          <label className="font-semibold block mb-2">Starting City</label>
-
-          <div
-            className="w-full p-2 border rounded bg-white cursor-pointer flex justify-between items-center"
-            onClick={() => setIsStartCityOpen(!isStartCityOpen)}
-          >
-            <span className={startingCity ? "text-gray-900" : "text-gray-500"}>
-              {startingCity || "Any Starting City"}
-            </span>
-            <span className="text-xs transition-transform duration-200" style={{ transform: isStartCityOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-              ▼
-            </span>
-          </div>
-
-          {isStartCityOpen && (
-            <div className="absolute z-50 mt-1 w-full bg-white border rounded shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-              <div className="p-2 border-b bg-gray-50">
-                <input
-                  type="text"
-                  placeholder="Search starting city..."
-                  className="w-full p-2 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-green-700"
-                  value={startCitySearch}
-                  onChange={(e) => setStartCitySearch(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  autoFocus
-                />
-              </div>
-              <ul className="max-h-60 overflow-y-auto py-1">
-                <li
-                  className="px-4 py-2 hover:bg-green-50 cursor-pointer text-sm"
-                  onClick={() => {
-                    setStartingCity("");
-                    setIsStartCityOpen(false);
-                    setStartCitySearch("");
-                  }}
-                >
-                  Any Starting City
-                </li>
-                {filteredStartingCitiesList.length > 0 ? (
-                  filteredStartingCitiesList.map((city) => (
-                    <li
-                      key={city.id}
-                      className={`px-4 py-2 hover:bg-green-50 cursor-pointer text-sm ${startingCity === city.name ? 'bg-green-100 font-semibold' : ''}`}
-                      onClick={() => {
-                        setStartingCity(city.name);
-                        setIsStartCityOpen(false);
-                        setStartCitySearch("");
-                      }}
-                    >
-                      <div className="flex flex-col">
-                        <span>{city.name}</span>
-                        {city.region && <span className="text-[10px] text-gray-400 uppercase tracking-tighter">{city.region}</span>}
-                      </div>
-                    </li>
-                  ))
-                ) : (
-                  <li className="px-4 py-2 text-gray-500 text-sm italic">No results found</li>
-                )}
-              </ul>
+              <span className="text-[10px] font-black text-[#14532d] bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
+                ₹{budget[1].toLocaleString()}
+              </span>
             </div>
-          )}
-        </div>
-
-        {/* BUDGET */}
-        <div className="mb-6">
-          <label className="font-semibold">Budget (per person)</label>
-          <input
-            type="range"
-            min="0"
-            max="200000"
-            step="5000"
-            value={budget[1]}
-            onChange={(e) => setBudget([0, Number(e.target.value)])}
-            className="w-full mt-2 accent-[#14532d]"
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>₹ 0</span>
-            <span className="font-bold text-[#14532d]">Up to ₹ {budget[1].toLocaleString()}</span>
+            <div className="relative pt-3">
+              <input
+                type="range"
+                min="0"
+                max="200000"
+                step="5000"
+                value={budget[1]}
+                onChange={(e) => setBudget([0, Number(e.target.value)])}
+                className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#14532d]"
+                style={{
+                  background: `linear-gradient(to right, #14532d 0%, #14532d ${(budget[1] / 200000) * 100}%, #f3f4f6 ${(budget[1] / 200000) * 100}%, #f3f4f6 100%)`
+                }}
+              />
+              <div className="flex justify-between text-[8px] font-black text-gray-400 mt-2 uppercase tracking-widest">
+                <span>Free</span>
+                <span>₹2,00,000+</span>
+              </div>
+            </div>
           </div>
         </div>
-
       </div>
 
       {/* ====================== RIGHT SIDE (PACKAGE LISTING) ====================== */}
-      <div className="w-full md:w-[75%] p-8">
+      <div className="flex-1 p-8 overflow-y-auto h-[calc(100vh-140px)] custom-scrollbar bg-white/50 backdrop-blur-sm">
 
-        <h2 className="text-2xl font-bold mb-6">Holiday Packages {category && `- ${category}`}</h2>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+              Explorer Packages
+              {category && <span className="text-[#14532d] ml-2">• {category}</span>}
+            </h2>
+            <p className="text-gray-500 text-sm mt-1 font-medium">Discover handpicked destinations for your next adventure</p>
+          </div>
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -460,6 +508,7 @@ Email : hello@goimomi.com`;
                     </button>
                   </div>
                 </div>
+
                 {/* IMAGE SECTION */}
                 <div className="relative w-full md:w-64 h-48 md:h-64 overflow-hidden">
                   <img
@@ -468,9 +517,6 @@ Email : hello@goimomi.com`;
                     className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
                     alt={pkg.title}
                   />
-
-
-
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
                     <span className="bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium">
                       {pkg.days} Days / {pkg.days - 1} Nights
@@ -503,24 +549,18 @@ Email : hello@goimomi.com`;
                     </p>
 
                     <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                      {pkg.highlights && pkg.highlights.slice(0, 4).map((h, index) => (
+                      {(pkg.highlights?.length ? pkg.highlights.slice(0, 4) : [
+                        { text: "Accommodation" }, { text: "Daily Breakfast" }, { text: "Sightseeing" }, { text: "Transfers" }
+                      ]).map((h, index) => (
                         <div key={index} className="flex items-center gap-2 text-gray-600 text-sm">
                           <span className="text-[#14532d]">✓</span>
                           <span className="truncate">{h.text}</span>
                         </div>
                       ))}
-                      {!pkg.highlights?.length && (
-                        <>
-                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Accommodation</div>
-                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Daily Breakfast</div>
-                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Sightseeing</div>
-                          <div className="flex items-center gap-2 text-gray-600 text-sm"><span className="text-[#14532d]">✓</span> Transfers</div>
-                        </>
-                      )}
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                     <div>
                       <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Starting from</p>
                       <div className="flex items-baseline gap-2">
@@ -591,7 +631,7 @@ Email : hello@goimomi.com`;
                 <div className="space-y-3">
                   <div className="space-y-1">
                     <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Starting From:</span> {viewDetailsPkg.starting_city}</p>
-                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Destinations:</span> {viewDetailsPkg.destinations?.map(d => d.name).join(" • ")}</p>
+                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Destinations:</span> {viewDetailsPkg.destinations?.map(d => d.name)?.join(" • ")}</p>
                     <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Flight:</span> {viewDetailsPkg.with_flight ? "Included ✈️" : "Excluded"}</p>
                   </div>
 
