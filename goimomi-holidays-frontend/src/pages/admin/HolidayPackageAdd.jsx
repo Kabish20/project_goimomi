@@ -33,9 +33,9 @@ const HolidayPackageAdd = () => {
     { destination: "", nights: 1 },
   ]);
 
-  // Updated state for Itinerary Days to include master_template and image
+  // Updated state for Itinerary Days to include master_template, image, and save_to_master toggle
   const [itineraryDays, setItineraryDays] = useState([
-    { day: "1", title: "", description: "", master_template: "", image: null },
+    { day: "1", title: "", description: "", master_template: "", image: null, save_to_master: false, master_name: "" },
   ]);
 
   const [inclusions, setInclusions] = useState([""]);
@@ -134,6 +134,8 @@ const HolidayPackageAdd = () => {
               description: "",
               master_template: "",
               image: null,
+              save_to_master: false,
+              master_name: "",
             });
           }
           return [...prev, ...newDays];
@@ -311,11 +313,43 @@ const HolidayPackageAdd = () => {
           is_active: true,
         });
         setPackageDestinations([{ destination: "", nights: 1 }]);
-        setItineraryDays([{ day: "1", title: "", description: "", master_template: "", image: null }]);
+        setItineraryDays([{ day: "1", title: "", description: "", master_template: "", image: null, save_to_master: false, master_name: "" }]);
         setInclusions([""]);
         setExclusions([""]);
         setHighlights([""]);
       }
+      // After package is successfully created, save marked itineraries to master
+      for (let i = 0; i < itineraryDays.length; i++) {
+        const day = itineraryDays[i];
+        if (day.save_to_master && day.master_name) {
+          try {
+            const masterData = new FormData();
+            masterData.append("name", day.master_name);
+            masterData.append("title", day.title);
+            masterData.append("description", day.description);
+
+            // Get destination for this day to categorize master
+            const destName = getDestinationForDay(i);
+            const destObj = destinations.find(d => d.name === destName);
+            if (destObj) {
+              masterData.append("destination", destObj.id);
+            }
+
+            if (day.image) {
+              masterData.append("image", day.image);
+            }
+
+            await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
+              headers: { "Content-Type": "multipart/form-data" }
+            });
+            console.log(`Saved day ${i + 1} to master as ${day.master_name}`);
+          } catch (mErr) {
+            console.error(`Error saving day ${i + 1} to master:`, mErr);
+            // We don't stop the main package creation if master saving fails
+          }
+        }
+      }
+
     } catch (err) {
       console.error("Error adding package:", err);
       if (err.response?.data) {
@@ -687,10 +721,11 @@ const HolidayPackageAdd = () => {
                 {/* Header Row */}
                 <div className="grid grid-cols-12 gap-3 px-3 py-1.5 bg-[#e6f0eb] text-[#14532d] text-[10px] font-bold uppercase tracking-wider border-b border-green-100">
                   <div className="col-span-1">Day Number</div>
-                  <div className="col-span-3">Master Template</div>
-                  <div className="col-span-3">Title</div>
+                  <div className="col-span-2">Master Template</div>
+                  <div className="col-span-2">Title</div>
                   <div className="col-span-3">Description</div>
                   <div className="col-span-2">Image</div>
+                  <div className="col-span-2">Save to Master</div>
                 </div>
 
                 {/* Rows */}
@@ -707,7 +742,7 @@ const HolidayPackageAdd = () => {
                     </div>
 
                     {/* Master Template */}
-                    <div className="col-span-3">
+                    <div className="col-span-2">
                       <select
                         value={row.master_template}
                         onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
@@ -716,21 +751,29 @@ const HolidayPackageAdd = () => {
                         <option value="">Select Template...</option>
                         {(() => {
                           const currentDest = getDestinationForDay(i);
-                          // If currentDest is empty, show Global
-                          // If currentDest is set, show ONLY that destination's templates
-                          const targetGroup = currentDest && currentDest !== "---" ? currentDest : "Global / General";
-                          const masters = groupedItineraryMasters[targetGroup] || [];
-
-                          if (masters.length === 0) return <option disabled>No templates for {targetGroup}</option>;
+                          const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
+                          const globalMasters = groupedItineraryMasters["Global / General"] || [];
 
                           return (
-                            <optgroup label={targetGroup}>
-                              {masters.map((master) => (
-                                <option key={master.id} value={master.id}>
-                                  {master.name}
-                                </option>
-                              ))}
-                            </optgroup>
+                            <>
+                              {destSpecificMasters.length > 0 && (
+                                <optgroup label={`${currentDest} Templates`}>
+                                  {destSpecificMasters.map((master) => (
+                                    <option key={master.id} value={master.id}>{master.name}</option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {globalMasters.length > 0 && (
+                                <optgroup label="Global / General Templates">
+                                  {globalMasters.map((master) => (
+                                    <option key={master.id} value={master.id}>{master.name}</option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              {destSpecificMasters.length === 0 && globalMasters.length === 0 && (
+                                <option disabled>No templates available</option>
+                              )}
+                            </>
                           );
                         })()}
                       </select>
@@ -750,7 +793,7 @@ const HolidayPackageAdd = () => {
                     </div>
 
                     {/* Title */}
-                    <div className="col-span-3">
+                    <div className="col-span-2">
                       <Input
                         type="text"
                         placeholder="Day Title"
@@ -779,7 +822,7 @@ const HolidayPackageAdd = () => {
                     </div>
 
                     <div className="col-span-2">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 mb-2">
                         <input
                           type="file"
                           accept="image/*"
@@ -802,11 +845,44 @@ const HolidayPackageAdd = () => {
                               }}
                               className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                             >
-                              <X size={8} />
+                              <X size={10} />
                             </button>
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Save to Master */}
+                    <div className="col-span-2 bg-[#f0f9f4] p-2 rounded border border-green-100">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={row.save_to_master}
+                          onChange={(e) => {
+                            const copy = [...itineraryDays];
+                            copy[i].save_to_master = e.target.checked;
+                            setItineraryDays(copy);
+                          }}
+                          className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] rounded border-gray-300"
+                        />
+                        <span className="text-[10px] font-bold text-[#14532d] uppercase tracking-tighter group-hover:text-green-800">Save as Master</span>
+                      </label>
+                      {row.save_to_master && (
+                        <div className="mt-2 animate-in fade-in slide-in-from-top-1">
+                          <input
+                            type="text"
+                            placeholder="Internal ID (lowercase)"
+                            value={row.master_name}
+                            onChange={(e) => {
+                              const copy = [...itineraryDays];
+                              copy[i].master_name = e.target.value.toLowerCase().replace(/\s+/g, '_');
+                              setItineraryDays(copy);
+                            }}
+                            className="w-full bg-white border border-green-200 text-[10px] px-1.5 py-1 rounded focus:outline-none focus:ring-1 focus:ring-green-500 font-medium"
+                          />
+                          <p className="text-[8px] text-green-600 mt-1 italic">Will be saved to Master List</p>
+                        </div>
+                      )}
                     </div>
 
                   </div>

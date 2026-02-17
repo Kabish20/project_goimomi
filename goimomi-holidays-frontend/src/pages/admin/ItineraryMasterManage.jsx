@@ -12,13 +12,25 @@ const ItineraryMasterManage = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [destinations, setDestinations] = useState([]);
+  const [selectedDestination, setSelectedDestination] = useState("");
 
   const navigate = useNavigate();
   const API_BASE_URL = "/api";
 
   useEffect(() => {
     fetchItineraries();
+    fetchDestinations();
   }, []);
+
+  const fetchDestinations = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/destinations/`);
+      setDestinations(response.data);
+    } catch (err) {
+      console.error("Error fetching destinations:", err);
+    }
+  };
 
   const fetchItineraries = async () => {
     try {
@@ -36,12 +48,17 @@ const ItineraryMasterManage = () => {
   };
 
   useEffect(() => {
-    const filtered = itineraries.filter(itinerary =>
-      itinerary.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      itinerary.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = itineraries.filter(itinerary => {
+      const matchesSearch = itinerary.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        itinerary.name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesDestination = !selectedDestination ||
+        itinerary.destination?.toString() === selectedDestination.toString();
+
+      return matchesSearch && matchesDestination;
+    });
     setFilteredItineraries(filtered);
-  }, [searchTerm, itineraries]);
+  }, [searchTerm, itineraries, selectedDestination]);
 
   const handleEdit = (itinerary) => {
     navigate(`/admin/itinerary-masters/edit/${itinerary.id}`);
@@ -90,18 +107,41 @@ const ItineraryMasterManage = () => {
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative max-w-sm">
-              <Search size={16} className="absolute left-3 top-2 text-gray-400" />
+          {/* Search & Filter Bar */}
+          <div className="mb-4 flex flex-wrap gap-4 items-center">
+            <div className="relative flex-1 max-w-sm">
+              <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search templates..."
-                className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                placeholder="Search by ID or Title..."
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14532d] shadow-sm"
               />
             </div>
+
+            <div className="w-64">
+              <select
+                value={selectedDestination}
+                onChange={(e) => setSelectedDestination(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white shadow-sm"
+              >
+                <option value="">All Destinations</option>
+                <option value="null">Global / General</option>
+                {destinations.map(dest => (
+                  <option key={dest.id} value={dest.id}>{dest.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {(searchTerm || selectedDestination) && (
+              <button
+                onClick={() => { setSearchTerm(""); setSelectedDestination(""); }}
+                className="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-wider"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
 
           {message && (
@@ -127,23 +167,31 @@ const ItineraryMasterManage = () => {
               <table className="w-full">
                 <thead className="bg-[#14532d] text-white">
                   <tr>
-                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Name (ID)</th>
-                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Title</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Internal ID</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Display Title</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Destination</th>
                     <th className="text-center py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredItineraries.length === 0 ? (
                     <tr>
-                      <td colSpan="3" className="text-center py-8 text-gray-500 text-sm">
-                        {searchTerm ? `No results for "${searchTerm}"` : "No itineraries found."}
+                      <td colSpan="4" className="text-center py-12 text-gray-400 italic text-sm">
+                        {searchTerm || selectedDestination ? `No templates matching your filters...` : "No master templates created yet."}
                       </td>
                     </tr>
                   ) : (
                     filteredItineraries.map((itinerary) => (
                       <tr key={itinerary.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-2.5 px-4 font-medium text-gray-900 border-r text-sm">{itinerary.name}</td>
-                        <td className="py-2.5 px-4 text-gray-700 border-r font-medium text-sm">{itinerary.title}</td>
+                        <td className="py-2.5 px-4 font-medium text-gray-900 border-r text-sm">
+                          <code className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 border border-gray-200">{itinerary.name}</code>
+                        </td>
+                        <td className="py-2.5 px-4 text-gray-800 border-r font-bold text-sm tracking-tight">{itinerary.title}</td>
+                        <td className="py-2.5 px-4 border-r">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter ${itinerary.destination ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                            {itinerary.destination ? (destinations.find(d => d.id === itinerary.destination)?.name || "Loading...") : "Global"}
+                          </span>
+                        </td>
                         <td className="py-2.5 px-4">
                           <div className="flex justify-center gap-3">
                             <button

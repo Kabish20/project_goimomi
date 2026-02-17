@@ -131,37 +131,38 @@ const EnquiryManage = () => {
           )}
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="bg-white h-48 rounded-2xl animate-pulse shadow-sm border border-gray-100"></div>
+                <div key={i} className="bg-white h-32 rounded-xl animate-pulse shadow-sm border border-gray-100"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {statCards.map((card, idx) => (
                 <div
                   key={idx}
                   onClick={() => navigate(card.path)}
-                  className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden"
+                  className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col justify-between h-full min-h-[140px]"
                 >
-                  <div className={`absolute top-0 right-0 p-3 ${card.bgColor} ${card.color} rounded-bl-2xl opacity-80 group-hover:opacity-100 transition-opacity`}>
-                    {card.icon}
+                  <div className={`absolute top-0 right-0 p-2.5 ${card.bgColor} ${card.color} rounded-bl-xl opacity-70 group-hover:opacity-100 transition-all transform group-hover:scale-110`}>
+                    {React.cloneElement(card.icon, { size: 20 })}
                   </div>
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-bold text-gray-600 group-hover:text-gray-900 transition-colors uppercase tracking-tight">
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-black text-gray-400 group-hover:text-gray-600 transition-colors uppercase tracking-widest">
                       {card.title}
                     </h3>
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-6xl font-black ${card.color}`}>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-4xl font-black tracking-tighter ${card.color}`}>
                         {card.count}
                       </span>
-                      <span className="text-gray-400 font-medium uppercase text-xs tracking-widest">Requests</span>
+                      <span className="text-gray-300 font-bold uppercase text-[9px] tracking-tighter">New Enquiries</span>
                     </div>
                   </div>
 
-                  <div className="mt-8 flex items-center gap-1 text-sm font-bold text-[#14532d] opacity-0 group-hover:opacity-100 transition-opacity">
-                    View Details <span>→</span>
+                  <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-[10px] font-black text-[#14532d] uppercase tracking-wider">
+                    <span>Manage Requests</span>
+                    <span className="transform group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </div>
               ))}

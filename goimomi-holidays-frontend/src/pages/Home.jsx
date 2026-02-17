@@ -303,7 +303,9 @@ const Home = () => {
                 className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
-                <img src={item.img} className="h-40 w-full object-cover" />
+                <div className="h-40 overflow-hidden">
+                  <img src={item.img} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
+                </div>
                 <div className="p-3 space-y-2">
                   <h3 className="text-lg font-semibold">{item.title}</h3>
                   <p className="text-sm text-gray-600">Experience unparalleled beauty...</p>
@@ -440,9 +442,11 @@ const Home = () => {
                 style={{ animationDelay: `${i * 0.2}s` }}
               >
                 <div className="relative">
-                  <img src={item.img} className="h-40 w-full object-cover" />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
-                    <span className="text-xs font-bold text-[#14532d]">{item.country}</span>
+                  <div className="relative h-40 overflow-hidden">
+                    <img src={item.img} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+                      <span className="text-xs font-bold text-[#14532d]">{item.country}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="p-4 space-y-2">
@@ -497,7 +501,7 @@ const Home = () => {
               { img: Jordan, country: "Jordan" },
               { img: Indonesia, country: "Indonesia" },
               { img: Ethiopia, country: "Ethiopia" },
-              { img: Dubai, country: "Dubai" },
+              { img: Dubai, country: "United Arab Emirates" },
               { img: cambodia, country: "Cambodia" },
               { img: Bhutan, country: "Bhutan" },
               { img: Bahrain, country: "Bahrain" },
@@ -506,8 +510,7 @@ const Home = () => {
             ].map((deal, i) => (
               <SwiperSlide key={i}>
                 <div
-                  className="relative group overflow-hidden rounded-2xl shadow-xl h-96 cursor-pointer"
-                  onClick={() => navigate(`/visa/results?citizenOf=India&goingTo=${encodeURIComponent(deal.country)}`)}
+                  className="relative group overflow-hidden rounded-2xl shadow-xl h-96"
                 >
                   <img
                     src={deal.img}

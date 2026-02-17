@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ExternalLink, RefreshCw, Settings } from "lucide-react";
+import {
+  ExternalLink, RefreshCw, Settings,
+  MapPin, Package, Calendar, Users,
+  Phone, Ship, Building2, Globe,
+  Flag, CreditCard, ClipboardList,
+  Map, PlaneTakeoff, HelpCircle
+} from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import AdminCard from "../../components/admin/AdminCard";
@@ -237,22 +243,32 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <>
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-8">
-                <AdminCard title="Destinations" count={stats.destinations} link="/admin/destinations" />
-                <AdminCard title="Holiday Packages" count={stats.packages} link="/admin/packages" />
-                <AdminCard title="Starting Cities" count={stats.startingCities} link="/admin/starting-cities" />
-                <AdminCard title="Itinerary Masters" count={stats.itineraryMasters} link="/admin/itinerary-masters" />
-                <AdminCard title="General Enquiries" count={stats.enquiries} link="/admin/enquiries" />
-                <AdminCard title="Cab Enquiries" count={stats.cabEnquiries} link="/admin/cab-enquiries" />
-                <AdminCard title="Cruise Enquiries" count={stats.cruiseEnquiries} link="/admin/cruise-enquiries" />
-                <AdminCard title="Hotel Enquiries" count={stats.hotelEnquiries} link="/admin/hotel-enquiries" />
-                <AdminCard title="Holiday Enquiries" count={stats.holidayEnquiries} link="/admin/holiday-enquiries" />
-                <AdminCard title="Umrah Enquiries" count={stats.umrahEnquiries} link="/admin/umrah-enquiries" />
-                <AdminCard title="Nationalities" count={stats.nationalities} link="/admin/nationalities" />
-                <AdminCard title="Umrah Destinations" count={stats.umrahDestinations} link="/admin/umrah-destinations" />
-                <AdminCard title="Visas" count={stats.visas} link="/admin/visas" />
-                <AdminCard title="Visa Applications" count={stats.visaApplications} link="/admin/visa-applications" />
+              {/* Core Inventory Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 mb-6">
+                <AdminCard title="Destinations" count={stats.destinations} link="/admin/destinations" icon={<MapPin />} />
+                <AdminCard title="Packages" count={stats.packages} link="/admin/packages" icon={<Package />} />
+                <AdminCard title="Cities" count={stats.startingCities} link="/admin/starting-cities" icon={<Building2 />} />
+                <AdminCard title="Itinerary" count={stats.itineraryMasters} link="/admin/itinerary-masters" icon={<ClipboardList />} />
+                <AdminCard title="Countries" count={stats.nationalities} link="/admin/nationalities" icon={<Flag />} />
+                <AdminCard title="Umrah Dest" count={stats.umrahDestinations} link="/admin/umrah-destinations" icon={<Map />} />
+                <AdminCard title="Visas" count={stats.visas} link="/admin/visas" icon={<Globe />} />
+                <AdminCard title="Visa Apps" count={stats.visaApplications} link="/admin/visa-applications" icon={<CreditCard />} />
+              </div>
+
+              {/* Enquiry Stats - Horizontal Section */}
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <div className="h-1 w-6 bg-[#14532d] rounded-full"></div>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#14532d]">Customer Enquiries</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+                  <AdminCard title="General Enq" count={stats.enquiries} link="/admin/enquiries" icon={<HelpCircle />} />
+                  <AdminCard title="Cab Enq" count={stats.cabEnquiries} link="/admin/cab-enquiries" icon={<Phone />} />
+                  <AdminCard title="Cruise Enq" count={stats.cruiseEnquiries} link="/admin/cruise-enquiries" icon={<Ship />} />
+                  <AdminCard title="Hotel Enq" count={stats.hotelEnquiries} link="/admin/hotel-enquiries" icon={<Building2 />} />
+                  <AdminCard title="Holiday Enq" count={stats.holidayEnquiries} link="/admin/holiday-enquiries" icon={<Calendar />} />
+                  <AdminCard title="Umrah Enq" count={stats.umrahEnquiries} link="/admin/umrah-enquiries" icon={<Building2 />} />
+                </div>
               </div>
 
               {/* Recent Enquiries */}

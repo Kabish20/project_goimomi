@@ -135,7 +135,7 @@ const Holidays = () => {
     <div className="w-full flex bg-gray-50 min-h-screen">
 
       {/* ====================== LEFT FILTER PANEL ====================== */}
-      <div className="w-[25%] bg-white shadow-md p-6 sticky top-0 h-screen overflow-y-auto">
+      <div className="w-[25%] bg-white shadow-md p-6 sticky top-[140px] self-start h-[calc(100vh-140px)] overflow-y-auto hidden md:block">
         <h3 className="text-xl font-semibold mb-4">Filters</h3>
 
         {/* DESTINATION (SEARCHABLE) */}
@@ -326,7 +326,7 @@ const Holidays = () => {
       </div>
 
       {/* ====================== RIGHT SIDE (PACKAGE LISTING) ====================== */}
-      <div className="w-[75%] p-8 overflow-y-auto h-screen">
+      <div className="w-full md:w-[75%] p-8">
 
         <h2 className="text-2xl font-bold mb-6">Holiday Packages {category && `- ${category}`}</h2>
 
@@ -360,7 +360,7 @@ const Holidays = () => {
                 className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col md:flex-row border border-gray-100"
               >
                 {/* IMAGE SECTION */}
-                <div className="relative w-full md:w-80 h-56 md:h-auto overflow-hidden">
+                <div className="relative w-full md:w-64 h-48 md:h-64 overflow-hidden">
                   <img
                     src={getImageUrl(pkg.card_image)}
                     onError={(e) => { e.target.src = "https://via.placeholder.com/400x300?text=Package+Image" }}
@@ -380,10 +380,10 @@ const Holidays = () => {
                 </div>
 
                 {/* CONTENT SECTION */}
-                <div className="flex-1 p-6 flex flex-col justify-between">
+                <div className="flex-1 p-5 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start">
-                      <h3 className="text-xl font-bold text-gray-800 leading-tight mb-2 hover:text-[#14532d] transition-colors cursor-pointer" onClick={() => navigate(`/holiday/${pkg.id}`)}>
+                      <h3 className="text-lg font-bold text-gray-800 leading-tight mb-1 hover:text-[#14532d] transition-colors cursor-pointer" onClick={() => navigate(`/holiday/${pkg.id}`)}>
                         {pkg.title}
                       </h3>
                       <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded text-yellow-700 text-xs font-bold">
@@ -416,11 +416,11 @@ const Holidays = () => {
                     </div>
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-gray-50 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
                     <div>
                       <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Starting from</p>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-black text-gray-900 leading-none">
+                        <span className="text-xl font-black text-gray-900 leading-none">
                           ₹ {(pkg.Offer_price || 0).toLocaleString()}
                         </span>
                         {pkg.price > pkg.Offer_price && (
