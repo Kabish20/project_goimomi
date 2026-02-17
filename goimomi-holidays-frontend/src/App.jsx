@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 
 import Navbar from './components/Navbar.jsx'
@@ -15,27 +15,27 @@ import ContactSuccess from './pages/ContactSuccess.jsx'
 import CustomizedHolidays from './pages/CustomizedHolidays.jsx'
 import CustomizedUmrah from './pages/CustomizedUmrah.jsx'
 import Holidays from './pages/Holidays.jsx'
-import PlanTrip from './pages/HolidaysForm.jsx'
-import Cab from './pages/Cab.jsx'
+import PlanTrip from './pages/Holidaysform.jsx'
+import Cab from './pages/cab.jsx'
 import Cruise from './pages/Cruise.jsx'
 import VisaSearch from './pages/VisaSearch.jsx'
 import VisaResults from './pages/VisaResults.jsx'
 import VisaApplication from './pages/VisaApplication.jsx'
 
-import Hotel from './pages/Hotel.jsx'
+import Hotel from './pages/hotel.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsConditions from './pages/TermsConditions.jsx'
 import CancellationPolicy from './pages/CancellationPolicy.jsx'
-import HolidayDetails from "./pages/HolidayDetails";
+import HolidayDetails from "./pages/HolidayDetails.jsx";
 
-import PackageEnquiryPage from "./pages/PackageEnquiryPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import DestinationAdd from "./pages/admin/DestinationAdd";
-import DestinationManage from "./pages/admin/DestinationManage";
-import DestinationEdit from "./pages/admin/DestinationEdit";
-import HolidayPackageAdd from "./pages/admin/HolidayPackageAdd";
-import HolidayPackageEdit from "./pages/admin/HolidayPackageEdit";
-import HolidayPackageManage from "./pages/admin/HolidayPackageManage";
+import PackageEnquiryPage from "./pages/PackageEnquiryPage.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import DestinationAdd from "./pages/admin/DestinationAdd.jsx";
+import DestinationManage from "./pages/admin/DestinationManage.jsx";
+import DestinationEdit from "./pages/admin/DestinationEdit.jsx";
+import HolidayPackageAdd from "./pages/admin/HolidayPackageAdd.jsx";
+import HolidayPackageEdit from "./pages/admin/HolidayPackageEdit.jsx";
+import HolidayPackageManage from "./pages/admin/HolidayPackageManage.jsx";
 import EnquiryManage from "./pages/admin/EnquiryManage";
 import HolidayEnquiryManage from "./pages/admin/HolidayEnquiryManage";
 import HolidayEnquiryAdd from "./pages/admin/HolidayEnquiryAdd";
@@ -72,15 +72,15 @@ import SupplierManage from "./pages/admin/SupplierManage";
 import SupplierAdd from "./pages/admin/SupplierAdd";
 import SupplierEdit from "./pages/admin/SupplierEdit";
 
-import AdminLogin from "./pages/AdminLogin";
+import AdminLogin from "./pages/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
 const App = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
-  const [isEnquiryOpen, setIsEnquiryOpen] = React.useState(false);
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Only show if not on admin path and hasn't been shown before
     if (!isAdminPath) {
       const hasShown = sessionStorage.getItem("generalEnquiryShown");

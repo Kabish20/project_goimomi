@@ -49,7 +49,7 @@ const AdminLogin = ({ isOpen, onClose }) => {
             {/* Overlay for better contrast */}
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-md transition-all duration-500"
-                onClick={onClose}
+                onClick={() => onClose?.()}
             ></div>
 
             {/* Login Card */}
@@ -58,7 +58,7 @@ const AdminLogin = ({ isOpen, onClose }) => {
                     {/* Close Button */}
                     {onClose && (
                         <button
-                            onClick={onClose}
+                            onClick={() => onClose?.()}
                             className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
                         >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

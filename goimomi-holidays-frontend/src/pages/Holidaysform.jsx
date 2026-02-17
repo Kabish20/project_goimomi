@@ -78,18 +78,18 @@ const HolidaysForm = ({ isOpen, onClose, packageType }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredDestinations = destinationsList.filter(d =>
-    d.name.toLowerCase().includes(citySearch.toLowerCase()) ||
-    (d.country && d.country.toLowerCase().includes(citySearch.toLowerCase()))
+  const filteredDestinations = (destinationsList || []).filter(d =>
+    d?.name?.toLowerCase().includes(citySearch.toLowerCase()) ||
+    (d?.country && d.country.toLowerCase().includes(citySearch.toLowerCase()))
   );
 
-  const filteredStartingCities = startingCitiesList.filter(c =>
-    c.name.toLowerCase().includes(startCitySearch.toLowerCase())
+  const filteredStartingCities = (startingCitiesList || []).filter(c =>
+    c?.name?.toLowerCase().includes(startCitySearch.toLowerCase())
   );
 
-  const filteredNationalities = nationalitiesList.filter(n =>
-    n.nationality.toLowerCase().includes(nationalitySearch.toLowerCase()) ||
-    n.country.toLowerCase().includes(nationalitySearch.toLowerCase())
+  const filteredNationalities = (nationalitiesList || []).filter(n =>
+    n?.nationality?.toLowerCase().includes(nationalitySearch.toLowerCase()) ||
+    n?.country?.toLowerCase().includes(nationalitySearch.toLowerCase())
   );
 
   // Step 2 States

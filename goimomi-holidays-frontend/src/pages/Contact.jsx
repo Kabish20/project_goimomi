@@ -72,7 +72,7 @@ const Contact = () => {
 
       {/* Success Popup */}
       {showSuccess && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200]">
           <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm text-center animate__animated animate__fadeInUp">
             <h2 className="text-2xl font-bold text-[#14532d]">Message Sent Successfully!</h2>
             <p className="text-gray-600 mt-2">

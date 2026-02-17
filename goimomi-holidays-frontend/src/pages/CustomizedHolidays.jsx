@@ -10,7 +10,7 @@ import {
   FaCheckCircle,
   FaPhoneAlt,
 } from "react-icons/fa";
-import HolidaysForm from "../pages/HolidaysForm.jsx";
+import HolidaysForm from "../pages/Holidaysform.jsx";
 import { useNavigate } from "react-router-dom";
 
 // Images

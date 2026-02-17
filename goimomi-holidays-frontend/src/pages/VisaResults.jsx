@@ -681,7 +681,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
             {/* View Details Modal */}
             {viewDetailsVisa && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsVisa(null)}>
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsVisa(null)}>
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center px-4 py-3 border-b">
                             <button
@@ -787,7 +787,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
             )}
             {/* Email Share Modal */}
             {emailModalVisa && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEmailModalVisa(null)}>
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEmailModalVisa(null)}>
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-4">
@@ -836,7 +836,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
             {/* Bulk View Modal */}
             {viewBulkData && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewBulkData(null)}>
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewBulkData(null)}>
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center px-4 py-3 border-b">
                             <button

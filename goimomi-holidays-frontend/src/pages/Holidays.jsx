@@ -90,13 +90,13 @@ const Holidays = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredDestinationsList = destinationsList.filter(dest =>
-    dest.name.toLowerCase().includes(destSearch.toLowerCase()) ||
-    (dest.country && dest.country.toLowerCase().includes(destSearch.toLowerCase()))
+  const filteredDestinationsList = (destinationsList || []).filter(dest =>
+  (dest?.name?.toLowerCase().includes(destSearch.toLowerCase()) ||
+    (dest?.country && dest.country.toLowerCase().includes(destSearch.toLowerCase())))
   );
 
-  const filteredStartingCitiesList = startingCitiesList.filter(city =>
-    city.name.toLowerCase().includes(startCitySearch.toLowerCase())
+  const filteredStartingCitiesList = (startingCitiesList || []).filter(city =>
+    city?.name?.toLowerCase().includes(startCitySearch.toLowerCase())
   );
 
   // Helper to fix image URLs
@@ -162,6 +162,7 @@ Email : hello@goimomi.com`;
 
   // ===================== FILTERED LIST =====================
   const filtered = packages.filter((pkg) => {
+    if (!pkg) return false;
     const categoryMatch = category ? pkg.category === category : true;
 
     // Destination match
@@ -559,7 +560,7 @@ Email : hello@goimomi.com`;
 
       {/* Quick View Details Modal */}
       {viewDetailsPkg && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsPkg(null)}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsPkg(null)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center px-4 py-3 border-b">
               <button
@@ -658,7 +659,7 @@ Email : hello@goimomi.com`;
 
       {/* Email Share Modal */}
       {emailModalPkg && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEmailModalPkg(null)}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEmailModalPkg(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
