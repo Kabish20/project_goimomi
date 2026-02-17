@@ -26,6 +26,13 @@ const Input = (props) => (
     </div>
 );
 
+const formatWithCommas = (value) => {
+    if (value === null || value === undefined || value === "") return "";
+    const cleanValue = value.toString().replace(/\D/g, "");
+    if (!cleanValue) return "";
+    return new Intl.NumberFormat("en-IN").format(cleanValue);
+};
+
 
 const HolidayPackageEdit = () => {
     const { id } = useParams();
@@ -257,7 +264,12 @@ const HolidayPackageEdit = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        if (name === "offer_price" || name === "price") {
+            const cleanValue = value.replace(/\D/g, "");
+            setFormData((prev) => ({ ...prev, [name]: cleanValue }));
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
     };
 
     const getNightRange = (index) => {
@@ -657,9 +669,9 @@ const HolidayPackageEdit = () => {
                                 <label className="block">
                                     <span className="text-gray-700 font-medium mb-1 block">Offer price:</span>
                                     <Input
-                                        type="number"
+                                        type="text"
                                         name="offer_price"
-                                        value={formData.offer_price}
+                                        value={formatWithCommas(formData.offer_price)}
                                         onChange={handleInputChange}
                                         error={errors.offer_price}
                                     />
@@ -667,9 +679,9 @@ const HolidayPackageEdit = () => {
                                 <label className="block">
                                     <span className="text-gray-700 font-medium mb-1 block">Price:</span>
                                     <Input
-                                        type="number"
+                                        type="text"
                                         name="price"
-                                        value={formData.price}
+                                        value={formatWithCommas(formData.price)}
                                         onChange={handleInputChange}
                                     />
                                 </label>
