@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown } from "lucide-react";
+import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import FormModal from "../components/FormModal";
+import goimomilogo from "../assets/goimomilogo.png";
 
 const Holidays = () => {
   const navigate = useNavigate();
@@ -127,12 +128,19 @@ ${pkg.itinerary?.map(day => `Day ${day.day_number}: ${day.title}`)?.join("\n") |
 
 Destinations: ${pkg.starting_city}${pkg.destinations?.length > 0 ? " • " + pkg.destinations.map(d => d.name).join(" • ") : ""}
 
-Link: ${window.location.origin}/holiday/${pkg.id}
-
 Thank you for choosing goimomi.com
 Contact : +91 6382220393
 Email : hello@goimomi.com`;
     return text;
+  };
+
+  const loadImage = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
   };
 
   const downloadPackagePDF = async (pkg) => {
@@ -141,14 +149,24 @@ Email : hello@goimomi.com`;
     let yPos = 20;
 
     // Logo / Header
-    doc.setFillColor(20, 83, 45); // #14532d
+    doc.setFillColor(255, 255, 255); // White background
     doc.rect(0, 0, pageWidth, 40, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
+
+    try {
+      const logo = await loadImage(goimomilogo);
+      doc.addImage(logo, 'PNG', 15, 8, 50, 15);
+    } catch (error) {
+      console.error("Failed to load logo", error);
+      doc.setTextColor(20, 83, 45); // #14532d
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text("goimomi.com", 15, 25);
+    }
+
+    doc.setTextColor(20, 83, 45); // #14532d
+    doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
-    doc.text("goimomi.com", 15, 25);
-    doc.setFontSize(10);
-    doc.text("Your Premium Holiday Partner", 15, 32);
+    doc.text("Your Premium Holiday Partner", 15, 30);
     doc.text("+91 6382220393 | hello@goimomi.com", pageWidth - 15, 30, { align: "right" });
 
     yPos = 55;
@@ -742,97 +760,100 @@ Email : hello@goimomi.com`;
         packageType={selectedPkgTitle}
       />
 
-      {/* Quick View Details Modal */}
       {viewDetailsPkg && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsPkg(null)}>
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center px-4 py-3 border-b">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50/50">
               <button
                 onClick={() => {
                   const text = generateShareText(viewDetailsPkg);
                   navigator.clipboard.writeText(text);
                   alert("Details copied to clipboard!");
                 }}
-                className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors border border-green-100"
+                className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-3 py-1.5 rounded-lg transition-all border border-green-100 uppercase tracking-wider"
               >
                 <Copy size={12} />
-                Copy
+                Copy Text
               </button>
-              <h3 className="text-base font-bold text-gray-800">View Details</h3>
+              <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">ITINERARY PREVIEW</h3>
               <button onClick={() => setViewDetailsPkg(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <X size={20} />
               </button>
             </div>
-            <div className="p-5 max-h-[80vh] overflow-y-auto">
+            <div className="p-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
               <div className="font-sans text-[12px] text-gray-700 leading-relaxed whitespace-pre-wrap">
                 <p>Hello, please find details with regards to your holiday query for:</p>
-                <p className="font-bold text-base text-[#14532d]">{viewDetailsPkg.title}</p>
-                <p className="font-medium">{viewDetailsPkg.days} Days / {viewDetailsPkg.days - 1} Nights</p>
-                <br />
-                <p>Below mentioned prices are the total price(s) inclusive of taxes:</p>
-                <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
+                <p className="font-bold text-[#14532d]">{viewDetailsPkg.title}</p>
+                <p>Duration: {viewDetailsPkg.days} Days / {viewDetailsPkg.days - 1} Nights</p>
+                <p>Starting From: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString()}</p>
 
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Starting From:</span> {viewDetailsPkg.starting_city}</p>
-                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Destinations:</span> {viewDetailsPkg.destinations?.map(d => d.name)?.join(" • ")}</p>
-                    <p><span className="font-bold uppercase text-[10px] text-gray-500 tracking-wider">Flight:</span> {viewDetailsPkg.with_flight ? "Included ✈️" : "Excluded"}</p>
+                {viewDetailsPkg.description && (
+                  <div className="mt-4">
+                    <p className="font-bold">Description:</p>
+                    <p className="text-gray-600 italic">{viewDetailsPkg.description}</p>
                   </div>
+                )}
 
-                  <div>
-                    <p className="font-bold uppercase text-[10px] text-gray-500 tracking-wider mb-1">Highlights:</p>
-                    <ul className="list-disc pl-4 space-y-0.5">
-                      {viewDetailsPkg.highlights?.length ? viewDetailsPkg.highlights.map((h, i) => (
-                        <li key={i}>{h.text}</li>
-                      )) : (
-                        <>
-                          <li>Accommodation</li>
-                          <li>Daily Breakfast</li>
-                          <li>Sightseeing</li>
-                          <li>Transfers</li>
-                        </>
-                      )}
-                    </ul>
+                <div className="mt-4">
+                  <p className="font-bold">Highlights:</p>
+                  <div className="mt-0.5">
+                    {viewDetailsPkg.highlights?.length ? viewDetailsPkg.highlights.map((h, i) => (
+                      <p key={i}>• {h.text}</p>
+                    )) : ["Accommodation", "Daily Breakfast", "Sightseeing", "Transfers"].map((text, i) => (
+                      <p key={i}>• {text}</p>
+                    ))}
                   </div>
+                </div>
 
-                  {viewDetailsPkg.itinerary?.length > 0 && (
-                    <div>
-                      <p className="font-bold uppercase text-[10px] text-gray-500 tracking-wider mb-1">Itinerary Summary:</p>
-                      <div className="space-y-1 pl-1">
-                        {viewDetailsPkg.itinerary.map((day, i) => (
-                          <div key={i} className="flex gap-2">
-                            <span className="font-bold text-[#14532d] shrink-0">D{day.day_number}:</span>
-                            <span>{day.title}</span>
-                          </div>
-                        ))}
-                      </div>
+                {viewDetailsPkg.inclusions?.length > 0 && (
+                  <div className="mt-4">
+                    <p className="font-bold">Inclusions:</p>
+                    <div className="mt-0.5">
+                      {viewDetailsPkg.inclusions.map((inc, i) => (
+                        <p key={i}>• {inc.text}</p>
+                      ))}
                     </div>
-                  )}
-
-                  <div className="pt-2">
-                    <p className="text-xl font-black text-gray-900 leading-none">
-                      Price: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString()}
-                    </p>
-                    <p className="text-gray-500 text-[10px] mt-0.5">*per person inclusive of all taxes</p>
                   </div>
+                )}
+
+                {viewDetailsPkg.exclusions?.length > 0 && (
+                  <div className="mt-4">
+                    <p className="font-bold">Exclusions:</p>
+                    <div className="mt-0.5">
+                      {viewDetailsPkg.exclusions.map((exc, i) => (
+                        <p key={i}>• {exc.text}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {viewDetailsPkg.itinerary?.length > 0 && (
+                  <div className="mt-4">
+                    <p className="font-bold">Itinerary Summary:</p>
+                    <div className="mt-0.5">
+                      {viewDetailsPkg.itinerary.map((day, i) => (
+                        <p key={i}>Day {day.day_number}: {day.title}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="font-bold">Destinations: <span className="font-normal text-gray-600">{viewDetailsPkg.starting_city}{viewDetailsPkg.destinations?.length > 0 ? " • " + viewDetailsPkg.destinations.map(d => d.name).join(" • ") : ""}</span></p>
                 </div>
 
-                <p className="text-gray-400 text-[10px] mt-4">-------------------------------------------------------------</p>
-                <p className="mt-2 text-gray-500 italic">Thank you for choosing goimomi.com</p>
-                <div className="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                  <p className="font-bold text-[#14532d] flex items-center gap-1">
-                    <MessageCircle size={14} />
-                    +91 6382220393
-                  </p>
-                  <p className="text-gray-500">hello@goimomi.com</p>
+                <div className="mt-6 space-y-1 border-emerald-500/20 border-l-2 pl-3 bg-green-50/30 p-2 rounded-r-lg">
+                  <p className="italic text-[11px] text-gray-500">Thank you for choosing goimomi.com</p>
+                  <p className="font-bold text-[#14532d] text-[12px]">Contact : +91 6382220393</p>
+                  <p className="text-gray-600 font-medium text-[11px]">Email : hello@goimomi.com</p>
                 </div>
 
-                <div className="mt-4 pt-4 border-t flex justify-center">
+                <div className="mt-6 flex justify-center">
                   <button
                     onClick={() => navigate(`/holiday/${viewDetailsPkg.id}`)}
-                    className="bg-[#14532d] text-white px-8 py-2 rounded-lg text-xs font-bold hover:bg-[#0f4022] transition-colors shadow-lg"
+                    className="bg-[#14532d] text-white px-8 py-2 rounded-xl text-[10px] font-black hover:bg-[#0f4022] transition-all shadow-md active:scale-95 uppercase tracking-widest"
                   >
-                    View Full Itinerary & Booking
+                    View Full Itinerary
                   </button>
                 </div>
               </div>
