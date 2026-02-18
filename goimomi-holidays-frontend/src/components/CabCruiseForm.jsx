@@ -1,18 +1,24 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import SuccessModal from "../components/SuccessModal";
 
-const CabCruiseForm = ({ isOpen, onClose, type }) => {
+const CabCruiseForm = ({ isOpen, onClose, type, initialDescription = "" }) => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [destination, setDestination] = useState("");
-    const [description, setDescription] = useState("");
+    const [description, setDescription] = useState(initialDescription);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [error, setError] = useState(null);
+
+    React.useEffect(() => {
+        if (isOpen) {
+            setDescription(initialDescription);
+        }
+    }, [initialDescription, isOpen]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,22 +27,17 @@ const CabCruiseForm = ({ isOpen, onClose, type }) => {
 
         const payload = {
             name: name,
-            email: email,
+            email: email || null,
             phone: phone,
-            destination: destination,
-            purpose: description,
-            enquiry_type: type,
+            destination: destination || null,
+            purpose: description || null,
+            enquiry_type: type || "General",
         };
 
         try {
-            const response = await axios.post(
+            const response = await api.post(
                 '/api/enquiry-form/',
-                payload,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }
+                payload
             );
 
             if (response.status === 201) {
@@ -50,17 +51,23 @@ const CabCruiseForm = ({ isOpen, onClose, type }) => {
                     setShowSuccess(false);
                     onClose();
                 }, 2000);
-            } else {
-                throw new Error("Failed to submit enquiry");
             }
         } catch (error) {
             console.error("Error submitting form:", error);
-            if (error.response) {
-                setError(error.response.data.detail || 'Failed to submit form');
-            } else if (error.request) {
-                setError("No response from server. Please check your connection.");
+            if (error.response && error.response.data) {
+                // Handle DRF validation errors
+                const data = error.response.data;
+                if (typeof data === 'object') {
+                    const messages = Object.keys(data).map(key => {
+                        const val = data[key];
+                        return `${key}: ${Array.isArray(val) ? val.join(', ') : val}`;
+                    });
+                    setError(messages.join(' | '));
+                } else {
+                    setError('Failed to submit form. Please check your input.');
+                }
             } else {
-                setError(error.message);
+                setError(error.message || 'An unexpected error occurred');
             }
         } finally {
             setIsSubmitting(false);
