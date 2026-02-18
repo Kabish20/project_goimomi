@@ -1,8 +1,8 @@
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from django.urls import path, include
 from .views import *
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register("holiday-form", HolidayEnquiryAPI)
 router.register("umrah-form", UmrahEnquiryAPI)
 router.register("enquiry-form", EnquiryAPI)
