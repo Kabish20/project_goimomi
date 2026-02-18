@@ -164,11 +164,6 @@ REST_FRAMEWORK = {
     )
 }
 
-if DEBUG:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] += (
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    )
-
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'hello@goimomi.com'
