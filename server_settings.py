@@ -27,12 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-&t4_sd6+&#m!@p4e$n7@+84rtr$+p@qcv8*&et75u9ck1q!2tk')
+SECRET_KEY = 'django-insecure-&t4_sd6+&#m!@p4e$n7@+84rtr$+p@qcv8*&et75u9ck1q!2tk'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'goimomi.com,www.goimomi.com,172.203.209.87,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['goimomi.com', 'www.goimomi.com', '172.203.209.87', 'localhost', '127.0.0.1']
 
 # Secure Proxy SSL Header
 # This tells Django it's behind a proxy that handles SSL
@@ -95,11 +95,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'goimomi_db'),
-        'USER': os.getenv('DB_USER', 'goimomi_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Goimomi@123'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'NAME': 'goimomi_db',
+        'USER': 'goimomi_user',
+        'PASSWORD': 'Goimomi@123',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
