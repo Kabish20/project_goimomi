@@ -213,7 +213,7 @@ const VisaApplicationEdit = () => {
     }
   };
 
-  const handleDeleteAdditionalDoc = async (docId, applicantId) => {
+  const handleDeleteAdditionalDoc = async (docId, _applicantId) => {
     if (!window.confirm('Are you sure you want to delete this document?')) return;
     try {
       setIsUploading(true);
@@ -641,7 +641,7 @@ const VisaApplicationEdit = () => {
                         {/* Additional Docs */}
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Additional Docs</label>
-                          {applicant.additional_documents?.map((doc, dIdx) => (
+                          {applicant.additional_documents?.map((doc) => (
                             <div key={doc.id} className="space-y-1 p-2 bg-gray-50 rounded-lg border border-gray-100">
                               <p className="text-[10px] font-bold text-gray-400 mb-1 truncate">{doc.document_name}</p>
                               <div className="flex gap-1">

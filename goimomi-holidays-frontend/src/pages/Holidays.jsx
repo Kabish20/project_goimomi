@@ -3,7 +3,6 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight } from "lucide-react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import FormModal from "../components/FormModal";
 import goimomilogo from "../assets/goimomilogo.png";
 
@@ -47,7 +46,7 @@ const Holidays = () => {
   const [isStartCityOpen, setIsStartCityOpen] = useState(false);
   const [startCitySearch, setStartCitySearch] = useState("");
 
-  const [selectedPkgTitle, setSelectedPkgTitle] = useState("");
+  const [selectedPkgTitle] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsPkg, setViewDetailsPkg] = useState(null);
   const [emailModalPkg, setEmailModalPkg] = useState(null);

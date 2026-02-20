@@ -299,6 +299,10 @@ class Visa(models.Model):
     is_active = models.BooleanField(default=True)
     is_popular = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        self.selling_price = self.cost_price + self.service_charge
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['country', 'selling_price']

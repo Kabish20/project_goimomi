@@ -24,7 +24,7 @@ const VisaResults = () => {
     const [sharingEmail, setSharingEmail] = useState("");
     const [sendingEmail, setSendingEmail] = useState(false);
     const [selectedVisas, setSelectedVisas] = useState([]);
-    const [isBulkSharing, setIsBulkSharing] = useState(false);
+    const [_isBulkSharing, setIsBulkSharing] = useState(false);
     const [viewBulkData, setViewBulkData] = useState(null);
 
     // Search state managed locally for interactivity
@@ -76,30 +76,28 @@ const VisaResults = () => {
 
     const fetchVisas = async () => {
         const country = searchParams.get("goingTo");
-        console.log(`[DEBUG] Fetching visas for destination: "${country}"`);
+
         if (!country) {
-            console.warn("[DEBUG] No country parameter found in URL");
+
             return;
         }
 
         try {
             setLoading(true);
             const response = await axios.get(`/api/visas/?country=${encodeURIComponent(country)}`);
-            console.log(`[DEBUG] API Response for "${country}":`, response.data);
+
 
             // Strict matching to prevent cross-contamination (e.g. USA search showing UAE results)
             const strictFilteredVisas = response.data.filter(v => {
                 const match = v.country && v.country.trim().toLowerCase() === country.trim().toLowerCase();
-                if (!match) {
-                    console.log(`[DEBUG] Filtering out visa "${v.title}" because it belongs to country "${v.country}" but searching for "${country}"`);
-                }
+
                 return match;
             });
 
-            console.log(`[DEBUG] Final filtered visas count: ${strictFilteredVisas.length}`);
+
             setVisas(strictFilteredVisas);
         } catch (error) {
-            console.error("[DEBUG] Error fetching visas:", error);
+            console.error("Error fetching visas:", error);
         } finally {
             setLoading(false);
         }
@@ -430,7 +428,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                 ) : (
                     <div className="space-y-6">
                         {visas.map((visa) => {
-                            console.log(`Visa ID: ${visa.id}`, visa);
+
                             return (
                                 <div
                                     key={visa.id}
