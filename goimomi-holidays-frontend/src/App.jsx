@@ -103,6 +103,7 @@ const App = () => {
       <main className={`flex-1 ${isAdminPath ? 'flex flex-col min-h-0 overflow-hidden' : ''}`}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/contact/success" element={<ContactSuccess />} />
