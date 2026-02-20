@@ -68,9 +68,12 @@ const VisaResults = () => {
     const fetchCountries = async () => {
         try {
             const response = await axios.get("/api/countries/");
-            setCountries(response.data);
+            // Ensure response.data is an array and filter out any invalid entries
+            const validCountries = Array.isArray(response.data) ? response.data.filter(c => c && c.name) : [];
+            setCountries(validCountries);
         } catch (error) {
             console.error("Error fetching countries:", error);
+            setCountries([]);
         }
     };
 
@@ -78,7 +81,7 @@ const VisaResults = () => {
         const country = searchParams.get("goingTo");
 
         if (!country) {
-
+            setLoading(false);
             return;
         }
 
@@ -86,18 +89,20 @@ const VisaResults = () => {
             setLoading(true);
             const response = await axios.get(`/api/visas/?country=${encodeURIComponent(country)}`);
 
+            // Ensure response.data is an array before filtering
+            const rawData = Array.isArray(response.data) ? response.data : [];
 
             // Strict matching to prevent cross-contamination (e.g. USA search showing UAE results)
-            const strictFilteredVisas = response.data.filter(v => {
-                const match = v.country && v.country.trim().toLowerCase() === country.trim().toLowerCase();
-
+            const strictFilteredVisas = rawData.filter(v => {
+                const match = v && v.country && country &&
+                    v.country.trim().toLowerCase() === country.trim().toLowerCase();
                 return match;
             });
-
 
             setVisas(strictFilteredVisas);
         } catch (error) {
             console.error("Error fetching visas:", error);
+            setVisas([]);
         } finally {
             setLoading(false);
         }
@@ -117,12 +122,12 @@ const VisaResults = () => {
         setSearchParams(params);
     };
 
-    const filteredCitizenCountries = countries.filter(c =>
-        c.name.toLowerCase().includes(citizenSearch.toLowerCase())
+    const filteredCitizenCountries = (countries || []).filter(c =>
+        c && c.name && c.name.toLowerCase().includes((citizenSearch || "").toLowerCase())
     );
 
-    const filteredGoingToCountries = countries.filter(c =>
-        c.name.toLowerCase().includes(goingToSearch.toLowerCase())
+    const filteredGoingToCountries = (countries || []).filter(c =>
+        c && c.name && c.name.toLowerCase().includes((goingToSearch || "").toLowerCase())
     );
 
 
