@@ -18,6 +18,7 @@ const VisaResults = () => {
     const [visas, setVisas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeDocPopup, setActiveDocPopup] = useState(null);
+    const [activePricePopup, setActivePricePopup] = useState(null);
     const [viewDetailsVisa, setViewDetailsVisa] = useState(null);
     const [emailModalVisa, setEmailModalVisa] = useState(null);
     const [sharingEmail, setSharingEmail] = useState("");
@@ -54,6 +55,10 @@ const VisaResults = () => {
             }
             if (goingToRef.current && !goingToRef.current.contains(event.target)) {
                 setShowGoingToDropdown(false);
+            }
+            // Close price popup when clicking outside
+            if (!event.target.closest(".price-info-container")) {
+                setActivePricePopup(null);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -657,11 +662,33 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
                                             {/* Price and Action */}
                                             <div className="flex flex-row md:flex-col items-center md:items-end gap-4 min-w-[150px]">
-                                                <div className="flex items-center gap-1">
+                                                <div className="flex items-center gap-1 relative price-info-container">
                                                     <span className="text-xl font-bold text-gray-900">₹{visa.selling_price?.toLocaleString()}</span>
-                                                    <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setActivePricePopup(activePricePopup === visa.id ? null : visa.id);
+                                                        }}
+                                                        className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                                                    >
+                                                        <svg className="w-4 h-4 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                    </button>
+
+                                                    {activePricePopup === visa.id && (
+                                                        <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-[60] p-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                                            <div className="flex flex-col gap-1">
+                                                                <p className="text-xs font-bold text-gray-900">Conditions Applied</p>
+                                                                <div className="h-0.5 w-8 bg-green-600 rounded-full mb-1"></div>
+                                                                <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
+                                                                    Prices are dynamic and subject to change based on embassy rules and availability.
+                                                                </p>
+                                                            </div>
+                                                            {/* Arrow */}
+                                                            <div className="absolute -bottom-1.5 right-1 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45"></div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <button
                                                     onClick={() => handleSelect(visa)}

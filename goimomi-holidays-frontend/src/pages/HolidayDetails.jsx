@@ -8,6 +8,7 @@ const HolidayDetails = () => {
   const [openDay, setOpenDay] = useState(null);
   const [pkg, setPkg] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pricePopupOpen, setPricePopupOpen] = useState(false);
 
   const getImageUrl = (url) => {
     if (!url) return "";
@@ -25,6 +26,14 @@ const HolidayDetails = () => {
     axios.get(`/api/packages/${id}/`)
       .then((res) => setPkg(res.data))
       .catch((err) => console.error("Error fetching package details:", err));
+
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".holiday-details-price-info")) {
+        setPricePopupOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [id]);
 
   if (!pkg) return <div className="text-center mt-20">Loading...</div>;
@@ -121,13 +130,37 @@ const HolidayDetails = () => {
               <p className="text-gray-500 text-sm leading-tight">Starts at per</p>
               <p className="text-gray-500 text-sm leading-tight">person</p>
             </div>
-            <div className="text-right">
+            <div className="text-right relative holiday-details-price-info">
               {pkg.price && (
                 <p className="line-through text-gray-400 text-sm">
                   ₹ {pkg.price.toLocaleString()}
                 </p>
               )}
-              <p className="text-3xl font-bold text-black">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
+              <div className="flex items-center justify-end gap-1.5">
+                <p className="text-3xl font-bold text-black">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
+                <button
+                  onClick={() => setPricePopupOpen(!pricePopupOpen)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                >
+                  <svg className="w-4 h-4 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+              </div>
+
+              {pricePopupOpen && (
+                <div className="absolute bottom-full right-0 mb-3 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-[60] p-4 text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-bold text-gray-900">Conditions Applied</p>
+                    <div className="h-0.5 w-8 bg-[#14532d] rounded-full mb-1"></div>
+                    <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
+                      Prices are starting from and can change based on peak season and availability.
+                    </p>
+                  </div>
+                  {/* Arrow */}
+                  <div className="absolute -bottom-1.5 right-2 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45"></div>
+                </div>
+              )}
             </div>
           </div>
           <div className="border-t pt-4">

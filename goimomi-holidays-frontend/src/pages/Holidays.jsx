@@ -51,6 +51,7 @@ const Holidays = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsPkg, setViewDetailsPkg] = useState(null);
   const [emailModalPkg, setEmailModalPkg] = useState(null);
+  const [activePricePopup, setActivePricePopup] = useState(null);
   const [sharingEmail, setSharingEmail] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -87,6 +88,10 @@ const Holidays = () => {
       }
       if (!event.target.closest(".startcity-dropdown-container")) {
         setIsStartCityOpen(false);
+      }
+      // Close price popup when clicking outside
+      if (!event.target.closest(".holiday-price-info-container")) {
+        setActivePricePopup(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -725,10 +730,36 @@ Email : hello@goimomi.com`;
                   <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                     <div>
                       <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Starting from</p>
-                      <div className="flex items-baseline gap-2">
+                      <div className="flex items-baseline gap-2 relative holiday-price-info-container">
                         <span className="text-xl font-black text-gray-900 leading-none">
                           ₹ {Number(pkg.Offer_price || 0).toLocaleString()}
                         </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActivePricePopup(activePricePopup === pkg.id ? null : pkg.id);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                        >
+                          <svg className="w-4 h-4 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </button>
+
+                        {activePricePopup === pkg.id && (
+                          <div className="absolute bottom-full left-0 mb-3 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-[60] p-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            <div className="flex flex-col gap-1">
+                              <p className="text-xs font-bold text-gray-900">Conditions Applied</p>
+                              <div className="h-0.5 w-8 bg-[#14532d] rounded-full mb-1"></div>
+                              <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
+                                Package prices are starting prices and may vary based on travel dates and availability.
+                              </p>
+                            </div>
+                            {/* Arrow */}
+                            <div className="absolute -bottom-1.5 left-2 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45"></div>
+                          </div>
+                        )}
+
                         {Number(pkg.price) > Number(pkg.Offer_price) && (
                           <span className="text-gray-400 line-through text-sm">
                             ₹ {Number(pkg.price || 0).toLocaleString()}
