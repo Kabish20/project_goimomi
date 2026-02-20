@@ -177,3 +177,9 @@ class VisaApplicantAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'passport_number', 'nationality')
     search_fields = ('first_name', 'last_name', 'passport_number')
 
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'city', 'state', 'country', 'contact_person', 'contact_no')
+    list_filter = ('city', 'state', 'country')
+    search_fields = ('company_name', 'city', 'state', 'country', 'contact_person')
+
