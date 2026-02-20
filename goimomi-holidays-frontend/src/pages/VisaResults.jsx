@@ -432,7 +432,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                             return (
                                 <div
                                     key={visa.id}
-                                    className={`bg-white rounded-2xl shadow-md border-2 transition-all relative overflow-hidden ${selectedVisas.some(v => v.id === visa.id) ? 'border-[#14532d] ring-4 ring-[#14532d]/10' : 'border-gray-200'}`}
+                                    className={`bg-white rounded-2xl shadow-md border-2 transition-all relative ${selectedVisas.some(v => v.id === visa.id) ? 'border-[#14532d] ring-4 ring-[#14532d]/10' : 'border-gray-200'}`}
                                 >
                                     {/* Selection Checkbox */}
                                     <div
@@ -447,7 +447,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                         </div>
                                     </div>
                                     {/* Header with Background Image/Video */}
-                                    <div className="relative h-20 md:h-24 bg-[#14532d] border-b border-black/10">
+                                    <div className="relative h-20 md:h-24 bg-[#14532d] border-b border-black/10 rounded-t-2xl overflow-hidden">
                                         {visa.card_image && (
                                             <img
                                                 src={getImageUrl(visa.card_image)}
@@ -566,7 +566,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                     </button>
 
                                                     {activeDocPopup === `doc_${visa.id}` && (
-                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-44 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 p-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-44 bg-white rounded-lg shadow-2xl border border-gray-100 z-[100] p-2 animate-in fade-in slide-in-from-top-1 duration-200">
                                                             {/* Arrow */}
                                                             <div className="absolute -top-1 w-2 h-2 bg-white border-t border-l border-gray-100 rotate-45 left-1/2 -translate-x-1/2"></div>
                                                             <div className="flex justify-between items-center mb-1.5 px-0.5">
@@ -620,7 +620,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                     </button>
 
                                                     {activeDocPopup === `photo_${visa.id}` && (
-                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-44 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 p-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-44 bg-white rounded-lg shadow-2xl border border-gray-100 z-[100] p-2 animate-in fade-in slide-in-from-top-1 duration-200">
                                                             {/* Arrow */}
                                                             <div className="absolute -top-1 w-2 h-2 bg-white border-t border-l border-gray-100 rotate-45 left-1/2 -translate-x-1/2"></div>
                                                             <div className="flex justify-between items-center mb-1.5 px-0.5">
