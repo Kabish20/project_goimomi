@@ -129,7 +129,7 @@ ${pkg.highlights?.map(h => `• ${h.text}`)?.join("\n") || "• Accommodation\n�
 ${pkg.inclusions?.length > 0 ? `Inclusions:\n${pkg.inclusions.map(inc => `• ${inc.text}`).join("\n")}\n` : ""}
 ${pkg.exclusions?.length > 0 ? `Exclusions:\n${pkg.exclusions.map(exc => `• ${exc.text}`).join("\n")}\n` : ""}
 Itinerary Summary:
-${pkg.itinerary?.map(day => `Day ${day.day_number}: ${day.title}`)?.join("\n") || ""}
+${pkg.itinerary?.map(day => `Day ${day.day_number}: ${day.title}${day.description ? `\n  (${day.description})` : ""}`)?.join("\n") || ""}
 
 Destinations: ${pkg.starting_city}${pkg.destinations?.length > 0 ? " • " + pkg.destinations.map(d => d.name).join(" • ") : ""}
 
@@ -137,6 +137,12 @@ Thank you for choosing goimomi.com
 Contact : +91 6382220393
 Email : hello@goimomi.com`;
     return text;
+  };
+
+  const generateItineraryOnlyText = (pkg) => {
+    if (!pkg.itinerary || pkg.itinerary.length === 0) return "No itinerary details available.";
+    return `Itinerary Summary for ${pkg.title}:
+${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description ? `\n  - ${day.description}` : ""}`).join("\n\n")}`;
   };
 
   const loadImage = (url) => {
@@ -676,22 +682,28 @@ Email : hello@goimomi.com`;
                   </div>
                 </div>
 
-                {/* IMAGE SECTION */}
-                <div className="relative w-full md:w-64 h-48 md:h-64 overflow-hidden">
+                {/* IMAGE SECTION - PREMIUM FRAMED DESIGN */}
+                <div className="relative w-full md:w-60 h-48 md:h-auto overflow-hidden m-3 rounded-2xl border-2 border-gray-50 shadow-sm group-hover:border-[#14532d]/20 group-hover:shadow-md transition-all duration-500">
                   <img
                     src={getImageUrl(pkg.card_image)}
-                    onError={(e) => { e.target.src = "https://via.placeholder.com/400x300?text=Package+Image" }}
-                    className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
+                    onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop" }}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     alt={pkg.title}
                   />
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <span className="bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full font-medium">
-                      {pkg.days} Days / {pkg.days - 1} Nights
-                    </span>
+
+                  {/* Subtle Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60"></div>
+
+                  {/* Premium Badges */}
+                  <div className="absolute top-3 left-3 flex flex-col gap-2">
+                    <div className="bg-black/40 backdrop-blur-md text-white text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border border-white/20 shadow-lg">
+                      {pkg.days}D / {pkg.days - 1}N
+                    </div>
                     {pkg.with_flight && (
-                      <span className="bg-green-600/90 backdrop-blur-md text-white text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
-                        ✈️ Flights Included
-                      </span>
+                      <div className="bg-[#14532d]/90 backdrop-blur-md text-white text-[8px] px-2.5 py-1.5 rounded-lg font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg border border-white/10">
+                        <Plane size={10} />
+                        Flights
+                      </div>
                     )}
                   </div>
                 </div>
@@ -801,10 +813,21 @@ Email : hello@goimomi.com`;
                   navigator.clipboard.writeText(text);
                   alert("Details copied to clipboard!");
                 }}
-                className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-3 py-1.5 rounded-lg transition-all border border-green-100 uppercase tracking-wider"
+                className="flex items-center gap-1 text-[#14532d] font-black text-[9px] hover:bg-green-50 px-2 py-1 rounded-lg transition-all border border-green-200 uppercase tracking-tight shadow-sm"
               >
-                <Copy size={12} />
-                Copy Text
+                <Copy size={10} />
+                Full Text
+              </button>
+              <button
+                onClick={() => {
+                  const text = generateItineraryOnlyText(viewDetailsPkg);
+                  navigator.clipboard.writeText(text);
+                  alert("Itinerary copied to clipboard!");
+                }}
+                className="flex items-center gap-1 text-[#14532d] font-black text-[9px] hover:bg-green-50 px-2 py-1 rounded-lg transition-all border border-green-200 uppercase tracking-tight shadow-sm"
+              >
+                <Copy size={10} />
+                Itinerary Only
               </button>
               <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">ITINERARY PREVIEW</h3>
               <button onClick={() => setViewDetailsPkg(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -863,7 +886,10 @@ Email : hello@goimomi.com`;
                     <p className="font-bold">Itinerary Summary:</p>
                     <div className="mt-0.5">
                       {viewDetailsPkg.itinerary.map((day, i) => (
-                        <p key={i}>Day {day.day_number}: {day.title}</p>
+                        <div key={i} className="mb-2">
+                          <p className="font-semibold">Day {day.day_number}: {day.title}</p>
+                          {day.description && <p className="text-gray-500 text-[11px] pl-4 italic leading-relaxed">{day.description}</p>}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -879,14 +905,7 @@ Email : hello@goimomi.com`;
                   <p className="text-gray-600 font-medium text-[11px]">Email : hello@goimomi.com</p>
                 </div>
 
-                <div className="mt-6 flex justify-center">
-                  <button
-                    onClick={() => navigate(`/holiday/${viewDetailsPkg.id}`)}
-                    className="bg-[#14532d] text-white px-8 py-2 rounded-xl text-[10px] font-black hover:bg-[#0f4022] transition-all shadow-md active:scale-95 uppercase tracking-widest"
-                  >
-                    View Full Itinerary
-                  </button>
-                </div>
+
               </div>
             </div>
           </div>

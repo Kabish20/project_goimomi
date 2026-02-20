@@ -94,7 +94,7 @@ const VisaSearch = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Hero Section with Search */}
             <div
-                className="relative pt-20 pb-32 overflow-hidden"
+                className="relative pt-20 pb-32 z-10"
                 style={{
                     backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${visaBg})`,
                     backgroundSize: 'cover',

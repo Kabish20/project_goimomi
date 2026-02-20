@@ -434,7 +434,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                             return (
                                 <div
                                     key={visa.id}
-                                    className={`bg-white rounded-2xl shadow-sm border transition-all relative ${selectedVisas.some(v => v.id === visa.id) ? 'border-green-500 ring-2 ring-green-500/10' : 'border-gray-100'}`}
+                                    className={`bg-white rounded-2xl shadow-md border-2 transition-all relative overflow-hidden ${selectedVisas.some(v => v.id === visa.id) ? 'border-[#14532d] ring-4 ring-[#14532d]/10' : 'border-gray-200'}`}
                                 >
                                     {/* Selection Checkbox */}
                                     <div
@@ -449,7 +449,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                         </div>
                                     </div>
                                     {/* Header with Background Image/Video */}
-                                    <div className="relative h-20 md:h-24 rounded-t-2xl overflow-hidden bg-[#14532d]">
+                                    <div className="relative h-20 md:h-24 bg-[#14532d] border-b border-black/10">
                                         {visa.card_image && (
                                             <img
                                                 src={getImageUrl(visa.card_image)}
@@ -568,19 +568,21 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                     </button>
 
                                                     {activeDocPopup === `doc_${visa.id}` && (
-                                                        <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-5 animate-in fade-in zoom-in-95 duration-200">
-                                                            <div className="flex justify-between items-center mb-4">
-                                                                <h4 className="font-bold text-gray-900">Documents</h4>
-                                                                <div className="flex items-center gap-3">
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-44 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 p-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                            {/* Arrow */}
+                                                            <div className="absolute -top-1 w-2 h-2 bg-white border-t border-l border-gray-100 rotate-45 left-1/2 -translate-x-1/2"></div>
+                                                            <div className="flex justify-between items-center mb-1.5 px-0.5">
+                                                                <h4 className="font-bold text-gray-900 text-[9px] uppercase tracking-wider">Documents</h4>
+                                                                <div className="flex items-center gap-1.5">
                                                                     <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             handleCopy(visa.documents_required);
                                                                         }}
-                                                                        className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                                                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-1 rounded transition-colors"
                                                                     >
-                                                                        <Copy size={14} />
-                                                                        <span className="text-xs font-medium">Copy</span>
+                                                                        <Copy size={9} />
+                                                                        <span className="text-[8px] font-bold">Copy</span>
                                                                     </button>
                                                                     <button
                                                                         onClick={(e) => {
@@ -589,17 +591,19 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                                         }}
                                                                         className="text-gray-400 hover:text-gray-600 transition-colors"
                                                                     >
-                                                                        <X size={18} />
+                                                                        <X size={12} />
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            <ul className="list-disc pl-4 space-y-2">
-                                                                {visa.documents_required ? visa.documents_required.split(',').map((doc, idx) => (
-                                                                    <li key={idx} className="text-sm text-gray-700 leading-relaxed pl-1">{doc.trim()}</li>
-                                                                )) : (
-                                                                    <li className="text-sm text-gray-500 italic">No specific documents listed.</li>
-                                                                )}
-                                                            </ul>
+                                                            <div className="max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                                                                <ul className="list-disc pl-3 space-y-0.5">
+                                                                    {visa.documents_required ? visa.documents_required.split(',').map((doc, idx) => (
+                                                                        <li key={idx} className="text-[10px] text-gray-700 leading-tight">{doc.trim()}</li>
+                                                                    )) : (
+                                                                        <li className="text-[9px] text-gray-500 italic">No docs listed.</li>
+                                                                    )}
+                                                                </ul>
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -618,19 +622,21 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                     </button>
 
                                                     {activeDocPopup === `photo_${visa.id}` && (
-                                                        <div className="absolute top-full left-0 mt-3 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 p-5 animate-in fade-in zoom-in-95 duration-200">
-                                                            <div className="flex justify-between items-center mb-4">
-                                                                <h4 className="font-bold text-gray-900">Photography</h4>
-                                                                <div className="flex items-center gap-3">
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-44 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 p-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                            {/* Arrow */}
+                                                            <div className="absolute -top-1 w-2 h-2 bg-white border-t border-l border-gray-100 rotate-45 left-1/2 -translate-x-1/2"></div>
+                                                            <div className="flex justify-between items-center mb-1.5 px-0.5">
+                                                                <h4 className="font-bold text-gray-900 text-[9px] uppercase tracking-wider">Photography</h4>
+                                                                <div className="flex items-center gap-1.5">
                                                                     <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             handleCopy(visa.photography_required);
                                                                         }}
-                                                                        className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
+                                                                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-1 rounded transition-colors"
                                                                     >
-                                                                        <Copy size={14} />
-                                                                        <span className="text-xs font-medium">Copy</span>
+                                                                        <Copy size={9} />
+                                                                        <span className="text-[8px] font-bold">Copy</span>
                                                                     </button>
                                                                     <button
                                                                         onClick={(e) => {
@@ -639,17 +645,19 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                                         }}
                                                                         className="text-gray-400 hover:text-gray-600 transition-colors"
                                                                     >
-                                                                        <X size={18} />
+                                                                        <X size={12} />
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            <ul className="list-disc pl-4 space-y-2">
-                                                                {visa.photography_required ? visa.photography_required.split(',').map((req, idx) => (
-                                                                    <li key={idx} className="text-sm text-gray-700 leading-relaxed pl-1">{req.trim()}</li>
-                                                                )) : (
-                                                                    <li className="text-sm text-gray-500 italic">No specific photography requirements.</li>
-                                                                )}
-                                                            </ul>
+                                                            <div className="max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                                                                <ul className="list-disc pl-3 space-y-0.5">
+                                                                    {visa.photography_required ? visa.photography_required.split(',').map((req, idx) => (
+                                                                        <li key={idx} className="text-[10px] text-gray-700 leading-tight">{req.trim()}</li>
+                                                                    )) : (
+                                                                        <li className="text-[9px] text-gray-500 italic">No requirements listed.</li>
+                                                                    )}
+                                                                </ul>
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -979,6 +987,57 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                     </div>
                 </div>
             )}
+            {/* ---------------- WHY CHOOSE US SECTION (PREMIUM DESIGN) ---------------- */}
+            <section className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 left-0 w-96 h-96 bg-[#14532d]/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+
+                <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-black text-[#14532d] tracking-tight mb-4">
+                            Trust the Experts
+                        </h2>
+                        <div className="w-20 h-1.5 bg-gradient-to-r from-[#14532d] to-[#22c55e] mx-auto rounded-full"></div>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {/* Why Goimomi Holidays */}
+                        <div className="group bg-white/60 backdrop-blur-xl p-8 rounded-[2rem] shadow-xl border border-white/40 hover:border-[#14532d]/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl fade-up">
+                            <div className="w-14 h-14 bg-gradient-to-br from-[#14532d] to-[#22c55e] rounded-2xl flex items-center justify-center text-white mb-6 transform group-hover:rotate-6 transition-transform shadow-lg shadow-green-200">
+                                <Zap size={28} />
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tight leading-tight">Why Goimomi Holidays?</h3>
+                            <p className="text-gray-600 text-[13px] leading-relaxed font-medium">
+                                Established in 2010, Goimomi Holidays has since positioned itself as one of the leading companies,
+                                providing <span className="text-[#14532d] font-bold">great offers</span>, competitive airfares, and a <span className="text-[#14532d] font-bold">seamless booking experience</span>. We deliver amazing perks like Instant Discounts and MyRewardsProgram to make every journey better.
+                            </p>
+                        </div>
+
+                        {/* Booking Flights with Goimomi Holidays */}
+                        <div className="group bg-white/60 backdrop-blur-xl p-8 rounded-[2rem] shadow-xl border border-white/40 hover:border-[#14532d]/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl fade-up" style={{ animationDelay: "0.1s" }}>
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-400 rounded-2xl flex items-center justify-center text-white mb-6 transform group-hover:rotate-6 transition-transform shadow-lg shadow-blue-200">
+                                <Search size={28} />
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tight leading-tight">Smart Flight Booking</h3>
+                            <p className="text-gray-600 text-[13px] leading-relaxed font-medium">
+                                Find the <span className="text-blue-600 font-bold">best deals</span> in just a few clicks. Our 24/7 dedicated helpline caters to over <span className="text-blue-600 font-bold">5 million happy customers</span>. Experience personalized travel planning that puts your convenience first, every single time.
+                            </p>
+                        </div>
+
+                        {/* Domestic Flights with Goimomi Holidays */}
+                        <div className="group bg-white/60 backdrop-blur-xl p-8 rounded-[2rem] shadow-xl border border-white/40 hover:border-[#14532d]/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl fade-up" style={{ animationDelay: "0.2s" }}>
+                            <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-300 rounded-2xl flex items-center justify-center text-white mb-6 transform group-hover:rotate-6 transition-transform shadow-lg shadow-amber-200">
+                                <Plane size={28} />
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 mb-4 tracking-tight leading-tight">Leading Domestic Expert</h3>
+                            <p className="text-gray-600 text-[13px] leading-relaxed font-medium">
+                                India's <span className="text-amber-600 font-bold">leading player</span> for flight bookings. We guarantee the lowest prices with instant notifications for fare drops, <span className="text-amber-600 font-bold">amazing discounts</span>, and effortless rebook options for your domestic travel.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 };

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Search, Trash2, Edit2, CheckCircle, XCircle } from "lucide-react";
+import { Search, Trash2, Edit2, CheckCircle, XCircle, ChevronDown, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -9,12 +9,36 @@ import AdminTopbar from "../../components/admin/AdminTopbar";
 const AdminVisaManage = () => {
     const [visas, setVisas] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [countries, setCountries] = useState([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
     const navigate = useNavigate();
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         fetchVisas();
+        fetchCountries();
+    }, []);
+
+    const fetchCountries = async () => {
+        try {
+            const response = await axios.get("/api/countries/");
+            setCountries(response.data);
+        } catch (error) {
+            console.error("Error fetching countries:", error);
+        }
+    };
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const fetchVisas = async () => {
@@ -80,15 +104,64 @@ const AdminVisaManage = () => {
 
                     {/* Search Bar */}
                     <div className="mb-6">
-                        <div className="relative max-w-md">
+                        <div className="relative max-w-sm" ref={dropdownRef}>
                             <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
                             <input
                                 type="text"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search visas..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setIsDropdownOpen(true);
+                                }}
+                                onFocus={() => setIsDropdownOpen(true)}
+                                placeholder="Search visas by country..."
+                                className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white shadow-sm transition-all text-sm"
                             />
+                            <button
+                                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            >
+                                <ChevronDown size={18} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {isDropdownOpen && (
+                                <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                                    <div
+                                        className="px-4 py-2.5 hover:bg-green-50 cursor-pointer text-gray-700 font-bold text-xs uppercase tracking-wider border-b border-gray-50 flex items-center justify-between"
+                                        onClick={() => {
+                                            setSearchTerm("");
+                                            setIsDropdownOpen(false);
+                                        }}
+                                    >
+                                        <span>Show All Visas</span>
+                                        {searchTerm === "" && <div className="w-1.5 h-1.5 rounded-full bg-[#14532d]" />}
+                                    </div>
+                                    {countries
+                                        .filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                        .map((country) => (
+                                            <div
+                                                key={country.id}
+                                                className={`px-4 py-2.5 hover:bg-green-50 cursor-pointer text-sm flex items-center justify-between transition-colors ${searchTerm.toLowerCase() === country.name.toLowerCase() ? 'bg-green-50 text-[#14532d] font-bold' : 'text-gray-600'}`}
+                                                onClick={() => {
+                                                    setSearchTerm(country.name);
+                                                    setIsDropdownOpen(false);
+                                                }}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <MapPin size={14} className={searchTerm.toLowerCase() === country.name.toLowerCase() ? 'text-[#14532d]' : 'text-gray-400'} />
+                                                    <span>{country.name}</span>
+                                                </div>
+                                                {searchTerm.toLowerCase() === country.name.toLowerCase() && <div className="w-1.5 h-1.5 rounded-full bg-[#14532d]" />}
+                                            </div>
+                                        ))}
+                                    {countries.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && searchTerm && (
+                                        <div className="px-4 py-3 text-gray-400 italic text-[11px] text-center bg-gray-50 font-medium">
+                                            No country matches "{searchTerm}"<br />
+                                            <span className="text-[10px] mt-1 block not-italic">Filtering by title instead...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 

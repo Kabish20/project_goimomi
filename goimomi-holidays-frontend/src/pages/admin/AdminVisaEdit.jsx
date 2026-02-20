@@ -43,6 +43,10 @@ const AdminVisaEdit = () => {
     const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
     const [supplierSearchTerm, setSupplierSearchTerm] = useState("");
 
+    // Dynamic lists for documents and photos
+    const [documentList, setDocumentList] = useState([]);
+    const [photoList, setPhotoList] = useState([]);
+
     const fetchCountries = useCallback(async () => {
         try {
             const response = await axios.get("/api/countries/");
@@ -63,6 +67,23 @@ const AdminVisaEdit = () => {
             console.error("Error fetching suppliers:", error);
         }
     }, []);
+
+    const addListItem = (setter) => setter(prev => [...prev, ""]);
+    const removeListItem = (setter, index) => setter(prev => prev.filter((_, i) => i !== index));
+    const handleListChange = (setter, index, value) => {
+        setter(prev => {
+            const newList = [...prev];
+            newList[index] = value;
+            return newList;
+        });
+    };
+
+    const formatWithCommas = (value) => {
+        if (value === null || value === undefined || value === "") return "";
+        const cleanValue = value.toString().replace(/\D/g, "");
+        if (!cleanValue) return "";
+        return new Intl.NumberFormat("en-IN").format(cleanValue);
+    };
 
 
 
@@ -86,6 +107,10 @@ const AdminVisaEdit = () => {
                 is_active: data.is_active ?? true,
                 supplier: data.supplier || null,
             });
+
+            // Populate dynamic lists by splitting the strings
+            setDocumentList(data.documents_required ? data.documents_required.split(", ").map(s => s.trim()) : []);
+            setPhotoList(data.photography_required ? data.photography_required.split(", ").map(s => s.trim()) : []);
         } catch (error) {
             console.error("Error fetching visa:", error);
             setStatusMessage({ text: "Failed to fetch visa details", type: "error" });
@@ -108,14 +133,20 @@ const AdminVisaEdit = () => {
                 [`${name}_preview`]: file ? URL.createObjectURL(file) : null
             });
         } else {
-            const updatedValue = type === "checkbox" ? checked : value;
+            let updatedValue = type === "checkbox" ? checked : value;
+
+            // Strip commas for price fields to keep state as numeric
+            if (name === "cost_price" || name === "service_charge" || name === "selling_price") {
+                updatedValue = value.toString().replace(/\D/g, "");
+            }
+
             setFormData(prev => {
                 const newData = { ...prev, [name]: updatedValue };
 
                 // Auto-calculate selling price if cost or service charge changes
                 if (name === "cost_price" || name === "service_charge") {
-                    const cost = parseFloat(name === "cost_price" ? value : prev.cost_price) || 0;
-                    const service = parseFloat(name === "service_charge" ? value : prev.service_charge) || 0;
+                    const cost = parseFloat(name === "cost_price" ? updatedValue : prev.cost_price) || 0;
+                    const service = parseFloat(name === "service_charge" ? updatedValue : prev.service_charge) || 0;
                     newData.selling_price = cost + service;
                 }
 
@@ -139,11 +170,21 @@ const AdminVisaEdit = () => {
             setStatusMessage({ text: "", type: "" });
 
             const data = new FormData();
+
+            // Join lists with commas before saving
+            const documentsString = documentList.filter(item => item.trim() !== "").join(", ");
+            const photosString = photoList.filter(item => item.trim() !== "").join(", ");
+
             Object.keys(formData).forEach(key => {
                 if (!key.includes('preview') && !key.includes('existing')) {
-                    if (formData[key] !== null) data.append(key, formData[key]);
+                    if (key !== "documents_required" && key !== "photography_required" && formData[key] !== null) {
+                        data.append(key, formData[key]);
+                    }
                 }
             });
+
+            data.append("documents_required", documentsString);
+            data.append("photography_required", photosString);
 
             const response = await axios.patch(`/api/visas/${id}/`, data, {
                 headers: {
@@ -170,6 +211,8 @@ const AdminVisaEdit = () => {
                     is_active: fresh.data.is_active ?? true,
                     supplier: fresh.data.supplier || null,
                 });
+                setDocumentList(fresh.data.documents_required ? fresh.data.documents_required.split(", ").map(s => s.trim()) : []);
+                setPhotoList(fresh.data.photography_required ? fresh.data.photography_required.split(", ").map(s => s.trim()) : []);
                 setIsSubmitting(false);
             } else if (action === "another") {
                 navigate("/admin/visas/add");
@@ -373,9 +416,9 @@ const AdminVisaEdit = () => {
                                             Cost Price (₹)
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             name="cost_price"
-                                            value={formData.cost_price}
+                                            value={formatWithCommas(formData.cost_price)}
                                             onChange={handleChange}
                                             className="w-full px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold"
                                             required
@@ -387,9 +430,9 @@ const AdminVisaEdit = () => {
                                             Service Charge (₹)
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             name="service_charge"
-                                            value={formData.service_charge}
+                                            value={formatWithCommas(formData.service_charge)}
                                             onChange={handleChange}
                                             className="w-full px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all font-bold"
                                             required
@@ -401,9 +444,9 @@ const AdminVisaEdit = () => {
                                             Selling Price (₹)
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             name="selling_price"
-                                            value={formData.selling_price}
+                                            value={formatWithCommas(formData.selling_price)}
                                             readOnly
                                             className="w-full px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg outline-none transition-all font-bold cursor-not-allowed"
                                         />
@@ -477,33 +520,77 @@ const AdminVisaEdit = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-1 text-xs">
-                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-2">
+                                    {/* Documents Required List */}
+                                    <div className="space-y-3">
+                                        <div className="bg-[#14532d] text-white px-3 py-1.5 font-bold text-[10px] uppercase tracking-widest rounded-t-lg">
                                             Required Documents
-                                        </label>
-                                        <textarea
-                                            name="documents_required"
-                                            value={formData.documents_required}
-                                            onChange={handleChange}
-                                            rows="2"
-                                            placeholder="Passport, Photo, etc..."
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all resize-none"
-                                        ></textarea>
+                                        </div>
+                                        <div className="p-4 border border-gray-200 border-t-0 rounded-b-lg bg-gray-50/30 space-y-3">
+                                            {documentList.map((doc, index) => (
+                                                <div key={index} className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={doc}
+                                                        onChange={(e) => handleListChange(setDocumentList, index, e.target.value)}
+                                                        placeholder="e.g. Passport Front"
+                                                        className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all text-xs"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeListItem(setDocumentList, index)}
+                                                        className="flex items-center gap-1 text-red-500 hover:text-red-700 font-bold text-[10px] uppercase tracking-tight transition-colors"
+                                                    >
+                                                        <X size={14} className="stroke-[3]" />
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => addListItem(setDocumentList)}
+                                                className="mt-2 flex items-center gap-1.5 text-[#14532d] hover:text-[#0f4a24] font-black text-[10px] uppercase tracking-wider transition-all"
+                                            >
+                                                <Plus size={14} className="stroke-[3]" />
+                                                Add Another Document
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-1 text-xs">
-                                        <label className="block font-bold text-gray-400 uppercase tracking-widest">
+                                    {/* Photo Requirements List */}
+                                    <div className="space-y-3">
+                                        <div className="bg-[#14532d] text-white px-3 py-1.5 font-bold text-[10px] uppercase tracking-widest rounded-t-lg">
                                             Photo Requirements
-                                        </label>
-                                        <textarea
-                                            name="photography_required"
-                                            value={formData.photography_required}
-                                            onChange={handleChange}
-                                            rows="2"
-                                            placeholder="White background, etc..."
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all resize-none"
-                                        ></textarea>
+                                        </div>
+                                        <div className="p-4 border border-gray-200 border-t-0 rounded-b-lg bg-gray-50/30 space-y-3">
+                                            {photoList.map((photo, index) => (
+                                                <div key={index} className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={photo}
+                                                        onChange={(e) => handleListChange(setPhotoList, index, e.target.value)}
+                                                        placeholder="e.g. White background"
+                                                        className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#14532d] outline-none transition-all text-xs"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeListItem(setPhotoList, index)}
+                                                        className="flex items-center gap-1 text-red-500 hover:text-red-700 font-bold text-[10px] uppercase tracking-tight transition-colors"
+                                                    >
+                                                        <X size={14} className="stroke-[3]" />
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => addListItem(photoList)}
+                                                className="mt-2 flex items-center gap-1.5 text-[#14532d] hover:text-[#0f4a24] font-black text-[10px] uppercase tracking-wider transition-all"
+                                            >
+                                                <Plus size={14} className="stroke-[3]" />
+                                                Add Another Requirement
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
