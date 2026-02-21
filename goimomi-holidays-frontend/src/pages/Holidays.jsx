@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight } from "lucide-react";
+import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
 import FormModal from "../components/FormModal";
 import goimomilogo from "../assets/goimomilogo.png";
@@ -107,13 +108,6 @@ const Holidays = () => {
   );
 
   // Helper to fix image URLs
-  const getImageUrl = (url) => {
-    if (!url) return "";
-    if (url.startsWith("http")) {
-      return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
-    }
-    return url;
-  };
 
   const generateShareText = (pkg) => {
     let text = `Hello, please find details with regards to your holiday query for:

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { MapPin, Zap, ShieldCheck, Headphones } from "lucide-react";
+import { getImageUrl } from "../utils/imageUtils";
 
 // WhatsApp Chat Widget Component
 const WhatsAppWidget = ({ isOpen, onClose }) => {
@@ -259,7 +260,7 @@ const Home = () => {
               >
                 <div className="relative h-40 overflow-hidden">
                   <img
-                    src={item.card_image || maldives}
+                    src={getImageUrl(item.card_image) || maldives}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     alt={item.name}
                   />
@@ -389,7 +390,7 @@ const Home = () => {
               >
                 <div className="relative h-40 overflow-hidden">
                   <img
-                    src={item.card_image || singaporeVisa}
+                    src={getImageUrl(item.card_image) || singaporeVisa}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     alt={item.title}
                   />

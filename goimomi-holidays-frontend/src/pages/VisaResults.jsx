@@ -2,15 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
+import { getImageUrl } from "../utils/imageUtils";
 
-const getImageUrl = (url) => {
-    if (!url) return "";
-    if (typeof url !== "string") return url;
-    if (url.startsWith("http")) {
-        return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
-    }
-    return url;
-};
 
 const VisaResults = () => {
     const [searchParams, setSearchParams] = useSearchParams();

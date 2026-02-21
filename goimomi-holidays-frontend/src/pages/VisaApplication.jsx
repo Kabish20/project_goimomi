@@ -2,19 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin } from "lucide-react";
+import { getImageUrl } from "../utils/imageUtils";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import visaBg from "../assets/Hero/visa_bg.jpg";
 
 
-const getImageUrl = (url) => {
-    if (!url) return "";
-    if (typeof url !== "string") return url;
-    if (url.startsWith("http")) {
-        return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
-    }
-    return url;
-};
 
 const VisaApplication = () => {
     const { id } = useParams();

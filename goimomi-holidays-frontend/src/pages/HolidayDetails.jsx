@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import FormModal from "../components/FormModal";
+import { getImageUrl } from "../utils/imageUtils";
 
 const HolidayDetails = () => {
   const { id } = useParams();
@@ -10,13 +11,6 @@ const HolidayDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pricePopupOpen, setPricePopupOpen] = useState(false);
 
-  const getImageUrl = (url) => {
-    if (!url) return "";
-    if (url.startsWith("http")) {
-      return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
-    }
-    return url;
-  };
 
   const toggleDay = (index) => {
     setOpenDay(openDay === index ? null : index);

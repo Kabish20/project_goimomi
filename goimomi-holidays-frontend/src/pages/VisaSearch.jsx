@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Home, Plane, Calendar, MapPin, ChevronDown, Zap, ShieldCheck, Headphones } from "lucide-react";
 import axios from "axios";
 import visaBg from "../assets/Hero/visa_bg.jpg";
+import { getImageUrl } from "../utils/imageUtils";
 
 const VisaSearch = () => {
     const navigate = useNavigate();
@@ -281,7 +282,7 @@ const VisaSearch = () => {
                             >
                                 <div className="aspect-[3/4] rounded-2xl overflow-hidden relative mb-3 shadow-sm group-hover:shadow-xl transition-all duration-500">
                                     <img
-                                        src={dest.card_image || "/placeholder.jpg"}
+                                        src={getImageUrl(dest.card_image) || "/placeholder.jpg"}
                                         alt={dest.name}
                                         className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
