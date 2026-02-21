@@ -101,7 +101,12 @@ const Footer = () => {
 
           <div className="flex items-start gap-2.5 text-white/70 text-[13px] font-medium">
             <FaLocationDot className="text-[#e9b343] mt-0.5 shrink-0" size={14} />
-            <p>Trichy • Hyderabad • Dubai</p>
+            <div className="flex flex-col gap-1">
+              <span>Trichy</span>
+              <span>Hyderabad</span>
+              <span>Dubai</span>
+              <span>Saudi Arabia</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2.5 text-white/70 text-[13px] font-medium">
