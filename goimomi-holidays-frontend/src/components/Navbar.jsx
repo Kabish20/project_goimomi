@@ -349,26 +349,6 @@ const Navbar = () => {
                 Contact Us
               </NavLink>
 
-              {/* Login Buttons for Mobile */}
-              <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
-                <a
-                  href="https://b2b.goimomi.com/"
-                  className="w-full text-center bg-goimomi-primary text-white rounded-lg py-2 font-medium"
-                  rel="noopener noreferrer"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Agent Login
-                </a>
-                <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    setIsAdminLoginOpen(true);
-                  }}
-                  className="w-full text-center border-2 border-goimomi-primary text-goimomi-primary rounded-lg py-2 font-bold hover:bg-goimomi-primary/5 transition-colors"
-                >
-                  Admin Login
-                </button>
-              </div>
 
             </div>
           </div>

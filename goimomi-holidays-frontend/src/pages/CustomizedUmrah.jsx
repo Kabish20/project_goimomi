@@ -36,7 +36,7 @@ const CustomizedUmrah = () => {
           </p>
 
           <div className="mt-8 flex gap-6 justify-center">
-            <button 
+            <button
               onClick={() => {
                 setSelectedPackage("Standard Umrah Package");
                 setIsFormOpen(true);
@@ -137,7 +137,7 @@ const CustomizedUmrah = () => {
               <p className="text-lg font-semibold mt-3">Starting from</p>
               <p className="text-3xl font-bold text-green-800 mb-3">₹65,000</p>
 
-              <button 
+              <button
                 onClick={() => {
                   setSelectedPackage("Economy Umrah Package");
                   setIsFormOpen(true);
@@ -161,7 +161,7 @@ const CustomizedUmrah = () => {
               <p className="text-lg font-semibold mt-3">Starting from</p>
               <p className="text-3xl font-bold text-green-800 mb-3">₹85,000</p>
 
-              <button 
+              <button
                 onClick={() => {
                   setSelectedPackage("Standard Umrah Package");
                   setIsFormOpen(true);
@@ -185,7 +185,7 @@ const CustomizedUmrah = () => {
               <p className="text-lg font-semibold mt-3">Starting from</p>
               <p className="text-3xl font-bold text-green-800 mb-3">₹1,25,000</p>
 
-              <button 
+              <button
                 onClick={() => {
                   setSelectedPackage("VIP Umrah Package");
                   setIsFormOpen(true);
@@ -278,19 +278,19 @@ const CustomizedUmrah = () => {
           </div>
 
           <div className="flex gap-6 justify-center">
-            <button 
+            <button
               onClick={() => {
                 setSelectedPackage("Economy Umrah Package");
                 setIsFormOpen(true);
               }}
               className="bg-yellow-500 text-black px-8 py-3 rounded-lg font-semibold hover:bg-yellow-400">
-                Customize My Umrah
+              Customize My Umrah
             </button>
           </div>
         </div>
       </section>
 
-      <FormModal 
+      <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         packageType={selectedPackage}
