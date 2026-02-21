@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Search, Eye, Trash2, Mail, Phone, ArrowLeft } from "lucide-react";
+import { Search, Eye, Trash2, Mail, Phone, ArrowLeft, MapPin } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import { useNavigate } from "react-router-dom";
@@ -190,65 +190,84 @@ const GeneralEnquiryManage = () => {
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    {/* Enquiry Detail Modal */}
-                    {selectedEnquiry && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                                <div className="flex justify-between items-start mb-4">
-                                    <h2 className="text-xl font-semibold">Enquiry Details</h2>
-                                    <button
-                                        onClick={() => setSelectedEnquiry(null)}
-                                        className="text-gray-500 hover:text-gray-700 font-bold"
-                                    >
-                                        ×
-                                    </button>
+            {/* Enquiry Detail Modal */}
+            {selectedEnquiry && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                            <div className="flex flex-col">
+                                <h2 className="text-lg font-black text-gray-900 leading-tight">{selectedEnquiry.name}</h2>
+                                <div className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] mt-0.5">
+                                    <span className="bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-wider text-gray-500">General Enquiry</span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedEnquiry(null)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full"
+                            >
+                                <Eye size={18} className="rotate-45" /> {/* Close icon fix or simple X */}
+                                <span className="text-xl">×</span>
+                            </button>
+                        </div>
+
+                        <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+                            <div className="p-5 space-y-4">
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Contact Information</p>
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                        <div className="flex items-center gap-2.5 bg-gray-50/50 p-2 rounded-xl border border-gray-100 transition-colors">
+                                            <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                                                <Phone size={14} className="text-[#14532d]" />
+                                            </div>
+                                            <span className="font-bold text-gray-700 text-sm">{selectedEnquiry.phone}</span>
+                                        </div>
+                                        {selectedEnquiry.email && (
+                                            <div className="flex items-center gap-2.5 bg-gray-50/50 p-2 rounded-xl border border-gray-100 transition-colors">
+                                                <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                                                    <Mail size={14} className="text-[#14532d]" />
+                                                </div>
+                                                <span className="font-bold text-gray-700 truncate text-sm">{selectedEnquiry.email}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div>
-                                        <h3 className="font-semibold text-gray-700">Contact Information</h3>
-                                        <p><strong>Name:</strong> {selectedEnquiry.name}</p>
-                                        <p><strong>Email:</strong> {selectedEnquiry.email || "N/A"}</p>
-                                        <p><strong>Phone:</strong> {selectedEnquiry.phone}</p>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-semibold text-gray-700">Enquiry Details</h3>
-                                        <p><strong>Purpose of Visit / Message:</strong></p>
-                                        <p className="mt-1 text-gray-600 bg-gray-50 p-3 rounded border whitespace-pre-wrap">
-                                            {selectedEnquiry.purpose || "No details provided"}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-semibold text-gray-700">Timestamp</h3>
-                                        <p>Submitted: {formatDate(selectedEnquiry.created_at)}</p>
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Message / Purpose</p>
+                                    <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100 text-gray-600 text-[13px] leading-relaxed min-h-[60px]">
+                                        {selectedEnquiry.purpose || "No details provided"}
                                     </div>
                                 </div>
 
-                                <div className="mt-6 flex gap-3">
-                                    <button
-                                        onClick={() => setSelectedEnquiry(null)}
-                                        className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            handleDelete(selectedEnquiry.id);
-                                            setSelectedEnquiry(null);
-                                        }}
-                                        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                                    >
-                                        Delete Enquiry
-                                    </button>
+                                <div className="pt-1 text-center">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Submitted on {formatDate(selectedEnquiry.created_at)}</p>
                                 </div>
                             </div>
                         </div>
-                    )}
+
+                        <div className="p-4 bg-gray-50 flex gap-2 border-t border-gray-100">
+                            <button
+                                onClick={() => setSelectedEnquiry(null)}
+                                className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleDelete(selectedEnquiry.id);
+                                    setSelectedEnquiry(null);
+                                }}
+                                className="flex-1 bg-red-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+                            >
+                                Delete Enquiry
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

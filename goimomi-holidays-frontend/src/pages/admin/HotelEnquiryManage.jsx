@@ -194,86 +194,83 @@ const HotelEnquiryManage = () => {
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
 
-                    {/* Enquiry Detail Modal */}
-                    {selectedEnquiry && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-                                <div className="bg-[#14532d] p-6 text-white flex justify-between items-center">
-                                    <h2 className="text-xl font-bold flex items-center gap-2">
-                                        <Hotel size={20} /> Hotel Enquiry Details
-                                    </h2>
-                                    <button
-                                        onClick={() => setSelectedEnquiry(null)}
-                                        className="text-white/80 hover:text-white transition-colors text-2xl"
-                                    >
-                                        ×
-                                    </button>
+            {/* Enquiry Detail Modal */}
+            {selectedEnquiry && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                            <div className="flex flex-col">
+                                <h2 className="text-lg font-black text-gray-900 leading-tight">{selectedEnquiry.name}</h2>
+                                <div className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] mt-0.5">
+                                    <Hotel size={12} />
+                                    <span>{selectedEnquiry.destination}</span>
                                 </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedEnquiry(null)}
+                                className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full"
+                            >
+                                <span className="text-xl">×</span>
+                            </button>
+                        </div>
 
-                                <div className="p-8 space-y-6">
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-bold text-gray-400 uppercase">Customer Name</p>
-                                            <p className="font-semibold text-gray-900">{selectedEnquiry.name}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-bold text-gray-400 uppercase">Location/Hotel</p>
-                                            <p className="font-semibold text-[#14532d]">
-                                                {selectedEnquiry.destination}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-bold text-gray-400 uppercase">Contact Details</p>
-                                        <div className="space-y-2 mt-2">
-                                            <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                                <Phone size={18} className="text-[#14532d]" />
-                                                <span className="font-medium">{selectedEnquiry.phone}</span>
+                        <div className="overflow-y-auto max-h-[calc(90vh-140px)]">
+                            <div className="p-5 space-y-4">
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Contact Details</p>
+                                    <div className="grid grid-cols-1 gap-1.5">
+                                        <div className="flex items-center gap-2.5 bg-gray-50/50 p-2 rounded-xl border border-gray-100 group hover:border-[#14532d]/30 transition-colors text-sm">
+                                            <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                                                <Phone size={14} className="text-[#14532d]" />
                                             </div>
-                                            {selectedEnquiry.email && (
-                                                <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                                    <Mail size={18} className="text-[#14532d]" />
-                                                    <span className="font-medium">{selectedEnquiry.email}</span>
+                                            <span className="font-bold text-gray-700">{selectedEnquiry.phone}</span>
+                                        </div>
+                                        {selectedEnquiry.email && (
+                                            <div className="flex items-center gap-2.5 bg-gray-50/50 p-2 rounded-xl border border-gray-100 group hover:border-[#14532d]/30 transition-colors text-sm">
+                                                <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                                                    <Mail size={14} className="text-[#14532d]" />
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-bold text-gray-400 uppercase">Stay Requirements</p>
-                                        <div className="mt-2 bg-gray-50 p-4 rounded-xl border border-gray-100 italic text-gray-700 min-h-[100px]">
-                                            {selectedEnquiry.purpose || "No specific details mentioned."}
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4 border-t border-gray-100 text-center">
-                                        <p className="text-xs text-gray-400">Enquiry received on {formatDate(selectedEnquiry.created_at)}</p>
+                                                <span className="font-bold text-gray-700 truncate">{selectedEnquiry.email}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="p-6 bg-gray-50 flex gap-3">
-                                    <button
-                                        onClick={() => setSelectedEnquiry(null)}
-                                        className="flex-1 bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            window.open(`mailto:${selectedEnquiry.email}`);
-                                        }}
-                                        className="flex-1 bg-[#14532d] text-white py-3 rounded-xl font-bold hover:bg-[#0f3d21] transition-colors shadow-lg shadow-[#14532d]/20"
-                                    >
-                                        Email Customer
-                                    </button>
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Stay Requirements</p>
+                                    <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100 text-gray-600 text-[13px] leading-relaxed min-h-[60px]">
+                                        {selectedEnquiry.purpose || "No specific details mentioned."}
+                                    </div>
+                                </div>
+
+                                <div className="pt-1 text-center">
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Enquiry received on {formatDate(selectedEnquiry.created_at)}</p>
                                 </div>
                             </div>
                         </div>
-                    )}
+
+                        <div className="p-4 bg-gray-50 flex gap-2 border-t border-gray-100">
+                            <button
+                                onClick={() => setSelectedEnquiry(null)}
+                                className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => {
+                                    window.open(`mailto:${selectedEnquiry.email}`);
+                                }}
+                                className="flex-1 bg-[#14532d] text-white py-2.5 rounded-xl font-bold text-sm hover:bg-[#0f3d21] transition-colors shadow-lg shadow-[#14532d]/20"
+                            >
+                                Email Customer
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

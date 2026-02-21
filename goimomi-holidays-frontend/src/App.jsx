@@ -98,7 +98,7 @@ const App = () => {
     <div className={`flex flex-col ${isAdminPath ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       <ScrollToTop />
 
-      <Navbar />
+      {!isAdminPath && <Navbar />}
 
       <main className={`flex-1 ${isAdminPath ? 'flex flex-col min-h-0 overflow-hidden' : ''}`}>
         <Routes>
