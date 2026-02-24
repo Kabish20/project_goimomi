@@ -393,3 +393,24 @@ class Supplier(models.Model):
 
     def __str__(self):
         return self.company_name
+
+class CruiseCalendar(models.Model):
+    cruise_type = models.CharField(max_length=100) # Used as Category
+    itinerary = models.CharField(max_length=255)   # Used as Title
+    jan = models.CharField(max_length=100, blank=True, null=True)
+    feb = models.CharField(max_length=100, blank=True, null=True)
+    mar = models.CharField(max_length=100, blank=True, null=True)
+    apr = models.CharField(max_length=100, blank=True, null=True)
+    may = models.CharField(max_length=100, blank=True, null=True)
+    jun = models.CharField(max_length=100, blank=True, null=True)
+    jul = models.CharField(max_length=100, blank=True, null=True)
+    aug = models.CharField(max_length=100, blank=True, null=True)
+    sep = models.CharField(max_length=100, blank=True, null=True)
+    oct = models.CharField(max_length=100, blank=True, null=True)
+    nov = models.CharField(max_length=100, blank=True, null=True)
+    dec = models.CharField(max_length=100, blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.cruise_type} - {self.itinerary[:30]}"

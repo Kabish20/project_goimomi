@@ -19,6 +19,7 @@ router.register("visa-applicants", VisaApplicantViewSet)
 router.register("additional-documents", VisaAdditionalDocumentViewSet)
 router.register("countries", CountryViewSet)
 router.register("suppliers", SupplierViewSet)
+router.register("cruise-calendar", CruiseCalendarViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

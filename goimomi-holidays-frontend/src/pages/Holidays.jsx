@@ -422,7 +422,13 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                       >
                         <div className="flex flex-col">
                           <span>{dest.name}</span>
-                          {dest.country && <span className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">{dest.country}</span>}
+                          {(dest.region || dest.country) && (
+                            <span className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">
+                              {dest.region && dest.country
+                                ? `${dest.region} (${dest.country})`
+                                : dest.region || dest.country}
+                            </span>
+                          )}
                         </div>
                       </li>
                     ))
@@ -713,11 +719,22 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                       </div>
                     </div>
 
-                    <p className="text-gray-500 text-sm flex items-center gap-1.5 mb-4">
+                    <p className="text-gray-500 text-sm flex items-center gap-1.5 mb-4 flex-wrap">
                       <span className="text-[#14532d]">📍</span>
                       {pkg.starting_city}
                       {pkg.destinations && pkg.destinations.length > 0 &&
-                        ` • ${pkg.destinations.map(d => `${d.name}`).join(" • ")}`}
+                        pkg.destinations.map((d, di) => (
+                          <span key={di} className="flex items-center gap-1">
+                            <span className="text-gray-300">•</span>
+                            <span>{d.name}</span>
+                            {(d.region || d.country) && (
+                              <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
+                                ({d.region && d.country ? `${d.region}, ${d.country}` : d.region || d.country})
+                              </span>
+                            )}
+                          </span>
+                        ))
+                      }
                     </p>
 
                     <div className="grid grid-cols-2 gap-y-2 gap-x-4">

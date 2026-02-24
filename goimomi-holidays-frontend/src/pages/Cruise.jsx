@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import CabCruiseForm from "../components/CabCruiseForm";
 import cruiseHeroImg from "../assets/cruise_hero.jpg";
 
@@ -11,48 +12,24 @@ const Cruise = () => {
     setIsFormOpen(true);
   };
 
-  const fleet = [
-    {
-      name: "Mediterranean Luxury Liner",
-      pax: "Any Group Size",
-      category: "European Cruise"
-    },
-    {
-      name: "Caribbean Island Hopper",
-      pax: "Any Group Size",
-      category: "Tropical Cruise"
-    },
-    {
-      name: "Singapore & SE Asia Voyager",
-      pax: "Any Group Size",
-      category: "Asian Cruise"
-    },
-    {
-      name: "Dubai & Arabia Explorer",
-      pax: "Any Group Size",
-      category: "Gulf Cruise"
-    },
-    {
-      name: "Alaska Glaciers Expedition",
-      pax: "Any Group Size",
-      category: "Arctic Cruise"
-    },
-    {
-      name: "Norwegian Fjords Adventure",
-      pax: "Any Group Size",
-      category: "Scenic Cruise"
-    },
-    {
-      name: "World Grand Voyage",
-      pax: "Any Group Size",
-      category: "Premium Cruise"
-    },
-    {
-      name: "Boutique River Cruise",
-      pax: "Any Group Size",
-      category: "Inland Cruise"
-    }
-  ];
+  const [calendarData, setCalendarData] = useState([]);
+  const [loadingCalendar, setLoadingCalendar] = useState(true);
+
+  useEffect(() => {
+    const fetchCalendar = async () => {
+      try {
+        const response = await axios.get("/api/cruise-calendar/");
+        setCalendarData(response.data);
+      } catch (err) {
+        console.error("Error fetching cruise calendar:", err);
+      } finally {
+        setLoadingCalendar(false);
+      }
+    };
+    fetchCalendar();
+  }, []);
+
+  // No stationary fleet array anymore - using dynamic calendarData
 
   return (
     <div className="bg-gray-50">
@@ -95,59 +72,49 @@ const Cruise = () => {
         </div>
       </div>
 
-      {/* Fleet Section (Cruises) */}
+      {/* Cruise Calendar Section */}
       <div className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4">Our Premium Cruise Collections</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">Choose your perfect voyage from our curated selection of global cruise destinations.</p>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4 uppercase tracking-tight">Sailing Schedule</h2>
+          <p className="text-lg text-gray-600">Plan your voyage with our updated cruise calendar.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {fleet.map((item, index) => (
-            <div
-              key={index}
-              className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col"
-            >
-              <div className="p-5 flex-grow">
-                <div className="mb-3 flex flex-col gap-2">
-                  <span className="w-fit bg-blue-50 text-blue-700 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border border-blue-100">
-                    {item.category}
-                  </span>
-                  <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-700 transition-colors duration-300 leading-snug">
-                    {item.name}
-                  </h3>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 py-3 border-t border-gray-100">
-                  <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs">
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 015.25-2.906z" />
-                    </svg>
-                    <span className="font-bold">{item.pax}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-lg text-xs">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-bold italic">BEST DEALS</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-5 pb-5">
-                <button
-                  onClick={() => handleBookCruise(item.name)}
-                  className="w-full py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all duration-300 transform active:scale-95 flex justify-center items-center gap-2"
-                >
-                  Enquire Now
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        {loadingCalendar ? (
+          <div className="flex justify-center py-10">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
+          </div>
+        ) : calendarData.length > 0 ? (
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[#14532d] text-white">
+                <tr className="divide-x divide-white/10">
+                  <th className="py-5 px-6 text-left font-bold uppercase tracking-wider">Cruise Nights</th>
+                  <th className="py-5 px-6 text-left font-bold uppercase tracking-wider">Itinerary</th>
+                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
+                    <th key={m} className="py-5 px-3 text-center font-bold uppercase tracking-wider">{m}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {calendarData.map((row, idx) => (
+                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-green-50/50 transition-colors divide-x divide-gray-100`}>
+                    <td className="py-4 px-6 font-bold text-gray-900 whitespace-nowrap">{row.cruise_type}</td>
+                    <td className="py-4 px-6 text-gray-600 font-medium">{row.itinerary}</td>
+                    {['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].map(m => (
+                      <td key={m} className="py-4 px-3 text-center text-green-700 font-bold">
+                        {row[m] || "-"}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-10 text-gray-500 italic bg-white rounded-3xl shadow-sm border border-gray-100">
+            Schedule updates coming soon. Contact us for latest availability.
+          </div>
+        )}
       </div>
 
       {/* Benefits Section */}

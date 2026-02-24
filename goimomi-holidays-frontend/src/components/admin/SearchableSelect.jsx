@@ -16,7 +16,8 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
     }, []);
 
     const filteredOptions = options.filter(option =>
-        (option.label || "").toLowerCase().includes(searchTerm.toLowerCase())
+        (option.label || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (option.subtitle || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const selectedOption = options.find(o => o.value === value);
@@ -27,7 +28,18 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
                 className={`bg-white border border-gray-300 px-3 py-2 rounded w-full text-black cursor-pointer flex justify-between items-center focus:ring-2 focus:ring-[#14532d] ${disabled ? 'pointer-events-none' : ''}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
-                <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
+                {selectedOption ? (
+                    <span className="truncate flex items-center gap-1.5">
+                        <span>{selectedOption.label}</span>
+                        {selectedOption.subtitle && (
+                            <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
+                                ({selectedOption.subtitle})
+                            </span>
+                        )}
+                    </span>
+                ) : (
+                    <span className="truncate text-gray-400">{placeholder}</span>
+                )}
                 <span className="text-gray-400 text-xs ml-2 flex-shrink-0">▼</span>
             </div>
 
@@ -49,14 +61,19 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
                             filteredOptions.map((option) => (
                                 <div
                                     key={option.value}
-                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${option.value === value ? "bg-green-50 text-[#14532d]" : "text-black"}`}
+                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-green-50 ${option.value === value ? "bg-green-50 text-[#14532d]" : "text-black"}`}
                                     onClick={() => {
                                         onChange(option.value);
                                         setIsOpen(false);
                                         setSearchTerm("");
                                     }}
                                 >
-                                    {option.label}
+                                    <div className="font-medium">{option.label}</div>
+                                    {option.subtitle && (
+                                        <div className="text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">
+                                            {option.subtitle}
+                                        </div>
+                                    )}
                                 </div>
                             ))
                         ) : (

@@ -288,3 +288,10 @@ class SendVisaDetailsAPI(APIView):
             return Response({"success": "Email sent successfully"})
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CruiseCalendarViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = CruiseCalendar.objects.all().order_by('-created_at')
+    serializer_class = CruiseCalendarSerializer
+    pagination_class = None

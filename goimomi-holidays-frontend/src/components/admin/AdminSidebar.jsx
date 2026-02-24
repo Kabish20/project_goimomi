@@ -14,7 +14,8 @@ import {
   Truck,
   LayoutDashboard,
   Flag,
-  Sun
+  Sun,
+  Calendar
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -73,6 +74,7 @@ const menu = [
         ]
       },
       { name: "Suppliers", icon: <Truck size={18} /> },
+      { name: "Cruise Calendar", icon: <Calendar size={18} /> },
     ],
   },
 ];
@@ -124,6 +126,7 @@ const AdminSidebar = () => {
   const handleAddStartingCity = () => navigate("/admin/starting-cities/add");
   const handleAddItineraryMaster = () => navigate("/admin/itinerary-masters/add");
   const handleAddNationality = () => navigate("/admin/nationalities/add");
+  const handleAddCruiseCalendar = () => navigate("/admin/cruise-calendar/add");
 
   const getAddHandler = (item) => {
     const key = typeof item === 'string' ? item : (item.key || item.name);
@@ -140,6 +143,7 @@ const AdminSidebar = () => {
       case "Visas": return handleAddVisa;
       case "Countries": return () => navigate("/admin/countries/add");
       case "Suppliers": return () => navigate("/admin/suppliers/add");
+      case "Cruise Calendar": return handleAddCruiseCalendar;
       default: return undefined;
     }
   };
@@ -164,6 +168,7 @@ const AdminSidebar = () => {
       case "Visa Applications": return handleChangeVisaApplication;
       case "Countries": return () => navigate("/admin/countries");
       case "Suppliers": return () => navigate("/admin/suppliers");
+      case "Cruise Calendar": return () => navigate("/admin/cruise-calendar");
       default: return undefined;
     }
   };
@@ -248,13 +253,13 @@ const AdminSidebar = () => {
         {!isCollapsed && (
           <h2
             className="text-xl font-bold tracking-tighter text-white cursor-pointer hover:text-green-200 transition-colors"
-            onClick={() => navigate("/admin-dashboard")}
+            onClick={() => navigate("/")}
           >
             GOIMOMI <span className="text-white opacity-80">ADMIN</span>
           </h2>
         )}
         {isCollapsed && (
-          <div onClick={() => navigate("/admin-dashboard")} className="cursor-pointer bg-[#1f7a45] w-8 h-8 rounded flex items-center justify-center font-bold">G</div>
+          <div onClick={() => navigate("/")} className="cursor-pointer bg-[#1f7a45] w-8 h-8 rounded flex items-center justify-center font-bold">G</div>
         )}
       </div>
 

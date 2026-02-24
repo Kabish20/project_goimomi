@@ -289,7 +289,11 @@ const VisaSearch = () => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
                                     <div className="absolute bottom-4 left-4 right-4">
                                         <h3 className="text-white font-bold text-sm tracking-wide">{dest.name}</h3>
-                                        <p className="text-white/70 text-[10px] uppercase font-black tracking-widest">{dest.country}</p>
+                                        <p className="text-white/70 text-[10px] uppercase font-black tracking-widest">
+                                            {dest.region && dest.country
+                                                ? `${dest.region} · ${dest.country}`
+                                                : dest.region || dest.country}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

@@ -392,7 +392,13 @@ const HolidaysForm = ({ isOpen, onClose, packageType }) => {
                                 >
                                   <div className="flex flex-col">
                                     <span>{dest.name}</span>
-                                    {dest.country && <span className="text-[10px] text-gray-400 uppercase">{dest.country}</span>}
+                                    {(dest.region || dest.country) && (
+                                      <span className="text-[10px] text-gray-400 uppercase">
+                                        {dest.region && dest.country
+                                          ? `${dest.region} (${dest.country})`
+                                          : dest.region || dest.country}
+                                      </span>
+                                    )}
                                   </div>
                                 </li>
                               ))

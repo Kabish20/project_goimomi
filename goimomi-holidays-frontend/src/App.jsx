@@ -71,6 +71,9 @@ import GeneralEnquiryManage from "./pages/admin/GeneralEnquiryManage";
 import SupplierManage from "./pages/admin/SupplierManage";
 import SupplierAdd from "./pages/admin/SupplierAdd";
 import SupplierEdit from "./pages/admin/SupplierEdit";
+import CruiseCalendarManage from "./pages/admin/CruiseCalendarManage";
+import CruiseCalendarAdd from "./pages/admin/CruiseCalendarAdd";
+import CruiseCalendarEdit from "./pages/admin/CruiseCalendarEdit";
 
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -181,6 +184,9 @@ const App = () => {
             <Route path="/admin/suppliers" element={<SupplierManage />} />
             <Route path="/admin/suppliers/add" element={<SupplierAdd />} />
             <Route path="/admin/suppliers/edit/:id" element={<SupplierEdit />} />
+            <Route path="/admin/cruise-calendar" element={<CruiseCalendarManage />} />
+            <Route path="/admin/cruise-calendar/add" element={<CruiseCalendarAdd />} />
+            <Route path="/admin/cruise-calendar/edit/:id" element={<CruiseCalendarEdit />} />
           </Route>
         </Routes>
       </main>

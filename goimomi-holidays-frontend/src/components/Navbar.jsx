@@ -78,7 +78,7 @@ const Navbar = () => {
 
           {/* Logo */}
           <Link to="/" className="hover:opacity-90 transition-opacity">
-            <img src={logo} alt="Goimomi Holidays" className="h-[58px] w-auto" />
+            <img src={logo} alt="Goimomi Holidays" className="h-[65px] w-auto" />
           </Link>
 
           {/* Desktop Nav */}

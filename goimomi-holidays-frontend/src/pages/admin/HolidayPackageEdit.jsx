@@ -779,7 +779,7 @@ const HolidayPackageEdit = () => {
                                         </div>
                                         <div className="col-span-9">
                                             <SearchableSelect
-                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country || d.region || '' }))}
                                                 value={row.destination}
                                                 onChange={(val) => {
                                                     const copy = [...packageDestinations];
