@@ -23,19 +23,11 @@ const Section = ({ title, children, active }) => (
     </div>
 );
 
-const FormLabel = ({ label, limit, current, required, optional, info }) => (
+const FormLabel = ({ label, limit, current, required, optional }) => (
     <div className="flex justify-between items-end mb-1.5">
         <div className="flex items-center gap-2">
             <span className="text-gray-900 font-black text-[10px] uppercase tracking-[0.15em]">{label} {required && <span className="text-red-500">*</span>}</span>
             {optional && <span className="text-[#14532d] text-[8px] font-black bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100/50 uppercase">Optional</span>}
-            {info && (
-                <div className="group relative">
-                    <span className="cursor-help text-gray-400 hover:text-[#14532d] transition-colors bg-gray-50 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black border border-gray-100">?</span>
-                    <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-[10px] rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 transform translate-y-1 group-hover:translate-y-0 backdrop-blur-md bg-opacity-95 border border-white/10 leading-relaxed font-medium">
-                        {info}
-                    </div>
-                </div>
-            )}
         </div>
         {limit && (
             <span className={`text-[9px] font-black tracking-widest ${(current || 0) > limit ? 'text-red-500' : 'text-gray-300'}`}>
@@ -816,7 +808,7 @@ const HolidayPackageEdit = () => {
                                         <div className="grid grid-cols-2 gap-8">
                                             <div className="space-y-6">
                                                 <div>
-                                                    <FormLabel label="Starting City" required info="The city where the tour begins" />
+                                                    <FormLabel label="Starting City" required />
                                                     <SearchableSelect
                                                         options={startingCities.map(city => ({ value: city.name, label: city.name }))}
                                                         value={formData.starting_city}
@@ -829,7 +821,7 @@ const HolidayPackageEdit = () => {
 
                                                 <div className="pt-4 border-t border-gray-100">
                                                     <div className="flex justify-between items-center mb-3">
-                                                        <FormLabel label="Tour Route (Nights Setup)" info="Add nights to your trip to define the itinerary duration" />
+                                                        <FormLabel label="Tour Route (Nights Setup)" />
                                                         <button
                                                             type="button"
                                                             onClick={() => {
@@ -916,7 +908,7 @@ const HolidayPackageEdit = () => {
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <FormLabel label="Offer Price" required info="The discounted price shown to users" />
+                                                        <FormLabel label="Offer Price" required />
                                                         <div className="relative">
                                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
                                                             <Input
@@ -932,7 +924,7 @@ const HolidayPackageEdit = () => {
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <FormLabel label="Regular Price" optional info="Strikethrough price for comparison" />
+                                                        <FormLabel label="Regular Price" optional />
                                                         <div className="relative border-l border-gray-100 pl-4">
                                                             <span className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
                                                             <Input
@@ -977,7 +969,7 @@ const HolidayPackageEdit = () => {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <FormLabel label="Total Duration (Days)" info="Calculated based on nights + 1" />
+                                                    <FormLabel label="Total Duration (Days)" />
                                                     <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                                                         <div className="p-3 bg-green-50 rounded-lg text-[#14532d]">
                                                             <Calendar size={20} />
@@ -998,7 +990,7 @@ const HolidayPackageEdit = () => {
                                     <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
                                         <div className="grid grid-cols-2 gap-12">
                                             <div className="space-y-4">
-                                                <FormLabel label="Header Image" info="Large banner shown at the top of the package page" />
+                                                <FormLabel label="Header Image" />
                                                 <div className="aspect-[21/9] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
                                                     {(headerPreview) ? (
                                                         <>
@@ -1044,7 +1036,7 @@ const HolidayPackageEdit = () => {
                                             </div>
 
                                             <div className="space-y-4">
-                                                <FormLabel label="Card Image" info="Thumbnail image shown in listings and search results" />
+                                                <FormLabel label="Card Image" />
                                                 <div className="aspect-[4/3] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
                                                     {(cardPreview) ? (
                                                         <>

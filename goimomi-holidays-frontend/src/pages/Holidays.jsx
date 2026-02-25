@@ -6,6 +6,22 @@ import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
 import FormModal from "../components/FormModal";
 import goimomilogo from "../assets/goimomilogo.png";
+import pdfImg1 from "../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
+import pdfImg2 from "../assets/pdf/Egypt.jpeg";
+import pdfImg3 from "../assets/pdf/FAMILY FUN IN VIETNAM _ Tailor-made tour - Exotic Voyages.jpeg";
+import pdfImg4 from "../assets/pdf/16 of the Best Places to Visit in Italy.jpeg";
+import pdfImg5 from "../assets/pdf/Petra (Jordan).jpeg";
+import pdfImg6 from "../assets/pdf/The Colosseum, Rome.jpeg";
+import pdfImg7 from "../assets/pdf/Matera_ The City of Stones.jpeg";
+import pdfImg8 from "../assets/pdf/20 Best City Breaks in the World - Travel Den.jpeg";
+import pdfImg9 from "../assets/pdf/A guide to the Azores.jpeg";
+import pdfImg10 from "../assets/pdf/5 Day Phuket Thailand Itinerary - Guide To Things To Do.jpeg";
+import pdfImg11 from "../assets/pdf/10 Top Cities In India To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
+import pdfImg12 from "../assets/pdf/Navigating Japanese Culture_ 20 Essential Etiquette Tips for Travelers.jpeg";
+import pdfImg13 from "../assets/pdf/amazing places in the world to travel.jpeg";
+import pdfImg14 from "../assets/pdf/The ultimate travel Guide to Cappadocia, Turkey - Jyo Shankar.jpeg";
+import pdfImg15 from "../assets/pdf/100 Most Beautiful UNESCO World Heritage Sites - Road Affair.jpeg";
+import pdfImg16 from "../assets/pdf/15 Best Places In Turkey To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
 
 const Holidays = () => {
   const navigate = useNavigate();
@@ -150,140 +166,208 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
   const downloadPackagePDF = async (pkg) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
-    let yPos = 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const sidebarWidth = 50;
+    const padding = 15;
 
-    // Logo / Header
-    doc.setFillColor(255, 255, 255); // White background
-    doc.rect(0, 0, pageWidth, 40, 'F');
+    // Helper functions
+    const addHeader = (doc, title) => {
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      doc.addImage(goimomilogo, 'PNG', padding, 5, 40, 12);
+      doc.setTextColor(156, 163, 175);
+      doc.setFontSize(8);
+      doc.text(title, pageWidth - padding, 12, { align: "right" });
+      doc.setDrawColor(243, 244, 246);
+      doc.line(padding, 20, pageWidth - padding, 20);
+    };
 
-    try {
-      const logo = await loadImage(goimomilogo);
-      doc.addImage(logo, 'PNG', 15, 8, 50, 15);
-    } catch (error) {
-      console.error("Failed to load logo", error);
-      doc.setTextColor(20, 83, 45); // #14532d
-      doc.setFontSize(22);
-      doc.setFont("helvetica", "bold");
-      doc.text("goimomi.com", 15, 25);
+    const addFooter = (doc, pageNum, totalPages) => {
+      doc.setTextColor(156, 163, 175);
+      doc.setFontSize(8);
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - padding, pageHeight - 10, { align: "right" });
+      doc.text("© goimomi.com | +91 6382220393 | hello@goimomi.com", padding, pageHeight - 10);
+    };
+
+    // PAGE 1: COVER
+    // Vertical strip of images on the left (2 columns)
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+
+    const baseImgs = [pdfImg1, pdfImg2, pdfImg3, pdfImg4, pdfImg5, pdfImg6, pdfImg7, pdfImg8, pdfImg9, pdfImg10, pdfImg11, pdfImg12, pdfImg13, pdfImg14, pdfImg15, pdfImg16];
+    const imgSize = 24; // each image cell height (no gap)
+    const colW = sidebarWidth / 2;
+    let sidebarY = 0;
+    let imgIndex = 0;
+    while (sidebarY + imgSize <= pageHeight) {
+      try {
+        doc.addImage(baseImgs[imgIndex % baseImgs.length], 'JPEG', 0, sidebarY, colW, imgSize, undefined, 'FAST');
+        doc.addImage(baseImgs[(imgIndex + 1) % baseImgs.length], 'JPEG', colW, sidebarY, colW, imgSize, undefined, 'FAST');
+      } catch (e) { }
+      sidebarY += imgSize;
+      imgIndex += 2;
     }
 
-    doc.setTextColor(20, 83, 45); // #14532d
-    doc.setFontSize(9);
+    // Main Content
+    let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
+
+    // Logo
+    try {
+      doc.addImage(goimomilogo, 'PNG', centerX - 30, 30, 60, 20);
+    } catch (e) { }
+
+    // Title
+    doc.setTextColor(31, 41, 55);
     doc.setFont("helvetica", "bold");
-    doc.text("Your Premium Holiday Partner", 15, 30);
-    doc.text("+91 6382220393 | hello@goimomi.com", pageWidth - 15, 30, { align: "right" });
+    doc.setFontSize(22);
+    const titleLines = doc.splitTextToSize(pkg.title.toUpperCase(), pageWidth - sidebarWidth - 30);
+    doc.text(titleLines, centerX, 90, { align: "center" });
 
-    yPos = 55;
+    // Subtitle (City & Nights)
+    doc.setTextColor(107, 114, 128);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${pkg.starting_city} (${pkg.nights || pkg.days - 1}N)`, centerX, 110, { align: "center" });
 
-    // Package Title
+    // Category / Land
+    doc.setTextColor(31, 41, 55);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(pkg.category || "India", centerX, 122, { align: "center" });
+
+
+
+    // PAGE 2: TITLE, DESCRIPTION, HIGHLIGHTS
+    doc.addPage();
+    addHeader(doc, pkg.title);
+
+    let y = 35;
     doc.setTextColor(31, 41, 55);
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
-    doc.text(pkg.title, 15, yPos);
-    yPos += 10;
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${pkg.days} Days / ${pkg.days - 1} Nights | Starting choice - ${pkg.starting_city}`, 15, yPos);
-    yPos += 15;
+    doc.text(pkg.title, padding, y);
+    y += 12;
 
-    // Package Image
-    try {
-      const imgUrl = getImageUrl(pkg.card_image);
-      const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.src = imgUrl;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-      if (img.complete && img.naturalWidth > 0) {
-        const imgWidth = pageWidth - 30;
-        const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
-        const finalHeight = Math.min(imgHeight, 80);
-        doc.addImage(img, 'JPEG', 15, yPos, imgWidth, finalHeight);
-        yPos += finalHeight + 15;
-      }
-    } catch (e) {
-      console.log("Image load error for PDF", e);
-      yPos += 5;
+    // Overview Title
+    doc.setFontSize(14);
+    doc.text("Trip Overview", padding, y);
+    y += 8;
+
+    // Description
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(75, 85, 99);
+    if (pkg.description) {
+      const descLines = doc.splitTextToSize(pkg.description, pageWidth - (padding * 2));
+      doc.text(descLines, padding, y);
+      y += (descLines.length * 5) + 15;
     }
 
-    // Highlights & Description
-    const addSection = (title, items) => {
-      if (!items || items.length === 0) return;
-      if (yPos > 250) { doc.addPage(); yPos = 20; }
-      doc.setTextColor(20, 83, 45);
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.text(title, 15, yPos);
-      yPos += 7;
-      doc.setTextColor(75, 85, 99);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-
-      const list = Array.isArray(items) ? items : [items];
-      list.forEach(item => {
-        const text = typeof item === 'object' ? item.text : item;
-        if (text) {
-          const splitText = doc.splitTextToSize(`• ${text}`, pageWidth - 40);
-          doc.text(splitText, 20, yPos);
-          yPos += (splitText.length * 5) + 2;
-          if (yPos > 270) { doc.addPage(); yPos = 20; }
-        }
-      });
-      yPos += 5;
-    };
-
-    addSection("Destinations", pkg.destinations?.map(d => d.name));
-    addSection("Package Highlights", pkg.highlights);
-
-    // Itinerary
-    if (pkg.itinerary && pkg.itinerary.length > 0) {
-      if (yPos > 240) { doc.addPage(); yPos = 20; }
-      doc.setTextColor(20, 83, 45);
+    // Highlights
+    if (pkg.highlights && pkg.highlights.length > 0) {
+      doc.setTextColor(31, 41, 55);
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("Day Wise Itinerary", 15, yPos);
-      yPos += 10;
+      doc.text("Trip Highlights", padding, y);
+      y += 10;
 
-      pkg.itinerary.forEach((day) => {
-        if (yPos > 250) { doc.addPage(); yPos = 20; }
-        doc.setFillColor(249, 250, 251);
-        doc.roundedRect(15, yPos, pageWidth - 30, 10, 2, 2, 'F');
-        doc.setTextColor(20, 83, 45);
+      pkg.highlights.forEach(h => {
+        doc.setFillColor(20, 83, 45); // Goimomi Green
+        doc.circle(padding + 2, y - 1, 1, 'F');
+        doc.setTextColor(75, 85, 99);
         doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Day ${day.day_number}: ${day.title}`, 20, yPos + 7);
-        yPos += 15;
+        doc.setFont("helvetica", "normal");
+        doc.text(h.text, padding + 7, y);
+        y += 7;
+        if (y > pageHeight - 30) {
+          addFooter(doc, 2, 4);
+          doc.addPage();
+          addHeader(doc, pkg.title);
+          y = 35;
+        }
+      });
+    }
+    addFooter(doc, 2, 4);
 
+    // PAGE 3: DAY WISE ITINERARY
+    doc.addPage();
+    addHeader(doc, "Day Wise Itinerary");
+    y = 35;
+
+    if (pkg.itinerary && pkg.itinerary.length > 0) {
+      pkg.itinerary.forEach((day, index) => {
+        if (y > pageHeight - 50) {
+          addFooter(doc, 3, 4);
+          doc.addPage();
+          addHeader(doc, "Day Wise Itinerary (Contd.)");
+          y = 35;
+        }
+
+        // Day Header
+        doc.setFillColor(243, 244, 246);
+        doc.rect(padding, y, pageWidth - (padding * 2), 10, 'F');
+        doc.setTextColor(20, 83, 45);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(`DAY ${day.day_number}: ${day.title}`, padding + 5, y + 7);
+        y += 15;
+
+        // Day Description
         if (day.description) {
           doc.setTextColor(75, 85, 99);
           doc.setFontSize(9);
           doc.setFont("helvetica", "normal");
-          const splitDesc = doc.splitTextToSize(day.description, pageWidth - 40);
-          doc.text(splitDesc, 20, yPos);
-          yPos += (splitDesc.length * 4.5) + 5;
+          const splitDesc = doc.splitTextToSize(day.description, pageWidth - (padding * 2) - 10);
+          doc.text(splitDesc, padding + 5, y);
+          y += (splitDesc.length * 4.5) + 12;
         }
-
-        if (yPos > 270) { doc.addPage(); yPos = 20; }
       });
-      yPos += 5;
+    }
+    addFooter(doc, 3, 4);
+
+    // PAGE 4: INCLUSION & EXCLUSION
+    doc.addPage();
+    addHeader(doc, "Package Details & Policies");
+    y = 35;
+
+    // Inclusions
+    if (pkg.inclusions && pkg.inclusions.length > 0) {
+      doc.setTextColor(20, 83, 45);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("What's Included", padding, y);
+      y += 10;
+
+      doc.setTextColor(75, 85, 99);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      pkg.inclusions.forEach(inc => {
+        doc.text(`• ${inc.text}`, padding + 5, y);
+        y += 7;
+        if (y > pageHeight - 30) { doc.addPage(); y = 35; }
+      });
+      y += 15;
     }
 
-    addSection("Inclusions", pkg.inclusions);
-    addSection("Exclusions", pkg.exclusions);
+    // Exclusions
+    if (pkg.exclusions && pkg.exclusions.length > 0) {
+      doc.setTextColor(220, 38, 38); // Red
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("What's Excluded", padding, y);
+      y += 10;
 
-
-
-    // Footer
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      doc.setTextColor(156, 163, 175);
-      doc.setFontSize(8);
-      doc.text(`Page ${i} of ${totalPages}`, pageWidth - 15, 285, { align: "right" });
-      doc.text("Thank you for choosing goimomi.com | +91 6382220393", 15, 285);
+      doc.setTextColor(75, 85, 99);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      pkg.exclusions.forEach(exc => {
+        doc.text(`• ${exc.text}`, padding + 5, y);
+        y += 7;
+        if (y > pageHeight - 30) { doc.addPage(); y = 35; }
+      });
     }
+
+    addFooter(doc, 4, 4);
 
     doc.save(`GoImomi_${pkg.title.replace(/\s+/g, '_')}.pdf`);
   };

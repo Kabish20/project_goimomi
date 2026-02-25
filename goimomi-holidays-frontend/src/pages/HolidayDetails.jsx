@@ -3,6 +3,24 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import FormModal from "../components/FormModal";
 import { getImageUrl } from "../utils/imageUtils";
+import jsPDF from "jspdf";
+import goimomilogo from "../assets/goimomilogo.png";
+import pdfImg1 from "../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
+import pdfImg2 from "../assets/pdf/Egypt.jpeg";
+import pdfImg3 from "../assets/pdf/FAMILY FUN IN VIETNAM _ Tailor-made tour - Exotic Voyages.jpeg";
+import pdfImg4 from "../assets/pdf/16 of the Best Places to Visit in Italy.jpeg";
+import pdfImg5 from "../assets/pdf/Petra (Jordan).jpeg";
+import pdfImg6 from "../assets/pdf/The Colosseum, Rome.jpeg";
+import pdfImg7 from "../assets/pdf/Matera_ The City of Stones.jpeg";
+import pdfImg8 from "../assets/pdf/20 Best City Breaks in the World - Travel Den.jpeg";
+import pdfImg9 from "../assets/pdf/A guide to the Azores.jpeg";
+import pdfImg10 from "../assets/pdf/5 Day Phuket Thailand Itinerary - Guide To Things To Do.jpeg";
+import pdfImg11 from "../assets/pdf/10 Top Cities In India To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
+import pdfImg12 from "../assets/pdf/Navigating Japanese Culture_ 20 Essential Etiquette Tips for Travelers.jpeg";
+import pdfImg13 from "../assets/pdf/amazing places in the world to travel.jpeg";
+import pdfImg14 from "../assets/pdf/The ultimate travel Guide to Cappadocia, Turkey - Jyo Shankar.jpeg";
+import pdfImg15 from "../assets/pdf/100 Most Beautiful UNESCO World Heritage Sites - Road Affair.jpeg";
+import pdfImg16 from "../assets/pdf/15 Best Places In Turkey To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
 
 const HolidayDetails = () => {
   const { id } = useParams();
@@ -29,6 +47,126 @@ const HolidayDetails = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [id]);
+
+  const downloadPackagePDF = async (pkg) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const sidebarWidth = 50;
+    const padding = 15;
+
+    const addHeader = (doc, title) => {
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      doc.addImage(goimomilogo, 'PNG', padding, 5, 40, 12);
+      doc.setTextColor(156, 163, 175);
+      doc.setFontSize(8);
+      doc.text(title, pageWidth - padding, 12, { align: "right" });
+      doc.setDrawColor(243, 244, 246);
+      doc.line(padding, 20, pageWidth - padding, 20);
+    };
+
+    const addFooter = (doc, pageNum, totalPages) => {
+      doc.setTextColor(156, 163, 175);
+      doc.setFontSize(8);
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - padding, pageHeight - 10, { align: "right" });
+      doc.text("© goimomi.com | +91 6382220393 | hello@goimomi.com", padding, pageHeight - 10);
+    };
+
+    // PAGE 1: COVER - 2-column image sidebar
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
+    const baseImgs = [pdfImg1, pdfImg2, pdfImg3, pdfImg4, pdfImg5, pdfImg6, pdfImg7, pdfImg8, pdfImg9, pdfImg10, pdfImg11, pdfImg12, pdfImg13, pdfImg14, pdfImg15, pdfImg16];
+    const imgSize = 24;
+    const colW = sidebarWidth / 2;
+    let sidebarY = 0;
+    let imgIndex = 0;
+    while (sidebarY + imgSize <= pageHeight) {
+      try {
+        doc.addImage(baseImgs[imgIndex % baseImgs.length], 'JPEG', 0, sidebarY, colW, imgSize, undefined, 'FAST');
+        doc.addImage(baseImgs[(imgIndex + 1) % baseImgs.length], 'JPEG', colW, sidebarY, colW, imgSize, undefined, 'FAST');
+      } catch (e) { }
+      sidebarY += imgSize;
+      imgIndex += 2;
+    }
+
+    let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
+    try { doc.addImage(goimomilogo, 'PNG', centerX - 30, 40, 60, 20); } catch (e) { }
+
+    doc.setTextColor(31, 41, 55);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(24);
+    const titleLines = doc.splitTextToSize(pkg.title.toUpperCase(), pageWidth - sidebarWidth - 30);
+    doc.text(titleLines, centerX, 100, { align: "center" });
+
+    doc.setTextColor(107, 114, 128);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${pkg.starting_city} (${pkg.days}D / ${pkg.nights || pkg.days - 1}N)`, centerX, 125, { align: "center" });
+
+
+
+
+    // PAGE 2
+    doc.addPage(); addHeader(doc, pkg.title);
+    let y = 35; doc.setTextColor(31, 41, 55); doc.setFontSize(16); doc.setFont("helvetica", "bold");
+    doc.text("Trip Overview", padding, y); y += 10;
+    doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(75, 85, 99);
+    if (pkg.description) {
+      const descLines = doc.splitTextToSize(pkg.description, pageWidth - (padding * 2));
+      doc.text(descLines, padding, y); y += (descLines.length * 5) + 15;
+    }
+    if (pkg.highlights && pkg.highlights.length > 0) {
+      doc.setTextColor(31, 41, 55); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("Trip Highlights", padding, y); y += 8;
+      pkg.highlights.forEach(h => {
+        doc.setFillColor(20, 83, 45); doc.circle(padding + 2, y - 1, 1, 'F');
+        doc.setTextColor(75, 85, 99); doc.setFontSize(10); doc.setFont("helvetica", "normal");
+        doc.text(h.text, padding + 7, y); y += 7;
+        if (y > pageHeight - 30) { addFooter(doc, 2, 4); doc.addPage(); addHeader(doc, pkg.title); y = 35; }
+      });
+    }
+    addFooter(doc, 2, 4);
+
+    // PAGE 3
+    doc.addPage(); addHeader(doc, "Day Wise Itinerary"); y = 35;
+    if (pkg.itinerary && pkg.itinerary.length > 0) {
+      pkg.itinerary.forEach((day) => {
+        doc.setFillColor(243, 244, 246); doc.rect(padding, y, pageWidth - (padding * 2), 10, 'F');
+        doc.setTextColor(20, 83, 45); doc.setFontSize(11); doc.setFont("helvetica", "bold");
+        doc.text(`DAY ${day.day_number}: ${day.title}`, padding + 5, y + 7); y += 15;
+        if (day.description) {
+          doc.setTextColor(75, 85, 99); doc.setFontSize(9); doc.setFont("helvetica", "normal");
+          const splitDesc = doc.splitTextToSize(day.description, pageWidth - (padding * 2) - 10);
+          doc.text(splitDesc, padding + 5, y); y += (splitDesc.length * 4.5) + 10;
+        }
+        if (y > pageHeight - 40) { addFooter(doc, 3, 4); doc.addPage(); addHeader(doc, "Day Wise Itinerary (Contd.)"); y = 35; }
+      });
+    }
+    addFooter(doc, 3, 4);
+
+    // PAGE 4
+    doc.addPage(); addHeader(doc, "Policies & Details"); y = 35;
+    if (pkg.inclusions && pkg.inclusions.length > 0) {
+      doc.setTextColor(20, 83, 45); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("Inclusions", padding, y); y += 10;
+      pkg.inclusions.forEach(inc => {
+        doc.setTextColor(75, 85, 99); doc.setFontSize(10); doc.setFont("helvetica", "normal");
+        doc.text(`• ${inc.text}`, padding + 5, y); y += 7;
+      });
+      y += 15;
+    }
+    if (pkg.exclusions && pkg.exclusions.length > 0) {
+      doc.setTextColor(220, 38, 38); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("Exclusions", padding, y); y += 10;
+      pkg.exclusions.forEach(exc => {
+        doc.setTextColor(75, 85, 99); doc.setFontSize(10); doc.setFont("helvetica", "normal");
+        doc.text(`• ${exc.text}`, padding + 5, y); y += 7;
+      });
+    }
+    addFooter(doc, 4, 4);
+    doc.save(`GoImomi_${pkg.title.replace(/\s+/g, '_')}.pdf`);
+  };
 
   if (!pkg) return <div className="text-center mt-20">Loading...</div>;
 
@@ -160,12 +298,21 @@ const HolidayDetails = () => {
           <div className="border-t pt-4">
             <p className="text-gray-600 font-medium">{pkg.days}Days / {pkg.nights}Nights</p>
           </div>
-
           <button
             onClick={() => setIsModalOpen(true)}
             className="w-full bg-[#14532d] text-white py-3 rounded-xl mt-6 text-lg hover:bg-[#0f4022] transition-colors uppercase font-bold tracking-wider"
           >
             Enquire Now
+          </button>
+
+          <button
+            onClick={() => downloadPackagePDF(pkg)}
+            className="w-full bg-white text-[#14532d] border-2 border-[#14532d] py-3 rounded-xl mt-3 text-lg hover:bg-gray-50 transition-colors uppercase font-bold tracking-wider flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download Brochure
           </button>
         </div>
       </div>
@@ -175,7 +322,7 @@ const HolidayDetails = () => {
         onClose={() => setIsModalOpen(false)}
         packageType={pkg?.title}
       />
-    </div>
+    </div >
   );
 };
 

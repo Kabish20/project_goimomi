@@ -23,19 +23,11 @@ const Section = ({ title, children, active }) => (
   </div>
 );
 
-const FormLabel = ({ label, limit, current, required, optional, info }) => (
+const FormLabel = ({ label, limit, current, required, optional }) => (
   <div className="flex justify-between items-end mb-1.5">
     <div className="flex items-center gap-2">
       <span className="text-gray-900 font-black text-[10px] uppercase tracking-[0.15em]">{label} {required && <span className="text-red-500">*</span>}</span>
       {optional && <span className="text-[#14532d] text-[8px] font-black bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100/50 uppercase">Optional</span>}
-      {info && (
-        <div className="group relative">
-          <span className="cursor-help text-gray-400 hover:text-[#14532d] transition-colors bg-gray-50 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black border border-gray-100">?</span>
-          <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-[10px] rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 transform translate-y-1 group-hover:translate-y-0 backdrop-blur-md bg-opacity-95 border border-white/10 leading-relaxed font-medium">
-            {info}
-          </div>
-        </div>
-      )}
     </div>
     {limit && (
       <span className={`text-[9px] font-black tracking-widest ${(current || 0) > limit ? 'text-red-500' : 'text-gray-300'}`}>
@@ -104,11 +96,22 @@ const HolidayPackageAdd = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [activeSection, setActiveSection] = useState("overview");
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 4;
 
   const TITLE_LIMIT = 200;
   const DESC_LIMIT = 2000;
   const HIGHLIGHTS_LIMIT = 1000;
+
+  const navigatePage = (direction) => {
+    if (direction === 'next' && currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+      window.scrollTo(0, 0);
+    } else if (direction === 'back' && currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+      window.scrollTo(0, 0);
+    }
+  };
 
   const groupedItineraryMasters = useMemo(() => {
     return itineraryMasters.reduce((acc, master) => {
@@ -433,12 +436,10 @@ const HolidayPackageAdd = () => {
 
 
   const navItems = [
-    { id: 'overview', label: 'Trip Overview', icon: <Package size={18} /> },
-    { id: 'location', label: 'Arrival & Departure', icon: <MapPin size={18} /> },
-    { id: 'itinerary', label: 'Day Wise Itinerary', icon: <Calendar size={18} />, subItems: itineraryDays.map((_, i) => ({ id: `day-${i}`, label: `Day ${i + 1}`, dest: getDestinationForDay(i) })) },
-    { id: 'pricing', label: 'Pricing', icon: <span className="text-lg">💰</span> },
-    { id: 'images', label: 'Images', icon: <span className="text-lg">🖼️</span> },
-    { id: 'info', label: 'Trip Information', icon: <span className="text-lg">ℹ️</span> },
+    { id: 1, label: 'Trip Overview', icon: <Package size={18} /> },
+    { id: 2, label: 'Day Wise Itinerary', icon: <Calendar size={18} />, subItems: itineraryDays.map((_, i) => ({ id: `day-${i}`, label: `Day ${i + 1}`, dest: getDestinationForDay(i) })) },
+    { id: 3, label: 'Inclusions & Exclusions', icon: <span className="text-lg">ℹ️</span> },
+    { id: 4, label: 'Logistics & Media', icon: <MapPin size={18} /> },
   ];
 
   return (
@@ -456,7 +457,7 @@ const HolidayPackageAdd = () => {
           <div>
             <h1 className="text-xl font-black text-gray-900 tracking-tighter">Add Holiday Package</h1>
             <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
-              <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">New Creation</span>
+              <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">Step {currentPage} of {totalPages}</span>
             </p>
           </div>
           <div className="flex gap-3">
@@ -468,42 +469,54 @@ const HolidayPackageAdd = () => {
               Cancel
             </button>
 
-            <button
-              onClick={handleSubmit}
-              className="px-8 py-2 rounded-xl bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 disabled:opacity-50 disabled:scale-100"
-              disabled={loading}
-              form="package-form"
-            >
-              {loading ? (
-                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <Package size={14} />
-              )}
-              {loading ? "SAVING..." : "SAVE PACKAGE"}
-            </button>
+            {currentPage === totalPages && (
+              <button
+                onClick={handleSubmit}
+                className="px-8 py-2 rounded-xl bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 disabled:opacity-50 disabled:scale-100"
+                disabled={loading}
+                form="package-form"
+              >
+                {loading ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <Package size={14} />
+                )}
+                {loading ? "SAVING..." : "SAVE PACKAGE"}
+              </button>
+            )}
           </div>
         </div>
 
         <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
           {/* Internal Navigation Sidebar */}
           <div className="w-64 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-4 shrink-0">
+            <div className="mb-6 px-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest">Progress</span>
+                <span className="text-[10px] font-black text-gray-400">{Math.round((currentPage / totalPages) * 100)}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-[#14532d] transition-all duration-500 ease-out" style={{ width: `${(currentPage / totalPages) * 100}%` }}></div>
+              </div>
+            </div>
+
             <nav className="flex-1 space-y-1">
               {navItems.map((item) => (
                 <div key={item.id}>
                   <button
                     type="button"
-                    onClick={() => setActiveSection(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all duration-500 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'}`}
+                    onClick={() => setCurrentPage(item.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all duration-500 group relative overflow-hidden ${currentPage === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'}`}
                   >
-                    {activeSection === item.id && (
+                    {currentPage === item.id && (
                       <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
                     )}
-                    <span className={`transition-all duration-500 ${activeSection === item.id ? 'scale-110 rotate-3 text-green-300' : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
+                    <span className={`transition-all duration-500 ${currentPage === item.id ? 'scale-110 rotate-3 text-green-300' : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
                       {item.icon}
                     </span>
                     <span className="uppercase tracking-[0.15em] text-[10px]">{item.label}</span>
                   </button>
-                  {item.subItems && activeSection === 'itinerary' && (
+                  {item.subItems && currentPage === 2 && (
                     <div className="mt-3 ml-6 pl-4 border-l-2 border-green-50 space-y-1 py-1.5 animate-in slide-in-from-top-4">
                       {item.subItems.map((sub, idx) => (
                         <button
@@ -528,7 +541,12 @@ const HolidayPackageAdd = () => {
             <div className="mt-4 p-5 bg-[#14532d]/5 rounded-2xl border border-[#14532d]/10 relative overflow-hidden">
               <div className="absolute right-0 bottom-0 w-16 h-16 bg-[#14532d]/5 rounded-tl-[3rem]"></div>
               <p className="text-[9px] text-[#14532d] font-black uppercase tracking-[0.2em] mb-1.5 opacity-60">Admin Notice</p>
-              <p className="text-[9px] font-bold text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">Ensure all itinerary details are accurate before publishing.</p>
+              <p className="text-[9px] font-bold text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">
+                {currentPage === 1 && "Start with the trip details and highlights."}
+                {currentPage === 2 && "Define the daily itinerary for the guests."}
+                {currentPage === 3 && "Specify what is included and excluded in the package."}
+                {currentPage === 4 && "Finalize logistics, pricing and media."}
+              </p>
             </div>
           </div>
 
@@ -550,8 +568,8 @@ const HolidayPackageAdd = () => {
               )}
 
               <form onSubmit={handleSubmit} id="package-form">
-                {/* TRIP OVERVIEW */}
-                <Section title="Trip Overview" active={activeSection === 'overview'}>
+                {/* TRIP OVERVIEW - PAGE 1 */}
+                <Section title="Trip Overview" active={currentPage === 1}>
                   <div className="grid grid-cols-1 gap-8">
                     <div>
                       <FormLabel
@@ -559,7 +577,6 @@ const HolidayPackageAdd = () => {
                         required
                         limit={TITLE_LIMIT}
                         current={formData.title ? formData.title.length : 0}
-                        info="The display name for the package"
                       />
                       <Input
                         name="title"
@@ -576,7 +593,6 @@ const HolidayPackageAdd = () => {
                         required
                         limit={DESC_LIMIT}
                         current={formData.description ? formData.description.length : 0}
-                        info="Detail what makes this trip special"
                       />
                       <textarea
                         name="description"
@@ -680,8 +696,8 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                {/* ARRIVAL & DEPARTURE */}
-                <Section title="Arrival & Departure" active={activeSection === 'location'}>
+                {/* ARRIVAL & DEPARTURE - PAGE 4 */}
+                <Section title="Arrival & Departure" active={currentPage === 4}>
                   <div className="space-y-8">
                     <div className="max-w-md">
                       <FormLabel label="Starting City" required />
@@ -748,8 +764,8 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                {/* ITINERARY */}
-                <Section title="Day Wise Itinerary" active={activeSection === 'itinerary'}>
+                {/* ITINERARY - PAGE 2 */}
+                <Section title="Day Wise Itinerary" active={currentPage === 2}>
                   <div className="space-y-12">
                     {itineraryDays.map((row, i) => (
                       <div key={i} id={`itinerary-day-${i}`} className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 relative group/day hover:border-[#14532d]/40 transition-all shadow-sm hover:shadow-2xl hover:shadow-green-900/5 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
@@ -845,12 +861,12 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                {/* PRICING */}
-                <Section title="Pricing" active={activeSection === 'pricing'}>
+                {/* PRICING - PAGE 4 */}
+                <Section title="Pricing" active={currentPage === 4}>
                   <div className="grid grid-cols-2 gap-8">
                     <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-sm relative overflow-hidden group">
                       <div className="absolute right-0 top-0 w-24 h-24 bg-green-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
-                      <FormLabel label="Offer Price (Final)" required info="Customer final payable amount" />
+                      <FormLabel label="Offer Price (Final)" required />
                       <div className="relative z-10">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-gray-300 group-hover:text-[#14532d] transition-colors">₹</span>
                         <Input type="text" name="offer_price" value={formatWithCommas(formData.offer_price)} onChange={handleInputChange} className="!pl-10 !text-xl !font-black !py-4" error={errors.offer_price} />
@@ -858,7 +874,7 @@ const HolidayPackageAdd = () => {
                     </div>
                     <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-sm relative overflow-hidden group">
                       <div className="absolute right-0 top-0 w-24 h-24 bg-red-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
-                      <FormLabel label="Markup Price (Strike)" optional info="Original value for showing discount" />
+                      <FormLabel label="Markup Price (Strike)" optional />
                       <div className="relative z-10">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-gray-300 group-hover:text-red-400 transition-colors">₹</span>
                         <Input type="text" name="price" value={formatWithCommas(formData.price)} onChange={handleInputChange} className="!pl-10 !text-xl !font-black !py-4" />
@@ -867,8 +883,8 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                {/* IMAGES */}
-                <Section title="Media Gallery" active={activeSection === 'images'}>
+                {/* IMAGES - PAGE 4 */}
+                <Section title="Media Gallery" active={currentPage === 4}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className={`relative border-2 border-dashed rounded-[3rem] p-10 transition-all min-h-[320px] flex flex-col items-center justify-center ${formData.header_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-200 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
                       {formData.header_image ? (
@@ -910,7 +926,8 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                <Section title="Trip Information" active={activeSection === 'info'}>
+                {/* TRIP INFORMATION - PAGE 3 */}
+                <Section title="Inclusions & Exclusions" active={currentPage === 3}>
                   <div className="space-y-12">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm">
@@ -947,6 +964,43 @@ const HolidayPackageAdd = () => {
                     </div>
                   </div>
                 </Section>
+
+                {/* Navigation Buttons for Pages */}
+                <div className="mt-12 pt-8 border-t border-gray-100 flex justify-between items-center bg-white/50 backdrop-blur-sm p-6 rounded-[2rem]">
+                  <button
+                    type="button"
+                    onClick={() => navigatePage('back')}
+                    disabled={currentPage === 1}
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${currentPage === 1 ? 'opacity-30 cursor-not-allowed text-gray-400' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95'}`}
+                  >
+                    ← Previous Step
+                  </button>
+
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${currentPage === i ? 'w-8 bg-[#14532d]' : 'w-1.5 bg-gray-200'}`}></div>
+                    ))}
+                  </div>
+
+                  {currentPage < totalPages ? (
+                    <button
+                      type="button"
+                      onClick={() => navigatePage('next')}
+                      className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-[#14532d] text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-green-900/10 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      Next Step →
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSubmit}
+                      type="button"
+                      disabled={loading}
+                      className="flex items-center gap-2 px-8 py-2.5 rounded-xl bg-black text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/10 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      {loading ? "SAVING..." : "COMPLETE & SAVE"}
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
           </div>
