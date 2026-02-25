@@ -8,7 +8,7 @@ export default {
     extend: {
       colors: {
         'goimomi-dark': '#0b1a3d',
-        'goimomi-primary':'#0F5D3F',
+        'goimomi-primary': '#0F5D3F',
         'goimomi-gold': '#e9b343',
         'goimomi-light': '#f8f9fa',
       },

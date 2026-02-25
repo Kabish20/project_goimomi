@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay,
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination,
-    ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument, Supplier, CruiseCalendar
+    ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster
 )
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -396,4 +396,9 @@ class SupplierSerializer(serializers.ModelSerializer):
 class CruiseCalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = CruiseCalendar
+        fields = "__all__"
+
+class HotelMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HotelMaster
         fields = "__all__"

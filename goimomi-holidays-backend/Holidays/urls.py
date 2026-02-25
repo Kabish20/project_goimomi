@@ -20,6 +20,7 @@ router.register("additional-documents", VisaAdditionalDocumentViewSet)
 router.register("countries", CountryViewSet)
 router.register("suppliers", SupplierViewSet)
 router.register("cruise-calendar", CruiseCalendarViewSet)
+router.register("hotel-masters", HotelMasterViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

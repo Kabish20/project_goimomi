@@ -414,3 +414,20 @@ class CruiseCalendar(models.Model):
 
     def __str__(self):
         return f"{self.cruise_type} - {self.itinerary[:30]}"
+
+
+class HotelMaster(models.Model):
+    name = models.CharField(max_length=255)
+    stars = models.CharField(max_length=10, default="3")
+    address = models.TextField(blank=True, null=True)
+    city = models.CharField(max_length=100)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    image = models.ImageField(upload_to="hotels/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

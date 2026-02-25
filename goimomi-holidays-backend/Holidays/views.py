@@ -295,3 +295,10 @@ class CruiseCalendarViewSet(ModelViewSet):
     queryset = CruiseCalendar.objects.all().order_by('-created_at')
     serializer_class = CruiseCalendarSerializer
     pagination_class = None
+
+class HotelMasterViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = HotelMaster.objects.all().order_by('name')
+    serializer_class = HotelMasterSerializer
+    pagination_class = None

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
-import { X, MapPin, Calendar, Package, Image as ImageIcon } from "lucide-react";
+import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, Star } from "lucide-react";
 
 /* ---------- UI helpers ---------- */
 const Section = ({ title, children, active }) => (
@@ -67,6 +67,14 @@ const HolidayPackageEdit = () => {
     const [inclusions, setInclusions] = useState([]);
     const [exclusions, setExclusions] = useState([]);
     const [highlights, setHighlights] = useState([]);
+    const [accommodations, setAccommodations] = useState([]);
+    const [showHotelModal, setShowHotelModal] = useState(false);
+    const [hotelSearchQuery, setHotelSearchQuery] = useState("");
+    const [hotelMasters, setHotelMasters] = useState([]);
+    const [newHotelForm, setNewHotelForm] = useState({
+        name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
+    });
+    const [vehicles, setVehicles] = useState([]);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -83,6 +91,14 @@ const HolidayPackageEdit = () => {
         card_image: null,
         with_flight: false,
         is_active: true,
+        arrival_city: "",
+        arrival_date: "",
+        arrival_time: "",
+        arrival_airport: "",
+        departure_city: "",
+        departure_date: "",
+        departure_time: "",
+        departure_airport: "",
         highlights: "",
     });
 
@@ -159,16 +175,18 @@ const HolidayPackageEdit = () => {
             try {
                 setLoading(true);
                 // Fetch dependencies in parallel
-                const [citiesRes, destRes, mastersRes, pkgRes] = await Promise.all([
+                const [citiesRes, destRes, mastersRes, hotelMastersRes, pkgRes] = await Promise.all([
                     axios.get(`${API_BASE_URL}/starting-cities/`),
                     axios.get(`${API_BASE_URL}/destinations/`),
                     axios.get(`${API_BASE_URL}/itinerary-masters/`),
+                    axios.get(`${API_BASE_URL}/hotel-masters/`),
                     axios.get(`${API_BASE_URL}/packages/${id}/`),
                 ]);
 
-                setStartingCities(citiesRes.data);
-                setDestinations(destRes.data);
-                setItineraryMasters(mastersRes.data);
+                if (Array.isArray(citiesRes.data)) setStartingCities(citiesRes.data);
+                if (Array.isArray(destRes.data)) setDestinations(destRes.data);
+                if (Array.isArray(mastersRes.data)) setItineraryMasters(mastersRes.data);
+                if (Array.isArray(hotelMastersRes.data)) setHotelMasters(hotelMastersRes.data);
 
                 // Populate Form Data
                 const pkg = pkgRes.data;
@@ -177,15 +195,23 @@ const HolidayPackageEdit = () => {
                     description: pkg.description || "",
                     category: pkg.category || "",
                     starting_city: pkg.starting_city || "",
-                    days: pkg.days || "",
+                    days: pkg.days?.toString() || "",
                     start_date: pkg.start_date || "",
                     group_size: pkg.group_size || 0,
-                    offer_price: pkg.Offer_price || "", // Note capitalization in model
-                    price: pkg.price || "",
+                    offer_price: pkg.Offer_price?.toString() || "", // Note capitalization in model
+                    price: pkg.price?.toString() || "",
                     header_image: null, // Keep null unless changing
                     card_image: null,
                     with_flight: pkg.with_flight || false,
                     is_active: pkg.is_active !== undefined ? pkg.is_active : true,
+                    arrival_city: pkg.arrival_city || "",
+                    arrival_date: pkg.arrival_date || "",
+                    arrival_time: pkg.arrival_time || "",
+                    arrival_airport: pkg.arrival_airport || "",
+                    departure_city: pkg.departure_city || "",
+                    departure_date: pkg.departure_date || "",
+                    departure_time: pkg.departure_time || "",
+                    departure_airport: pkg.departure_airport || "",
                     highlights: pkg.highlights && Array.isArray(pkg.highlights) ? pkg.highlights.map(h => h.text).join("\n") : "",
                 });
 
@@ -230,6 +256,77 @@ const HolidayPackageEdit = () => {
                     setHighlights(pkg.highlights.map(h => h.text));
                 }
 
+                // Accommodations - NEW STRUCTURE
+                const defaultRoom = { id: Date.now() + 1, type: "", meals: "", passengers: "", checkIn: "", checkOut: "", noOfRooms: "1" };
+                let loadedAccommodations = [];
+
+                if (pkg.accommodations && Array.isArray(pkg.accommodations)) {
+                    loadedAccommodations = pkg.accommodations.map(a => {
+                        const hotelMaster = hotelMastersRes.data.find(hm => hm.name === a.text); // Try to match with master
+                        return {
+                            id: Date.now() + Math.random(),
+                            hotelId: hotelMaster?.id || null,
+                            hotelName: a.text,
+                            starRating: hotelMaster?.stars || "3",
+                            address: hotelMaster?.address || "",
+                            city: hotelMaster?.city || "",
+                            image: hotelMaster?.image || "",
+                            isSearching: false,
+                            rooms: [defaultRoom] // Default room details for now
+                        };
+                    });
+                } else if (pkg.accommodations_raw) {
+                    try {
+                        const raw = JSON.parse(pkg.accommodations_raw);
+                        if (Array.isArray(raw)) {
+                            loadedAccommodations = raw.map(item => {
+                                if (typeof item === 'string') {
+                                    const hotelMaster = hotelMastersRes.data.find(hm => hm.name === item);
+                                    return {
+                                        id: Date.now() + Math.random(),
+                                        hotelId: hotelMaster?.id || null,
+                                        hotelName: item,
+                                        starRating: hotelMaster?.stars || "3",
+                                        address: hotelMaster?.address || "",
+                                        city: hotelMaster?.city || "",
+                                        image: hotelMaster?.image || "",
+                                        isSearching: false,
+                                        rooms: [defaultRoom]
+                                    };
+                                }
+                                // If it's already an object, assume it's in the new format or close to it
+                                return {
+                                    id: item.id || Date.now() + Math.random(),
+                                    hotelId: item.hotelId || null,
+                                    hotelName: item.hotelName || "",
+                                    starRating: item.starRating || "3",
+                                    address: item.address || "",
+                                    city: item.city || "",
+                                    image: item.image || "",
+                                    isSearching: false,
+                                    rooms: item.rooms && Array.isArray(item.rooms) && item.rooms.length > 0
+                                        ? item.rooms.map(room => ({ ...defaultRoom, ...room }))
+                                        : [defaultRoom]
+                                };
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Error parsing accommodations_raw:", e);
+                    }
+                }
+                setAccommodations(loadedAccommodations.length > 0 ? loadedAccommodations : [{ id: Date.now(), hotelId: null, hotelName: "", rooms: [defaultRoom] }]);
+
+
+                // Vehicles
+                if (pkg.vehicles && Array.isArray(pkg.vehicles)) {
+                    setVehicles(pkg.vehicles.map(v => v.text));
+                } else if (pkg.vehicles_raw) {
+                    try {
+                        const raw = JSON.parse(pkg.vehicles_raw);
+                        setVehicles(Array.isArray(raw) ? raw : []);
+                    } catch (e) { setVehicles([]); }
+                }
+
             } catch (err) {
                 console.error("Error loading package data:", err);
                 setError("Failed to load package details.");
@@ -243,6 +340,40 @@ const HolidayPackageEdit = () => {
         }
     }, [id]);
 
+    const handleSaveHotel = async () => {
+        if (!newHotelForm.name || !newHotelForm.city) {
+            alert("Hotel Name and City are required");
+            return;
+        }
+
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append("name", newHotelForm.name);
+            formDataToSend.append("stars", newHotelForm.stars);
+            formDataToSend.append("address", newHotelForm.address);
+            formDataToSend.append("city", newHotelForm.city);
+            formDataToSend.append("phone", newHotelForm.phone);
+            formDataToSend.append("website", newHotelForm.website);
+            formDataToSend.append("email", newHotelForm.email);
+            formDataToSend.append("latitude", newHotelForm.latitude);
+            formDataToSend.append("longitude", newHotelForm.longitude);
+
+            if (newHotelForm.images && newHotelForm.images.length > 0) {
+                formDataToSend.append("image", newHotelForm.images[0]);
+            }
+
+            const response = await axios.post(`${API_BASE_URL}/hotel-masters/`, formDataToSend);
+            setHotelMasters(prev => [...prev, response.data]);
+            setShowHotelModal(false);
+            setNewHotelForm({
+                name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
+            });
+            alert("Hotel added to masters successfully!");
+        } catch (err) {
+            console.error("Error saving hotel master:", err);
+            alert("Failed to save hotel. Please check your inputs.");
+        }
+    };
 
     // Sync itinerary days with "Days" input
     useEffect(() => {
@@ -266,25 +397,15 @@ const HolidayPackageEdit = () => {
         }
     }, [formData.days, loading]);
 
-    // Sync Package Destinations with "Days" input (One row per night)
+    // Sync Duration based on Destination Nights (Days = Sum of Nights + 1)
     useEffect(() => {
         if (loading) return;
-        const dayCount = parseInt(formData.days, 10);
-        const totalNights = isNaN(dayCount) ? 0 : Math.max(0, dayCount - 1);
-
-        setPackageDestinations((prev) => {
-            if (prev.length === totalNights) return prev;
-            if (totalNights > prev.length) {
-                const newRows = [];
-                for (let i = prev.length + 1; i <= totalNights; i++) {
-                    newRows.push({ destination: "", nights: 1 });
-                }
-                return [...prev, ...newRows];
-            } else {
-                return prev.slice(0, totalNights);
-            }
-        });
-    }, [formData.days, loading]);
+        const totalNights = packageDestinations.reduce((acc, d) => acc + parseInt(d.nights || 0, 10), 0);
+        const calculatedDays = totalNights + 1;
+        if (formData.days !== calculatedDays.toString()) {
+            setFormData(prev => ({ ...prev, days: calculatedDays.toString() }));
+        }
+    }, [packageDestinations, loading]);
 
 
     /* ---------- handlers ---------- */
@@ -392,6 +513,14 @@ const HolidayPackageEdit = () => {
             if (formData.price) formDataToSend.append("price", formData.price);
             formDataToSend.append("with_flight", formData.with_flight);
             formDataToSend.append("is_active", formData.is_active);
+            formDataToSend.append("arrival_city", formData.arrival_city);
+            formDataToSend.append("arrival_date", formData.arrival_date);
+            formDataToSend.append("arrival_time", formData.arrival_time);
+            formDataToSend.append("arrival_airport", formData.arrival_airport);
+            formDataToSend.append("departure_city", formData.departure_city);
+            formDataToSend.append("departure_date", formData.departure_date);
+            formDataToSend.append("departure_time", formData.departure_time);
+            formDataToSend.append("departure_airport", formData.departure_airport);
 
             // Add main images ONLY if new file selected or explicitly cleared
             if (formData.header_image instanceof File) {
@@ -431,6 +560,27 @@ const HolidayPackageEdit = () => {
 
             const highlightsArray = highlights.filter(h => h && h.trim() !== "");
             formDataToSend.append("highlights_raw", JSON.stringify(highlightsArray));
+
+            // Sanitize accommodations for backend
+            const sanitizedAccommodations = accommodations.map(acc => {
+                if (acc && acc.hotelName) {
+                    // Combine hotel name and room details into a single string for the backend's 'text' field
+                    const roomDetails = acc.rooms.map(r => {
+                        let details = [];
+                        if (r.type) details.push(r.type);
+                        if (r.meals) details.push(`(${r.meals})`);
+                        if (r.passengers) details.push(`for ${r.passengers}`);
+                        if (r.checkIn && r.checkOut) details.push(`(${r.checkIn} to ${r.checkOut})`);
+                        if (r.noOfRooms && r.noOfRooms !== "1") details.push(`${r.noOfRooms} rooms`);
+                        return details.join(" ");
+                    }).filter(Boolean).join(", ");
+                    return `${acc.hotelName}${roomDetails ? ` - ${roomDetails}` : ''}`;
+                }
+                return "";
+            }).filter(a => a !== "");
+
+            formDataToSend.append("accommodations_raw", JSON.stringify(sanitizedAccommodations));
+            formDataToSend.append("vehicles_raw", JSON.stringify(vehicles.filter(v => v && v.trim() !== "")));
 
             // Use PUT to update
             const response = await axios.put(`${API_BASE_URL}/packages/${id}/`, formDataToSend, {
@@ -536,19 +686,17 @@ const HolidayPackageEdit = () => {
     }
 
     const navItems = [
-        { id: 'overview', label: 'Trip Overview', icon: <Package size={18} /> },
-        { id: 'location', label: 'Arrival & Departure', icon: <MapPin size={18} /> },
-        { id: 'itinerary', label: 'Day Wise Itinerary', icon: <Calendar size={18} />, subItems: itineraryDays.map((_, i) => ({ id: `day-${i}`, label: `Day ${i + 1}`, dest: getDestinationForDay(i) })) },
-        { id: 'pricing', label: 'Pricing', icon: <span className="text-lg">💰</span> },
-        { id: 'images', label: 'Images', icon: <span className="text-lg">🖼️</span> },
-        { id: 'policy', label: 'Trip Information', icon: <span className="text-lg">ℹ️</span> },
+        { id: 'overview', label: 'Trip Overview', icon: <Globe size={18} />, color: 'bg-emerald-500' },
+        { id: 'location', label: 'Arrival & Departure', icon: <Plane size={18} />, color: 'bg-blue-500' },
+        { id: 'accommodation', label: 'Accommodation', icon: <Hotel size={18} />, color: 'bg-orange-500' },
+        { id: 'vehicle', label: 'Vehicle', icon: <Car size={18} />, color: 'bg-green-500' },
+        { id: 'itinerary', label: 'Day Wise Itinerary', icon: <ClipboardList size={18} />, color: 'bg-indigo-600' },
+        { id: 'pricing', label: 'Pricing', icon: <IndianRupee size={18} />, color: 'bg-amber-500' },
+        { id: 'policy', label: 'Trip Information', icon: <Info size={18} />, color: 'bg-sky-400' },
     ];
 
     return (
-        <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
-            <style>
-                {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');`}
-            </style>
+        <div className="flex bg-[#fcfdfc] h-screen overflow-hidden">
             <AdminSidebar />
 
             <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -601,7 +749,7 @@ const HolidayPackageEdit = () => {
                                         {activeSection === item.id && (
                                             <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
                                         )}
-                                        <span className={`transition-all duration-500 ${activeSection === item.id ? 'scale-110 rotate-3 text-green-300' : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
+                                        <span className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${activeSection === item.id ? 'scale-110 rotate-3 text-white ' + item.color : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
                                             {item.icon}
                                         </span>
                                         <span className="uppercase tracking-[0.15em] text-[10px]">{item.label}</span>
@@ -661,21 +809,77 @@ const HolidayPackageEdit = () => {
                                 <Section title="Trip Overview" active={activeSection === 'overview'}>
                                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
                                         <div className="space-y-4">
-                                            <div>
-                                                <FormLabel
-                                                    label="Package Title"
-                                                    required
-                                                    limit={TITLE_LIMIT}
-                                                    current={formData.title.length}
-                                                />
-                                                <Input
-                                                    name="title"
-                                                    value={formData.title}
-                                                    onChange={handleInputChange}
-                                                    error={errors.title}
-                                                    maxLength={TITLE_LIMIT}
-                                                    placeholder="e.g. Magical Mauritius - 5 Nights Luxury Escape"
-                                                />
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div>
+                                                    <FormLabel
+                                                        label="Package Title"
+                                                        required
+                                                        limit={TITLE_LIMIT}
+                                                        current={formData.title.length}
+                                                    />
+                                                    <Input
+                                                        name="title"
+                                                        value={formData.title}
+                                                        onChange={handleInputChange}
+                                                        error={errors.title}
+                                                        maxLength={TITLE_LIMIT}
+                                                        placeholder="e.g. Magical Mauritius - 5 Nights Luxury Escape"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className={`aspect-[21/9] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer`}>
+                                                        {(headerPreview) ? (
+                                                            <>
+                                                                <img src={headerPreview} className="w-full h-full object-cover" alt="Header Preview" />
+                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setHeaderPreview(null);
+                                                                            setFormData({ ...formData, header_image: null });
+                                                                        }}
+                                                                        className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
+                                                                    >
+                                                                        <X size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <div className="text-center">
+                                                                <ImageIcon size={18} className="text-gray-300 mx-auto" />
+                                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Header</p>
+                                                            </div>
+                                                        )}
+                                                        <input type="file" name="header_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setHeaderPreview(URL.createObjectURL(e.target.files[0])); } }} />
+                                                    </div>
+                                                    <div className={`aspect-[4/3] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer`}>
+                                                        {(cardPreview) ? (
+                                                            <>
+                                                                <img src={cardPreview} className="w-full h-full object-cover" alt="Card Preview" />
+                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setCardPreview(null);
+                                                                            setFormData({ ...formData, card_image: null });
+                                                                        }}
+                                                                        className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
+                                                                    >
+                                                                        <X size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <div className="text-center">
+                                                                <ImageIcon size={18} className="text-gray-300 mx-auto" />
+                                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Card</p>
+                                                            </div>
+                                                        )}
+                                                        <input type="file" name="card_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setCardPreview(URL.createObjectURL(e.target.files[0])); } }} />
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div>
@@ -802,6 +1006,390 @@ const HolidayPackageEdit = () => {
 
                                 </Section>
 
+                                {/* ACCOMMODATION - PAGE 3 */}
+                                <Section title="Accommodation" active={activeSection === 'accommodation'}>
+                                    <div className="space-y-8">
+                                        {accommodations.map((acc, accIdx) => (
+                                            <div key={acc.id} className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm relative animate-in zoom-in-95 duration-500">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const copy = [...accommodations];
+                                                        copy.splice(accIdx, 1);
+                                                        setAccommodations(copy);
+                                                    }}
+                                                    className="absolute -right-3 -top-3 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                                    {/* Left: Hotel Selection */}
+                                                    <div className="space-y-6">
+                                                        <div>
+                                                            <FormLabel label="Search Accommodation from the database" />
+                                                            <div className="relative">
+                                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Type to look up for accommodation in masters"
+                                                                    className="w-full bg-gray-50 border-2 border-gray-100 pl-12 pr-4 py-3 rounded-2xl text-xs font-bold focus:bg-white focus:border-[#14532d] focus:ring-8 focus:ring-green-50/50 transition-all outline-none"
+                                                                    value={acc.hotelName && !acc.isSearching ? acc.hotelName : hotelSearchQuery}
+                                                                    onChange={(e) => {
+                                                                        setHotelSearchQuery(e.target.value);
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].isSearching = true;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                    onFocus={() => {
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].isSearching = true;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                />
+
+                                                                {acc.isSearching && (
+                                                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[50] animate-in slide-in-from-top-2">
+                                                                        <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                                                                            {hotelMasters
+                                                                                .filter(h => h.name.toLowerCase().includes(hotelSearchQuery.toLowerCase()))
+                                                                                .map(hotel => (
+                                                                                    <button
+                                                                                        key={hotel.id}
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            const copy = [...accommodations];
+                                                                                            copy[accIdx] = {
+                                                                                                ...copy[accIdx],
+                                                                                                hotelId: hotel.id,
+                                                                                                hotelName: hotel.name,
+                                                                                                address: hotel.address,
+                                                                                                city: hotel.city,
+                                                                                                starRating: hotel.stars,
+                                                                                                image: hotel.image,
+                                                                                                isSearching: false
+                                                                                            };
+                                                                                            setAccommodations(copy);
+                                                                                            setHotelSearchQuery("");
+                                                                                        }}
+                                                                                        className="w-full px-5 py-4 text-left hover:bg-green-50 transition-colors border-b border-gray-50 last:border-none group"
+                                                                                    >
+                                                                                        <p className="text-[11px] font-black text-gray-900 group-hover:text-[#14532d]">{hotel.name}</p>
+                                                                                    </button>
+                                                                                ))}
+                                                                        </div>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setShowHotelModal(true)}
+                                                                            className="w-full p-4 bg-gray-50 text-[10px] font-black text-[#14532d] hover:bg-green-100 transition-colors border-t border-gray-100 uppercase tracking-widest flex items-center justify-center gap-2"
+                                                                        >
+                                                                            + Add New Accommodation
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {acc.hotelName && !acc.isSearching && (
+                                                            <div className="bg-gray-50 rounded-[1.5rem] p-5 border border-gray-100 flex gap-5 animate-in fade-in slide-in-from-left-4">
+                                                                <div className="w-32 h-24 rounded-xl overflow-hidden shadow-md shrink-0 border-4 border-white">
+                                                                    <img src={acc.image || "https://placehold.co/400x300?text=Hotel"} className="w-full h-full object-cover" alt="Hotel" />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{acc.city || "Singapore"}</p>
+                                                                    <h4 className="text-sm font-black text-gray-900 my-1">{acc.hotelName}</h4>
+                                                                    <div className="flex gap-0.5 mb-2">
+                                                                        {[...Array(5)].map((_, i) => (
+                                                                            <div key={i} className={`w-2.5 h-2.5 ${i < parseInt(acc.starRating) ? 'text-orange-400' : 'text-gray-200'}`}>★</div>
+                                                                        ))}
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-gray-500 mb-1">
+                                                                        <MapPin size={10} className="text-[#14532d]" />
+                                                                        <span className="text-[9px] font-bold line-clamp-1">{acc.address}</span>
+                                                                    </div>
+                                                                    <button type="button" className="text-[9px] font-black text-[#14532d] border-b border-[#14532d] pb-0.5 uppercase tracking-wider hover:text-black hover:border-black transition-colors">View on Map</button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {!acc.hotelName && !acc.isSearching && (
+                                                            <div className="h-40 border-2 border-dashed border-gray-100 rounded-[1.5rem] flex flex-col items-center justify-center opacity-40">
+                                                                <Hotel size={24} className="text-gray-300 mb-2" />
+                                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No accommodation added</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Right: Room Details */}
+                                                    <div className="space-y-6">
+                                                        <h3 className="text-[10px] font-black text-gray-800 uppercase tracking-widest flex items-center gap-2">
+                                                            <div className="w-6 h-1 bg-[#14532d] rounded-full"></div>
+                                                            Add Room Details
+                                                        </h3>
+
+                                                        <div className="grid grid-cols-3 gap-5">
+                                                            <div>
+                                                                <FormLabel label="No. of Rooms" />
+                                                                <select
+                                                                    className="w-full bg-white border-2 border-gray-100 px-4 py-2.5 rounded-xl text-[10px] font-black focus:border-[#14532d] outline-none transition-all scrollbar-hide"
+                                                                    value={acc.rooms[0].noOfRooms}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].rooms[0].noOfRooms = e.target.value;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                >
+                                                                    {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <FormLabel label="Check In" />
+                                                                <Input
+                                                                    type="date"
+                                                                    value={acc.rooms[0].checkIn}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].rooms[0].checkIn = e.target.value;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                    className="!bg-gray-50/50 !text-[10px] !py-3"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <FormLabel label="Check Out" />
+                                                                <Input
+                                                                    type="date"
+                                                                    value={acc.rooms[0].checkOut}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].rooms[0].checkOut = e.target.value;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                    className="!bg-gray-50/50 !text-[10px] !py-3"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-3 gap-5">
+                                                            <div>
+                                                                <FormLabel label="Room Type" />
+                                                                <Input
+                                                                    placeholder="e.g. Deluxe Room"
+                                                                    value={acc.rooms[0].type}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].rooms[0].type = e.target.value;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                    className="!text-[10px] !py-3"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <FormLabel label="Meal Type" />
+                                                                <select
+                                                                    className="w-full bg-white border-2 border-gray-100 px-4 py-2.5 rounded-xl text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                                                    value={acc.rooms[0].meals}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].rooms[0].meals = e.target.value;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                >
+                                                                    <option value="">Select meals</option>
+                                                                    <option value="EP">EP (Room Only)</option>
+                                                                    <option value="CP">CP (Breakfast)</option>
+                                                                    <option value="MAP">MAP (Half Board)</option>
+                                                                    <option value="AP">AP (Full Board)</option>
+                                                                </select>
+                                                            </div>
+                                                            <div>
+                                                                <FormLabel label="Passengers (Optional)" />
+                                                                <Input
+                                                                    placeholder="Enter details"
+                                                                    value={acc.rooms[0].passengers}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...accommodations];
+                                                                        copy[accIdx].rooms[0].passengers = e.target.value;
+                                                                        setAccommodations(copy);
+                                                                    }}
+                                                                    className="!text-[10px] !py-3"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setAccommodations(prev => [...prev, {
+                                                id: Date.now(),
+                                                hotelId: null,
+                                                hotelName: "",
+                                                rooms: [{ id: Date.now() + 1, type: "", meals: "", passengers: "", checkIn: "", checkOut: "", noOfRooms: "1" }]
+                                            }])}
+                                            className="w-full border-2 border-dashed border-[#14532d]/20 py-8 rounded-[2rem] text-[#14532d] font-black text-xs uppercase tracking-widest hover:bg-green-50/50 hover:border-[#14532d]/40 transition-all flex flex-col items-center gap-3 group"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center border border-green-100 group-hover:scale-110 transition-transform">
+                                                <Plus size={20} />
+                                            </div>
+                                            Add Another Stay
+                                        </button>
+                                    </div>
+
+                                    {/* Add New Accommodation Modal */}
+                                    {showHotelModal && (
+                                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all">
+                                            <div className="bg-white rounded-[1.5rem] w-full max-w-xl h-fit max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                                                <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                                    <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest leading-none">Add New Accommodation</h2>
+                                                    <button onClick={() => setShowHotelModal(false)} className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all font-outfit">
+                                                        <X size={14} />
+                                                    </button>
+                                                </div>
+
+                                                <div className="p-4 overflow-y-auto custom-scrollbar space-y-2.5 flex-1 min-h-0">
+                                                    <div className="grid grid-cols-12 gap-2.5">
+                                                        <div className="col-span-8">
+                                                            <FormLabel label="Name" required />
+                                                            <Input placeholder="Hotel name" value={newHotelForm.name} onChange={(e) => setNewHotelForm({ ...newHotelForm, name: e.target.value })} />
+                                                        </div>
+                                                        <div className="col-span-4">
+                                                            <FormLabel label="Stars" required />
+                                                            <select className="w-full bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black outline-none focus:border-[#14532d] transition-all" value={newHotelForm.stars} onChange={(e) => setNewHotelForm({ ...newHotelForm, stars: e.target.value })}>
+                                                                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Star</option>)}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-2.5">
+                                                        <div>
+                                                            <FormLabel label="City" required />
+                                                            <SearchableSelect
+                                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                                value={newHotelForm.city}
+                                                                onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
+                                                                placeholder="Select City"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Address" optional />
+                                                            <Input placeholder="Hotel address" value={newHotelForm.address} onChange={(e) => setNewHotelForm({ ...newHotelForm, address: e.target.value })} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-2.5">
+                                                        <div>
+                                                            <FormLabel label="Phone" optional />
+                                                            <Input placeholder="Phone number" value={newHotelForm.phone} onChange={(e) => setNewHotelForm({ ...newHotelForm, phone: e.target.value })} />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Website" optional />
+                                                            <Input placeholder="URL" value={newHotelForm.website} onChange={(e) => setNewHotelForm({ ...newHotelForm, website: e.target.value })} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-12 gap-2.5">
+                                                        <div className="col-span-6">
+                                                            <FormLabel label="Email" optional />
+                                                            <Input placeholder="Email address" value={newHotelForm.email} onChange={(e) => setNewHotelForm({ ...newHotelForm, email: e.target.value })} />
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <FormLabel label="Lat" optional />
+                                                            <Input placeholder="0.00" value={newHotelForm.latitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, latitude: e.target.value })} />
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <FormLabel label="Long" optional />
+                                                            <Input placeholder="0.00" value={newHotelForm.longitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, longitude: e.target.value })} />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-1.5">
+                                                        <FormLabel label="Images" optional />
+                                                        <div className="flex flex-wrap gap-2.5 min-h-[40px]">
+                                                            {newHotelForm.images && newHotelForm.images.map((img, idx) => (
+                                                                <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden group border-2 border-gray-100 shadow-sm animate-in zoom-in-50">
+                                                                    <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" alt="Preview" />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newImgs = [...newHotelForm.images];
+                                                                            newImgs.splice(idx, 1);
+                                                                            setNewHotelForm({ ...newHotelForm, images: newImgs });
+                                                                        }}
+                                                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    >
+                                                                        <X size={12} className="text-white" />
+                                                                    </button>
+                                                                    {idx === 0 && <div className="absolute top-0 left-0 bg-[#14532d] text-[5px] text-white font-black px-1 py-0.5 uppercase">Main</div>}
+                                                                </div>
+                                                            ))}
+                                                            <input type="file" id="hotel-image-upload-edit-new" className="hidden" multiple onChange={(e) => {
+                                                                const files = Array.from(e.target.files);
+                                                                setNewHotelForm({ ...newHotelForm, images: [...(newHotelForm.images || []), ...files] });
+                                                            }} />
+                                                            <label htmlFor="hotel-image-upload-edit-new" className="w-14 h-14 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center bg-gray-50/30 hover:bg-gray-50 transition-all cursor-pointer group">
+                                                                <Plus size={14} className="text-gray-300 group-hover:text-[#14532d] transition-colors" />
+                                                                <span className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Add</span>
+                                                            </label>
+                                                        </div>
+                                                        {newHotelForm.images?.length > 1 && (
+                                                            <p className="text-[7px] text-gray-400 font-bold italic uppercase tracking-wider">* Only the first image will be saved to masters</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                                                    <button type="button" onClick={() => setShowHotelModal(false)} className="px-5 py-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-600 transition-all font-outfit">Cancel</button>
+                                                    <button type="button" onClick={handleSaveHotel} className="px-8 py-1.5 bg-[#14532d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-green-900/10 hover:scale-105 active:scale-95 transition-all font-outfit">Add Hotel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </Section>
+
+                                {/* VEHICLE */}
+                                <Section title="Vehicle" active={activeSection === 'vehicle'}>
+                                    <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm mt-6">
+                                        <div className="flex justify-between items-center mb-6 border-b border-gray-50 pb-4">
+                                            <div>
+                                                <h3 className="text-xl font-black text-gray-900 tracking-tight leading-none">Transport Details</h3>
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1.5">Specify vehicles used</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => addRow(setVehicles, "")}
+                                                className="bg-green-600 text-white px-4 py-2 rounded-xl text-[9px] font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all hover:bg-black uppercase tracking-widest"
+                                            >
+                                                + ADD VEHICLE
+                                            </button>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {vehicles.map((v, i) => (
+                                                <div key={i} className="flex gap-4 items-center group animate-in slide-in-from-right-2" style={{ animationDelay: `${i * 80}ms` }}>
+                                                    <Car size={18} className="text-green-500" />
+                                                    <div className="flex-1">
+                                                        <Input
+                                                            value={v}
+                                                            onChange={(e) => { const copy = [...vehicles]; copy[i] = e.target.value; setVehicles(copy); }}
+                                                            placeholder="e.g. Toyota Alphard - Private Transfer..."
+                                                            className="!bg-green-50/10 !border-green-100/30 focus:!bg-white focus:!border-green-200 !rounded-2xl !py-3.5"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeRow(setVehicles, i)}
+                                                        className="text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2 rounded-lg hover:bg-red-50"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </Section>
+
                                 {/* LOCATION DETAILS */}
                                 <Section title="Arrival & Departure" active={activeSection === 'location'}>
                                     <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
@@ -810,7 +1398,10 @@ const HolidayPackageEdit = () => {
                                                 <div>
                                                     <FormLabel label="Starting City" required />
                                                     <SearchableSelect
-                                                        options={startingCities.map(city => ({ value: city.name, label: city.name }))}
+                                                        options={[
+                                                            { value: "Any City", label: "Any City" },
+                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                        ]}
                                                         value={formData.starting_city}
                                                         onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
                                                         placeholder="Search starting city..."
@@ -820,26 +1411,22 @@ const HolidayPackageEdit = () => {
                                                 </div>
 
                                                 <div className="pt-4 border-t border-gray-100">
-                                                    <div className="flex justify-between items-center mb-3">
-                                                        <FormLabel label="Tour Route (Nights Setup)" />
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <div>
+                                                            <FormLabel label="Tour Route" />
+                                                            <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Group nights by destination</p>
+                                                        </div>
                                                         <button
                                                             type="button"
-                                                            onClick={() => {
-                                                                const newDays = parseInt(formData.days || 1, 10) + 1;
-                                                                setFormData(prev => ({ ...prev, days: newDays.toString() }));
-                                                            }}
-                                                            className="bg-white px-3 py-1.5 rounded-xl border-2 border-gray-100 text-[9px] font-black text-[#14532d] hover:bg-green-50 active:scale-95 transition-all shadow-sm"
+                                                            onClick={() => setPackageDestinations(prev => [...prev, { destination: "", nights: 1 }])}
+                                                            className="bg-white px-4 py-2 rounded-xl border-2 border-gray-100 text-[10px] font-black text-[#14532d] hover:bg-green-50 active:scale-95 transition-all shadow-sm flex items-center gap-2"
                                                         >
-                                                            + ADD NIGHT
+                                                            + ADD DESTINATION
                                                         </button>
                                                     </div>
-                                                    <div className="space-y-2">
+                                                    <div className="space-y-3">
                                                         {packageDestinations.map((row, i) => (
-                                                            <div key={i} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-100 shadow-sm group animate-in slide-in-from-left-2" style={{ animationDelay: `${i * 50}ms` }}>
-                                                                <div className="w-10 py-1 rounded-lg bg-green-50 flex flex-col items-center justify-center shrink-0 border border-green-100">
-                                                                    <span className="text-[7px] font-black text-[#14532d] uppercase">Night</span>
-                                                                    <span className="text-xs font-black text-[#14532d] leading-none">{i + 1}</span>
-                                                                </div>
+                                                            <div key={i} className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm group animate-in slide-in-from-left-2" style={{ animationDelay: `${i * 50}ms` }}>
                                                                 <div className="flex-1">
                                                                     <SearchableSelect
                                                                         options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country || d.region || '' }))}
@@ -852,17 +1439,32 @@ const HolidayPackageEdit = () => {
                                                                         placeholder="Select City..."
                                                                     />
                                                                 </div>
+                                                                <div className="w-28">
+                                                                    <select
+                                                                        value={row.nights}
+                                                                        onChange={(e) => {
+                                                                            const copy = [...packageDestinations];
+                                                                            copy[i].nights = parseInt(e.target.value);
+                                                                            setPackageDestinations(copy);
+                                                                        }}
+                                                                        className="w-full bg-gray-50/50 border-2 border-transparent px-3 py-2.5 rounded-xl text-gray-900 text-[10px] font-black uppercase tracking-widest focus:bg-white focus:border-[#14532d] transition-all cursor-pointer appearance-none text-center"
+                                                                    >
+                                                                        {[...Array(21)].map((_, n) => (
+                                                                            <option key={n + 1} value={n + 1}>{n + 1} {n + 1 === 1 ? 'Night' : 'Nights'}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => {
-                                                                        const currentDays = parseInt(formData.days || 1, 10);
-                                                                        if (currentDays > 1) {
-                                                                            setFormData(prev => ({ ...prev, days: (currentDays - 1).toString() }));
+                                                                        if (packageDestinations.length > 1) {
+                                                                            removeRow(setPackageDestinations, i);
                                                                         }
                                                                     }}
-                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:bg-red-50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 ${packageDestinations.length > 1 ? 'hover:bg-red-50 text-red-400' : 'text-gray-100 pointer-events-none'}`}
+                                                                    disabled={packageDestinations.length <= 1}
                                                                 >
-                                                                    <X size={14} />
+                                                                    <X size={16} />
                                                                 </button>
                                                             </div>
                                                         ))}
@@ -891,6 +1493,77 @@ const HolidayPackageEdit = () => {
                                                     {packageDestinations.length > 3 && (
                                                         <p className="text-[10px] font-bold text-[#14532d]">+{packageDestinations.length - 3} More Nights</p>
                                                     )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Arrival & Departure Flight/Transfer Details */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 mt-8 border-t border-gray-200">
+                                            {/* Arrival */}
+                                            <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                                                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                                    <Plane size={14} className="rotate-45" /> Arrival Logistics
+                                                </h4>
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <FormLabel label="To (Destination)" />
+                                                            <SearchableSelect
+                                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                                value={formData.arrival_city}
+                                                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
+                                                                placeholder="e.g. Singapore"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Date" />
+                                                            <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <FormLabel label="Time" optional />
+                                                            <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Airport" optional />
+                                                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Enter Airport" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Departure */}
+                                            <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
+                                                <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                                    <Plane size={14} className="-rotate-45" /> Departure Logistics
+                                                </h4>
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <FormLabel label="To (From City)" />
+                                                            <SearchableSelect
+                                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                                value={formData.departure_city}
+                                                                onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                                                placeholder="e.g. Maldives"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Date" />
+                                                            <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <FormLabel label="Time" optional />
+                                                            <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Airport" optional />
+                                                            <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter Airport" />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -985,104 +1658,7 @@ const HolidayPackageEdit = () => {
                                     </div>
                                 </Section>
 
-                                {/* IMAGES */}
-                                <Section title="Marketing Images" active={activeSection === 'images'}>
-                                    <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
-                                        <div className="grid grid-cols-2 gap-12">
-                                            <div className="space-y-4">
-                                                <FormLabel label="Header Image" />
-                                                <div className="aspect-[21/9] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
-                                                    {(headerPreview) ? (
-                                                        <>
-                                                            <img src={headerPreview} className="w-full h-full object-cover" alt="Header Preview" />
-                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setHeaderPreview(null);
-                                                                        setFormData({ ...formData, header_image: null });
-                                                                    }}
-                                                                    className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
-                                                                >
-                                                                    <X size={20} />
-                                                                </button>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <div className="text-center p-6">
-                                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
-                                                                <ImageIcon size={24} />
-                                                            </div>
-                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Header</p>
-                                                            <p className="text-[8px] text-gray-300 mt-1">Recommended: 1920x800px</p>
-                                                        </div>
-                                                    )}
-                                                    <input
-                                                        type="file"
-                                                        name="header_image"
-                                                        accept="image/*"
-                                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                                        onChange={(e) => {
-                                                            handleFileChange(e);
-                                                            if (e.target.files[0]) {
-                                                                setHeaderPreview(URL.createObjectURL(e.target.files[0]));
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-                                                {formData.header_image && <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">New Header Selected</p>}
-                                                {errors.header_image && <p className="text-red-500 text-[10px] font-bold mt-1 text-center">⚠ {errors.header_image}</p>}
-                                            </div>
 
-                                            <div className="space-y-4">
-                                                <FormLabel label="Card Image" />
-                                                <div className="aspect-[4/3] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
-                                                    {(cardPreview) ? (
-                                                        <>
-                                                            <img src={cardPreview} className="w-full h-full object-cover" alt="Card Preview" />
-                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setCardPreview(null);
-                                                                        setFormData({ ...formData, card_image: null });
-                                                                    }}
-                                                                    className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
-                                                                >
-                                                                    <X size={20} />
-                                                                </button>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <div className="text-center p-6">
-                                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
-                                                                <ImageIcon size={24} />
-                                                            </div>
-                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Card</p>
-                                                            <p className="text-[8px] text-gray-300 mt-1">Recommended: 800x600px</p>
-                                                        </div>
-                                                    )}
-                                                    <input
-                                                        type="file"
-                                                        name="card_image"
-                                                        accept="image/*"
-                                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                                        onChange={(e) => {
-                                                            handleFileChange(e);
-                                                            if (e.target.files[0]) {
-                                                                setCardPreview(URL.createObjectURL(e.target.files[0]));
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-                                                {formData.card_image && <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">New Card Selected</p>}
-                                                {errors.card_image && <p className="text-red-500 text-[10px] font-bold mt-1 text-center">⚠ {errors.card_image}</p>}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Section>
 
                                 {/* DAY WISE ITINERARY */}
                                 <Section title="Day Wise Itinerary" active={activeSection === 'itinerary'}>

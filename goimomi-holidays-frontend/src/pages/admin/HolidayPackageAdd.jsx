@@ -4,7 +4,7 @@ import axios from "axios";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
-import { X, MapPin, Calendar, Package } from "lucide-react";
+import { X, MapPin, Calendar, Package, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, Star } from "lucide-react";
 
 /* ---------- UI helpers ---------- */
 const Section = ({ title, children, active }) => (
@@ -24,10 +24,10 @@ const Section = ({ title, children, active }) => (
 );
 
 const FormLabel = ({ label, limit, current, required, optional }) => (
-  <div className="flex justify-between items-end mb-1.5">
-    <div className="flex items-center gap-2">
-      <span className="text-gray-900 font-black text-[10px] uppercase tracking-[0.15em]">{label} {required && <span className="text-red-500">*</span>}</span>
-      {optional && <span className="text-[#14532d] text-[8px] font-black bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100/50 uppercase">Optional</span>}
+  <div className="flex justify-between items-end mb-1">
+    <div className="flex items-center gap-1.5">
+      <span className="text-gray-900 font-black text-[9px] uppercase tracking-[0.12em]">{label} {required && <span className="text-red-500">*</span>}</span>
+      {optional && <span className="text-[#14532d] text-[7px] font-black bg-green-50 px-1 py-0.5 rounded-md border border-green-100/50 uppercase">Optional</span>}
     </div>
     {limit && (
       <span className={`text-[9px] font-black tracking-widest ${(current || 0) > limit ? 'text-red-500' : 'text-gray-300'}`}>
@@ -41,7 +41,7 @@ const Input = (props) => (
   <div>
     <input
       {...props}
-      className={`bg-white border-2 ${props.error ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} px-4 py-2.5 rounded-xl w-full text-gray-900 text-xs font-bold transition-all placeholder:text-gray-400 placeholder:font-medium focus:outline-none focus:ring-8 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 hover:shadow-sm ${props.className || ''}`}
+      className={`bg-white border-2 ${props.error ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} px-3.5 py-1.5 rounded-xl w-full text-gray-900 text-[11px] font-bold transition-all placeholder:text-gray-400 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 hover:shadow-sm ${props.className || ''}`}
     />
     {props.error && <p className="text-red-500 text-[9px] font-black mt-1.5 flex items-center gap-2 ml-1 uppercase tracking-wider italic">
       <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
@@ -72,6 +72,25 @@ const HolidayPackageAdd = () => {
   const [inclusions, setInclusions] = useState([""]);
   const [exclusions, setExclusions] = useState([""]);
   const [highlights, setHighlights] = useState([""]);
+  const [accommodations, setAccommodations] = useState([
+    {
+      id: Date.now(),
+      hotelId: null,
+      hotelName: "",
+      address: "",
+      city: "",
+      starRating: "3",
+      image: null,
+      rooms: [{ id: Date.now() + 1, type: "", meals: "", passengers: "", checkIn: "", checkOut: "", noOfRooms: "1" }]
+    }
+  ]);
+  const [showHotelModal, setShowHotelModal] = useState(false);
+  const [hotelSearchQuery, setHotelSearchQuery] = useState("");
+  const [hotelMasters, setHotelMasters] = useState([]);
+  const [newHotelForm, setNewHotelForm] = useState({
+    name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
+  });
+  const [vehicles, setVehicles] = useState([""]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -88,6 +107,14 @@ const HolidayPackageAdd = () => {
     card_image: null,
     with_flight: false,
     is_active: true,
+    arrival_city: "",
+    arrival_date: "",
+    arrival_time: "",
+    arrival_airport: "",
+    departure_city: "",
+    departure_date: "",
+    departure_time: "",
+    departure_airport: "",
   });
 
   const [startingCities, setStartingCities] = useState([]);
@@ -97,7 +124,7 @@ const HolidayPackageAdd = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 4;
+  const totalPages = 7;
 
   const TITLE_LIMIT = 200;
   const DESC_LIMIT = 2000;
@@ -134,12 +161,15 @@ const HolidayPackageAdd = () => {
     fetchStartingCities();
     fetchDestinations();
     fetchItineraryMasters(); // Fetch templates
+    fetchHotelMasters();
   }, []);
 
   const fetchStartingCities = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/starting-cities/`);
-      setStartingCities(response.data);
+      if (Array.isArray(response.data)) {
+        setStartingCities(response.data);
+      }
     } catch (err) {
       console.error("Error fetching starting cities:", err);
     }
@@ -148,18 +178,68 @@ const HolidayPackageAdd = () => {
   const fetchDestinations = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/destinations/`);
-      setDestinations(response.data);
+      if (Array.isArray(response.data)) {
+        setDestinations(response.data);
+      }
     } catch (err) {
       console.error("Error fetching destinations:", err);
+    }
+  };
+
+  const fetchHotelMasters = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/hotel-masters/`);
+      if (Array.isArray(response.data)) {
+        setHotelMasters(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching hotel masters:", err);
     }
   };
 
   const fetchItineraryMasters = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/itinerary-masters/`);
-      setItineraryMasters(response.data);
+      if (Array.isArray(response.data)) {
+        setItineraryMasters(response.data);
+      }
     } catch (err) {
       console.error("Error fetching itinerary masters:", err);
+    }
+  };
+
+  const handleSaveHotel = async () => {
+    if (!newHotelForm.name || !newHotelForm.city) {
+      alert("Hotel Name and City are required");
+      return;
+    }
+
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", newHotelForm.name);
+      formDataToSend.append("stars", newHotelForm.stars);
+      formDataToSend.append("address", newHotelForm.address);
+      formDataToSend.append("city", newHotelForm.city);
+      formDataToSend.append("phone", newHotelForm.phone);
+      formDataToSend.append("website", newHotelForm.website);
+      formDataToSend.append("email", newHotelForm.email);
+      formDataToSend.append("latitude", newHotelForm.latitude);
+      formDataToSend.append("longitude", newHotelForm.longitude);
+
+      if (newHotelForm.images && newHotelForm.images.length > 0) {
+        formDataToSend.append("image", newHotelForm.images[0]); // Using first image for now based on model
+      }
+
+      const response = await axios.post(`${API_BASE_URL}/hotel-masters/`, formDataToSend);
+      setHotelMasters(prev => [...prev, response.data]);
+      setShowHotelModal(false);
+      setNewHotelForm({
+        name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
+      });
+      alert("Hotel added to masters successfully!");
+    } catch (err) {
+      console.error("Error saving hotel master:", err);
+      alert("Failed to save hotel. Please check your inputs.");
     }
   };
 
@@ -193,24 +273,14 @@ const HolidayPackageAdd = () => {
     }
   }, [formData.days]);
 
-  // Sync Package Destinations with "Days" input (One row per night)
+  // Sync Duration based on Destination Nights (Days = Sum of Nights + 1)
   useEffect(() => {
-    const dayCount = parseInt(formData.days, 10);
-    const totalNights = isNaN(dayCount) ? 0 : Math.max(0, dayCount - 1);
-
-    setPackageDestinations((prev) => {
-      if (prev.length === totalNights) return prev;
-      if (totalNights > prev.length) {
-        const newRows = [];
-        for (let i = prev.length + 1; i <= totalNights; i++) {
-          newRows.push({ destination: "", nights: 1 });
-        }
-        return [...prev, ...newRows];
-      } else {
-        return prev.slice(0, totalNights);
-      }
-    });
-  }, [formData.days]);
+    const totalNights = packageDestinations.reduce((acc, d) => acc + parseInt(d.nights || 0, 10), 0);
+    const calculatedDays = totalNights + 1;
+    if (formData.days !== calculatedDays.toString()) {
+      setFormData(prev => ({ ...prev, days: calculatedDays.toString() }));
+    }
+  }, [packageDestinations]);
 
   /* ---------- handlers ---------- */
   const addRow = (setter, row) => setter((p) => [...p, row]);
@@ -319,6 +389,14 @@ const HolidayPackageAdd = () => {
       if (formData.price) formDataToSend.append("price", formData.price);
       formDataToSend.append("with_flight", formData.with_flight);
       formDataToSend.append("is_active", formData.is_active);
+      formDataToSend.append("arrival_city", formData.arrival_city);
+      formDataToSend.append("arrival_date", formData.arrival_date);
+      formDataToSend.append("arrival_time", formData.arrival_time);
+      formDataToSend.append("arrival_airport", formData.arrival_airport);
+      formDataToSend.append("departure_city", formData.departure_city);
+      formDataToSend.append("departure_date", formData.departure_date);
+      formDataToSend.append("departure_time", formData.departure_time);
+      formDataToSend.append("departure_airport", formData.departure_airport);
 
       // Add main images
       if (formData.header_image) {
@@ -351,6 +429,17 @@ const HolidayPackageAdd = () => {
       formDataToSend.append("inclusions_raw", JSON.stringify(inclusions.filter(i => i.trim() !== "")));
       formDataToSend.append("exclusions_raw", JSON.stringify(exclusions.filter(e => e.trim() !== "")));
       formDataToSend.append("highlights_raw", JSON.stringify(highlights.filter(h => h.trim() !== "")));
+
+      // Sanitize accommodations for backend (if it expects strings, we might need to map it)
+      const sanitizedAccommodations = accommodations.map(acc => {
+        if (acc.hotelName) {
+          return `${acc.hotelName} - ${acc.rooms.map(r => `${r.type} (${r.meals})`).join(", ")}`;
+        }
+        return "";
+      }).filter(a => a !== "");
+
+      formDataToSend.append("accommodations_raw", JSON.stringify(sanitizedAccommodations));
+      formDataToSend.append("vehicles_raw", JSON.stringify(vehicles.filter(v => v.trim() !== "")));
 
       const response = await axios.post(`${API_BASE_URL}/packages/`, formDataToSend, {
         headers: {
@@ -436,10 +525,13 @@ const HolidayPackageAdd = () => {
 
 
   const navItems = [
-    { id: 1, label: 'Trip Overview', icon: <Package size={18} /> },
-    { id: 2, label: 'Day Wise Itinerary', icon: <Calendar size={18} />, subItems: itineraryDays.map((_, i) => ({ id: `day-${i}`, label: `Day ${i + 1}`, dest: getDestinationForDay(i) })) },
-    { id: 3, label: 'Inclusions & Exclusions', icon: <span className="text-lg">ℹ️</span> },
-    { id: 4, label: 'Logistics & Media', icon: <MapPin size={18} /> },
+    { id: 1, label: 'Trip Overview', icon: <Globe size={18} />, color: 'bg-emerald-500' },
+    { id: 2, label: 'Arrival & Departure', icon: <Plane size={18} />, color: 'bg-blue-500' },
+    { id: 3, label: 'Accommodation', icon: <Hotel size={18} />, color: 'bg-orange-500' },
+    { id: 4, label: 'Vehicle', icon: <Car size={18} />, color: 'bg-green-500' },
+    { id: 5, label: 'Day Wise Itinerary', icon: <ClipboardList size={18} />, color: 'bg-indigo-600' },
+    { id: 6, label: 'Pricing', icon: <IndianRupee size={18} />, color: 'bg-amber-500' },
+    { id: 7, label: 'Trip Information', icon: <Info size={18} />, color: 'bg-sky-400' },
   ];
 
   return (
@@ -511,16 +603,16 @@ const HolidayPackageAdd = () => {
                     {currentPage === item.id && (
                       <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
                     )}
-                    <span className={`transition-all duration-500 ${currentPage === item.id ? 'scale-110 rotate-3 text-green-300' : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${currentPage === item.id ? 'scale-110 rotate-3 text-white ' + item.color : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
                       {item.icon}
                     </span>
                     <span className="uppercase tracking-[0.15em] text-[10px]">{item.label}</span>
                   </button>
-                  {item.subItems && currentPage === 2 && (
+                  {item.id === 5 && currentPage === 5 && (
                     <div className="mt-3 ml-6 pl-4 border-l-2 border-green-50 space-y-1 py-1.5 animate-in slide-in-from-top-4">
-                      {item.subItems.map((sub, idx) => (
+                      {itineraryDays.map((sub, idx) => (
                         <button
-                          key={sub.id}
+                          key={idx}
                           type="button"
                           className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[9px] font-black text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group relative"
                           onClick={() => {
@@ -528,9 +620,9 @@ const HolidayPackageAdd = () => {
                             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                           }}
                         >
-                          <div className={`w-1 h-1 rounded-full ${idx === 0 ? 'bg-green-500' : 'bg-gray-300'} group-hover:scale-150 group-hover:bg-[#14532d] transition-all`}></div>
-                          <span className="uppercase tracking-widest">{sub.label}</span>
-                          <span className="text-[7.5px] text-gray-300 font-bold ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{sub.dest}</span>
+                          <div className={`w-1 h-1 rounded-full ${currentPage === 5 ? 'bg-green-500' : 'bg-gray-300'} group-hover:scale-150 group-hover:bg-[#14532d] transition-all`}></div>
+                          <span className="uppercase tracking-widest">Day {idx + 1}</span>
+                          <span className="text-[7.5px] text-gray-300 font-bold ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{getDestinationForDay(idx)}</span>
                         </button>
                       ))}
                     </div>
@@ -543,9 +635,12 @@ const HolidayPackageAdd = () => {
               <p className="text-[9px] text-[#14532d] font-black uppercase tracking-[0.2em] mb-1.5 opacity-60">Admin Notice</p>
               <p className="text-[9px] font-bold text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">
                 {currentPage === 1 && "Start with the trip details and highlights."}
-                {currentPage === 2 && "Define the daily itinerary for the guests."}
-                {currentPage === 3 && "Specify what is included and excluded in the package."}
-                {currentPage === 4 && "Finalize logistics, pricing and media."}
+                {currentPage === 2 && "Where the journey begins and ends."}
+                {currentPage === 3 && "Details of hotels and stays."}
+                {currentPage === 4 && "Transportation and vehicle details."}
+                {currentPage === 5 && "Define the daily itinerary for the guests."}
+                {currentPage === 6 && "Pricing and commercial details."}
+                {currentPage === 7 && "Inclusions, Exclusions and final information."}
               </p>
             </div>
           </div>
@@ -571,20 +666,53 @@ const HolidayPackageAdd = () => {
                 {/* TRIP OVERVIEW - PAGE 1 */}
                 <Section title="Trip Overview" active={currentPage === 1}>
                   <div className="grid grid-cols-1 gap-8">
-                    <div>
-                      <FormLabel
-                        label="Trip Title"
-                        required
-                        limit={TITLE_LIMIT}
-                        current={formData.title ? formData.title.length : 0}
-                      />
-                      <Input
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        placeholder="SINGAPORE DELIGHT"
-                        error={errors.title}
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div>
+                        <FormLabel
+                          label="Trip Title"
+                          required
+                          limit={TITLE_LIMIT}
+                          current={formData.title ? formData.title.length : 0}
+                        />
+                        <Input
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          placeholder="SINGAPORE DELIGHT"
+                          error={errors.title}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className={`relative border-2 border-dashed rounded-2xl p-4 transition-all h-full min-h-[100px] flex flex-col items-center justify-center ${formData.header_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
+                          {formData.header_image ? (
+                            <div className="text-center group/main w-full h-full relative">
+                              <img src={URL.createObjectURL(formData.header_image)} alt="H" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
+                              <button type="button" onClick={() => setFormData({ ...formData, header_image: null })} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-lg active:scale-90 transition-transform"><X size={10} /></button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="w-8 h-8 bg-white rounded-lg shadow flex items-center justify-center text-gray-400 font-black text-xl mb-1">+</div>
+                              <p className="font-black text-gray-900 text-[8px] uppercase tracking-widest">Header Banner</p>
+                              <input type="file" name="header_image" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+                            </>
+                          )}
+                        </div>
+
+                        <div className={`relative border-2 border-dashed rounded-2xl p-4 transition-all h-full min-h-[100px] flex flex-col items-center justify-center ${formData.card_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
+                          {formData.card_image ? (
+                            <div className="text-center group/card w-full h-full relative">
+                              <img src={URL.createObjectURL(formData.card_image)} alt="C" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
+                              <button type="button" onClick={() => setFormData({ ...formData, card_image: null })} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-lg active:scale-90 transition-transform"><X size={10} /></button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="w-8 h-8 bg-white rounded-lg shadow flex items-center justify-center text-gray-400 font-black text-xl mb-1">+</div>
+                              <p className="font-black text-gray-900 text-[8px] uppercase tracking-widest">Card Visual</p>
+                              <input type="file" name="card_image" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div>
@@ -696,13 +824,16 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                {/* ARRIVAL & DEPARTURE - PAGE 4 */}
-                <Section title="Arrival & Departure" active={currentPage === 4}>
+                {/* ARRIVAL & DEPARTURE - PAGE 2 */}
+                <Section title="Arrival & Departure" active={currentPage === 2}>
                   <div className="space-y-8">
                     <div className="max-w-md">
                       <FormLabel label="Starting City" required />
                       <SearchableSelect
-                        options={startingCities.map(city => ({ value: city.name, label: city.name }))}
+                        options={[
+                          { value: "Any City", label: "Any City" },
+                          ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                        ]}
                         value={formData.starting_city}
                         onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
                         placeholder="Where the trip starts..."
@@ -710,23 +841,23 @@ const HolidayPackageAdd = () => {
                     </div>
 
                     <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Package Destinations</h3>
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Package Destinations</h3>
+                          <p className="text-[8px] text-gray-400 font-bold uppercase mt-1 tracking-widest">Map your journey stay by stay</p>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, days: (parseInt(prev.days || 1) + 1).toString() }))}
-                          className="bg-white px-3 py-1.5 rounded-full border-2 border-gray-100 text-[9px] font-black text-[#14532d] hover:bg-green-50 active:scale-95 transition-all"
+                          onClick={() => setPackageDestinations(prev => [...prev, { destination: "", nights: 1 }])}
+                          className="bg-white px-4 py-2 rounded-xl border-2 border-gray-100 text-[10px] font-black text-[#14532d] hover:bg-green-50 active:scale-95 transition-all shadow-sm flex items-center gap-2"
                         >
-                          + ADD MORE NIGHTS
+                          + ADD DESTINATION
                         </button>
                       </div>
 
                       <div className="space-y-3">
                         {packageDestinations.map((row, i) => (
-                          <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2" style={{ animationDelay: `${i * 100}ms` }}>
-                            <div className="shrink-0 w-20 py-2 bg-white border-2 border-gray-100 rounded-full text-center font-black text-[#14532d] text-[10px] shadow-sm shadow-green-900/5 uppercase tracking-widest">
-                              Night {i + 1}
-                            </div>
+                          <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 bg-white/50 p-2 rounded-2xl border border-gray-50" style={{ animationDelay: `${i * 100}ms` }}>
                             <div className="flex-1">
                               <SearchableSelect
                                 options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country }))}
@@ -739,12 +870,32 @@ const HolidayPackageAdd = () => {
                                 placeholder="Select city..."
                               />
                             </div>
+                            <div className="w-32">
+                              <select
+                                value={row.nights}
+                                onChange={(e) => {
+                                  const copy = [...packageDestinations];
+                                  copy[i].nights = parseInt(e.target.value);
+                                  setPackageDestinations(copy);
+                                }}
+                                className="w-full bg-white border-2 border-gray-100 px-3 py-2.5 rounded-xl text-gray-900 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-8 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 transition-all cursor-pointer appearance-none text-center"
+                              >
+                                {[...Array(21)].map((_, n) => (
+                                  <option key={n + 1} value={n + 1}>{n + 1} {n + 1 === 1 ? 'Night' : 'Nights'}</option>
+                                ))}
+                              </select>
+                            </div>
                             <button
                               type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, days: Math.max(1, parseInt(prev.days || 1) - 1).toString() }))}
-                              className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-red-50 text-red-300 hover:text-red-500 transition-all active:scale-90"
+                              onClick={() => {
+                                if (packageDestinations.length > 1) {
+                                  removeRow(setPackageDestinations, i);
+                                }
+                              }}
+                              className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${packageDestinations.length > 1 ? 'hover:bg-red-50 text-red-200 hover:text-red-500' : 'text-gray-100 cursor-not-allowed'}`}
+                              disabled={packageDestinations.length <= 1}
                             >
-                              <X size={14} />
+                              <X size={16} />
                             </button>
                           </div>
                         ))}
@@ -753,19 +904,367 @@ const HolidayPackageAdd = () => {
 
                     <div className="grid grid-cols-2 gap-8">
                       <div>
-                        <FormLabel label="Total Days" required />
-                        <Input type="number" name="days" value={formData.days} onChange={handleInputChange} min="1" />
+                        <FormLabel label="Total Days (Auto)" required />
+                        <Input type="number" name="days" value={formData.days} readOnly className="!bg-gray-50/50 cursor-not-allowed opacity-70" />
                       </div>
                       <div>
                         <FormLabel label="Group Size" optional />
                         <Input type="number" name="group_size" value={formData.group_size} onChange={handleInputChange} />
                       </div>
                     </div>
+
+                    {/* Arrival & Departure Flight/Transfer Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-gray-100">
+                      {/* Arrival */}
+                      <div className="bg-blue-50/30 p-6 rounded-[2rem] border border-blue-100/50">
+                        <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-6 flex items-center gap-2">
+                          <Plane size={14} className="rotate-45" /> Arrival Logistics
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <FormLabel label="To (Destination)" />
+                              <SearchableSelect
+                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                value={formData.arrival_city}
+                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
+                                placeholder="e.g. Singapore"
+                              />
+                            </div>
+                            <div>
+                              <FormLabel label="Date" />
+                              <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <FormLabel label="Time" optional />
+                              <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} />
+                            </div>
+                            <div>
+                              <FormLabel label="Airport" optional />
+                              <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Enter Airport" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Departure */}
+                      <div className="bg-indigo-50/30 p-6 rounded-[2rem] border border-indigo-100/50">
+                        <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-2">
+                          <Plane size={14} className="-rotate-45" /> Departure Logistics
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <FormLabel label="To (From City)" />
+                              <SearchableSelect
+                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                value={formData.departure_city}
+                                onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                placeholder="e.g. Maldives"
+                              />
+                            </div>
+                            <div>
+                              <FormLabel label="Date" />
+                              <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <FormLabel label="Time" optional />
+                              <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} />
+                            </div>
+                            <div>
+                              <FormLabel label="Airport" optional />
+                              <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter Airport" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </Section>
 
-                {/* ITINERARY - PAGE 2 */}
-                <Section title="Day Wise Itinerary" active={currentPage === 2}>
+                {/* ACCOMMODATION - PAGE 3 */}
+                <Section title="Accommodation" active={currentPage === 3}>
+                  <div className="space-y-8">
+                    {accommodations.map((acc, accIdx) => (
+                      <div key={acc.id} className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm relative animate-in zoom-in-95 duration-500">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const copy = [...accommodations];
+                            copy.splice(accIdx, 1);
+                            setAccommodations(copy);
+                          }}
+                          className="absolute -right-3 -top-3 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10"
+                        >
+                          <X size={14} />
+                        </button>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                          {/* Left: Hotel Selection */}
+                          <div className="space-y-6">
+                            <div>
+                              <FormLabel label="Search Accommodation from the database" />
+                              <div className="relative">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                  type="text"
+                                  placeholder="Type to look up for accommodation in masters"
+                                  className="w-full bg-gray-50 border-2 border-gray-100 pl-12 pr-4 py-3 rounded-2xl text-xs font-bold focus:bg-white focus:border-[#14532d] focus:ring-8 focus:ring-green-50/50 transition-all outline-none"
+                                  value={acc.hotelName && !acc.isSearching ? acc.hotelName : hotelSearchQuery}
+                                  onChange={(e) => {
+                                    setHotelSearchQuery(e.target.value);
+                                    const copy = [...accommodations];
+                                    copy[accIdx].isSearching = true;
+                                    setAccommodations(copy);
+                                  }}
+                                  onFocus={() => {
+                                    const copy = [...accommodations];
+                                    copy[accIdx].isSearching = true;
+                                    setAccommodations(copy);
+                                  }}
+                                />
+
+                                {acc.isSearching && (
+                                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[50] animate-in slide-in-from-top-2">
+                                    <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                                      {hotelMasters
+                                        .filter(h => h.name.toLowerCase().includes(hotelSearchQuery.toLowerCase()))
+                                        .map(hotel => (
+                                          <button
+                                            key={hotel.id}
+                                            type="button"
+                                            onClick={() => {
+                                              const copy = [...accommodations];
+                                              copy[accIdx] = {
+                                                ...copy[accIdx],
+                                                hotelId: hotel.id,
+                                                hotelName: hotel.name,
+                                                address: hotel.address,
+                                                city: hotel.city,
+                                                starRating: hotel.stars,
+                                                image: hotel.image,
+                                                isSearching: false
+                                              };
+                                              setAccommodations(copy);
+                                              setHotelSearchQuery("");
+                                            }}
+                                            className="w-full px-5 py-4 text-left hover:bg-green-50 transition-colors border-b border-gray-50 last:border-none group"
+                                          >
+                                            <p className="text-[11px] font-black text-gray-900 group-hover:text-[#14532d]">{hotel.name}</p>
+                                          </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowHotelModal(true)}
+                                      className="w-full p-4 bg-gray-50 text-[10px] font-black text-[#14532d] hover:bg-green-100 transition-colors border-t border-gray-100 uppercase tracking-widest flex items-center justify-center gap-2"
+                                    >
+                                      + Add New Accommodation
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {acc.hotelName && !acc.isSearching && (
+                              <div className="bg-gray-50 rounded-[1.5rem] p-5 border border-gray-100 flex gap-5 animate-in fade-in slide-in-from-left-4">
+                                <div className="w-32 h-24 rounded-xl overflow-hidden shadow-md shrink-0 border-4 border-white">
+                                  <img src={acc.image || "https://placehold.co/400x300?text=Hotel"} className="w-full h-full object-cover" alt="Hotel" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{acc.city || "Singapore"}</p>
+                                  <h4 className="text-sm font-black text-gray-900 my-1">{acc.hotelName}</h4>
+                                  <div className="flex gap-0.5 mb-2">
+                                    {[...Array(5)].map((_, i) => (
+                                      <div key={i} className={`w-2.5 h-2.5 ${i < parseInt(acc.starRating) ? 'text-orange-400' : 'text-gray-200'}`}>★</div>
+                                    ))}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-gray-500 mb-1">
+                                    <MapPin size={10} className="text-[#14532d]" />
+                                    <span className="text-[9px] font-bold line-clamp-1">{acc.address}</span>
+                                  </div>
+                                  <button type="button" className="text-[9px] font-black text-[#14532d] border-b border-[#14532d] pb-0.5 uppercase tracking-wider hover:text-black hover:border-black transition-colors">View on Map</button>
+                                </div>
+                              </div>
+                            )}
+
+                            {!acc.hotelName && !acc.isSearching && (
+                              <div className="h-40 border-2 border-dashed border-gray-100 rounded-[1.5rem] flex flex-col items-center justify-center opacity-40">
+                                <Hotel size={24} className="text-gray-300 mb-2" />
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No accommodation added</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Right: Room Details */}
+                          <div className="space-y-6">
+                            <h3 className="text-[10px] font-black text-gray-800 uppercase tracking-widest flex items-center gap-2">
+                              <div className="w-6 h-1 bg-[#14532d] rounded-full"></div>
+                              Add Room Details
+                            </h3>
+
+                            <div className="grid grid-cols-3 gap-5">
+                              <div>
+                                <FormLabel label="No. of Rooms" />
+                                <select
+                                  className="w-full bg-white border-2 border-gray-100 px-4 py-2.5 rounded-xl text-[10px] font-black focus:border-[#14532d] outline-none transition-all scrollbar-hide"
+                                  value={acc.rooms[0].noOfRooms}
+                                  onChange={(e) => {
+                                    const copy = [...accommodations];
+                                    copy[accIdx].rooms[0].noOfRooms = e.target.value;
+                                    setAccommodations(copy);
+                                  }}
+                                >
+                                  {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
+                                </select>
+                              </div>
+                              <div>
+                                <FormLabel label="Check In" />
+                                <Input
+                                  type="date"
+                                  value={acc.rooms[0].checkIn}
+                                  onChange={(e) => {
+                                    const copy = [...accommodations];
+                                    copy[accIdx].rooms[0].checkIn = e.target.value;
+                                    setAccommodations(copy);
+                                  }}
+                                  className="!bg-gray-50/50 !text-[10px] !py-3"
+                                />
+                              </div>
+                              <div>
+                                <FormLabel label="Check Out" />
+                                <Input
+                                  type="date"
+                                  value={acc.rooms[0].checkOut}
+                                  onChange={(e) => {
+                                    const copy = [...accommodations];
+                                    copy[accIdx].rooms[0].checkOut = e.target.value;
+                                    setAccommodations(copy);
+                                  }}
+                                  className="!bg-gray-50/50 !text-[10px] !py-3"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-5">
+                              <div>
+                                <FormLabel label="Room Type" />
+                                <Input
+                                  placeholder="e.g. Deluxe Room"
+                                  value={acc.rooms[0].type}
+                                  onChange={(e) => {
+                                    const copy = [...accommodations];
+                                    copy[accIdx].rooms[0].type = e.target.value;
+                                    setAccommodations(copy);
+                                  }}
+                                  className="!text-[10px] !py-3"
+                                />
+                              </div>
+                              <div>
+                                <FormLabel label="Meal Type" />
+                                <select
+                                  className="w-full bg-white border-2 border-gray-100 px-4 py-2.5 rounded-xl text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                  value={acc.rooms[0].meals}
+                                  onChange={(e) => {
+                                    const copy = [...accommodations];
+                                    copy[accIdx].rooms[0].meals = e.target.value;
+                                    setAccommodations(copy);
+                                  }}
+                                >
+                                  <option value="">Select meals</option>
+                                  <option value="EP">EP (Room Only)</option>
+                                  <option value="CP">CP (Breakfast)</option>
+                                  <option value="MAP">MAP (Half Board)</option>
+                                  <option value="AP">AP (Full Board)</option>
+                                </select>
+                              </div>
+                              <div>
+                                <FormLabel label="Passengers (Optional)" />
+                                <Input
+                                  placeholder="Enter details"
+                                  value={acc.rooms[0].passengers}
+                                  onChange={(e) => {
+                                    const copy = [...accommodations];
+                                    copy[accIdx].rooms[0].passengers = e.target.value;
+                                    setAccommodations(copy);
+                                  }}
+                                  className="!text-[10px] !py-3"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() => setAccommodations(prev => [...prev, {
+                        id: Date.now(),
+                        hotelId: null,
+                        hotelName: "",
+                        rooms: [{ id: Date.now() + 1, type: "", meals: "", passengers: "", checkIn: "", checkOut: "", noOfRooms: "1" }]
+                      }])}
+                      className="w-full border-2 border-dashed border-[#14532d]/20 py-8 rounded-[2rem] text-[#14532d] font-black text-xs uppercase tracking-widest hover:bg-green-50/50 hover:border-[#14532d]/40 transition-all flex flex-col items-center gap-3 group"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-white shadow-xl flex items-center justify-center border border-green-100 group-hover:scale-110 transition-transform">
+                        <Plus size={20} />
+                      </div>
+                      Add Another Stay
+                    </button>
+                  </div>
+
+
+                </Section>
+
+                {/* VEHICLE - PAGE 4 */}
+                <Section title="Vehicle" active={currentPage === 4}>
+                  <div className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm">
+                    <div className="flex justify-between items-center mb-8 border-b-2 border-gray-50 pb-6">
+                      <div>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight">Transport Details</h3>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Specify vehicles used</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => addRow(setVehicles, "")}
+                        className="bg-green-600 text-white px-6 py-2.5 rounded-xl text-[10px] font-black shadow-xl shadow-green-900/10 active:scale-95 transition-all hover:bg-black uppercase tracking-wider"
+                      >
+                        + ADD VEHICLE
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {vehicles.map((v, i) => (
+                        <div key={i} className="flex gap-4 items-center group animate-in slide-in-from-right-2" style={{ animationDelay: `${i * 80}ms` }}>
+                          <Car size={18} className="text-green-500" />
+                          <div className="flex-1">
+                            <Input
+                              value={v}
+                              onChange={(e) => { const copy = [...vehicles]; copy[i] = e.target.value; setVehicles(copy); }}
+                              placeholder="e.g. Toyota Alphard - Private Transfer..."
+                              className="!bg-green-50/10 !border-green-100/30 focus:!bg-white focus:!border-green-200 !rounded-2xl !py-3.5"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeRow(setVehicles, i)}
+                            className="text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2 rounded-lg hover:bg-red-50"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </Section>
+
+                {/* ITINERARY - PAGE 5 */}
+                <Section title="Day Wise Itinerary" active={currentPage === 5}>
                   <div className="space-y-12">
                     {itineraryDays.map((row, i) => (
                       <div key={i} id={`itinerary-day-${i}`} className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 relative group/day hover:border-[#14532d]/40 transition-all shadow-sm hover:shadow-2xl hover:shadow-green-900/5 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
@@ -861,8 +1360,8 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                {/* PRICING - PAGE 4 */}
-                <Section title="Pricing" active={currentPage === 4}>
+                {/* PRICING - PAGE 6 */}
+                <Section title="Pricing" active={currentPage === 6}>
                   <div className="grid grid-cols-2 gap-8">
                     <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-sm relative overflow-hidden group">
                       <div className="absolute right-0 top-0 w-24 h-24 bg-green-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
@@ -883,51 +1382,7 @@ const HolidayPackageAdd = () => {
                   </div>
                 </Section>
 
-                {/* IMAGES - PAGE 4 */}
-                <Section title="Media Gallery" active={currentPage === 4}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className={`relative border-2 border-dashed rounded-[3rem] p-10 transition-all min-h-[320px] flex flex-col items-center justify-center ${formData.header_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-200 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
-                      {formData.header_image ? (
-                        <div className="text-center group/main">
-                          <img src={URL.createObjectURL(formData.header_image)} alt="H" className="h-48 w-full object-cover rounded-[2rem] border-4 border-white shadow-2xl transition-transform group-hover/main:scale-[1.02]" />
-                          <div className="flex justify-center gap-2 mt-4">
-                            <span className="bg-[#14532d] text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-lg">Header Asset</span>
-                            <button type="button" onClick={() => setFormData({ ...formData, header_image: null })} className="bg-red-500 text-white p-2 rounded-full shadow-lg active:scale-90 transition-transform"><X size={12} /></button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="w-16 h-16 bg-white rounded-[2rem] shadow-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-[#14532d] group-hover:text-white transition-all text-gray-400 font-black text-4xl mb-6 shadow-green-900/5 rotate-6">+</div>
-                          <p className="font-black text-gray-900 text-xs uppercase tracking-[0.3em]">Header Banner</p>
-                          <p className="text-[9px] text-gray-400 font-bold uppercase mt-2">1920x600 Preferred</p>
-                          <input type="file" name="header_image" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
-                        </>
-                      )}
-                    </div>
-
-                    <div className={`relative border-2 border-dashed rounded-[3rem] p-10 transition-all min-h-[320px] flex flex-col items-center justify-center ${formData.card_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-200 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
-                      {formData.card_image ? (
-                        <div className="text-center group/card w-[200px]">
-                          <img src={URL.createObjectURL(formData.card_image)} alt="C" className="h-64 w-full object-cover rounded-[2rem] border-4 border-white shadow-2xl transition-transform group-hover/card:scale-[1.02]" />
-                          <div className="flex justify-center gap-2 mt-4">
-                            <span className="bg-[#14532d] text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-lg">Listing Card</span>
-                            <button type="button" onClick={() => setFormData({ ...formData, card_image: null })} className="bg-red-500 text-white p-2 rounded-full shadow-lg active:scale-90 transition-transform"><X size={12} /></button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="w-16 h-16 bg-white rounded-[2rem] shadow-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-[#14532d] group-hover:text-white transition-all text-gray-400 font-black text-4xl mb-6 shadow-green-900/5 -rotate-6">+</div>
-                          <p className="font-black text-gray-900 text-xs uppercase tracking-[0.3em]">Card Visual</p>
-                          <p className="text-[9px] text-gray-400 font-bold uppercase mt-2">400x500 Preferred</p>
-                          <input type="file" name="card_image" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </Section>
-
-                {/* TRIP INFORMATION - PAGE 3 */}
-                <Section title="Inclusions & Exclusions" active={currentPage === 3}>
+                <Section title="Trip Information" active={currentPage === 7}>
                   <div className="space-y-12">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm">
@@ -977,7 +1432,7 @@ const HolidayPackageAdd = () => {
                   </button>
 
                   <div className="flex gap-2">
-                    {[1, 2, 3, 4].map((i) => (
+                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                       <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${currentPage === i ? 'w-8 bg-[#14532d]' : 'w-1.5 bg-gray-200'}`}></div>
                     ))}
                   </div>
@@ -1003,9 +1458,119 @@ const HolidayPackageAdd = () => {
                 </div>
               </form>
             </div>
+          </div >
+        </div >
+      </div >
+
+      {/* Add New Accommodation Modal */}
+      {showHotelModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all">
+          <div className="bg-white rounded-[1.5rem] w-full max-w-xl h-fit max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest leading-none">Add New Accommodation</h2>
+              <button onClick={() => setShowHotelModal(false)} className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all font-outfit">
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto custom-scrollbar space-y-2.5 flex-1 min-h-0">
+              <div className="grid grid-cols-12 gap-2.5">
+                <div className="col-span-8">
+                  <FormLabel label="Name" required />
+                  <Input placeholder="Hotel name" value={newHotelForm.name} onChange={(e) => setNewHotelForm({ ...newHotelForm, name: e.target.value })} />
+                </div>
+                <div className="col-span-4">
+                  <FormLabel label="Stars" required />
+                  <select className="w-full bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black outline-none focus:border-[#14532d] transition-all" value={newHotelForm.stars} onChange={(e) => setNewHotelForm({ ...newHotelForm, stars: e.target.value })}>
+                    {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Star</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <FormLabel label="City" required />
+                  <SearchableSelect
+                    options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                    value={newHotelForm.city}
+                    onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
+                    placeholder="Select City"
+                  />
+                </div>
+                <div>
+                  <FormLabel label="Address" optional />
+                  <Input placeholder="Hotel address" value={newHotelForm.address} onChange={(e) => setNewHotelForm({ ...newHotelForm, address: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <FormLabel label="Phone" optional />
+                  <Input placeholder="Phone number" value={newHotelForm.phone} onChange={(e) => setNewHotelForm({ ...newHotelForm, phone: e.target.value })} />
+                </div>
+                <div>
+                  <FormLabel label="Website" optional />
+                  <Input placeholder="URL" value={newHotelForm.website} onChange={(e) => setNewHotelForm({ ...newHotelForm, website: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-2.5">
+                <div className="col-span-6">
+                  <FormLabel label="Email" optional />
+                  <Input placeholder="Email address" value={newHotelForm.email} onChange={(e) => setNewHotelForm({ ...newHotelForm, email: e.target.value })} />
+                </div>
+                <div className="col-span-3">
+                  <FormLabel label="Lat" optional />
+                  <Input placeholder="0.00" value={newHotelForm.latitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, latitude: e.target.value })} />
+                </div>
+                <div className="col-span-3">
+                  <FormLabel label="Long" optional />
+                  <Input placeholder="0.00" value={newHotelForm.longitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, longitude: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <FormLabel label="Images" optional />
+                <div className="flex flex-wrap gap-2.5 min-h-[40px]">
+                  {newHotelForm.images && newHotelForm.images.map((img, idx) => (
+                    <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden group border-2 border-gray-100 shadow-sm animate-in zoom-in-50">
+                      <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" alt="Preview" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newImgs = [...newHotelForm.images];
+                          newImgs.splice(idx, 1);
+                          setNewHotelForm({ ...newHotelForm, images: newImgs });
+                        }}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} className="text-white" />
+                      </button>
+                      {idx === 0 && <div className="absolute top-0 left-0 bg-[#14532d] text-[5px] text-white font-black px-1 py-0.5 uppercase">Main</div>}
+                    </div>
+                  ))}
+                  <input type="file" id="hotel-image-upload-new" className="hidden" multiple onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    setNewHotelForm({ ...newHotelForm, images: [...(newHotelForm.images || []), ...files] });
+                  }} />
+                  <label htmlFor="hotel-image-upload-new" className="w-14 h-14 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center bg-gray-50/30 hover:bg-gray-50 transition-all cursor-pointer group">
+                    <Plus size={14} className="text-gray-300 group-hover:text-[#14532d] transition-colors" />
+                    <span className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Add</span>
+                  </label>
+                </div>
+                {newHotelForm.images?.length > 1 && (
+                  <p className="text-[7px] text-gray-400 font-bold italic uppercase tracking-wider">* Only the first image will be saved to masters</p>
+                )}
+              </div>
+            </div>
+
+            <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button type="button" onClick={() => setShowHotelModal(false)} className="px-5 py-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-600 transition-all font-outfit">Cancel</button>
+              <button type="button" onClick={handleSaveHotel} className="px-6 py-1.5 bg-[#14532d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-green-900/10 hover:scale-105 active:scale-95 transition-all font-outfit">Save Hotel</button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
