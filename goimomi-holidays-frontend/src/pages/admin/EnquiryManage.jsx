@@ -110,17 +110,19 @@ const EnquiryManage = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="flex justify-between items-center mb-8">
+        <div className="flex-1 overflow-y-auto p-4 bg-[#fcfdfc]">
+          <div className="bg-white border-b border-gray-100 px-6 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90 rounded-2xl mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">Enquiries Dashboard</h1>
-              <p className="text-gray-500 mt-1">Overview of all customer requests and bookings</p>
+              <h1 className="text-xl font-black text-gray-900 tracking-tighter">Enquiry Hub</h1>
+              <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
+                <span className="text-green-500">Service</span> / <span>Enquiries</span> / <span className="text-gray-900">Communication Center</span>
+              </p>
             </div>
             <button
               onClick={fetchCounts}
-              className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition shadow-sm"
+              className="px-6 py-2 rounded-full border-2 border-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95 shadow-sm"
             >
-              Refresh Data
+              Sync Data
             </button>
           </div>
 
@@ -137,31 +139,31 @@ const EnquiryManage = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
               {statCards.map((card, idx) => (
                 <div
                   key={idx}
                   onClick={() => navigate(card.path)}
-                  className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col justify-between h-full min-h-[140px]"
+                  className="bg-white p-4 rounded-xl shadow-lg shadow-green-900/5 border border-gray-100 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col justify-between h-full min-h-[120px]"
                 >
-                  <div className={`absolute top-0 right-0 p-2.5 ${card.bgColor} ${card.color} rounded-bl-xl opacity-70 group-hover:opacity-100 transition-all transform group-hover:scale-110`}>
-                    {React.cloneElement(card.icon, { size: 20 })}
+                  <div className={`absolute top-0 right-0 p-2 ${card.bgColor} ${card.color} rounded-bl-lg opacity-40 group-hover:opacity-100 transition-all transform group-hover:scale-110`}>
+                    {React.cloneElement(card.icon, { size: 16 })}
                   </div>
 
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-black text-gray-400 group-hover:text-gray-600 transition-colors uppercase tracking-widest">
-                      {card.title}
+                  <div className="space-y-1">
+                    <h3 className="text-[9px] font-black text-gray-400 group-hover:text-gray-900 transition-colors uppercase tracking-[0.2em]">
+                      {card.title.split(' ')[0]}
                     </h3>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={`text-4xl font-black tracking-tighter ${card.color}`}>
+                    <div className="flex items-baseline gap-1">
+                      <span className={`text-2xl font-black tracking-tighter ${card.color} leading-none`}>
                         {card.count}
                       </span>
-                      <span className="text-gray-300 font-bold uppercase text-[9px] tracking-tighter">New Enquiries</span>
+                      <span className="text-gray-300 font-bold uppercase text-[7px] tracking-tighter">NEW</span>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-[10px] font-black text-[#14532d] uppercase tracking-wider">
-                    <span>Manage Requests</span>
+                  <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-between text-[8px] font-black text-[#14532d] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                    <span>Manage</span>
                     <span className="transform group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </div>

@@ -4,15 +4,44 @@ import axios from "axios";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
-import { X } from "lucide-react";
+import { X, MapPin, Calendar, Package } from "lucide-react";
 
 /* ---------- UI helpers ---------- */
-const Section = ({ title, children, className = "bg-white border border-gray-300 p-3" }) => (
-  <div className="mb-4">
-    <div className="bg-[#14532d] text-white px-3 py-1.5 font-semibold text-xs uppercase">
-      {title}
+const Section = ({ title, children, active }) => (
+  <div className={`transition-all duration-500 ease-out ${active ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-[0.98] hidden'}`}>
+    <div className="flex items-center gap-3 mb-4">
+      <div className="bg-[#14532d] w-1.5 h-8 rounded-full shadow-lg shadow-green-900/10"></div>
+      <div>
+        <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-none">{title}</h2>
+        <div className="flex gap-1 mt-1.5">
+          <div className="h-0.5 w-10 bg-green-100 rounded-full"></div>
+          <div className="h-0.5 w-2 bg-green-200 rounded-full"></div>
+        </div>
+      </div>
     </div>
-    <div className={className}>{children}</div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">{children}</div>
+  </div>
+);
+
+const FormLabel = ({ label, limit, current, required, optional, info }) => (
+  <div className="flex justify-between items-end mb-1.5">
+    <div className="flex items-center gap-2">
+      <span className="text-gray-900 font-black text-[10px] uppercase tracking-[0.15em]">{label} {required && <span className="text-red-500">*</span>}</span>
+      {optional && <span className="text-[#14532d] text-[8px] font-black bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100/50 uppercase">Optional</span>}
+      {info && (
+        <div className="group relative">
+          <span className="cursor-help text-gray-400 hover:text-[#14532d] transition-colors bg-gray-50 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black border border-gray-100">?</span>
+          <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-[10px] rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 transform translate-y-1 group-hover:translate-y-0 backdrop-blur-md bg-opacity-95 border border-white/10 leading-relaxed font-medium">
+            {info}
+          </div>
+        </div>
+      )}
+    </div>
+    {limit && (
+      <span className={`text-[9px] font-black tracking-widest ${(current || 0) > limit ? 'text-red-500' : 'text-gray-300'}`}>
+        {current || 0} / {limit}
+      </span>
+    )}
   </div>
 );
 
@@ -20,9 +49,12 @@ const Input = (props) => (
   <div>
     <input
       {...props}
-      className={`bg-white border ${props.error ? 'border-red-500' : 'border-gray-300'} px-2 py-1.5 rounded w-full text-black text-sm focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent ${props.className || ''}`}
+      className={`bg-white border-2 ${props.error ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} px-4 py-2.5 rounded-xl w-full text-gray-900 text-xs font-bold transition-all placeholder:text-gray-400 placeholder:font-medium focus:outline-none focus:ring-8 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 hover:shadow-sm ${props.className || ''}`}
     />
-    {props.error && <p className="text-red-500 text-[10px] mt-0.5">{props.error}</p>}
+    {props.error && <p className="text-red-500 text-[9px] font-black mt-1.5 flex items-center gap-2 ml-1 uppercase tracking-wider italic">
+      <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
+      {props.error}
+    </p>}
   </div>
 );
 
@@ -42,7 +74,7 @@ const HolidayPackageAdd = () => {
 
   // Updated state for Itinerary Days to include master_template, image, and save_to_master toggle
   const [itineraryDays, setItineraryDays] = useState([
-    { day: "1", title: "", description: "", master_template: "", image: null, save_to_master: false, master_name: "" },
+    { day: "1", title: "", description: "", master_template: "", image: null, save_to_master: false },
   ]);
 
   const [inclusions, setInclusions] = useState([""]);
@@ -72,6 +104,11 @@ const HolidayPackageAdd = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [activeSection, setActiveSection] = useState("overview");
+
+  const TITLE_LIMIT = 200;
+  const DESC_LIMIT = 2000;
+  const HIGHLIGHTS_LIMIT = 1000;
 
   const groupedItineraryMasters = useMemo(() => {
     return itineraryMasters.reduce((acc, master) => {
@@ -142,7 +179,6 @@ const HolidayPackageAdd = () => {
               master_template: "",
               image: null,
               save_to_master: false,
-              master_name: "",
             });
           }
           return [...prev, ...newDays];
@@ -208,6 +244,19 @@ const HolidayPackageAdd = () => {
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     setFormData((prev) => ({ ...prev, [name]: files[0] }));
+  };
+
+  const handleMasterTemplateChange = (index, templateId) => {
+    const copy = [...itineraryDays];
+    copy[index].master_template = templateId;
+    if (templateId) {
+      const template = itineraryMasters.find((t) => t.id === parseInt(templateId));
+      if (template) {
+        copy[index].title = template.title || "";
+        copy[index].description = template.description || "";
+      }
+    }
+    setItineraryDays(copy);
   };
 
   const [errors, setErrors] = useState({});
@@ -325,7 +374,7 @@ const HolidayPackageAdd = () => {
           is_active: true,
         });
         setPackageDestinations([{ destination: "", nights: 1 }]);
-        setItineraryDays([{ day: "1", title: "", description: "", master_template: "", image: null, save_to_master: false, master_name: "" }]);
+        setItineraryDays([{ day: "1", title: "", description: "", master_template: "", image: null, save_to_master: false }]);
         setInclusions([""]);
         setExclusions([""]);
         setHighlights([""]);
@@ -333,10 +382,10 @@ const HolidayPackageAdd = () => {
       // After package is successfully created, save marked itineraries to master
       for (let i = 0; i < itineraryDays.length; i++) {
         const day = itineraryDays[i];
-        if (day.save_to_master && day.master_name) {
+        if (day.save_to_master && day.title) {
           try {
             const masterData = new FormData();
-            masterData.append("name", day.master_name);
+            masterData.append("name", day.title);
             masterData.append("title", day.title);
             masterData.append("description", day.description);
 
@@ -383,661 +432,527 @@ const HolidayPackageAdd = () => {
 
 
 
-  // Helper to handle Master Template selection
-  const handleMasterTemplateChange = (index, templateId) => {
-    const copy = [...itineraryDays];
-    copy[index].master_template = templateId;
-
-    // Auto-fill fields if a template is selected
-    if (templateId) {
-      const template = itineraryMasters.find(t => t.id === parseInt(templateId));
-      if (template) {
-        copy[index].title = template.title || "";
-        copy[index].description = template.description || "";
-        // Note: We cannot programmatically set the file input value for security reasons.
-      }
-    }
-    setItineraryDays(copy);
-  };
+  const navItems = [
+    { id: 'overview', label: 'Trip Overview', icon: <Package size={18} /> },
+    { id: 'location', label: 'Arrival & Departure', icon: <MapPin size={18} /> },
+    { id: 'itinerary', label: 'Day Wise Itinerary', icon: <Calendar size={18} />, subItems: itineraryDays.map((_, i) => ({ id: `day-${i}`, label: `Day ${i + 1}`, dest: getDestinationForDay(i) })) },
+    { id: 'pricing', label: 'Pricing', icon: <span className="text-lg">💰</span> },
+    { id: 'images', label: 'Images', icon: <span className="text-lg">🖼️</span> },
+    { id: 'info', label: 'Trip Information', icon: <span className="text-lg">ℹ️</span> },
+  ];
 
   return (
-    <div className="flex bg-gray-100 h-full overflow-hidden">
+    <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
+      <style>
+        {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');`}
+      </style>
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
 
-        <div className="flex-1 overflow-y-auto p-4">
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-xl font-bold text-gray-800 mb-1">Add Holiday Package</h1>
-                <p className="text-xs text-gray-600">Create a new holiday package for travelers</p>
-              </div>
-              <button
-                onClick={() => navigate('/admin/packages')}
-                className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300 transition"
-              >
-                Back to List
-              </button>
+        {/* Action Header */}
+        <div className="bg-white border-b border-gray-100 px-8 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
+          <div>
+            <h1 className="text-xl font-black text-gray-900 tracking-tighter">Add Holiday Package</h1>
+            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
+              <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">New Creation</span>
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/admin/packages')}
+              className="px-6 py-2 rounded-xl border-2 border-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95 shadow-sm"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              className="px-8 py-2 rounded-xl bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 disabled:opacity-50 disabled:scale-100"
+              disabled={loading}
+              form="package-form"
+            >
+              {loading ? (
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <Package size={14} />
+              )}
+              {loading ? "SAVING..." : "SAVE PACKAGE"}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
+          {/* Internal Navigation Sidebar */}
+          <div className="w-64 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-4 shrink-0">
+            <nav className="flex-1 space-y-1">
+              {navItems.map((item) => (
+                <div key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection(item.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all duration-500 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'}`}
+                  >
+                    {activeSection === item.id && (
+                      <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
+                    )}
+                    <span className={`transition-all duration-500 ${activeSection === item.id ? 'scale-110 rotate-3 text-green-300' : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="uppercase tracking-[0.15em] text-[10px]">{item.label}</span>
+                  </button>
+                  {item.subItems && activeSection === 'itinerary' && (
+                    <div className="mt-3 ml-6 pl-4 border-l-2 border-green-50 space-y-1 py-1.5 animate-in slide-in-from-top-4">
+                      {item.subItems.map((sub, idx) => (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[9px] font-black text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group relative"
+                          onClick={() => {
+                            const el = document.getElementById(`itinerary-day-${idx}`);
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }}
+                        >
+                          <div className={`w-1 h-1 rounded-full ${idx === 0 ? 'bg-green-500' : 'bg-gray-300'} group-hover:scale-150 group-hover:bg-[#14532d] transition-all`}></div>
+                          <span className="uppercase tracking-widest">{sub.label}</span>
+                          <span className="text-[7.5px] text-gray-300 font-bold ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{sub.dest}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
+            <div className="mt-4 p-5 bg-[#14532d]/5 rounded-2xl border border-[#14532d]/10 relative overflow-hidden">
+              <div className="absolute right-0 bottom-0 w-16 h-16 bg-[#14532d]/5 rounded-tl-[3rem]"></div>
+              <p className="text-[9px] text-[#14532d] font-black uppercase tracking-[0.2em] mb-1.5 opacity-60">Admin Notice</p>
+              <p className="text-[9px] font-bold text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">Ensure all itinerary details are accurate before publishing.</p>
             </div>
           </div>
 
-          {/* Messages */}
-          {message && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
-              {message}
-            </div>
-          )}
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
+          {/* Form Content Area */}
+          <div className="flex-1 overflow-y-auto px-12 py-10 custom-scrollbar bg-[#fcfdfc]">
+            <div className="max-w-4xl mx-auto pb-12">
+              {/* Messages */}
+              {message && (
+                <div className="mb-6 p-4 bg-green-50 border-2 border-green-100 text-[#14532d] rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 shadow-xl shadow-green-900/5">
+                  <div className="bg-white w-9 h-9 rounded-xl shadow-lg flex items-center justify-center text-lg">✨</div>
+                  <p className="font-black text-xs uppercase tracking-wider">{message}</p>
+                </div>
+              )}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border-2 border-red-100 text-red-700 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 shadow-xl shadow-red-900/5">
+                  <div className="bg-white w-9 h-9 rounded-xl shadow-lg flex items-center justify-center text-lg">⚠</div>
+                  <p className="font-black text-xs uppercase tracking-wider">{error}</p>
+                </div>
+              )}
 
-          <form onSubmit={handleSubmit}>
-            {/* BASIC INFO */}
-            <Section title="Basic Information">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Package Title:*</span>
-                  <Input
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Magic of Thailand"
-                    error={errors.title}
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Description:*</span>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    className={`bg-white border ${errors.description ? 'border-red-500' : 'border-gray-300'} p-2 rounded w-full h-24 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d] focus:border-transparent`}
-                    placeholder="A brief overview of the package..."
-                  />
-                  {errors.description && <p className="text-red-500 text-[10px] mt-0.5">{errors.description}</p>}
-                </label>
-              </div>
-
-              <div className="flex gap-6 items-end mt-3">
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Category:*</span>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className={`bg-white border ${errors.category ? 'border-red-500' : 'border-gray-300'} p-2 rounded w-48 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-[#14532d] focus:border-transparent`}
-                  >
-                    <option value="">Select category</option>
-                    <option value="Domestic">Domestic</option>
-                    <option value="International">International</option>
-                    <option value="Umrah">Umrah</option>
-                  </select>
-                  {errors.category && <p className="text-red-500 text-[10px] mt-0.5">{errors.category}</p>}
-                </label>
-
-                <div className="mb-1">
-                  <span className="text-gray-700 font-semibold text-xs uppercase block mb-1">Flight:</span>
-                  <div className="flex gap-3">
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="with_flight"
-                        checked={formData.with_flight === true}
-                        onChange={() => setFormData({ ...formData, with_flight: true })}
-                        className="w-3 h-3 text-[#14532d] focus:ring-[#14532d]"
+              <form onSubmit={handleSubmit} id="package-form">
+                {/* TRIP OVERVIEW */}
+                <Section title="Trip Overview" active={activeSection === 'overview'}>
+                  <div className="grid grid-cols-1 gap-8">
+                    <div>
+                      <FormLabel
+                        label="Trip Title"
+                        required
+                        limit={TITLE_LIMIT}
+                        current={formData.title ? formData.title.length : 0}
+                        info="The display name for the package"
                       />
-                      <span className="text-gray-700 text-sm">With Flight</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="with_flight"
-                        checked={formData.with_flight === false}
-                        onChange={() => setFormData({ ...formData, with_flight: false })}
-                        className="w-3 h-3 text-[#14532d] focus:ring-[#14532d]"
+                      <Input
+                        name="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        placeholder="SINGAPORE DELIGHT"
+                        error={errors.title}
                       />
-                      <span className="text-gray-700 text-sm">Without Flight</span>
-                    </label>
-                  </div>
-                </div>
+                    </div>
 
-                <div className="mb-1">
-                  <span className="text-gray-700 font-semibold text-xs uppercase block mb-1">Status:</span>
-                  <div className="flex gap-3">
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="is_active"
-                        checked={formData.is_active === true}
-                        onChange={() => setFormData({ ...formData, is_active: true })}
-                        className="w-3 h-3 text-[#14532d] focus:ring-[#14532d]"
+                    <div>
+                      <FormLabel
+                        label="Trip Description"
+                        required
+                        limit={DESC_LIMIT}
+                        current={formData.description ? formData.description.length : 0}
+                        info="Detail what makes this trip special"
                       />
-                      <span className="text-gray-700 text-sm">Active</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="is_active"
-                        checked={formData.is_active === false}
-                        onChange={() => setFormData({ ...formData, is_active: false })}
-                        className="w-3 h-3 text-[#14532d] focus:ring-[#14532d]"
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        className={`bg-white border-2 ${errors.description ? 'border-red-200' : 'border-gray-100'} p-3.5 rounded-xl w-full h-40 text-gray-800 text-sm focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] transition-all hover:border-gray-200`}
+                        placeholder="Singapore, a vibrant city-state..."
                       />
-                      <span className="text-gray-700 text-sm">Inactive</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </Section>
-
-            {/* LOCATION DETAILS */}
-            <Section title="Location Details">
-              <label className="block w-48">
-                <span className="text-gray-700 font-semibold text-xs uppercase">Starting city:*</span>
-                <SearchableSelect
-                  options={startingCities.map(city => ({ value: city.name, label: city.name }))}
-                  value={formData.starting_city}
-                  onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
-                  placeholder="----------"
-                />
-                {errors.starting_city && <p className="text-red-500 text-[10px] mt-0.5">{errors.starting_city}</p>}
-              </label>
-            </Section>
-
-            {/* DURATION */}
-            <Section title="Duration & Dates">
-              <div className="grid grid-cols-3 gap-3">
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Days:*</span>
-                  <Input
-                    type="number"
-                    name="days"
-                    value={formData.days}
-                    onChange={handleInputChange}
-                    error={errors.days}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Start date:</span>
-                  <Input
-                    type="date"
-                    name="start_date"
-                    value={formData.start_date}
-                    onChange={handleInputChange}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Group size:</span>
-                  <Input
-                    type="number"
-                    name="group_size"
-                    value={formData.group_size}
-                    onChange={handleInputChange}
-                  />
-                </label>
-              </div>
-            </Section>
-
-            {/* PRICING */}
-            <Section title="Pricing">
-              <div className="grid grid-cols-2 gap-3">
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Offer price:*</span>
-                  <Input
-                    type="text"
-                    name="offer_price"
-                    value={formatWithCommas(formData.offer_price)}
-                    onChange={handleInputChange}
-                    error={errors.offer_price}
-                  />
-                </label>
-                <label className="block">
-                  <span className="text-gray-700 font-semibold text-xs uppercase">Price:</span>
-                  <Input
-                    type="text"
-                    name="price"
-                    value={formatWithCommas(formData.price)}
-                    onChange={handleInputChange}
-                  />
-                </label>
-              </div>
-            </Section>
-
-            {/* IMAGES */}
-            <Section title="Images">
-              <label className="block mb-3">
-                <span className="text-gray-700 font-semibold text-xs uppercase">Header image:</span>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    name="header_image"
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    error={errors.header_image}
-                    key={formData.header_image ? 'header-has-file' : 'header-no-file'}
-                  />
-                  {formData.header_image && (
-                    <div className="h-10 w-10 relative group">
-                      <img src={URL.createObjectURL(formData.header_image)} alt="Preview" className="h-full w-full object-cover rounded border" />
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, header_image: null })}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </label>
-              <label className="block">
-                <span className="text-gray-700 font-semibold text-xs uppercase">Card image:</span>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    name="card_image"
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    error={errors.card_image}
-                    key={formData.card_image ? 'card-has-file' : 'card-no-file'}
-                  />
-                  {formData.card_image && (
-                    <div className="h-10 w-10 relative group">
-                      <img src={URL.createObjectURL(formData.card_image)} alt="Preview" className="h-full w-full object-cover rounded border" />
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, card_image: null })}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </label>
-            </Section>
-
-            {/* PACKAGE DESTINATIONS */}
-            <Section title="Package Destinations" className="bg-white border border-gray-300 p-0">
-              <div className="text-gray-800">
-                {/* Header Row */}
-                <div className="grid grid-cols-12 gap-3 px-3 py-1.5 bg-[#e6f0eb] text-[#14532d] text-[10px] font-bold uppercase tracking-wider border-b border-green-100">
-                  <div className="col-span-2">Stay</div>
-                  <div className="col-span-9">Destination City</div>
-                  <div className="col-span-1 text-center">Action</div>
-                </div>
-
-                {/* Data Rows */}
-                {packageDestinations.map((row, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-3 px-3 py-2 border-b border-gray-100 items-center hover:bg-gray-50 transition-colors">
-                    <div className="col-span-2 py-1 px-1.5 bg-gray-100 rounded border border-gray-200 text-center font-bold text-[#14532d] text-xs">
-                      Night {i + 1}
-                    </div>
-                    <div className="col-span-9">
-                      <SearchableSelect
-                        options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country || d.region || '' }))}
-                        value={row.destination}
-                        onChange={(val) => {
-                          const copy = [...packageDestinations];
-                          copy[i].destination = val;
-                          setPackageDestinations(copy);
-                        }}
-                        placeholder={`Select city for Night ${i + 1}`}
-                      />
-                      {errors[`dest_${i}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`dest_${i}`]}</p>}
-                    </div>
-                    <div className="col-span-1 text-center">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const currentDays = parseInt(formData.days || 1, 10);
-                          if (currentDays > 1) {
-                            const newDays = (currentDays - 1).toString();
-                            setFormData(prev => ({ ...prev, days: newDays }));
-                            // useEffect will handle the slicing of packageDestinations
-                          }
-                        }}
-                        className="text-red-500 hover:text-red-700 font-bold text-sm transition-transform hover:scale-125"
-                        title="Remove this night"
-                      >
-                        ✖
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Add Button */}
-                <div className="p-3 bg-gray-50 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newDays = parseInt(formData.days || 1, 10) + 1;
-                      setFormData(prev => ({ ...prev, days: newDays.toString() }));
-                    }}
-                    className="flex items-center gap-1 text-[#14532d] hover:text-[#0f4a24] font-semibold text-xs"
-                  >
-                    <span>+</span> Add another Night (Increases duration)
-                  </button>
-                </div>
-              </div>
-            </Section>
-
-            {/* ITINERARY DAYS - RESTYLED */}
-            <Section title="Itinerary Days" className="bg-white border border-gray-300 p-0">
-              <div className="text-gray-800">
-                {/* Header Row */}
-                <div className="grid grid-cols-12 gap-3 px-3 py-1.5 bg-[#e6f0eb] text-[#14532d] text-[10px] font-bold uppercase tracking-wider border-b border-green-100">
-                  <div className="col-span-1">Day Number</div>
-                  <div className="col-span-2">Master Template</div>
-                  <div className="col-span-2">Title</div>
-                  <div className="col-span-3">Description</div>
-                  <div className="col-span-2">Image</div>
-                  <div className="col-span-2">Save to Master</div>
-                </div>
-
-                {/* Rows */}
-                {itineraryDays.map((row, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-3 px-3 py-3 border-b border-gray-200 items-start hover:bg-gray-50 transition-colors">
-                    {/* Day Number */}
-                    <div className="col-span-1 flex flex-col items-center gap-0.5">
-                      <div className="w-full py-0.5 px-1.5 bg-gray-100 rounded border border-gray-200 text-center font-bold text-[#14532d] text-xs">
-                        {i + 1}
-                      </div>
-                      <span className="text-[9px] font-bold text-green-800 uppercase text-center leading-none">
-                        {getDestinationForDay(i)}
-                      </span>
+                      {errors.description && <p className="text-red-500 text-[10px] font-bold mt-1.5">⚠ {errors.description}</p>}
                     </div>
 
-                    {/* Master Template */}
-                    <div className="col-span-2">
-                      <select
-                        value={row.master_template}
-                        onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
-                        className="w-full bg-white border border-gray-300 text-black px-2 py-1 rounded focus:border-[#14532d] focus:ring-1 focus:ring-[#14532d] focus:outline-none text-xs"
-                      >
-                        <option value="">Select Template...</option>
-                        {(() => {
-                          const currentDest = getDestinationForDay(i);
-                          const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
-                          const globalMasters = groupedItineraryMasters["Global / General"] || [];
-
-                          return (
-                            <>
-                              {destSpecificMasters.length > 0 && (
-                                <optgroup label={`${currentDest} Templates`}>
-                                  {destSpecificMasters.map((master) => (
-                                    <option key={master.id} value={master.id}>{master.name}</option>
-                                  ))}
-                                </optgroup>
-                              )}
-                              {globalMasters.length > 0 && (
-                                <optgroup label="Global / General Templates">
-                                  {globalMasters.map((master) => (
-                                    <option key={master.id} value={master.id}>{master.name}</option>
-                                  ))}
-                                </optgroup>
-                              )}
-                              {destSpecificMasters.length === 0 && globalMasters.length === 0 && (
-                                <option disabled>No templates available</option>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </select>
-                      <div className="flex gap-1 mt-1 text-gray-400 text-[10px]">
-                        <button type="button" className="hover:text-[#14532d]" title="Edit"><i className="fas fa-pencil-alt"></i></button>
-                        <button type="button" className="hover:text-[#14532d]" title="Add"><i className="fas fa-plus"></i></button>
-                        <button type="button" className="hover:text-[#14532d]" title="View"><i className="fas fa-eye"></i></button>
+                    {/* Trip Highlights Integrated into Overview */}
+                    <div className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
+                      <div className="flex justify-between items-center mb-8 border-b-2 border-gray-50 pb-6">
+                        <div>
+                          <h3 className="text-xl font-black text-gray-900 tracking-tight">Trip Highlights</h3>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Core experience identifiers</p>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => removeRow(setItineraryDays, i)}
-                          className="text-red-500 hover:text-red-700 font-bold"
-                          title="Remove this day"
+                          onClick={() => addRow(setHighlights, "")}
+                          className="bg-[#14532d] text-white px-6 py-2.5 rounded-xl text-[10px] font-black shadow-xl shadow-green-900/10 active:scale-95 transition-all hover:bg-black uppercase tracking-wider"
                         >
-                          ✖
+                          + ADD HIGHLIGHT
                         </button>
                       </div>
-                    </div>
 
-                    {/* Title */}
-                    <div className="col-span-2">
-                      <Input
-                        type="text"
-                        placeholder="Day Title"
-                        value={row.title}
-                        onChange={(e) => {
-                          const copy = [...itineraryDays];
-                          copy[i].title = e.target.value;
-                          setItineraryDays(copy);
-                        }}
-                        error={errors[`itinerary_title_${i}`]}
-                      />
-                    </div>
-
-                    {/* Description */}
-                    <div className="col-span-3">
-                      <textarea
-                        value={row.description}
-                        onChange={(e) => {
-                          const copy = [...itineraryDays];
-                          copy[i].description = e.target.value;
-                          setItineraryDays(copy);
-                        }}
-                        rows="3"
-                        className="w-full bg-white border border-gray-300 text-gray-800 px-2 py-1 rounded focus:border-[#14532d] focus:ring-1 focus:ring-[#14532d] focus:outline-none text-xs"
-                      />
-                    </div>
-
-                    <div className="col-span-2">
-                      <div className="flex items-center gap-1 mb-2">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const copy = [...itineraryDays];
-                            copy[i].image = e.target.files[0];
-                            setItineraryDays(copy);
-                          }}
-                          className="flex-1 w-full text-[10px] text-gray-500 file:mr-1 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
-                        />
-                        {row.image && (
-                          <div className="h-8 w-8 relative group shrink-0">
-                            <img src={URL.createObjectURL(row.image)} alt="Preview" className="h-full w-full object-cover rounded border" />
+                      <div className="space-y-4">
+                        {highlights.map((h, i) => (
+                          <div key={i} className="flex gap-4 items-center group animate-in slide-in-from-right-2" style={{ animationDelay: `${i * 80}ms` }}>
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0 group-hover:scale-150 transition-transform shadow-lg shadow-green-500/20"></div>
+                            <div className="flex-1">
+                              <Input
+                                value={h}
+                                onChange={(e) => { const copy = [...highlights]; copy[i] = e.target.value; setHighlights(copy); }}
+                                placeholder="e.g. Traditional Malay Dinner Experience..."
+                                className="!bg-gray-50/30 !border-transparent focus:!bg-white focus:!border-green-100 !rounded-2xl !py-3.5"
+                              />
+                            </div>
                             <button
                               type="button"
-                              onClick={() => {
-                                const copy = [...itineraryDays];
-                                copy[i].image = null;
-                                setItineraryDays(copy);
-                              }}
-                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                              onClick={() => removeRow(setHighlights, i)}
+                              className="text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2 rounded-lg hover:bg-red-50"
                             >
-                              <X size={10} />
+                              <X size={16} />
                             </button>
                           </div>
-                        )}
+                        ))}
                       </div>
                     </div>
 
-                    {/* Save to Master */}
-                    <div className="col-span-2 bg-[#f0f9f4] p-2 rounded border border-green-100">
-                      <label className="flex items-center gap-2 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={row.save_to_master}
-                          onChange={(e) => {
-                            const copy = [...itineraryDays];
-                            copy[i].save_to_master = e.target.checked;
-                            setItineraryDays(copy);
-                          }}
-                          className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] rounded border-gray-300"
-                        />
-                        <span className="text-[10px] font-bold text-[#14532d] uppercase tracking-tighter group-hover:text-green-800">Save as Master</span>
-                      </label>
-                      {row.save_to_master && (
-                        <div className="mt-2 animate-in fade-in slide-in-from-top-1">
-                          <input
-                            type="text"
-                            placeholder="Internal ID (lowercase)"
-                            value={row.master_name}
-                            onChange={(e) => {
-                              const copy = [...itineraryDays];
-                              copy[i].master_name = e.target.value.toLowerCase().replace(/\s+/g, '_');
-                              setItineraryDays(copy);
-                            }}
-                            className="w-full bg-white border border-green-200 text-[10px] px-1.5 py-1 rounded focus:outline-none focus:ring-1 focus:ring-green-500 font-medium"
-                          />
-                          <p className="text-[8px] text-green-600 mt-1 italic">Will be saved to Master List</p>
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        <FormLabel label="Category" required />
+                        <select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleInputChange}
+                          className={`bg-white border-2 ${errors.category ? 'border-red-200' : 'border-gray-100'} p-3 rounded-xl w-full text-gray-800 text-sm focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] transition-all font-bold`}
+                        >
+                          <option value="">Select category</option>
+                          <option value="Domestic">Domestic</option>
+                          <option value="International">International</option>
+                          <option value="Umrah">Umrah</option>
+                        </select>
+                      </div>
+
+                      <div className="bg-gray-50/50 p-4 rounded-2xl border-2 border-gray-50 flex gap-6">
+                        <div className="flex-1">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Flight</span>
+                          <div className="flex gap-2">
+                            {[true, false].map((val) => (
+                              <button
+                                key={val.toString()}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, with_flight: val })}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.with_flight === val ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-white border-gray-100 text-gray-400'}`}
+                              >
+                                {val ? 'WITH' : 'NO'} FLIGHT
+                              </button>
+                            ))}
+                          </div>
                         </div>
+                        <div className="flex-1">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Status</span>
+                          <div className="flex gap-2">
+                            {[true, false].map((val) => (
+                              <button
+                                key={val.toString()}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, is_active: val })}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.is_active === val ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-white border-gray-100 text-gray-400'}`}
+                              >
+                                {val ? 'ACTIVE' : 'DRAFT'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Section>
+
+                {/* ARRIVAL & DEPARTURE */}
+                <Section title="Arrival & Departure" active={activeSection === 'location'}>
+                  <div className="space-y-8">
+                    <div className="max-w-md">
+                      <FormLabel label="Starting City" required />
+                      <SearchableSelect
+                        options={startingCities.map(city => ({ value: city.name, label: city.name }))}
+                        value={formData.starting_city}
+                        onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
+                        placeholder="Where the trip starts..."
+                      />
+                    </div>
+
+                    <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Package Destinations</h3>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, days: (parseInt(prev.days || 1) + 1).toString() }))}
+                          className="bg-white px-3 py-1.5 rounded-full border-2 border-gray-100 text-[9px] font-black text-[#14532d] hover:bg-green-50 active:scale-95 transition-all"
+                        >
+                          + ADD MORE NIGHTS
+                        </button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {packageDestinations.map((row, i) => (
+                          <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2" style={{ animationDelay: `${i * 100}ms` }}>
+                            <div className="shrink-0 w-20 py-2 bg-white border-2 border-gray-100 rounded-full text-center font-black text-[#14532d] text-[10px] shadow-sm shadow-green-900/5 uppercase tracking-widest">
+                              Night {i + 1}
+                            </div>
+                            <div className="flex-1">
+                              <SearchableSelect
+                                options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country }))}
+                                value={row.destination}
+                                onChange={(val) => {
+                                  const copy = [...packageDestinations];
+                                  copy[i].destination = val;
+                                  setPackageDestinations(copy);
+                                }}
+                                placeholder="Select city..."
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, days: Math.max(1, parseInt(prev.days || 1) - 1).toString() }))}
+                              className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-red-50 text-red-300 hover:text-red-500 transition-all active:scale-90"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        <FormLabel label="Total Days" required />
+                        <Input type="number" name="days" value={formData.days} onChange={handleInputChange} min="1" />
+                      </div>
+                      <div>
+                        <FormLabel label="Group Size" optional />
+                        <Input type="number" name="group_size" value={formData.group_size} onChange={handleInputChange} />
+                      </div>
+                    </div>
+                  </div>
+                </Section>
+
+                {/* ITINERARY */}
+                <Section title="Day Wise Itinerary" active={activeSection === 'itinerary'}>
+                  <div className="space-y-12">
+                    {itineraryDays.map((row, i) => (
+                      <div key={i} id={`itinerary-day-${i}`} className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 relative group/day hover:border-[#14532d]/40 transition-all shadow-sm hover:shadow-2xl hover:shadow-green-900/5 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
+                        <div className="absolute -left-4 top-10 w-8 h-8 rounded-full bg-red-500 border-4 border-white shadow-lg flex items-center justify-center text-white font-black text-[10px] group-hover/day:scale-125 transition-transform z-10">
+                          {i + 1}
+                        </div>
+
+                        <div className="flex justify-between items-start mb-8 pl-4">
+                          <div>
+                            <p className="text-[10px] font-black text-[#14532d] uppercase tracking-[0.2em] mb-1">Day {i + 1} Profile</p>
+                            <h3 className="text-xl font-black text-gray-900">{getDestinationForDay(i)}</h3>
+                          </div>
+                          <div className="flex gap-4">
+                            <select
+                              value={row.master_template}
+                              onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
+                              className="bg-gray-50 border-2 border-transparent px-4 py-2 rounded-xl text-xs font-bold focus:border-[#14532d] focus:bg-white outline-none transition-all"
+                            >
+                              <option value="">Load from Master...</option>
+                              {(() => {
+                                const currentDest = getDestinationForDay(i);
+                                const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
+                                const globalMasters = groupedItineraryMasters["Global / General"] || [];
+                                return (
+                                  <>
+                                    {destSpecificMasters.length > 0 && <optgroup label={`${currentDest} Templates`}>{destSpecificMasters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</optgroup>}
+                                    {globalMasters.length > 0 && <optgroup label="Global Templates">{globalMasters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</optgroup>}
+                                  </>
+                                );
+                              })()}
+                            </select>
+                            <button type="button" onClick={() => removeRow(setItineraryDays, i)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white active:scale-95"><X size={16} /></button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pl-4">
+                          <div className="space-y-6">
+                            <div>
+                              <FormLabel label="Trip Title (e.g. Flight Arrival)" required />
+                              <Input
+                                placeholder="Arrival in Singapore..."
+                                value={row.title}
+                                onChange={(e) => { const copy = [...itineraryDays]; copy[i].title = e.target.value; setItineraryDays(copy); }}
+                                error={errors[`itinerary_title_${i}`]}
+                              />
+                            </div>
+                            <div>
+                              <FormLabel label="Description" optional />
+                              <textarea
+                                value={row.description}
+                                onChange={(e) => { const copy = [...itineraryDays]; copy[i].description = e.target.value; setItineraryDays(copy); }}
+                                className="bg-gray-50 border-2 border-transparent p-4 rounded-2xl w-full h-40 text-sm font-medium focus:border-[#14532d] focus:bg-white transition-all outline-none"
+                                placeholder="Describe the day's journey..."
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-6">
+                            <div>
+                              <FormLabel label="Day Visual (Image)" optional />
+                              <div className={`relative border-2 border-dashed rounded-3xl p-6 transition-all min-h-[160px] flex flex-col items-center justify-center ${row.image ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-[#14532d]/40'}`}>
+                                {row.image ? (
+                                  <div className="relative group/dayimg">
+                                    <img src={URL.createObjectURL(row.image)} alt="Day" className="h-32 w-full object-cover rounded-2xl border-2 border-white shadow-xl transition-transform group-hover/dayimg:scale-[1.05]" />
+                                    <button type="button" onClick={() => { const copy = [...itineraryDays]; copy[i].image = null; setItineraryDays(copy); }} className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-1.5 shadow-xl opacity-0 group-hover/dayimg:opacity-100 transition-opacity"><X size={12} /></button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-400 mb-2 font-black text-2xl group-hover/day:scale-110 group-hover:rotate-12 transition-all">+</div>
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Add Preview Image</p>
+                                    <input type="file" accept="image/*" onChange={(e) => { const copy = [...itineraryDays]; copy[i].image = e.target.files[0]; setItineraryDays(copy); }} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className={`p-4 rounded-2xl border-2 transition-all ${row.save_to_master ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-gray-50 border-transparent text-gray-500 hover:border-gray-200 hover:bg-white'}`}>
+                              <label className="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" checked={row.save_to_master} onChange={(e) => { const copy = [...itineraryDays]; copy[i].save_to_master = e.target.checked; setItineraryDays(copy); }} className="w-5 h-5 rounded-lg border-gray-300 text-[#14532d] focus:ring-[#14532d]" />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-black uppercase tracking-tighter">Archive to Masters</span>
+                                  <span className="text-[9px] opacity-70 font-medium">Available for future packages</span>
+                                </div>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <button type="button" onClick={() => addRow(setItineraryDays, { day: "", title: "", description: "", master_template: "", image: null })} className="w-full py-6 rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-[#14532d]/40 hover:text-[#14532d] transition-all hover:bg-green-50 active:scale-[0.99] group">
+                      <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-2xl mb-2 group-hover:scale-110 group-hover:bg-white shadow-sm transition-all">+</div>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Add Discovery Day</span>
+                    </button>
+                  </div>
+                </Section>
+
+                {/* PRICING */}
+                <Section title="Pricing" active={activeSection === 'pricing'}>
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-sm relative overflow-hidden group">
+                      <div className="absolute right-0 top-0 w-24 h-24 bg-green-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
+                      <FormLabel label="Offer Price (Final)" required info="Customer final payable amount" />
+                      <div className="relative z-10">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-gray-300 group-hover:text-[#14532d] transition-colors">₹</span>
+                        <Input type="text" name="offer_price" value={formatWithCommas(formData.offer_price)} onChange={handleInputChange} className="!pl-10 !text-xl !font-black !py-4" error={errors.offer_price} />
+                      </div>
+                    </div>
+                    <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-sm relative overflow-hidden group">
+                      <div className="absolute right-0 top-0 w-24 h-24 bg-red-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
+                      <FormLabel label="Markup Price (Strike)" optional info="Original value for showing discount" />
+                      <div className="relative z-10">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-gray-300 group-hover:text-red-400 transition-colors">₹</span>
+                        <Input type="text" name="price" value={formatWithCommas(formData.price)} onChange={handleInputChange} className="!pl-10 !text-xl !font-black !py-4" />
+                      </div>
+                    </div>
+                  </div>
+                </Section>
+
+                {/* IMAGES */}
+                <Section title="Media Gallery" active={activeSection === 'images'}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className={`relative border-2 border-dashed rounded-[3rem] p-10 transition-all min-h-[320px] flex flex-col items-center justify-center ${formData.header_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-200 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
+                      {formData.header_image ? (
+                        <div className="text-center group/main">
+                          <img src={URL.createObjectURL(formData.header_image)} alt="H" className="h-48 w-full object-cover rounded-[2rem] border-4 border-white shadow-2xl transition-transform group-hover/main:scale-[1.02]" />
+                          <div className="flex justify-center gap-2 mt-4">
+                            <span className="bg-[#14532d] text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-lg">Header Asset</span>
+                            <button type="button" onClick={() => setFormData({ ...formData, header_image: null })} className="bg-red-500 text-white p-2 rounded-full shadow-lg active:scale-90 transition-transform"><X size={12} /></button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-16 h-16 bg-white rounded-[2rem] shadow-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-[#14532d] group-hover:text-white transition-all text-gray-400 font-black text-4xl mb-6 shadow-green-900/5 rotate-6">+</div>
+                          <p className="font-black text-gray-900 text-xs uppercase tracking-[0.3em]">Header Banner</p>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase mt-2">1920x600 Preferred</p>
+                          <input type="file" name="header_image" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+                        </>
                       )}
                     </div>
 
+                    <div className={`relative border-2 border-dashed rounded-[3rem] p-10 transition-all min-h-[320px] flex flex-col items-center justify-center ${formData.card_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-200 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
+                      {formData.card_image ? (
+                        <div className="text-center group/card w-[200px]">
+                          <img src={URL.createObjectURL(formData.card_image)} alt="C" className="h-64 w-full object-cover rounded-[2rem] border-4 border-white shadow-2xl transition-transform group-hover/card:scale-[1.02]" />
+                          <div className="flex justify-center gap-2 mt-4">
+                            <span className="bg-[#14532d] text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-lg">Listing Card</span>
+                            <button type="button" onClick={() => setFormData({ ...formData, card_image: null })} className="bg-red-500 text-white p-2 rounded-full shadow-lg active:scale-90 transition-transform"><X size={12} /></button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-16 h-16 bg-white rounded-[2rem] shadow-xl flex items-center justify-center group-hover:scale-110 group-hover:bg-[#14532d] group-hover:text-white transition-all text-gray-400 font-black text-4xl mb-6 shadow-green-900/5 -rotate-6">+</div>
+                          <p className="font-black text-gray-900 text-xs uppercase tracking-[0.3em]">Card Visual</p>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase mt-2">400x500 Preferred</p>
+                          <input type="file" name="card_image" onChange={handleFileChange} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+                        </>
+                      )}
+                    </div>
                   </div>
-                ))}
+                </Section>
 
-                <div className="p-3 bg-gray-50 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      addRow(setItineraryDays, {
-                        day: "",
-                        title: "",
-                        description: "",
-                        master_template: "",
-                        image: null
-                      })
-                    }
-                    className="flex items-center gap-1 text-[#14532d] hover:text-[#0f4a24] font-semibold text-xs"
-                  >
-                    <span>+</span> Add another Itinerary day
-                  </button>
-                </div>
-              </div>
-            </Section>
+                <Section title="Trip Information" active={activeSection === 'info'}>
+                  <div className="space-y-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-lg font-black text-gray-900 tracking-tight">Inclusions</h3>
+                          <button type="button" onClick={() => addRow(setInclusions, "")} className="bg-green-50 text-[#14532d] w-8 h-8 rounded-xl font-black flex items-center justify-center hover:bg-green-500 hover:text-white transition-all active:scale-90 border border-green-100 shadow-sm">+</button>
+                        </div>
+                        <div className="space-y-3">
+                          {inclusions.map((item, i) => (
+                            <div key={i} className="flex gap-4 items-center group">
+                              <span className="text-green-500 font-black text-xl leading-none transition-transform group-hover:rotate-12 group-hover:scale-125">✓</span>
+                              <div className="flex-1"><Input value={item} onChange={(e) => { const copy = [...inclusions]; copy[i] = e.target.value; setInclusions(copy); }} className="!bg-gray-50/20 !border-transparent focus:!bg-white !text-xs" /></div>
+                              <button type="button" onClick={() => removeRow(setInclusions, i)} className="text-red-100 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><X size={14} /></button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
 
-            {/* INCLUSIONS */}
-            <Section title="Inclusions">
-              {inclusions.map((inc, i) => (
-                <div key={i} className="flex gap-3 mb-2">
-                  <Input
-                    value={inc}
-                    onChange={(e) => {
-                      const copy = [...inclusions];
-                      copy[i] = e.target.value;
-                      setInclusions(copy);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeRow(setInclusions, i)}
-                    className="text-red-600 hover:text-red-800 font-bold whitespace-nowrap text-sm"
-                  >
-                    ✖ Remove
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addRow(setInclusions, "")}
-                className="text-[#14532d] hover:text-[#0f4a24] font-semibold text-sm"
-              >
-                + Add another Inclusion
-              </button>
-            </Section>
-
-            {/* EXCLUSIONS */}
-            <Section title="Exclusions">
-              {exclusions.map((exc, i) => (
-                <div key={i} className="flex gap-3 mb-2">
-                  <Input
-                    value={exc}
-                    onChange={(e) => {
-                      const copy = [...exclusions];
-                      copy[i] = e.target.value;
-                      setExclusions(copy);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeRow(setExclusions, i)}
-                    className="text-red-600 hover:text-red-800 font-bold whitespace-nowrap text-sm"
-                  >
-                    ✖ Remove
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addRow(setExclusions, "")}
-                className="text-[#14532d] hover:text-[#0f4a24] font-semibold text-sm"
-              >
-                + Add another Exclusion
-              </button>
-            </Section>
-
-            {/* HIGHLIGHTS */}
-            <Section title="Highlights">
-              {highlights.map((high, i) => (
-                <div key={i} className="flex gap-3 mb-2">
-                  <Input
-                    value={high}
-                    onChange={(e) => {
-                      const copy = [...highlights];
-                      copy[i] = e.target.value;
-                      setHighlights(copy);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeRow(setHighlights, i)}
-                    className="text-red-600 hover:text-red-800 font-bold whitespace-nowrap text-sm"
-                  >
-                    ✖ Remove
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addRow(setHighlights, "")}
-                className="text-[#14532d] hover:text-[#0f4a24] font-semibold text-sm"
-              >
-                + Add another Highlight
-              </button>
-            </Section>
-
-            {/* SAVE BUTTONS */}
-            <div className="flex gap-2 mt-4 bg-white p-4 rounded-lg shadow-sm">
-              <button
-                type="submit"
-                className="bg-[#14532d] px-4 py-2 rounded text-white hover:bg-[#0f4a24] transition text-sm font-semibold"
-                disabled={loading}
-              >
-                {loading ? "SAVING..." : "SAVE"}
-              </button>
-              <button
-                type="button"
-                className="bg-[#1f7a45] px-4 py-2 rounded text-white hover:bg-[#1a6338] transition text-sm font-semibold"
-                disabled={loading}
-              >
-                Save and add another
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/admin/packages')}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition text-sm font-semibold"
-              >
-                CANCEL
-              </button>
+                      <div className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 shadow-sm">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-lg font-black text-gray-900 tracking-tight">Exclusions</h3>
+                          <button type="button" onClick={() => addRow(setExclusions, "")} className="bg-gray-50 text-gray-400 w-8 h-8 rounded-xl font-black flex items-center justify-center hover:bg-black hover:text-white transition-all active:scale-90 border border-gray-100 shadow-sm">+</button>
+                        </div>
+                        <div className="space-y-3">
+                          {exclusions.map((item, i) => (
+                            <div key={i} className="flex gap-4 items-center group">
+                              <span className="text-red-400 font-black text-xl leading-none transition-transform group-hover:-rotate-12 group-hover:scale-125">×</span>
+                              <div className="flex-1"><Input value={item} onChange={(e) => { const copy = [...exclusions]; copy[i] = e.target.value; setExclusions(copy); }} className="!bg-gray-50/20 !border-transparent focus:!bg-white !text-xs" /></div>
+                              <button type="button" onClick={() => removeRow(setExclusions, i)} className="text-red-100 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><X size={14} /></button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Section>
+              </form>
             </div>
-          </form>
+          </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 };
 

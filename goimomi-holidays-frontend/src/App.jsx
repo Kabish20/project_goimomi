@@ -149,6 +149,7 @@ const App = () => {
             <Route path="/admin/packages/add" element={<HolidayPackageAdd />} />
             <Route path="/admin/packages/edit/:id" element={<HolidayPackageEdit />} />
             <Route path="/admin/packages" element={<HolidayPackageManage />} />
+            <Route path="/admin/holidays" element={<HolidayPackageManage />} />
             <Route path="/admin/enquiries" element={<EnquiryManage />} />
             <Route path="/admin/holiday-enquiries/add" element={<HolidayEnquiryAdd />} />
             <Route path="/admin/holiday-enquiries" element={<HolidayEnquiryManage />} />

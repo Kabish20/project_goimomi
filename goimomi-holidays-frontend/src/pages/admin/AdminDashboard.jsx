@@ -215,10 +215,10 @@ const AdminDashboard = () => {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Welcome to Goimomi Admin Dashboard
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-black text-gray-900 tracking-tighter uppercase">
+              Dashboard Hub
             </h2>
             <div className="flex gap-3">
             </div>
@@ -244,7 +244,7 @@ const AdminDashboard = () => {
           ) : (
             <>
               {/* Core Inventory Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
                 <AdminCard title="Destinations" count={stats.destinations} link="/admin/destinations" icon={<MapPin />} />
                 <AdminCard title="Packages" count={stats.packages} link="/admin/packages" icon={<Package />} />
                 <AdminCard title="Cities" count={stats.startingCities} link="/admin/starting-cities" icon={<Building2 />} />
@@ -256,12 +256,12 @@ const AdminDashboard = () => {
               </div>
 
               {/* Enquiry Stats - Horizontal Section */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-3 px-1">
-                  <div className="h-1 w-6 bg-[#14532d] rounded-full"></div>
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#14532d]">Customer Enquiries</h3>
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="h-1 w-4 bg-[#14532d] rounded-full"></div>
+                  <h3 className="text-[9px] font-black uppercase tracking-widest text-[#14532d]">Customer Enquiries</h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
                   <AdminCard title="General Enq" count={stats.enquiries} link="/admin/enquiries" icon={<HelpCircle />} />
                   <AdminCard title="Cab Enq" count={stats.cabEnquiries} link="/admin/cab-enquiries" icon={<Phone />} />
                   <AdminCard title="Cruise Enq" count={stats.cruiseEnquiries} link="/admin/cruise-enquiries" icon={<Ship />} />
@@ -272,9 +272,9 @@ const AdminDashboard = () => {
               </div>
 
               {/* Recent Enquiries */}
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold">Recent Enquiries</h3>
+              <div className="bg-white rounded-xl shadow-md p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-black uppercase tracking-wider">Recent Enquiries</h3>
                   <button
                     onClick={fetchDashboardData}
                     className="text-sm bg-[#14532d] text-white px-3 py-1 rounded hover:bg-[#0f4a24]"
@@ -288,38 +288,38 @@ const AdminDashboard = () => {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b bg-gray-50/50">
-                          <th className="text-left py-3 px-2 uppercase text-[10px] tracking-widest text-gray-400">Name</th>
-                          <th className="text-left py-3 px-2 uppercase text-[10px] tracking-widest text-gray-400">Type</th>
-                          <th className="text-left py-3 px-2 uppercase text-[10px] tracking-widest text-gray-400">Email</th>
-                          <th className="text-left py-3 px-2 uppercase text-[10px] tracking-widest text-gray-400">Phone</th>
-                          <th className="text-left py-3 px-2 uppercase text-[10px] tracking-widest text-gray-400">Purpose</th>
-                          <th className="py-3 px-2 text-center uppercase text-[10px] tracking-widest text-gray-400">Action</th>
+                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Name</th>
+                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Type</th>
+                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Email</th>
+                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Phone</th>
+                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Purpose</th>
+                          <th className="py-2 px-2 text-center uppercase text-[9px] font-black tracking-widest text-gray-400">Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {recentEnquiries.map((enquiry) => (
                           <tr key={`${enquiry.type}-${enquiry.id}`} className="border-b hover:bg-gray-50 transition-colors">
-                            <td className="py-3 px-2 font-medium">{getEnquiryName(enquiry)}</td>
-                            <td className="py-3 px-2">
-                              <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${enquiry.type === 'Holiday' ? 'bg-green-100 text-green-700' :
-                                enquiry.type === 'Umrah' ? 'bg-purple-100 text-purple-700' :
-                                  enquiry.type === 'Cab' ? 'bg-amber-100 text-amber-700' :
-                                    enquiry.type === 'Cruise' ? 'bg-sky-100 text-sky-700' :
-                                      enquiry.type === 'Hotel' ? 'bg-green-100 text-green-700' :
-                                        'bg-blue-100 text-blue-700'
+                            <td className="py-2 px-2 font-bold text-xs">{getEnquiryName(enquiry)}</td>
+                            <td className="py-2 px-2">
+                              <span className={`px-2 py-0.5 text-[8px] font-black rounded uppercase ${enquiry.type === 'Holiday' ? 'bg-green-50 text-green-700 border border-green-100' :
+                                enquiry.type === 'Umrah' ? 'bg-purple-50 text-purple-700 border border-purple-100' :
+                                  enquiry.type === 'Cab' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                    enquiry.type === 'Cruise' ? 'bg-sky-50 text-sky-700 border border-sky-100' :
+                                      enquiry.type === 'Hotel' ? 'bg-green-50 text-green-700 border border-green-100' :
+                                        'bg-blue-50 text-blue-700 border border-blue-100'
                                 }`}>
                                 {enquiry.type}
                               </span>
                             </td>
-                            <td className="py-3 px-2 text-gray-600">{enquiry.email || 'N/A'}</td>
-                            <td className="py-3 px-2 text-gray-600">{enquiry.phone || 'N/A'}</td>
-                            <td className="py-3 px-2 text-gray-500 italic max-w-[150px] truncate">
-                              {getEnquiryPurpose(enquiry)}
+                            <td className="py-2 px-2 text-xs text-gray-600">{enquiry.email || 'N/A'}</td>
+                            <td className="py-2 px-2 text-xs text-gray-600">{enquiry.phone || 'N/A'}</td>
+                            <td className="py-2 px-2 text-[10px] text-gray-500 italic max-w-[150px] truncate">
+                              {getEnquiryPurpose(enquiry.purpose)}
                             </td>
-                            <td className="py-3 px-2 text-center">
+                            <td className="py-2 px-2 text-center">
                               <button
                                 onClick={() => setSelectedEnquiry(enquiry)}
-                                className="bg-[#14532d] hover:bg-[#0f4a24] text-white px-3 py-1 rounded text-xs font-bold transition-all"
+                                className="bg-[#14532d] hover:bg-[#0f4a24] text-white px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
                               >
                                 View
                               </button>

@@ -4,15 +4,44 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
-import { X } from "lucide-react";
+import { X, MapPin, Calendar, Package, Image as ImageIcon } from "lucide-react";
 
-/* ---------- UI helpers (same as Add) ---------- */
-const Section = ({ title, children, className = "bg-white border border-gray-300 p-3" }) => (
-    <div className="mb-4">
-        <div className="bg-[#14532d] text-white px-3 py-1.5 font-semibold text-xs uppercase">
-            {title}
+/* ---------- UI helpers ---------- */
+const Section = ({ title, children, active }) => (
+    <div className={`transition-all duration-500 ease-out ${active ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-[0.98] hidden'}`}>
+        <div className="flex items-center gap-3 mb-4">
+            <div className="bg-[#14532d] w-1.5 h-8 rounded-full shadow-lg shadow-green-900/10"></div>
+            <div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-none">{title}</h2>
+                <div className="flex gap-1 mt-1.5">
+                    <div className="h-0.5 w-10 bg-green-100 rounded-full"></div>
+                    <div className="h-0.5 w-2 bg-green-200 rounded-full"></div>
+                </div>
+            </div>
         </div>
-        <div className={className}>{children}</div>
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700">{children}</div>
+    </div>
+);
+
+const FormLabel = ({ label, limit, current, required, optional, info }) => (
+    <div className="flex justify-between items-end mb-1.5">
+        <div className="flex items-center gap-2">
+            <span className="text-gray-900 font-black text-[10px] uppercase tracking-[0.15em]">{label} {required && <span className="text-red-500">*</span>}</span>
+            {optional && <span className="text-[#14532d] text-[8px] font-black bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100/50 uppercase">Optional</span>}
+            {info && (
+                <div className="group relative">
+                    <span className="cursor-help text-gray-400 hover:text-[#14532d] transition-colors bg-gray-50 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black border border-gray-100">?</span>
+                    <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-[10px] rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 z-50 transform translate-y-1 group-hover:translate-y-0 backdrop-blur-md bg-opacity-95 border border-white/10 leading-relaxed font-medium">
+                        {info}
+                    </div>
+                </div>
+            )}
+        </div>
+        {limit && (
+            <span className={`text-[9px] font-black tracking-widest ${(current || 0) > limit ? 'text-red-500' : 'text-gray-300'}`}>
+                {current || 0} / {limit}
+            </span>
+        )}
     </div>
 );
 
@@ -20,9 +49,12 @@ const Input = (props) => (
     <div>
         <input
             {...props}
-            className={`bg-white border ${props.error ? 'border-red-500' : 'border-gray-300'} px-2 py-1.5 rounded w-full text-black text-sm focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent ${props.className || ''}`}
+            className={`bg-white border-2 ${props.error ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} px-4 py-2.5 rounded-xl w-full text-gray-900 text-xs font-bold transition-all placeholder:text-gray-400 placeholder:font-medium focus:outline-none focus:ring-8 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 hover:shadow-sm ${props.className || ''}`}
         />
-        {props.error && <p className="text-red-500 text-[10px] mt-0.5">{props.error}</p>}
+        {props.error && <p className="text-red-500 text-[9px] font-black mt-1.5 flex items-center gap-2 ml-1 uppercase tracking-wider italic">
+            <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
+            {props.error}
+        </p>}
     </div>
 );
 
@@ -59,6 +91,7 @@ const HolidayPackageEdit = () => {
         card_image: null,
         with_flight: false,
         is_active: true,
+        highlights: "",
     });
 
     // Previews for existing images to show if no new file selected
@@ -72,6 +105,11 @@ const HolidayPackageEdit = () => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [activeSection, setActiveSection] = useState("overview");
+
+    const TITLE_LIMIT = 200;
+    const DESC_LIMIT = 2000;
+    const HIGHLIGHTS_LIMIT = 1000;
 
     const API_BASE_URL = "/api";
 
@@ -156,6 +194,7 @@ const HolidayPackageEdit = () => {
                     card_image: null,
                     with_flight: pkg.with_flight || false,
                     is_active: pkg.is_active !== undefined ? pkg.is_active : true,
+                    highlights: pkg.highlights && Array.isArray(pkg.highlights) ? pkg.highlights.map(h => h.text).join("\n") : "",
                 });
 
                 // Set Previews
@@ -181,7 +220,6 @@ const HolidayPackageEdit = () => {
                         image: null, // We generally don't pre-fill file inputs. 
                         existing_image: getImageUrl(day.image), // Can show preview if needed
                         save_to_master: false,
-                        master_name: ""
                     })));
                 }
 
@@ -225,7 +263,7 @@ const HolidayPackageEdit = () => {
                     const newDays = [];
                     for (let i = prev.length + 1; i <= dayCount; i++) {
                         newDays.push({
-                            day: i.toString(), title: "", description: "", master_template: "", image: null, save_to_master: false, master_name: ""
+                            day: i.toString(), title: "", description: "", master_template: "", image: null, save_to_master: false
                         });
                     }
                     return [...prev, ...newDays];
@@ -398,7 +436,9 @@ const HolidayPackageEdit = () => {
             // Add inclusions, exclusions and highlights
             formDataToSend.append("inclusions_raw", JSON.stringify(inclusions.filter(i => i && i.trim() !== "")));
             formDataToSend.append("exclusions_raw", JSON.stringify(exclusions.filter(e => e && e.trim() !== "")));
-            formDataToSend.append("highlights_raw", JSON.stringify(highlights.filter(h => h && h.trim() !== "")));
+
+            const highlightsArray = highlights.filter(h => h && h.trim() !== "");
+            formDataToSend.append("highlights_raw", JSON.stringify(highlightsArray));
 
             // Use PUT to update
             const response = await axios.put(`${API_BASE_URL}/packages/${id}/`, formDataToSend, {
@@ -416,10 +456,10 @@ const HolidayPackageEdit = () => {
             // After package is successfully updated, save marked itineraries to master
             for (let i = 0; i < itineraryDays.length; i++) {
                 const day = itineraryDays[i];
-                if (day.save_to_master && day.master_name) {
+                if (day.save_to_master && day.title) {
                     try {
                         const masterData = new FormData();
-                        masterData.append("name", day.master_name);
+                        masterData.append("name", day.title);
                         masterData.append("title", day.title);
                         masterData.append("description", day.description);
 
@@ -477,665 +517,915 @@ const HolidayPackageEdit = () => {
 
     if (loading) {
         return (
-            <div className="flex bg-gray-100 h-full overflow-hidden">
+            <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
+                <style>
+                    {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');`}
+                </style>
                 <AdminSidebar />
-                <div className="flex-1 p-10 flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                    <AdminTopbar />
+                    <div className="flex-1 flex justify-center items-center">
+                        <div className="flex flex-col items-center gap-8 animate-in fade-in duration-1000">
+                            <div className="relative">
+                                <div className="animate-spin rounded-full h-20 w-20 border-4 border-[#14532d]/10 border-t-[#14532d]"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Package size={24} className="text-[#14532d] animate-bounce" />
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-gray-900 font-black text-xs uppercase tracking-[0.4em] animate-pulse">Syncing Inventory</p>
+                                <p className="text-gray-400 text-[10px] font-bold mt-2 italic uppercase">Preparing high-definition package data...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
+    const navItems = [
+        { id: 'overview', label: 'Trip Overview', icon: <Package size={18} /> },
+        { id: 'location', label: 'Arrival & Departure', icon: <MapPin size={18} /> },
+        { id: 'itinerary', label: 'Day Wise Itinerary', icon: <Calendar size={18} />, subItems: itineraryDays.map((_, i) => ({ id: `day-${i}`, label: `Day ${i + 1}`, dest: getDestinationForDay(i) })) },
+        { id: 'pricing', label: 'Pricing', icon: <span className="text-lg">💰</span> },
+        { id: 'images', label: 'Images', icon: <span className="text-lg">🖼️</span> },
+        { id: 'policy', label: 'Trip Information', icon: <span className="text-lg">ℹ️</span> },
+    ];
+
     return (
-        <div className="flex bg-gray-100 h-full overflow-hidden">
+        <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
+            <style>
+                {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');`}
+            </style>
             <AdminSidebar />
 
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
 
-                <div className="flex-1 overflow-y-auto p-4">
-                    <div className="flex justify-between items-center mb-4 bg-white p-4 rounded-lg shadow-sm">
-                        <div>
-                            <h1 className="text-xl font-bold text-gray-800 mb-1">Edit Holiday Package</h1>
-                            <p className="text-xs text-gray-600">ID: {id}</p>
-                        </div>
+                {/* Action Header */}
+                <div className="bg-white border-b border-gray-100 px-8 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
+                    <div>
+                        <h1 className="text-xl font-black text-gray-900 tracking-tighter">Edit Holiday Package</h1>
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
+                            <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">{formData.title || "Package"}</span>
+                        </p>
+                    </div>
+                    <div className="flex gap-3">
                         <button
+                            type="button"
                             onClick={() => navigate('/admin/packages')}
-                            className="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300 transition"
+                            className="px-6 py-2 rounded-xl border-2 border-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95 shadow-sm"
                         >
-                            Back to List
+                            Cancel
+                        </button>
+
+                        <button
+                            onClick={handleSubmit}
+                            className="px-8 py-2 rounded-xl bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 disabled:opacity-50 disabled:scale-100"
+                            disabled={saving}
+                            form="package-form"
+                        >
+                            {saving ? (
+                                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            ) : (
+                                <Package size={14} />
+                            )}
+                            {saving ? "UPDATING..." : "UPDATE PACKAGE"}
                         </button>
                     </div>
+                </div>
 
-                    {message && (
-                        <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
-                            {message}
-                        </div>
-                    )}
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                            {error}
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit}>
-                        {/* PACKAGE INFORMATION */}
-                        <Section title="Package Information">
-                            <div className="grid grid-cols-1 gap-4">
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Title:</span>
-                                    <Input
-                                        name="title"
-                                        value={formData.title}
-                                        onChange={handleInputChange}
-                                        error={errors.title}
-                                    />
-                                </label>
-
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Description:</span>
-                                    <textarea
-                                        name="description"
-                                        value={formData.description}
-                                        onChange={handleInputChange}
-                                        className={`bg-white border ${errors.description ? 'border-red-500' : 'border-gray-300'} p-3 rounded w-full h-32 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent`}
-                                    />
-                                    {errors.description && <p className="text-red-500 text-[10px] mt-0.5">{errors.description}</p>}
-                                </label>
-                            </div>
-
-                            <div className="flex gap-8 items-end mt-4">
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Category:</span>
-                                    <select
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleInputChange}
-                                        className={`bg-white border ${errors.category ? 'border-red-500' : 'border-gray-300'} p-2 rounded w-60 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d] focus:border-transparent`}
-                                    >
-                                        <option value="">Select category</option>
-                                        <option value="Domestic">Domestic</option>
-                                        <option value="International">International</option>
-                                        <option value="Umrah">Umrah</option>
-                                    </select>
-                                    {errors.category && <p className="text-red-500 text-[10px] mt-0.5">{errors.category}</p>}
-                                </label>
-
-                                <div className="mb-2">
-                                    <span className="text-gray-700 font-medium mb-2 block">Flight:</span>
-                                    <div className="flex gap-4">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="with_flight"
-                                                checked={formData.with_flight === true}
-                                                onChange={() => setFormData({ ...formData, with_flight: true })}
-                                                className="w-4 h-4 text-[#14532d] focus:ring-[#14532d]"
-                                            />
-                                            <span className="text-gray-700">With Flight</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="with_flight"
-                                                checked={formData.with_flight === false}
-                                                onChange={() => setFormData({ ...formData, with_flight: false })}
-                                                className="w-4 h-4 text-[#14532d] focus:ring-[#14532d]"
-                                            />
-                                            <span className="text-gray-700">Without Flight</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div className="mb-2">
-                                    <span className="text-gray-700 font-medium mb-2 block">Status:</span>
-                                    <div className="flex gap-4">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="is_active"
-                                                checked={formData.is_active === true}
-                                                onChange={() => setFormData({ ...formData, is_active: true })}
-                                                className="w-4 h-4 text-[#14532d] focus:ring-[#14532d]"
-                                            />
-                                            <span className="text-gray-700">Active</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="is_active"
-                                                checked={formData.is_active === false}
-                                                onChange={() => setFormData({ ...formData, is_active: false })}
-                                                className="w-4 h-4 text-[#14532d] focus:ring-[#14532d]"
-                                            />
-                                            <span className="text-gray-700">Inactive</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </Section>
-
-                        {/* LOCATION DETAILS */}
-                        <Section title="Location Details">
-                            <label className="block w-60">
-                                <span className="text-gray-700 font-medium mb-1 block">Starting city:</span>
-                                <SearchableSelect
-                                    options={startingCities.map(city => ({ value: city.name, label: city.name }))}
-                                    value={formData.starting_city}
-                                    onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
-                                    placeholder="----------"
-                                />
-                                {errors.starting_city && <p className="text-red-500 text-[10px] mt-0.5">{errors.starting_city}</p>}
-                            </label>
-                        </Section>
-
-                        {/* DURATION */}
-                        <Section title="Duration & Dates">
-                            <div className="grid grid-cols-3 gap-4">
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Days:</span>
-                                    <Input
-                                        type="number"
-                                        name="days"
-                                        value={formData.days}
-                                        onChange={handleInputChange}
-                                        error={errors.days}
-                                    />
-                                </label>
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Start date:</span>
-                                    <Input
-                                        type="date"
-                                        name="start_date"
-                                        value={formData.start_date}
-                                        onChange={handleInputChange}
-                                    />
-                                </label>
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Group size:</span>
-                                    <Input
-                                        type="number"
-                                        name="group_size"
-                                        value={formData.group_size}
-                                        onChange={handleInputChange}
-                                    />
-                                </label>
-                            </div>
-                        </Section>
-
-                        {/* PRICING */}
-                        <Section title="Pricing">
-                            <div className="grid grid-cols-2 gap-4">
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Offer price:</span>
-                                    <Input
-                                        type="text"
-                                        name="offer_price"
-                                        value={formatWithCommas(formData.offer_price)}
-                                        onChange={handleInputChange}
-                                        error={errors.offer_price}
-                                    />
-                                </label>
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Price:</span>
-                                    <Input
-                                        type="text"
-                                        name="price"
-                                        value={formatWithCommas(formData.price)}
-                                        onChange={handleInputChange}
-                                    />
-                                </label>
-                            </div>
-                        </Section>
-
-                        {/* IMAGES */}
-                        <Section title="Images">
-                            <div className="grid grid-cols-2 gap-6">
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Header image:</span>
-                                    {headerPreview && (
-                                        <div className="mb-2 relative inline-block group">
-                                            <img src={headerPreview} alt="Header Preview" className="h-32 object-cover rounded border" />
-                                            <button
-                                                type="button"
-                                                onClick={() => { setHeaderPreview(null); setFormData({ ...formData, header_image: null }); }}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                                title="Remove image"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    )}
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="file"
-                                            name="header_image"
-                                            onChange={(e) => {
-                                                handleFileChange(e);
-                                                if (e.target.files[0]) {
-                                                    setHeaderPreview(URL.createObjectURL(e.target.files[0]));
-                                                }
-                                            }}
-                                            accept="image/*"
-                                            error={errors.header_image}
-                                        />
-                                        {formData.header_image && (
-                                            <span className="text-xs text-green-600 font-medium">New selected</span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
-                                </label>
-                                <label className="block">
-                                    <span className="text-gray-700 font-medium mb-1 block">Card image:</span>
-                                    {cardPreview && (
-                                        <div className="mb-2 relative inline-block group">
-                                            <img src={cardPreview} alt="Card Preview" className="h-32 object-cover rounded border" />
-                                            <button
-                                                type="button"
-                                                onClick={() => { setCardPreview(null); setFormData({ ...formData, card_image: null }); }}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                                title="Remove image"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    )}
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="file"
-                                            name="card_image"
-                                            onChange={(e) => {
-                                                handleFileChange(e);
-                                                if (e.target.files[0]) {
-                                                    setCardPreview(URL.createObjectURL(e.target.files[0]));
-                                                }
-                                            }}
-                                            accept="image/*"
-                                            error={errors.card_image}
-                                        />
-                                        {formData.card_image && (
-                                            <span className="text-xs text-green-600 font-medium">New selected</span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
-                                </label>
-                            </div>
-                        </Section>
-
-                        <Section title="Package Destinations" className="bg-white border border-gray-300 p-0">
-                            <div className="text-gray-800">
-                                {/* Header Row */}
-                                <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-[#e6f0eb] text-[#14532d] text-xs font-bold uppercase tracking-wider border-b border-green-100">
-                                    <div className="col-span-2">Stay</div>
-                                    <div className="col-span-9">Destination City</div>
-                                    <div className="col-span-1 text-center">Action</div>
-                                </div>
-
-                                {/* Data Rows */}
-                                {packageDestinations.map((row, i) => (
-                                    <div key={i} className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 items-center hover:bg-gray-50 transition-colors">
-                                        <div className="col-span-2 py-1 px-2 bg-gray-100 rounded border border-gray-200 text-center font-bold text-[#14532d] text-sm">
-                                            Night {i + 1}
-                                        </div>
-                                        <div className="col-span-9">
-                                            <SearchableSelect
-                                                options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country || d.region || '' }))}
-                                                value={row.destination}
-                                                onChange={(val) => {
-                                                    const copy = [...packageDestinations];
-                                                    copy[i].destination = val;
-                                                    setPackageDestinations(copy);
-                                                }}
-                                                placeholder={`Select city for Night ${i + 1}`}
-                                            />
-                                            {errors[`dest_${i}`] && <p className="text-red-500 text-[10px] mt-0.5">{errors[`dest_${i}`]}</p>}
-                                        </div>
-                                        <div className="col-span-1 text-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const currentDays = parseInt(formData.days || 1, 10);
-                                                    if (currentDays > 1) {
-                                                        setFormData(prev => ({ ...prev, days: (currentDays - 1).toString() }));
-                                                        // useEffect will handle the slicing of packageDestinations and itineraryDays
-                                                    }
-                                                }}
-                                                className="text-red-500 hover:text-red-700 font-bold transition-transform hover:scale-125"
-                                                title="Remove this night"
-                                            >
-                                                ✖
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                <div className="p-4 bg-gray-50 border-t border-gray-200">
+                <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
+                    {/* Internal Navigation Sidebar */}
+                    <div className="w-64 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-4 shrink-0">
+                        <nav className="flex-1 space-y-1">
+                            {navItems.map((item) => (
+                                <div key={item.id}>
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            const newDays = parseInt(formData.days || 1, 10) + 1;
-                                            setFormData(prev => ({ ...prev, days: newDays.toString() }));
-                                            // useEffect will handle adding the row
-                                        }}
-                                        className="flex items-center gap-1 text-[#14532d] hover:text-[#0f4a24] font-semibold text-sm"
+                                        onClick={() => setActiveSection(item.id)}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all duration-500 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'}`}
                                     >
-                                        <span>+</span> Add another Night (Increases duration)
+                                        {activeSection === item.id && (
+                                            <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
+                                        )}
+                                        <span className={`transition-all duration-500 ${activeSection === item.id ? 'scale-110 rotate-3 text-green-300' : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
+                                            {item.icon}
+                                        </span>
+                                        <span className="uppercase tracking-[0.15em] text-[10px]">{item.label}</span>
                                     </button>
-                                </div>
-                            </div>
-                        </Section>
-
-                        {/* ITINERARY DAYS */}
-                        <Section title="Itinerary Days" className="bg-white border border-gray-300 p-0">
-                            <div className="text-gray-800">
-                                <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-[#e6f0eb] text-[#14532d] text-xs font-bold uppercase tracking-wider border-b border-green-100">
-                                    <div className="col-span-1">Day</div>
-                                    <div className="col-span-2">Master Template</div>
-                                    <div className="col-span-3">Title</div>
-                                    <div className="col-span-2">Description</div>
-                                    <div className="col-span-2">Image</div>
-                                    <div className="col-span-2">Save to Master</div>
-                                </div>
-
-                                {itineraryDays.map((row, i) => (
-                                    <div key={i} className="grid grid-cols-12 gap-4 px-4 py-4 border-b border-gray-200 items-start hover:bg-gray-50 transition-colors">
-                                        {/* Day Number */}
-                                        <div className="col-span-1 flex flex-col items-center gap-1">
-                                            <div className="w-full py-1 px-2 bg-gray-100 rounded border border-gray-200 text-center font-bold text-[#14532d]">
-                                                {i + 1}
-                                            </div>
-                                            <span className="text-[10px] font-bold text-green-800 uppercase text-center leading-none">
-                                                {getDestinationForDay(i)}
-                                            </span>
-                                        </div>
-
-                                        {/* Master Template */}
-                                        <div className="col-span-2">
-                                            <select
-                                                value={row.master_template}
-                                                onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
-                                                className="w-full bg-white border border-gray-300 text-black px-2 py-1 rounded focus:border-[#14532d] text-sm"
-                                            >
-                                                <option value="">Select Template...</option>
-                                                {(() => {
-                                                    const currentDest = getDestinationForDay(i);
-                                                    const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
-                                                    const globalMasters = groupedItineraryMasters["Global / General"] || [];
-
-                                                    return (
-                                                        <>
-                                                            {destSpecificMasters.length > 0 && (
-                                                                <optgroup label={`${currentDest} Templates`}>
-                                                                    {destSpecificMasters.map((master) => (
-                                                                        <option key={master.id} value={master.id}>{master.name}</option>
-                                                                    ))}
-                                                                </optgroup>
-                                                            )}
-                                                            {globalMasters.length > 0 && (
-                                                                <optgroup label="Global / General Templates">
-                                                                    {globalMasters.map((master) => (
-                                                                        <option key={master.id} value={master.id}>{master.name}</option>
-                                                                    ))}
-                                                                </optgroup>
-                                                            )}
-                                                            {destSpecificMasters.length === 0 && globalMasters.length === 0 && (
-                                                                <option disabled>No templates available</option>
-                                                            )}
-                                                        </>
-                                                    );
-                                                })()}
-                                            </select>
-                                            <div className="flex gap-2 mt-2 text-gray-400 text-xs text-right w-full justify-end">
+                                    {item.subItems && activeSection === 'itinerary' && (
+                                        <div className="mt-3 ml-6 pl-4 border-l-2 border-green-50 space-y-1 py-1.5 animate-in slide-in-from-top-4">
+                                            {item.subItems.map((sub, idx) => (
                                                 <button
+                                                    key={sub.id}
                                                     type="button"
-                                                    onClick={() => removeRow(setItineraryDays, i)}
-                                                    className="text-red-500 hover:text-red-700 font-bold"
+                                                    className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[9px] font-black text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group relative"
+                                                    onClick={() => {
+                                                        const el = document.getElementById(`itinerary-day-${idx}`);
+                                                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                    }}
                                                 >
-                                                    ✖ Remove
+                                                    <div className={`w-1 h-1 rounded-full ${idx === 0 ? 'bg-green-500' : 'bg-gray-300'} group-hover:scale-150 group-hover:bg-[#14532d] transition-all`}></div>
+                                                    <span className="uppercase tracking-widest">{sub.label}</span>
+                                                    <span className="text-[7.5px] text-gray-300 font-bold ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{sub.dest}</span>
                                                 </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </nav>
+                        <div className="mt-8 p-8 bg-[#14532d]/5 rounded-[2.5rem] border border-[#14532d]/10 relative overflow-hidden">
+                            <div className="absolute right-0 bottom-0 w-20 h-20 bg-[#14532d]/5 rounded-tl-[4rem]"></div>
+                            <p className="text-[10px] text-[#14532d] font-black uppercase tracking-[0.2em] mb-2 opacity-60">Admin Notice</p>
+                            <p className="text-[10px] font-bold text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">Modify your package details carefully. Changes will be instantly reflected on the live site upon update.</p>
+                            <div className="mt-4 pt-4 border-t border-[#14532d]/10">
+                                <p className="text-[8px] font-black text-[#14532d]/50 uppercase tracking-widest mb-1">Internal Reference</p>
+                                <p className="text-[10px] font-black text-[#14532d]">{id}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Form Content Area */}
+                    <div className="flex-1 overflow-y-auto px-12 py-10 custom-scrollbar bg-[#fcfdfc]">
+                        <div className="max-w-4xl mx-auto pb-12">
+                            {/* Messages */}
+                            {message && (
+                                <div className="mb-6 p-4 bg-green-50 border-2 border-green-100 text-[#14532d] rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                    <div className="bg-green-100 p-2 rounded-full">✅</div>
+                                    <p className="font-bold text-xs uppercase tracking-wider">{message}</p>
+                                </div>
+                            )}
+                            {error && (
+                                <div className="mb-6 p-4 bg-red-50 border-2 border-red-100 text-red-700 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                    <div className="bg-red-100 p-2 rounded-full">⚠</div>
+                                    <p className="font-bold text-xs uppercase tracking-wider text-left">{error}</p>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} id="package-form">
+                                {/* PACKAGE INFORMATION */}
+                                <Section title="Trip Overview" active={activeSection === 'overview'}>
+                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <FormLabel
+                                                    label="Package Title"
+                                                    required
+                                                    limit={TITLE_LIMIT}
+                                                    current={formData.title.length}
+                                                />
+                                                <Input
+                                                    name="title"
+                                                    value={formData.title}
+                                                    onChange={handleInputChange}
+                                                    error={errors.title}
+                                                    maxLength={TITLE_LIMIT}
+                                                    placeholder="e.g. Magical Mauritius - 5 Nights Luxury Escape"
+                                                />
                                             </div>
-                                        </div>
 
-                                        <div className="col-span-3">
-                                            <Input
-                                                type="text"
-                                                placeholder="Day Title"
-                                                value={row.title}
-                                                onChange={(e) => {
-                                                    const copy = [...itineraryDays];
-                                                    copy[i].title = e.target.value;
-                                                    setItineraryDays(copy);
-                                                }}
-                                                error={errors[`itinerary_title_${i}`]}
-                                            />
-                                        </div>
+                                            <div>
+                                                <FormLabel
+                                                    label="Trip Description"
+                                                    required
+                                                    limit={DESC_LIMIT}
+                                                    current={formData.description.length}
+                                                />
+                                                <textarea
+                                                    name="description"
+                                                    value={formData.description}
+                                                    onChange={handleInputChange}
+                                                    maxLength={DESC_LIMIT}
+                                                    placeholder="Describe the magical experience..."
+                                                    className={`bg-white border-2 ${errors.description ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} p-3.5 rounded-xl w-full h-40 text-gray-800 text-xs transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] hover:border-gray-200 resize-none`}
+                                                />
+                                                {errors.description && <p className="text-red-500 text-[9px] font-bold mt-1.5 flex items-center gap-1">⚠ {errors.description}</p>}
+                                            </div>
 
-                                        {/* Description */}
-                                        <div className="col-span-2">
-                                            <textarea
-                                                value={row.description}
-                                                onChange={(e) => {
-                                                    const copy = [...itineraryDays];
-                                                    copy[i].description = e.target.value;
-                                                    setItineraryDays(copy);
-                                                }}
-                                                rows="3"
-                                                className="w-full bg-white border border-gray-300 text-gray-800 px-2 py-1 rounded focus:border-[#14532d] focus:ring-1 focus:ring-[#14532d] focus:outline-none text-xs"
-                                            />
-                                        </div>
-
-                                        <div className="col-span-2">
-                                            {row.existing_image && !row.image && (
-                                                <div className="mb-2 relative inline-block group">
-                                                    <img src={row.existing_image} alt="Day" className="h-16 w-full object-cover rounded shadow-sm border" />
+                                            {/* Trip Highlights Integrated into Overview */}
+                                            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm mt-6">
+                                                <div className="flex justify-between items-center mb-6 border-b border-gray-50 pb-4">
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-gray-900 tracking-tight leading-none">Trip Highlights</h3>
+                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1.5">Core experience identifiers</p>
+                                                    </div>
                                                     <button
                                                         type="button"
-                                                        onClick={() => {
-                                                            const copy = [...itineraryDays];
-                                                            copy[i].existing_image = null;
-                                                            setItineraryDays(copy);
-                                                        }}
-                                                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        title="Remove existing image"
+                                                        onClick={() => addRow(setHighlights, "")}
+                                                        className="bg-[#14532d] text-white px-4 py-2 rounded-xl text-[9px] font-black shadow-lg shadow-green-900/10 active:scale-95 transition-all hover:bg-black uppercase tracking-widest"
                                                     >
-                                                        <X size={10} />
+                                                        + ADD HIGHLIGHT
                                                     </button>
                                                 </div>
-                                            )}
-                                            <div className="flex items-center gap-1">
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const copy = [...itineraryDays];
-                                                        copy[i].image = e.target.files[0];
-                                                        setItineraryDays(copy);
-                                                    }}
-                                                    className="w-full text-[10px] text-gray-500 file:mr-1 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-green-50 file:text-[#14532d] hover:file:bg-green-100"
-                                                />
-                                                {row.image && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const copy = [...itineraryDays];
-                                                            copy[i].image = null;
-                                                            setItineraryDays(copy);
-                                                        }}
-                                                        className="text-red-500 hover:text-red-700 text-xs"
-                                                    >
-                                                        ✖
-                                                    </button>
-                                                )}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                                                    {highlights.map((h, i) => (
+                                                        <div key={i} className="flex gap-3 items-center group animate-in slide-in-from-right-2" style={{ animationDelay: `${i * 50}ms` }}>
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 group-hover:scale-150 transition-all shadow-lg shadow-green-500/20"></div>
+                                                            <div className="flex-1">
+                                                                <Input
+                                                                    value={h}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...highlights];
+                                                                        copy[i] = e.target.value;
+                                                                        setHighlights(copy);
+                                                                    }}
+                                                                    placeholder="e.g. Traditional Malay Dinner..."
+                                                                    className="!bg-gray-50/30 !border-transparent focus:!bg-white focus:!border-green-100 !py-2 !text-[11px] !rounded-2xl"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeRow(setHighlights, i)}
+                                                                className="text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1.5 hover:bg-red-50 rounded-lg"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            {row.image && <p className="text-green-600 text-[9px] mt-0.5">File: {row.image.name}</p>}
-                                        </div>
 
-                                        {/* Save to Master */}
-                                        <div className="col-span-2 bg-[#f0f9f4] p-2 rounded border border-green-100">
-                                            <label className="flex items-center gap-2 cursor-pointer group">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={row.save_to_master}
-                                                    onChange={(e) => {
-                                                        const copy = [...itineraryDays];
-                                                        copy[i].save_to_master = e.target.checked;
-                                                        setItineraryDays(copy);
-                                                    }}
-                                                    className="w-3.5 h-3.5 text-[#14532d] focus:ring-[#14532d] rounded border-gray-300"
-                                                />
-                                                <span className="text-[10px] font-bold text-[#14532d] uppercase tracking-tighter group-hover:text-green-800">Save as Master</span>
-                                            </label>
-                                            {row.save_to_master && (
-                                                <div className="mt-2 animate-in fade-in slide-in-from-top-1">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Internal ID"
-                                                        value={row.master_name}
-                                                        onChange={(e) => {
-                                                            const copy = [...itineraryDays];
-                                                            copy[i].master_name = e.target.value.toLowerCase().replace(/\s+/g, '_');
-                                                            setItineraryDays(copy);
-                                                        }}
-                                                        className="w-full bg-white border border-green-200 text-[10px] px-1.5 py-1 rounded focus:outline-none focus:ring-1 focus:ring-green-500 font-medium"
-                                                    />
-                                                    <p className="text-[8px] text-green-600 mt-1 italic">Will be saved to Master List</p>
+                                            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                                                <div>
+                                                    <FormLabel label="Package Category" required />
+                                                    <select
+                                                        name="category"
+                                                        value={formData.category}
+                                                        onChange={handleInputChange}
+                                                        className={`bg-white border-2 ${errors.category ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} px-4 py-2.5 rounded-xl w-full text-gray-800 text-sm transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] hover:border-gray-200 cursor-pointer`}
+                                                    >
+                                                        <option value="">Select Category</option>
+                                                        <option value="Domestic">Domestic</option>
+                                                        <option value="International">International</option>
+                                                        <option value="Umrah">Umrah</option>
+                                                    </select>
                                                 </div>
-                                            )}
+
+                                                <div className="flex gap-6">
+                                                    <div className="flex-1">
+                                                        <FormLabel label="Flight Inclusion" />
+                                                        <div className="flex bg-white p-1 rounded-xl border-2 border-gray-100">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, with_flight: true })}
+                                                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${formData.with_flight ? 'bg-[#14532d] text-white shadow-lg shadow-green-900/10' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                WITH FLIGHT
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, with_flight: false })}
+                                                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${!formData.with_flight ? 'bg-red-500 text-white shadow-lg shadow-red-900/10' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                NO FLIGHT
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <FormLabel label="Package Status" />
+                                                        <div className="flex bg-white p-1 rounded-xl border-2 border-gray-100">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, is_active: true })}
+                                                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${formData.is_active ? 'bg-green-500 text-white shadow-lg shadow-green-900/10' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                ACTIVE
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, is_active: false })}
+                                                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${!formData.is_active ? 'bg-gray-400 text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                HIDDEN
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                ))}
 
-                                <div className="p-4 bg-gray-50 border-t border-gray-200">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            addRow(setItineraryDays, {
-                                                day: (itineraryDays.length + 1).toString(),
-                                                title: "",
-                                                description: "",
-                                                master_template: "",
-                                                image: null
-                                            })
-                                        }
-                                        className="flex items-center gap-1 text-[#14532d] hover:text-[#0f4a24] font-semibold text-sm"
-                                    >
-                                        <span>+</span> Add another Itinerary day
-                                    </button>
-                                </div>
-                            </div>
-                        </Section>
 
-                        {/* INCLUSIONS */}
-                        <Section title="Inclusions">
-                            {inclusions.map((inc, i) => (
-                                <div key={i} className="flex gap-4 mb-2">
-                                    <Input
-                                        value={inc}
-                                        onChange={(e) => {
-                                            const copy = [...inclusions];
-                                            copy[i] = e.target.value;
-                                            setInclusions(copy);
-                                        }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeRow(setInclusions, i)}
-                                        className="text-red-600 hover:text-red-800 font-bold whitespace-nowrap"
-                                    >
-                                        ✖ Remove
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => addRow(setInclusions, "")}
-                                className="text-[#14532d] hover:text-[#0f4a24] font-semibold"
-                            >
-                                + Add another Inclusion
-                            </button>
-                        </Section>
+                                </Section>
 
-                        {/* EXCLUSIONS */}
-                        <Section title="Exclusions">
-                            {exclusions.map((exc, i) => (
-                                <div key={i} className="flex gap-4 mb-2">
-                                    <Input
-                                        value={exc}
-                                        onChange={(e) => {
-                                            const copy = [...exclusions];
-                                            copy[i] = e.target.value;
-                                            setExclusions(copy);
-                                        }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeRow(setExclusions, i)}
-                                        className="text-red-600 hover:text-red-800 font-bold whitespace-nowrap"
-                                    >
-                                        ✖ Remove
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => addRow(setExclusions, "")}
-                                className="text-[#14532d] hover:text-[#0f4a24] font-semibold"
-                            >
-                                + Add another Exclusion
-                            </button>
-                        </Section>
+                                {/* LOCATION DETAILS */}
+                                <Section title="Arrival & Departure" active={activeSection === 'location'}>
+                                    <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
+                                        <div className="grid grid-cols-2 gap-8">
+                                            <div className="space-y-6">
+                                                <div>
+                                                    <FormLabel label="Starting City" required info="The city where the tour begins" />
+                                                    <SearchableSelect
+                                                        options={startingCities.map(city => ({ value: city.name, label: city.name }))}
+                                                        value={formData.starting_city}
+                                                        onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
+                                                        placeholder="Search starting city..."
+                                                        className="modern-select"
+                                                    />
+                                                    {errors.starting_city && <p className="text-red-500 text-[10px] font-bold mt-1.5 flex items-center gap-1">⚠ {errors.starting_city}</p>}
+                                                </div>
 
-                        {/* HIGHLIGHTS */}
-                        <Section title="Highlights">
-                            {highlights.map((high, i) => (
-                                <div key={i} className="flex gap-4 mb-2">
-                                    <Input
-                                        value={high}
-                                        onChange={(e) => {
-                                            const copy = [...highlights];
-                                            copy[i] = e.target.value;
-                                            setHighlights(copy);
-                                        }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeRow(setHighlights, i)}
-                                        className="text-red-600 hover:text-red-800 font-bold whitespace-nowrap"
-                                    >
-                                        ✖ Remove
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => addRow(setHighlights, "")}
-                                className="text-[#14532d] hover:text-[#0f4a24] font-semibold"
-                            >
-                                + Add another Highlight
-                            </button>
-                        </Section>
+                                                <div className="pt-4 border-t border-gray-100">
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <FormLabel label="Tour Route (Nights Setup)" info="Add nights to your trip to define the itinerary duration" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newDays = parseInt(formData.days || 1, 10) + 1;
+                                                                setFormData(prev => ({ ...prev, days: newDays.toString() }));
+                                                            }}
+                                                            className="bg-white px-3 py-1.5 rounded-xl border-2 border-gray-100 text-[9px] font-black text-[#14532d] hover:bg-green-50 active:scale-95 transition-all shadow-sm"
+                                                        >
+                                                            + ADD NIGHT
+                                                        </button>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        {packageDestinations.map((row, i) => (
+                                                            <div key={i} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-100 shadow-sm group animate-in slide-in-from-left-2" style={{ animationDelay: `${i * 50}ms` }}>
+                                                                <div className="w-10 py-1 rounded-lg bg-green-50 flex flex-col items-center justify-center shrink-0 border border-green-100">
+                                                                    <span className="text-[7px] font-black text-[#14532d] uppercase">Night</span>
+                                                                    <span className="text-xs font-black text-[#14532d] leading-none">{i + 1}</span>
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <SearchableSelect
+                                                                        options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country || d.region || '' }))}
+                                                                        value={row.destination}
+                                                                        onChange={(val) => {
+                                                                            const copy = [...packageDestinations];
+                                                                            copy[i].destination = val;
+                                                                            setPackageDestinations(copy);
+                                                                        }}
+                                                                        placeholder="Select City..."
+                                                                    />
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const currentDays = parseInt(formData.days || 1, 10);
+                                                                        if (currentDays > 1) {
+                                                                            setFormData(prev => ({ ...prev, days: (currentDays - 1).toString() }));
+                                                                        }
+                                                                    }}
+                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:bg-red-50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                                                                >
+                                                                    <X size={14} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                        {/* SAVE BUTTONS */}
-                        <div className="flex gap-2 mt-4 bg-white p-4 rounded-lg shadow-sm">
-                            <button
-                                type="button"
-                                onClick={() => navigate('/admin/packages')}
-                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition text-sm font-semibold"
-                            >
-                                CANCEL
-                            </button>
-                            <button
-                                type="submit"
-                                className="bg-[#14532d] px-4 py-2 rounded text-white hover:bg-[#0f4a24] transition text-sm font-semibold"
-                                disabled={saving}
-                            >
-                                {saving ? "UPDATING..." : "UPDATE PACKAGE"}
-                            </button>
+                                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm self-start">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <div className="w-1.5 h-4 bg-[#14532d] rounded-full"></div>
+                                                    <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Route Summary</h3>
+                                                </div>
+                                                <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-dashed-green">
+                                                    <div className="relative">
+                                                        <div className="absolute -left-[20px] top-1.5 w-2 h-2 rounded-full bg-[#14532d] ring-4 ring-green-50"></div>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Departure</p>
+                                                        <p className="text-sm font-black text-gray-900">{formData.starting_city || "---"}</p>
+                                                    </div>
+                                                    {packageDestinations.slice(0, 3).map((dest, i) => (
+                                                        <div key={i} className="relative">
+                                                            <div className="absolute -left-[20px] top-1.5 w-2 h-2 rounded-full border-2 border-gray-200 bg-white"></div>
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Night {i + 1}</p>
+                                                            <p className="text-sm font-black text-gray-900">{dest.destination || "---"}</p>
+                                                        </div>
+                                                    ))}
+                                                    {packageDestinations.length > 3 && (
+                                                        <p className="text-[10px] font-bold text-[#14532d]">+{packageDestinations.length - 3} More Nights</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Section>
+
+                                {/* PRICING */}
+                                <Section title="Pricing & Availability" active={activeSection === 'pricing'}>
+                                    <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
+                                        <div className="grid grid-cols-2 gap-x-12 gap-y-8">
+                                            <div className="space-y-6">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
+                                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price Settings</h3>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <FormLabel label="Offer Price" required info="The discounted price shown to users" />
+                                                        <div className="relative">
+                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
+                                                            <Input
+                                                                type="text"
+                                                                name="offer_price"
+                                                                value={formatWithCommas(formData.offer_price)}
+                                                                onChange={handleInputChange}
+                                                                error={errors.offer_price}
+                                                                className="pl-8"
+                                                                placeholder="0"
+                                                                required
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <FormLabel label="Regular Price" optional info="Strikethrough price for comparison" />
+                                                        <div className="relative border-l border-gray-100 pl-4">
+                                                            <span className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
+                                                            <Input
+                                                                type="text"
+                                                                name="price"
+                                                                value={formatWithCommas(formData.price)}
+                                                                onChange={handleInputChange}
+                                                                className="pl-8"
+                                                                placeholder="0"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-gray-400 font-medium italic">Note: Prices are formatted with commas automatically for Indian Rupees.</p>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
+                                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Trip Schedule</h3>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <FormLabel label="Start Date" required />
+                                                        <Input
+                                                            type="date"
+                                                            name="start_date"
+                                                            value={formData.start_date}
+                                                            onChange={handleInputChange}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <FormLabel label="Max Group Size" />
+                                                        <Input
+                                                            type="number"
+                                                            name="group_size"
+                                                            value={formData.group_size}
+                                                            onChange={handleInputChange}
+                                                            placeholder="0"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <FormLabel label="Total Duration (Days)" info="Calculated based on nights + 1" />
+                                                    <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                        <div className="p-3 bg-green-50 rounded-lg text-[#14532d]">
+                                                            <Calendar size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xl font-black text-gray-900 leading-none">{formData.days || 1} Days</p>
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{parseInt(formData.days || 1) - 1} Nights Included</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Section>
+
+                                {/* IMAGES */}
+                                <Section title="Marketing Images" active={activeSection === 'images'}>
+                                    <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
+                                        <div className="grid grid-cols-2 gap-12">
+                                            <div className="space-y-4">
+                                                <FormLabel label="Header Image" info="Large banner shown at the top of the package page" />
+                                                <div className="aspect-[21/9] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
+                                                    {(headerPreview) ? (
+                                                        <>
+                                                            <img src={headerPreview} className="w-full h-full object-cover" alt="Header Preview" />
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setHeaderPreview(null);
+                                                                        setFormData({ ...formData, header_image: null });
+                                                                    }}
+                                                                    className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
+                                                                >
+                                                                    <X size={20} />
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="text-center p-6">
+                                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
+                                                                <ImageIcon size={24} />
+                                                            </div>
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Header</p>
+                                                            <p className="text-[8px] text-gray-300 mt-1">Recommended: 1920x800px</p>
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        name="header_image"
+                                                        accept="image/*"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        onChange={(e) => {
+                                                            handleFileChange(e);
+                                                            if (e.target.files[0]) {
+                                                                setHeaderPreview(URL.createObjectURL(e.target.files[0]));
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                {formData.header_image && <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">New Header Selected</p>}
+                                                {errors.header_image && <p className="text-red-500 text-[10px] font-bold mt-1 text-center">⚠ {errors.header_image}</p>}
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <FormLabel label="Card Image" info="Thumbnail image shown in listings and search results" />
+                                                <div className="aspect-[4/3] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
+                                                    {(cardPreview) ? (
+                                                        <>
+                                                            <img src={cardPreview} className="w-full h-full object-cover" alt="Card Preview" />
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setCardPreview(null);
+                                                                        setFormData({ ...formData, card_image: null });
+                                                                    }}
+                                                                    className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
+                                                                >
+                                                                    <X size={20} />
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="text-center p-6">
+                                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
+                                                                <ImageIcon size={24} />
+                                                            </div>
+                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Card</p>
+                                                            <p className="text-[8px] text-gray-300 mt-1">Recommended: 800x600px</p>
+                                                        </div>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        name="card_image"
+                                                        accept="image/*"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        onChange={(e) => {
+                                                            handleFileChange(e);
+                                                            if (e.target.files[0]) {
+                                                                setCardPreview(URL.createObjectURL(e.target.files[0]));
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                {formData.card_image && <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">New Card Selected</p>}
+                                                {errors.card_image && <p className="text-red-500 text-[10px] font-bold mt-1 text-center">⚠ {errors.card_image}</p>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Section>
+
+                                {/* DAY WISE ITINERARY */}
+                                <Section title="Day Wise Itinerary" active={activeSection === 'itinerary'}>
+                                    <div className="space-y-8">
+                                        {itineraryDays.map((row, i) => (
+                                            <div key={i} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden shadow-sm animate-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 100}ms` }}>
+                                                <div className="bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-xl bg-[#14532d] flex flex-col items-center justify-center text-white shadow-lg shadow-green-900/10">
+                                                            <span className="text-[10px] font-black uppercase tracking-tighter leading-none opacity-70">Day</span>
+                                                            <span className="text-lg font-black leading-none">{i + 1}</span>
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Destination</span>
+                                                                <div className="h-1 w-1 rounded-full bg-gray-200"></div>
+                                                                <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest leading-none">{getDestinationForDay(i)}</span>
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Enter amazing title for this day..."
+                                                                value={row.title}
+                                                                onChange={(e) => {
+                                                                    const copy = [...itineraryDays];
+                                                                    copy[i].title = e.target.value;
+                                                                    setItineraryDays(copy);
+                                                                }}
+                                                                className="text-lg font-black text-gray-900 bg-transparent border-none focus:ring-0 p-0 w-full placeholder:text-gray-200"
+                                                            />
+                                                            {errors[`itinerary_title_${i}`] && <p className="text-red-500 text-[10px] font-bold mt-1">⚠ {errors[`itinerary_title_${i}`]}</p>}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex bg-white p-1 rounded-xl border border-gray-100 scale-75 origin-right">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const copy = [...itineraryDays];
+                                                                    if (i > 0) {
+                                                                        const temp = copy[i];
+                                                                        copy[i] = copy[i - 1];
+                                                                        copy[i - 1] = temp;
+                                                                        setItineraryDays(copy);
+                                                                    }
+                                                                }}
+                                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#14532d] hover:bg-green-50 transition-all font-bold"
+                                                                title="Move Up"
+                                                            >
+                                                                ↑
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const copy = [...itineraryDays];
+                                                                    if (i < copy.length - 1) {
+                                                                        const temp = copy[i];
+                                                                        copy[i] = copy[i + 1];
+                                                                        copy[i + 1] = temp;
+                                                                        setItineraryDays(copy);
+                                                                    }
+                                                                }}
+                                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#14532d] hover:bg-green-50 transition-all font-bold"
+                                                                title="Move Down"
+                                                            >
+                                                                ↓
+                                                            </button>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeRow(setItineraryDays, i)}
+                                                            className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-300 hover:bg-red-50 hover:text-red-500 transition-all border border-gray-50 hover:border-red-100"
+                                                        >
+                                                            <X size={18} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-8 space-y-8">
+                                                    <div className="grid grid-cols-3 gap-8">
+                                                        <div className="col-span-2 space-y-6">
+                                                            <div>
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <FormLabel label="Day Description" required />
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Master Template:</span>
+                                                                        <select
+                                                                            value={row.master_template}
+                                                                            onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
+                                                                            className="bg-green-50/50 border border-green-100 px-3 py-1 rounded-lg text-[10px] font-black text-[#14532d] uppercase tracking-widest focus:ring-0 focus:outline-none cursor-pointer hover:bg-green-100/50 transition-colors"
+                                                                        >
+                                                                            <option value="">Manual Entry</option>
+                                                                            {(() => {
+                                                                                const currentDest = getDestinationForDay(i);
+                                                                                const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
+                                                                                const globalMasters = groupedItineraryMasters["Global / General"] || [];
+                                                                                return (
+                                                                                    <>
+                                                                                        {destSpecificMasters.length > 0 && (
+                                                                                            <optgroup label={`${currentDest} Templates`}>
+                                                                                                {destSpecificMasters.map(m => (
+                                                                                                    <option key={m.id} value={m.id}>{m.name}</option>
+                                                                                                ))}
+                                                                                            </optgroup>
+                                                                                        )}
+                                                                                        <optgroup label="General Templates">
+                                                                                            {globalMasters.map(m => (
+                                                                                                <option key={m.id} value={m.id}>{m.name}</option>
+                                                                                            ))}
+                                                                                        </optgroup>
+                                                                                    </>
+                                                                                );
+                                                                            })()}
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <textarea
+                                                                    value={row.description}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...itineraryDays];
+                                                                        copy[i].description = e.target.value;
+                                                                        setItineraryDays(copy);
+                                                                    }}
+                                                                    rows="8"
+                                                                    placeholder="Describe the day's adventure in detail..."
+                                                                    className="w-full bg-white border-2 border-gray-100 p-5 rounded-2xl text-sm text-gray-700 leading-relaxed focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] focus:outline-none transition-all hover:border-gray-200 resize-none"
+                                                                />
+                                                            </div>
+
+                                                            <div className="flex items-center gap-6 p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="relative">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                id={`save_master_${i}`}
+                                                                                checked={row.save_to_master}
+                                                                                onChange={(e) => {
+                                                                                    const copy = [...itineraryDays];
+                                                                                    copy[i].save_to_master = e.target.checked;
+                                                                                    setItineraryDays(copy);
+                                                                                }}
+                                                                                className="peer hidden"
+                                                                            />
+                                                                            <label
+                                                                                htmlFor={`save_master_${i}`}
+                                                                                className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-gray-200 peer-checked:border-[#14532d] peer-checked:bg-[#14532d] peer-checked:text-white transition-all shadow-sm"
+                                                                            >
+                                                                                <div className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center p-0.5">
+                                                                                    {row.save_to_master && <div className="w-full h-full bg-white rounded-full"></div>}
+                                                                                </div>
+                                                                                <span className="text-[10px] font-black uppercase tracking-widest">Save to Masters</span>
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <p className="text-[10px] text-green-700/50 font-medium italic max-w-[150px]">Saving helps you reuse this itinerary description in other packages.</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-4">
+                                                            <FormLabel label="Day Visual" />
+                                                            <div className="aspect-square w-full bg-white rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
+                                                                {(row.image || row.existing_image) ? (
+                                                                    <>
+                                                                        <img
+                                                                            src={row.image ? URL.createObjectURL(row.image) : row.existing_image}
+                                                                            className="w-full h-full object-cover"
+                                                                            alt="Preview"
+                                                                        />
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    const copy = [...itineraryDays];
+                                                                                    copy[i].image = null;
+                                                                                    copy[i].existing_image = null;
+                                                                                    setItineraryDays(copy);
+                                                                                }}
+                                                                                className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
+                                                                            >
+                                                                                <X size={20} />
+                                                                            </button>
+                                                                        </div>
+                                                                    </>
+                                                                ) : (
+                                                                    <div className="text-center p-6 pb-2">
+                                                                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
+                                                                            <Package size={24} />
+                                                                        </div>
+                                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No Image</p>
+                                                                        <p className="text-[8px] text-gray-300 mt-1">Recommended square size</p>
+                                                                    </div>
+                                                                )}
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                    onChange={(e) => {
+                                                                        if (e.target.files[0]) {
+                                                                            const copy = [...itineraryDays];
+                                                                            copy[i].image = e.target.files[0];
+                                                                            setItineraryDays(copy);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            {(row.image || row.existing_image) && (
+                                                                <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">
+                                                                    {row.image ? "New Image Selected" : "Existing Image"}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const nextDay = itineraryDays.length + 1;
+                                                setItineraryDays([...itineraryDays, {
+                                                    day: nextDay,
+                                                    title: "",
+                                                    description: "",
+                                                    master_template: "",
+                                                    image: null,
+                                                    existing_image: null,
+                                                    save_to_master: false,
+                                                }]);
+                                            }}
+                                            className="w-full py-6 rounded-3xl border-4 border-dashed border-gray-100 flex flex-col items-center gap-2 text-gray-400 hover:border-[#14532d] hover:bg-green-50/30 hover:text-[#14532d] transition-all"
+                                        >
+                                            <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center border-2 border-white shadow-inner">
+                                                <span className="text-2xl font-light">+</span>
+                                            </div>
+                                            <span className="text-xs font-black uppercase tracking-[0.2em]">Add Itinerary Day</span>
+                                        </button>
+                                    </div>
+                                </Section>
+
+                                {/* POLICY & TRIP INFO */}
+                                <Section title="Trip Information" active={activeSection === 'policy'}>
+                                    <div className="space-y-8">
+                                        <div className="grid grid-cols-2 gap-8">
+                                            <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
+                                                        <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Inclusions</h3>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => addRow(setInclusions, "")}
+                                                        className="px-3 py-1.5 rounded-lg bg-green-100 text-[#14532d] text-[10px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all"
+                                                    >
+                                                        + Add
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {inclusions.map((inc, i) => (
+                                                        <div key={i} className="flex gap-2 group animate-in slide-in-from-left-2" style={{ animationDelay: `${i * 50}ms` }}>
+                                                            <div className="flex-1">
+                                                                <Input
+                                                                    value={inc}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...inclusions];
+                                                                        copy[i] = e.target.value;
+                                                                        setInclusions(copy);
+                                                                    }}
+                                                                    placeholder="e.g. Round trip economy class airfare"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeRow(setInclusions, i)}
+                                                                className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-red-50/30 rounded-2xl p-8 border border-red-100/50">
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-1 h-4 bg-red-500 rounded-full"></div>
+                                                        <h3 className="text-xs font-black text-red-900/40 uppercase tracking-widest">Exclusions</h3>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => addRow(setExclusions, "")}
+                                                        className="px-3 py-1.5 rounded-lg bg-red-100/50 text-red-600 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                                                    >
+                                                        + Add
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {exclusions.map((exc, i) => (
+                                                        <div key={i} className="flex gap-2 group animate-in slide-in-from-right-2" style={{ animationDelay: `${i * 50}ms` }}>
+                                                            <div className="flex-1">
+                                                                <Input
+                                                                    value={exc}
+                                                                    onChange={(e) => {
+                                                                        const copy = [...exclusions];
+                                                                        copy[i] = e.target.value;
+                                                                        setExclusions(copy);
+                                                                    }}
+                                                                    placeholder="e.g. Personal expenses like laundry, drinks"
+                                                                    className="border-red-100 focus:border-red-400 focus:ring-red-400/10 placeholder:text-red-200"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeRow(setExclusions, i)}
+                                                                className="w-10 h-10 rounded-xl flex items-center justify-center text-red-200 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Section>
+                            </form>
                         </div>
-                    </form>
-                </div >
-            </div >
-        </div >
+                    </div>
+                </div>
+            </div>
+
+        </div>
     );
 };
 

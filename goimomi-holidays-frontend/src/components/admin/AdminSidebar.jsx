@@ -190,8 +190,8 @@ const AdminSidebar = () => {
       <div key={item.name}>
         <li
           onClick={() => handleRowClick(item)}
-          className={`group flex justify-between items-center px-3 py-3 border-b border-white/5 hover:bg-white/20 transition-all ${getChangeHandler(item) || isDropdown ? "cursor-pointer" : "cursor-default"
-            } ${isChild ? "pl-10 bg-black/10" : ""}`}
+          className={`group flex justify-between items-center px-2.5 py-2 border-b border-white/5 hover:bg-white/20 transition-all ${getChangeHandler(item) || isDropdown ? "cursor-pointer" : "cursor-default"
+            } ${isChild ? "pl-8 bg-black/10" : ""}`}
           title={isCollapsed ? item.name : ""}
         >
           <div className="flex items-center gap-3">
@@ -249,17 +249,17 @@ const AdminSidebar = () => {
       className={`${isCollapsed ? "w-20" : "w-80"} bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
     >
       {/* Header */}
-      <div className={`p-6 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
+      <div className={`p-4 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
         {!isCollapsed && (
           <h2
-            className="text-xl font-bold tracking-tighter text-white cursor-pointer hover:text-green-200 transition-colors"
+            className="text-lg font-black tracking-tighter text-white cursor-pointer hover:text-green-200 transition-colors"
             onClick={() => navigate("/")}
           >
-            GOIMOMI <span className="text-white opacity-80">ADMIN</span>
+            GOIMOMI <span className="text-white opacity-80 font-medium">ADMIN</span>
           </h2>
         )}
         {isCollapsed && (
-          <div onClick={() => navigate("/")} className="cursor-pointer bg-[#1f7a45] w-8 h-8 rounded flex items-center justify-center font-bold">G</div>
+          <div onClick={() => navigate("/")} className="cursor-pointer bg-[#1f7a45] w-7 h-7 rounded flex items-center justify-center font-bold text-xs">G</div>
         )}
       </div>
 
@@ -273,9 +273,9 @@ const AdminSidebar = () => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         {menu.map((section, idx) => (
-          <div key={idx} className="mt-6 mb-2">
+          <div key={idx} className="mt-4 mb-1">
             {!isCollapsed && (
-              <h3 className="px-6 py-2 text-[10px] uppercase font-black tracking-widest text-gray-400">
+              <h3 className="px-6 py-1.5 text-[9px] uppercase font-black tracking-[0.2em] text-gray-400 opacity-60">
                 {section.title}
               </h3>
             )}
@@ -289,14 +289,14 @@ const AdminSidebar = () => {
       </div>
 
       {/* Footer / Dash Link */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-3 border-t border-white/10">
         <button
           onClick={() => navigate("/admin-dashboard")}
-          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-3"} p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all`}
+          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2.5"} p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all`}
           title="Dashboard"
         >
-          <LayoutDashboard size={20} className="text-green-400" />
-          {!isCollapsed && <span className="font-bold text-sm">Dashboard Hub</span>}
+          <LayoutDashboard size={16} className="text-green-400" />
+          {!isCollapsed && <span className="font-bold text-xs uppercase tracking-wider">Dashboard Hub</span>}
         </button>
       </div>
     </aside>
