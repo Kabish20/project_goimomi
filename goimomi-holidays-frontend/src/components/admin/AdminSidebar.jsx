@@ -195,13 +195,13 @@ const AdminSidebar = () => {
           title={isCollapsed ? item.name : ""}
         >
           <div className="flex items-center gap-2">
-            <div className="text-green-400 group-hover:scale-110 transition-transform">
-              {item.icon || (isChild && <div className="w-1 h-1 bg-green-400 rounded-full" />)}
+            <div className="text-green-400 group-hover:scale-110 transition-transform shrink-0">
+              {item.icon || (isChild && <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />)}
             </div>
             {!isCollapsed && (
               <>
-                {isDropdown && (isOpen ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />)}
-                <span className="text-sm font-medium text-gray-200 group-hover:text-white">{item.name}</span>
+                {isDropdown && (isOpen ? <ChevronDown size={14} className="text-gray-400 group-hover:text-gray-200 transition-colors" /> : <ChevronRight size={14} className="text-gray-400 group-hover:text-gray-200 transition-colors" />)}
+                <span className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors leading-none">{item.name}</span>
               </>
             )}
           </div>
@@ -275,7 +275,7 @@ const AdminSidebar = () => {
         {menu.map((section, idx) => (
           <div key={idx} className="mt-4 mb-1">
             {!isCollapsed && (
-              <h3 className="px-4 py-1.5 text-[11px] font-medium text-gray-200 uppercase tracking-widest opacity-60">
+              <h3 className="px-4 py-1.5 text-sm font-medium text-gray-200 uppercase tracking-widest opacity-60">
                 {section.title}
               </h3>
             )}
@@ -292,11 +292,11 @@ const AdminSidebar = () => {
       <div className="p-3 border-t border-white/10">
         <button
           onClick={() => navigate("/admin-dashboard")}
-          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2.5"} p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all`}
+          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2.5"} p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all group`}
           title="Dashboard"
         >
           <LayoutDashboard size={16} className="text-green-400" />
-          {!isCollapsed && <span className="font-bold text-xs uppercase tracking-wider">Dashboard Hub</span>}
+          {!isCollapsed && <span className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors">Dashboard Hub</span>}
         </button>
       </div>
     </aside>

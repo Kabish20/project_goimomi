@@ -83,6 +83,9 @@ const HolidayPackageEdit = () => {
         name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
     });
     const [vehicles, setVehicles] = useState([]);
+    // New Sightseeing panel state
+    const [newSightseeingForm, setNewSightseeingForm] = useState({ name: '', description: '', address: '', city: '', latitude: '', longitude: '', images: [] });
+    const [sightseeingPanelDayIndex, setSightseeingPanelDayIndex] = useState(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -830,7 +833,7 @@ const HolidayPackageEdit = () => {
                                     <button
                                         type="button"
                                         onClick={() => setActiveSection(item.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black transition-all duration-500 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-900'}`}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-500 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
                                     >
                                         {activeSection === item.id && (
                                             <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
@@ -838,7 +841,7 @@ const HolidayPackageEdit = () => {
                                         <span className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${activeSection === item.id ? 'scale-110 rotate-3 text-white ' + item.color : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
                                             {item.icon}
                                         </span>
-                                        <span className="uppercase tracking-[0.15em] text-[10px]">{item.label}</span>
+                                        <span className="text-sm font-medium uppercase tracking-[0.1em]">{item.label}</span>
                                     </button>
                                     {item.id === 'itinerary' && activeSection === 'itinerary' && (
                                         <div className="mt-3 ml-6 pl-4 border-l-2 border-green-50 space-y-1 py-1.5 animate-in slide-in-from-top-4">
@@ -846,15 +849,15 @@ const HolidayPackageEdit = () => {
                                                 <button
                                                     key={idx}
                                                     type="button"
-                                                    className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[9px] font-black text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group relative"
+                                                    className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group relative"
                                                     onClick={() => {
                                                         const el = document.getElementById(`itinerary-day-${idx}`);
                                                         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                                     }}
                                                 >
                                                     <div className={`w-1 h-1 rounded-full ${activeSection === 'itinerary' ? 'bg-green-500' : 'bg-gray-300'} group-hover:scale-150 group-hover:bg-[#14532d] transition-all`}></div>
-                                                    <span className="uppercase tracking-widest">Day {idx + 1}</span>
-                                                    <span className="text-[7.5px] text-gray-300 font-bold ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{getDestinationForDay(idx)}</span>
+                                                    <span className="text-sm font-medium uppercase tracking-wider">Day {idx + 1}</span>
+                                                    <span className="text-xs font-medium text-gray-300 ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{getDestinationForDay(idx)}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -864,11 +867,11 @@ const HolidayPackageEdit = () => {
                         </nav>
                         <div className="mt-8 p-8 bg-[#14532d]/5 rounded-[2.5rem] border border-[#14532d]/10 relative overflow-hidden">
                             <div className="absolute right-0 bottom-0 w-20 h-20 bg-[#14532d]/5 rounded-tl-[4rem]"></div>
-                            <p className="text-[10px] text-[#14532d] font-black uppercase tracking-[0.2em] mb-2 opacity-60">Admin Notice</p>
-                            <p className="text-[10px] font-bold text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">Modify your package details carefully. Changes will be instantly reflected on the live site upon update.</p>
+                            <p className="text-sm font-medium text-[#14532d] uppercase tracking-[0.2em] mb-2 opacity-60">Admin Notice</p>
+                            <p className="text-sm font-medium text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">Modify your package details carefully. Changes will be instantly reflected on the live site upon update.</p>
                             <div className="mt-4 pt-4 border-t border-[#14532d]/10">
-                                <p className="text-[8px] font-black text-[#14532d]/50 uppercase tracking-widest mb-1">Internal Reference</p>
-                                <p className="text-[10px] font-black text-[#14532d]">{id}</p>
+                                <p className="text-sm font-medium text-[#14532d]/50 uppercase tracking-widest mb-1">Internal Reference</p>
+                                <p className="text-sm font-medium text-[#14532d]">{id}</p>
                             </div>
                         </div>
                     </div>
@@ -1445,7 +1448,6 @@ const HolidayPackageEdit = () => {
                                                         {[
                                                             { id: 'day_itinerary', label: 'Day Itinerary', icon: <ClipboardList size={14} /> },
                                                             { id: 'sightseeing', label: 'Sightseeing', icon: <Camera size={14} /> },
-                                                            { id: 'transfers', label: 'Transfers', icon: <Bus size={14} /> },
                                                             { id: 'accommodation', label: 'Accommodation', icon: <Bed size={14} /> },
                                                             { id: 'vehicle', label: 'Vehicle', icon: <Car size={14} /> }
                                                         ].map(tab => (
@@ -1474,250 +1476,409 @@ const HolidayPackageEdit = () => {
                                                     {/* TAB CONTENT */}
                                                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                                                         {/* 1. DAY ITINERARY */}
-                                                        {(!row.details_json?.active_tab || row.details_json?.active_tab === 'day_itinerary') && (
-                                                            <div className="grid grid-cols-3 gap-8">
-                                                                <div className="col-span-2 space-y-6">
-                                                                    <div>
-                                                                        <div className="flex items-center justify-between mb-2">
-                                                                            <FormLabel label="Day Description" required />
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Master Template:</span>
-                                                                                <select
-                                                                                    value={row.master_template}
-                                                                                    onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
-                                                                                    className="bg-green-50/50 border border-green-100 px-3 py-1 rounded-lg text-[10px] font-black text-[#14532d] uppercase tracking-widest focus:ring-0 focus:outline-none cursor-pointer hover:bg-green-100/50 transition-colors"
-                                                                                >
-                                                                                    <option value="">Manual Entry</option>
-                                                                                    {(() => {
-                                                                                        const currentDest = getDestinationForDay(i);
-                                                                                        const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
-                                                                                        const globalMasters = groupedItineraryMasters["Global / General"] || [];
-                                                                                        return (
-                                                                                            <>
-                                                                                                {destSpecificMasters.length > 0 && (
-                                                                                                    <optgroup label={`${currentDest} Templates`}>
-                                                                                                        {destSpecificMasters.map(m => (
-                                                                                                            <option key={m.id} value={m.id}>{m.name}</option>
-                                                                                                        ))}
-                                                                                                    </optgroup>
-                                                                                                )}
-                                                                                                <optgroup label="General Templates">
-                                                                                                    {globalMasters.map(m => (
-                                                                                                        <option key={m.id} value={m.id}>{m.name}</option>
-                                                                                                    ))}
-                                                                                                </optgroup>
-                                                                                            </>
-                                                                                        );
-                                                                                    })()}
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                        <textarea
-                                                                            value={row.description}
-                                                                            onChange={(e) => {
-                                                                                const copy = [...itineraryDays];
-                                                                                copy[i].description = e.target.value;
-                                                                                setItineraryDays(copy);
-                                                                            }}
-                                                                            rows="8"
-                                                                            placeholder="Describe the day's adventure in detail..."
-                                                                            className="w-full bg-white border-2 border-gray-100 p-5 rounded-2xl text-sm text-gray-700 leading-relaxed focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] focus:outline-none transition-all hover:border-gray-200 resize-none"
-                                                                        />
-                                                                    </div>
+                                                        {(!row.details_json?.active_tab || row.details_json?.active_tab === 'day_itinerary') && (() => {
+                                                            const dayMasterSearch = row.details_json?._dayMasterSearch || '';
+                                                            const dayMeals = row.details_json?.meals_included || [];
+                                                            const dayTransferType = row.details_json?.transfer_type || '';
+                                                            const updateDay = (patch) => {
+                                                                const copy = [...itineraryDays];
+                                                                copy[i].details_json = { ...copy[i].details_json, ...patch };
+                                                                setItineraryDays(copy);
+                                                            };
+                                                            const filteredDayMasters = dayMasterSearch
+                                                                ? itineraryMasters.filter(m =>
+                                                                    m.name?.toLowerCase().includes(dayMasterSearch.toLowerCase()) ||
+                                                                    m.title?.toLowerCase().includes(dayMasterSearch.toLowerCase())
+                                                                ) : [];
+                                                            const mealOptions = ['No Meals', 'Breakfast', 'Lunch', 'High-Tea', 'Dinner'];
+                                                            return (
+                                                                <div className="grid grid-cols-3 gap-8">
+                                                                    <div className="col-span-2 space-y-4">
+                                                                        {/* Note */}
+                                                                        <p className="text-[10px] text-red-600 font-medium">Note - You can save only one Day Wise Itinerary for each itinerary!</p>
 
-                                                                    <div className="flex items-center gap-6 p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
-                                                                        <div className="flex-1">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <div className="relative">
-                                                                                    <input
-                                                                                        type="checkbox"
-                                                                                        id={`save_master_${i}`}
-                                                                                        checked={row.save_to_master}
-                                                                                        onChange={(e) => {
-                                                                                            const copy = [...itineraryDays];
-                                                                                            copy[i].save_to_master = e.target.checked;
-                                                                                            setItineraryDays(copy);
-                                                                                        }}
-                                                                                        className="peer hidden"
-                                                                                    />
-                                                                                    <label
-                                                                                        htmlFor={`save_master_${i}`}
-                                                                                        className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-gray-200 peer-checked:border-[#14532d] peer-checked:bg-[#14532d] peer-checked:text-white transition-all shadow-sm"
-                                                                                    >
-                                                                                        <div className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center p-0.5">
-                                                                                            {row.save_to_master && <div className="w-full h-full bg-white rounded-full"></div>}
-                                                                                        </div>
-                                                                                        <span className="text-[10px] font-black uppercase tracking-widest">Save to Masters</span>
-                                                                                    </label>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <p className="text-[10px] text-green-700/50 font-medium italic max-w-[150px]">Saving helps you reuse this itinerary description in other packages.</p>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="space-y-4">
-                                                                    <FormLabel label="Day Visual" />
-                                                                    <div className="aspect-square w-full bg-white rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
-                                                                        {(row.image || row.existing_image) ? (
-                                                                            <>
-                                                                                <img
-                                                                                    src={row.image ? URL.createObjectURL(row.image) : row.existing_image}
-                                                                                    className="w-full h-full object-cover"
-                                                                                    alt="Preview"
+                                                                        {/* Search day itinerary */}
+                                                                        <div>
+                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search day itinerary from the database</p>
+                                                                            <div className="relative">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={dayMasterSearch}
+                                                                                    onChange={e => updateDay({ _dayMasterSearch: e.target.value })}
+                                                                                    placeholder="Type to look up for day itinerary in masters"
+                                                                                    className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
                                                                                 />
-                                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            const copy = [...itineraryDays];
-                                                                                            copy[i].image = null;
-                                                                                            copy[i].existing_image = null;
-                                                                                            setItineraryDays(copy);
-                                                                                        }}
-                                                                                        className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
-                                                                                    >
-                                                                                        <X size={20} />
-                                                                                    </button>
-                                                                                </div>
-                                                                            </>
-                                                                        ) : (
-                                                                            <div className="text-center p-6 pb-2">
-                                                                                <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
-                                                                                    <Package size={24} />
-                                                                                </div>
-                                                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No Image</p>
-                                                                                <p className="text-[8px] text-gray-300 mt-1">Recommended square size</p>
+                                                                                <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                                                                             </div>
-                                                                        )}
-                                                                        <input
-                                                                            type="file"
-                                                                            accept="image/*"
-                                                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                                                            onChange={(e) => {
-                                                                                if (e.target.files[0]) {
+                                                                            {filteredDayMasters.length > 0 && (
+                                                                                <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
+                                                                                    {filteredDayMasters.map(m => (
+                                                                                        <button
+                                                                                            key={m.id}
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                handleMasterTemplateChange(i, m.id.toString());
+                                                                                                updateDay({ _dayMasterSearch: '' });
+                                                                                            }}
+                                                                                            className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                                                                                        >
+                                                                                            <span className="font-medium text-gray-800">{m.name || m.title}</span>
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+
+                                                                        {/* Day description or empty state */}
+                                                                        {!row.description ? (
+                                                                            <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
+                                                                                <p className="text-[11px] text-gray-400">No Day Itinerary added</p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <textarea
+                                                                                value={row.description}
+                                                                                onChange={(e) => {
                                                                                     const copy = [...itineraryDays];
-                                                                                    copy[i].image = e.target.files[0];
+                                                                                    copy[i].description = e.target.value;
                                                                                     setItineraryDays(copy);
-                                                                                }
-                                                                            }}
-                                                                        />
+                                                                                }}
+                                                                                rows="6"
+                                                                                placeholder="Describe the day's adventure in detail..."
+                                                                                className="w-full bg-white border border-gray-300 p-3 rounded-sm text-[11px] text-gray-700 leading-relaxed focus:outline-none focus:border-blue-400 transition-all resize-none"
+                                                                            />
+                                                                        )}
+
+                                                                        {/* Meals included */}
+                                                                        <div>
+                                                                            <p className="text-[11px] font-bold text-gray-800 mb-2">Meals included for the day</p>
+                                                                            <div className="flex flex-wrap gap-4">
+                                                                                {mealOptions.map(meal => (
+                                                                                    <label key={meal} className="flex items-center gap-1.5 cursor-pointer">
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={dayMeals.includes(meal)}
+                                                                                            onChange={e => {
+                                                                                                const updated = e.target.checked
+                                                                                                    ? [...dayMeals, meal]
+                                                                                                    : dayMeals.filter(m => m !== meal);
+                                                                                                updateDay({ meals_included: updated });
+                                                                                            }}
+                                                                                            className="w-3.5 h-3.5 border border-gray-300 rounded-sm accent-[#14532d]"
+                                                                                        />
+                                                                                        <span className="text-[11px] text-gray-700">{meal}</span>
+                                                                                    </label>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {/* Transfer Type */}
+                                                                        <div>
+                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Transfer Type</p>
+                                                                            <select
+                                                                                value={dayTransferType}
+                                                                                onChange={e => updateDay({ transfer_type: e.target.value })}
+                                                                                className="w-48 border border-gray-300 rounded-sm px-2 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
+                                                                            >
+                                                                                <option value="">Select Transfer Type</option>
+                                                                                <option value="Private">Private</option>
+                                                                                <option value="Shared">Shared</option>
+                                                                                <option value="Self Drive">Self Drive</option>
+                                                                                <option value="No Transfer">No Transfer</option>
+                                                                            </select>
+                                                                        </div>
+
+                                                                        {/* Save to master */}
+                                                                        <div className="flex items-center gap-6 p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
+                                                                            <div className="flex-1">
+                                                                                <div className="flex items-center gap-3">
+                                                                                    <div className="relative">
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            id={`save_master_${i}`}
+                                                                                            checked={row.save_to_master}
+                                                                                            onChange={(e) => {
+                                                                                                const copy = [...itineraryDays];
+                                                                                                copy[i].save_to_master = e.target.checked;
+                                                                                                setItineraryDays(copy);
+                                                                                            }}
+                                                                                            className="peer hidden"
+                                                                                        />
+                                                                                        <label
+                                                                                            htmlFor={`save_master_${i}`}
+                                                                                            className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-gray-200 peer-checked:border-[#14532d] peer-checked:bg-[#14532d] peer-checked:text-white transition-all shadow-sm"
+                                                                                        >
+                                                                                            <div className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center p-0.5">
+                                                                                                {row.save_to_master && <div className="w-full h-full bg-white rounded-full"></div>}
+                                                                                            </div>
+                                                                                            <span className="text-[10px] font-black uppercase tracking-widest">Save to Masters</span>
+                                                                                        </label>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <p className="text-[10px] text-green-700/50 font-medium italic max-w-[150px]">Saving helps you reuse this itinerary description in other packages.</p>
+                                                                        </div>
                                                                     </div>
-                                                                    {(row.image || row.existing_image) && (
-                                                                        <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">
-                                                                            {row.image ? "New Image Selected" : "Existing Image"}
-                                                                        </p>
-                                                                    )}
+
+                                                                    <div className="space-y-4">
+                                                                        <FormLabel label="Day Visual" />
+                                                                        <div className="aspect-square w-full bg-white rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
+                                                                            {(row.image || row.existing_image) ? (
+                                                                                <>
+                                                                                    <img
+                                                                                        src={row.image ? URL.createObjectURL(row.image) : row.existing_image}
+                                                                                        className="w-full h-full object-cover"
+                                                                                        alt="Preview"
+                                                                                    />
+                                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                const copy = [...itineraryDays];
+                                                                                                copy[i].image = null;
+                                                                                                copy[i].existing_image = null;
+                                                                                                setItineraryDays(copy);
+                                                                                            }}
+                                                                                            className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
+                                                                                        >
+                                                                                            <X size={20} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </>
+                                                                            ) : (
+                                                                                <div className="text-center p-6 pb-2">
+                                                                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
+                                                                                        <Package size={24} />
+                                                                                    </div>
+                                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No Image</p>
+                                                                                    <p className="text-[8px] text-gray-300 mt-1">Recommended square size</p>
+                                                                                </div>
+                                                                            )}
+                                                                            <input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                                onChange={(e) => {
+                                                                                    if (e.target.files[0]) {
+                                                                                        const copy = [...itineraryDays];
+                                                                                        copy[i].image = e.target.files[0];
+                                                                                        setItineraryDays(copy);
+                                                                                    }
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                        {(row.image || row.existing_image) && (
+                                                                            <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">
+                                                                                {row.image ? "New Image Selected" : "Existing Image"}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            );
+                                                        })()}
 
                                                         {/* 2. SIGHTSEEING */}
-                                                        {row.details_json?.active_tab === 'sightseeing' && (
-                                                            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-                                                                <div className="flex items-center justify-between mb-6">
-                                                                    <div>
-                                                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Sightseeing & Activities</h3>
-                                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Add activities for this day</p>
-                                                                    </div>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            const copy = [...itineraryDays];
-                                                                            if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [""];
-                                                                            copy[i].details_json.sightseeing.push("");
-                                                                            setItineraryDays(copy);
-                                                                        }}
-                                                                        className="bg-[#14532d] text-white px-4 py-2 rounded-xl text-[9px] font-black hover:bg-black transition-all"
-                                                                    >
-                                                                        + ADD ACTIVITY
-                                                                    </button>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    {(row.details_json?.sightseeing || [""]).map((s, sIdx) => (
-                                                                        <div key={sIdx} className="flex gap-3 items-center group">
-                                                                            <div className="flex-1">
-                                                                                <SearchableSelect
-                                                                                    options={sightseeingMasters.map(sm => ({ value: sm.name, label: sm.name, subtitle: sm.city }))}
-                                                                                    value={s}
-                                                                                    onChange={(val) => {
-                                                                                        const copy = [...itineraryDays];
-                                                                                        copy[i].details_json.sightseeing[sIdx] = val;
-                                                                                        setItineraryDays(copy);
-                                                                                    }}
-                                                                                    placeholder="Search activity or type..."
-                                                                                    allowCustom={true}
+                                                        {row.details_json?.active_tab === 'sightseeing' && (() => {
+                                                            const sightseeingSearch = row.details_json?._sightseeingSearch || '';
+                                                            const addedSightseeings = (row.details_json?.sightseeing || []).filter(s => s && s.trim());
+                                                            const updateDay = (patch) => {
+                                                                const copy = [...itineraryDays];
+                                                                copy[i].details_json = { ...copy[i].details_json, ...patch };
+                                                                setItineraryDays(copy);
+                                                            };
+                                                            const filteredSightseeings = sightseeingSearch
+                                                                ? sightseeingMasters.filter(sm =>
+                                                                    sm.name?.toLowerCase().includes(sightseeingSearch.toLowerCase()) ||
+                                                                    sm.city?.toLowerCase().includes(sightseeingSearch.toLowerCase())
+                                                                ) : [];
+                                                            return (
+                                                                <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                                    {/* Main sightseeing panel */}
+                                                                    <div className="flex-1 space-y-3">
+                                                                        {/* Search */}
+                                                                        <div>
+                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search sightseeing from the database</p>
+                                                                            <div className="relative">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={sightseeingSearch}
+                                                                                    onChange={e => updateDay({ _sightseeingSearch: e.target.value })}
+                                                                                    placeholder="Type to look up for sightseeing in masters"
+                                                                                    className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
                                                                                 />
+                                                                                <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                                                                             </div>
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => {
-                                                                                    const copy = [...itineraryDays];
-                                                                                    copy[i].details_json.sightseeing.splice(sIdx, 1);
-                                                                                    setItineraryDays(copy);
-                                                                                }}
-                                                                                className="text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2"
-                                                                            >
-                                                                                <X size={16} />
-                                                                            </button>
+                                                                            {/* Search results dropdown */}
+                                                                            {filteredSightseeings.length > 0 && (
+                                                                                <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
+                                                                                    {filteredSightseeings.map(sm => (
+                                                                                        <button
+                                                                                            key={sm.id}
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                const copy = [...itineraryDays];
+                                                                                                if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
+                                                                                                const already = copy[i].details_json.sightseeing.includes(sm.name);
+                                                                                                if (!already) copy[i].details_json.sightseeing.push(sm.name);
+                                                                                                copy[i].details_json._sightseeingSearch = '';
+                                                                                                setItineraryDays(copy);
+                                                                                            }}
+                                                                                            className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                                                                                        >
+                                                                                            <span className="font-medium text-gray-800">{sm.name}</span>
+                                                                                            {sm.city && <span className="text-gray-400 ml-1">· {sm.city}</span>}
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
                                                                         </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
 
-                                                        {/* 3. TRANSFERS */}
-                                                        {row.details_json?.active_tab === 'transfers' && (
-                                                            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-                                                                <div className="flex items-center justify-between mb-6">
-                                                                    <div>
-                                                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Transfers & Logistics</h3>
-                                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Add transfers for this day</p>
-                                                                    </div>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            const copy = [...itineraryDays];
-                                                                            if (!copy[i].details_json.transfers) copy[i].details_json.transfers = [""];
-                                                                            copy[i].details_json.transfers.push("");
-                                                                            setItineraryDays(copy);
-                                                                        }}
-                                                                        className="bg-[#14532d] text-white px-4 py-2 rounded-xl text-[9px] font-black hover:bg-black transition-all"
-                                                                    >
-                                                                        + ADD TRANSFER
-                                                                    </button>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    {(row.details_json?.transfers || [""]).map((t, tIdx) => (
-                                                                        <div key={tIdx} className="flex gap-3 items-center group">
-                                                                            <div className="flex-1">
-                                                                                <Input
-                                                                                    value={t}
-                                                                                    onChange={(e) => {
-                                                                                        const copy = [...itineraryDays];
-                                                                                        copy[i].details_json.transfers[tIdx] = e.target.value;
-                                                                                        setItineraryDays(copy);
-                                                                                    }}
-                                                                                    placeholder="e.g. Airport transfer in private car"
-                                                                                    className="!py-2.5"
-                                                                                />
+                                                                        {/* Added sightseeings or empty state */}
+                                                                        {addedSightseeings.length === 0 ? (
+                                                                            <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
+                                                                                <p className="text-[11px] text-gray-400">No Sightseeing added</p>
                                                                             </div>
+                                                                        ) : (
+                                                                            <div className="space-y-2">
+                                                                                {addedSightseeings.map((s, sIdx) => {
+                                                                                    const masterData = sightseeingMasters.find(sm => sm.name === s);
+                                                                                    return (
+                                                                                        <div key={sIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
+                                                                                            {masterData?.image && (
+                                                                                                <div className="w-10 h-10 rounded-sm overflow-hidden shrink-0 bg-gray-100">
+                                                                                                    <img src={masterData.image.startsWith('http') ? masterData.image.replace('http://localhost:8000', '').replace('http://127.0.0.1:8000', '') : masterData.image} alt={s} className="w-full h-full object-cover" />
+                                                                                                </div>
+                                                                                            )}
+                                                                                            <div className="flex-1 min-w-0">
+                                                                                                {masterData?.city && <p className="text-[9px] text-gray-400">{masterData.city}</p>}
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    <p className="text-[11px] font-bold text-gray-900">{s}</p>
+                                                                                                    {masterData?.latitude && masterData?.longitude && (
+                                                                                                        <a
+                                                                                                            href={`https://maps.google.com/?q=${masterData.latitude},${masterData.longitude}`}
+                                                                                                            target="_blank"
+                                                                                                            rel="noopener noreferrer"
+                                                                                                            className="text-[9px] text-blue-500 hover:underline"
+                                                                                                        >View on Map</a>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                {masterData?.address && <p className="text-[9px] text-gray-500">{masterData.address}</p>}
+                                                                                                {masterData?.description && (
+                                                                                                    <p className="text-[9px] text-gray-500 line-clamp-2 mt-0.5">{masterData.description}</p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => {
+                                                                                                    const copy = [...itineraryDays];
+                                                                                                    copy[i].details_json.sightseeing = copy[i].details_json.sightseeing.filter((_, idx) => idx !== sIdx);
+                                                                                                    setItineraryDays(copy);
+                                                                                                }}
+                                                                                                className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                                                            >
+                                                                                                <X size={12} />
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Add New Sightseeing panel */}
+                                                                    <div className="w-56 shrink-0">
+                                                                        {sightseeingPanelDayIndex === i ? (
+                                                                            <div className="border border-gray-200 rounded-sm p-3 bg-gray-50/50 space-y-2">
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <h4 className="text-[11px] font-bold text-gray-800">Add New Sightseeing</h4>
+                                                                                    <button type="button" onClick={() => setSightseeingPanelDayIndex(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Sightseeing</p>
+                                                                                    <input type="text" value={newSightseeingForm.name} onChange={e => setNewSightseeingForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Description <span className="text-gray-400 font-normal">(maximum 3000 characters)</span></p>
+                                                                                    <textarea value={newSightseeingForm.description} onChange={e => setNewSightseeingForm(p => ({ ...p, description: e.target.value }))} maxLength={3000} placeholder="Enter description" rows={3} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 resize-none" />
+                                                                                </div>
+                                                                                <div className="grid grid-cols-2 gap-1.5">
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Address <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                        <input type="text" value={newSightseeingForm.address} onChange={e => setNewSightseeingForm(p => ({ ...p, address: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
+                                                                                        <select value={newSightseeingForm.city} onChange={e => setNewSightseeingForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                            <option value="">Select a city...</option>
+                                                                                            {destinations.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                                                                                        </select>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-orange-400 text-[10px]">ⓘ</span> <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                    <div className="flex gap-1">
+                                                                                        <input type="text" value={newSightseeingForm.latitude} onChange={e => setNewSightseeingForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Latitude" className="flex-1 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <input type="text" value={newSightseeingForm.longitude} onChange={e => setNewSightseeingForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Longitude" className="flex-1 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Images <span className="text-gray-400 font-normal">(Add up to 5 images with max file size of 1 MB)</span></p>
+                                                                                    <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
+                                                                                        <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
+                                                                                            <span className="text-sm leading-none">+</span>
+                                                                                            <span>Add{<br />}Images</span>
+                                                                                            <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                                                                                                const files = Array.from(e.target.files).slice(0, 5);
+                                                                                                setNewSightseeingForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
+                                                                                            }} />
+                                                                                        </label>
+                                                                                        {(newSightseeingForm.images || []).map((img, imgIdx) => (
+                                                                                            <div key={imgIdx} className="relative w-[46px] h-[40px]">
+                                                                                                <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
+                                                                                                <button type="button" onClick={() => setNewSightseeingForm(p => ({ ...p, images: p.images.filter((_, j) => j !== imgIdx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={async () => {
+                                                                                        if (!newSightseeingForm.name.trim()) { alert('Please enter the sightseeing name.'); return; }
+                                                                                        try {
+                                                                                            const fd = new FormData();
+                                                                                            fd.append('name', newSightseeingForm.name);
+                                                                                            fd.append('description', newSightseeingForm.description);
+                                                                                            fd.append('address', newSightseeingForm.address);
+                                                                                            fd.append('city', newSightseeingForm.city);
+                                                                                            fd.append('latitude', newSightseeingForm.latitude);
+                                                                                            fd.append('longitude', newSightseeingForm.longitude);
+                                                                                            if (newSightseeingForm.images.length > 0) fd.append('image', newSightseeingForm.images[0]);
+                                                                                            const res = await axios.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                                                            setSightseeingMasters(prev => [...prev, res.data]);
+                                                                                            const copy = [...itineraryDays];
+                                                                                            if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
+                                                                                            copy[i].details_json.sightseeing.push(res.data.name);
+                                                                                            setItineraryDays(copy);
+                                                                                            setNewSightseeingForm({ name: '', description: '', address: '', city: '', latitude: '', longitude: '', images: [] });
+                                                                                            setSightseeingPanelDayIndex(null);
+                                                                                        } catch (err) {
+                                                                                            console.error('Error saving sightseeing:', err);
+                                                                                            alert('Failed to save sightseeing.');
+                                                                                        }
+                                                                                    }}
+                                                                                    className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
+                                                                                >Add</button>
+                                                                            </div>
+                                                                        ) : (
                                                                             <button
                                                                                 type="button"
-                                                                                onClick={() => {
-                                                                                    const copy = [...itineraryDays];
-                                                                                    copy[i].details_json.transfers.splice(tIdx, 1);
-                                                                                    setItineraryDays(copy);
-                                                                                }}
-                                                                                className="text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2"
-                                                                            >
-                                                                                <X size={16} />
-                                                                            </button>
-                                                                        </div>
-                                                                    ))}
+                                                                                onClick={() => { setSightseeingPanelDayIndex(i); setNewSightseeingForm({ name: '', description: '', address: '', city: '', latitude: '', longitude: '', images: [] }); }}
+                                                                                className="w-full py-2 border border-dashed border-orange-300 text-orange-500 text-[10px] font-medium rounded-sm hover:bg-orange-50 transition-colors"
+                                                                            >+ Add New Sightseeing</button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            );
+                                                        })()}
 
 
                                                         {/* 4. ACCOMMODATION */}

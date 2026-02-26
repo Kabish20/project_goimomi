@@ -22,25 +22,25 @@ const AdminTopbar = () => {
           <ArrowLeft size={12} />
           Back
         </button>
-        <span className="text-xs font-medium text-gray-200 uppercase tracking-widest border-l border-white/10 pl-3 opacity-90">Site Administration</span>
+        <span className="text-sm font-medium text-gray-200 uppercase tracking-widest border-l border-white/10 pl-3 opacity-90">Site Administration</span>
       </div>
 
       <div className="flex items-center gap-3 text-xs font-medium">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
-          <span className="text-gray-200 uppercase tracking-tight opacity-80">Welcome, <span className="text-white opacity-100">{username}</span></span>
+          <span className="text-sm font-medium text-gray-200 uppercase tracking-tight opacity-80">Welcome, <span className="text-white opacity-100">{username}</span></span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 hover:text-green-200 transition-colors opacity-80 hover:opacity-100 font-bold uppercase tracking-tight"
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-200 group-hover:text-white transition-colors opacity-80 hover:opacity-100 uppercase tracking-tight group"
           >
             <ExternalLink size={12} />
             View Site
           </button>
 
-          <button className="flex items-center gap-1.5 hover:text-green-200 transition-colors opacity-80 hover:opacity-100 font-bold uppercase tracking-tight">
+          <button className="flex items-center gap-1.5 text-sm font-medium text-gray-200 group-hover:text-white transition-colors opacity-80 hover:opacity-100 uppercase tracking-tight group">
             <Key size={12} />
             Password
           </button>
