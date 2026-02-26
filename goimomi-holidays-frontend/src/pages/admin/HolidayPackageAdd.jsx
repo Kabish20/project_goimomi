@@ -105,6 +105,7 @@ const HolidayPackageAdd = () => {
     description: "",
     category: "",
     starting_city: "",
+    ending_city: "",
     days: "",
     start_date: "",
     group_size: 0,
@@ -721,6 +722,34 @@ const HolidayPackageAdd = () => {
                 {/* TRIP OVERVIEW - PAGE 1 */}
                 <Section title="Trip Overview" active={currentPage === 1}>
                   <div className="grid grid-cols-1 gap-8">
+                    {/* Starting & Ending City */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <FormLabel label="Starting City" required />
+                        <SearchableSelect
+                          options={[
+                            { value: "Any City", label: "Any City" },
+                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                          ]}
+                          value={formData.starting_city}
+                          onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
+                          placeholder="Where the trip starts..."
+                        />
+                        {errors.starting_city && <p className="text-red-500 text-[9px] font-bold mt-1 flex items-center gap-1">⚠ {errors.starting_city}</p>}
+                      </div>
+                      <div>
+                        <FormLabel label="Ending City" />
+                        <SearchableSelect
+                          options={[
+                            { value: "Any City", label: "Any City" },
+                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                          ]}
+                          value={formData.ending_city}
+                          onChange={(val) => setFormData(prev => ({ ...prev, ending_city: val }))}
+                          placeholder="Where the trip ends..."
+                        />
+                      </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div>
                         <FormLabel
