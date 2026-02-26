@@ -1967,57 +1967,155 @@ const HolidayPackageEdit = () => {
                                                         })()}
 
                                                         {/* 5. VEHICLE */}
-                                                        {row.details_json?.active_tab === 'vehicle' && (
-                                                            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-                                                                <div className="flex items-center justify-between mb-6">
-                                                                    <div>
-                                                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Vehicle Details</h3>
-                                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Specify vehicle for this day's activity</p>
+                                                        {row.details_json?.active_tab === 'vehicle' && (() => {
+                                                            const vd = row.details_json?.vehicle_data || {};
+                                                            const vehicleMode = vd.mode || 'self_drive';
+                                                            const updateVD = (patch) => {
+                                                                const copy = [...itineraryDays];
+                                                                copy[i].details_json.vehicle_data = { ...vd, ...patch };
+                                                                setItineraryDays(copy);
+                                                            };
+                                                            const isSelf = vehicleMode === 'self_drive';
+                                                            return (
+                                                                <div className="bg-white p-0">
+                                                                    {/* Header row */}
+                                                                    <div className="mb-3">
+                                                                        <h3 className="text-[13px] font-bold text-gray-900">Vehicle</h3>
                                                                     </div>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            const copy = [...itineraryDays];
-                                                                            if (!copy[i].details_json.vehicles) copy[i].details_json.vehicles = [""];
-                                                                            copy[i].details_json.vehicles.push("");
-                                                                            setItineraryDays(copy);
-                                                                        }}
-                                                                        className="bg-[#14532d] text-white px-4 py-2 rounded-xl text-[9px] font-black hover:bg-black transition-all"
-                                                                    >
-                                                                        + ADD VEHICLE
-                                                                    </button>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    {(row.details_json?.vehicles || [""]).map((v, vIdx) => (
-                                                                        <div key={vIdx} className="flex gap-3 items-center group">
-                                                                            <div className="flex-1">
-                                                                                <Input
-                                                                                    value={v}
-                                                                                    onChange={(e) => {
-                                                                                        const copy = [...itineraryDays];
-                                                                                        copy[i].details_json.vehicles[vIdx] = e.target.value;
-                                                                                        setItineraryDays(copy);
-                                                                                    }}
-                                                                                    placeholder="e.g. Private Air-conditioned Sedan"
-                                                                                    className="!py-2.5"
-                                                                                />
-                                                                            </div>
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => {
-                                                                                    const copy = [...itineraryDays];
-                                                                                    copy[i].details_json.vehicles.splice(vIdx, 1);
-                                                                                    setItineraryDays(copy);
-                                                                                }}
-                                                                                className="text-red-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2"
-                                                                            >
-                                                                                <X size={16} />
-                                                                            </button>
+                                                                    {/* Radio buttons */}
+                                                                    <div className="flex items-center gap-6 mb-3">
+                                                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                                                            <input
+                                                                                type="radio"
+                                                                                name={`vehicleMode_${i}`}
+                                                                                checked={isSelf}
+                                                                                onChange={() => updateVD({ mode: 'self_drive' })}
+                                                                                className="w-3.5 h-3.5 accent-blue-500"
+                                                                            />
+                                                                            <span className="text-[11px] font-medium text-gray-700">Self Drive</span>
+                                                                        </label>
+                                                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                                                            <input
+                                                                                type="radio"
+                                                                                name={`vehicleMode_${i}`}
+                                                                                checked={!isSelf}
+                                                                                onChange={() => updateVD({ mode: 'with_driver' })}
+                                                                                className="w-3.5 h-3.5 accent-blue-500"
+                                                                            />
+                                                                            <span className="text-[11px] font-medium text-gray-700">Vehicle with Driver/ Chaffeur</span>
+                                                                        </label>
+                                                                    </div>
+                                                                    {/* Sub-heading */}
+                                                                    <p className="text-[11px] font-bold text-gray-800 mb-2">
+                                                                        {isSelf ? 'Self Drive' : 'Vehicle with Driver/ Chaffeur'}
+                                                                    </p>
+                                                                    {/* Vehicle Type + No. of Vehicles */}
+                                                                    <div className="grid grid-cols-[1fr_180px] gap-3 mb-2">
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Vehicle Type</p>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={vd.vehicleType || ''}
+                                                                                onChange={e => updateVD({ vehicleType: e.target.value })}
+                                                                                placeholder="Enter vehicle type - eg. sedan/ suv/ coach etc."
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
                                                                         </div>
-                                                                    ))}
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">No. of Vehicles</p>
+                                                                            <select
+                                                                                value={vd.noOfVehicles || '1'}
+                                                                                onChange={e => updateVD({ noOfVehicles: e.target.value })}
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
+                                                                            >
+                                                                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    {/* Pick Up Date + Pick Up Location */}
+                                                                    <div className="grid grid-cols-2 gap-3 mb-2">
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Date</p>
+                                                                            <input
+                                                                                type="date"
+                                                                                value={vd.pickUpDate || ''}
+                                                                                onChange={e => updateVD({ pickUpDate: e.target.value })}
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location</p>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={vd.pickUpLocation || ''}
+                                                                                onChange={e => updateVD({ pickUpLocation: e.target.value })}
+                                                                                placeholder={isSelf ? 'Enter address from where vehicle will be picked up' : 'Enter address from where passenger will be picked up'}
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    {/* Drop Off Date + Drop Off Location */}
+                                                                    <div className="grid grid-cols-2 gap-3 mb-2">
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Date</p>
+                                                                            <input
+                                                                                type="date"
+                                                                                value={vd.dropOffDate || ''}
+                                                                                onChange={e => updateVD({ dropOffDate: e.target.value })}
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location</p>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={vd.dropOffLocation || ''}
+                                                                                onChange={e => updateVD({ dropOffLocation: e.target.value })}
+                                                                                placeholder={isSelf ? 'Enter address to where the vehicle will be dropped off' : 'Enter address where passenger will be dropped off'}
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    {/* Vehicle Brand + Pick Up time + Drop off time */}
+                                                                    <div className="grid grid-cols-3 gap-3">
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">
+                                                                                Vehicle Brand <span className="text-sky-400 font-normal">(Optional)</span>
+                                                                            </p>
+                                                                            <input
+                                                                                type="text"
+                                                                                value={vd.vehicleBrand || ''}
+                                                                                onChange={e => updateVD({ vehicleBrand: e.target.value })}
+                                                                                placeholder="Enter Vehicle Brand"
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
+                                                                                Pick Up time <span className="text-orange-400 text-[10px]">ⓘ</span> <span className="text-sky-400 font-normal">(Optional)</span>
+                                                                            </p>
+                                                                            <input
+                                                                                type="time"
+                                                                                value={vd.pickUpTime || ''}
+                                                                                onChange={e => updateVD({ pickUpTime: e.target.value })}
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
+                                                                                Drop off time <span className="text-orange-400 text-[10px]">ⓘ</span> <span className="text-sky-400 font-normal">(Optional)</span>
+                                                                            </p>
+                                                                            <input
+                                                                                type="time"
+                                                                                value={vd.dropOffTime || ''}
+                                                                                onChange={e => updateVD({ dropOffTime: e.target.value })}
+                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </div>
 
