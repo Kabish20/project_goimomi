@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
-import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, Star, Utensils, Camera, Bus, Bed } from "lucide-react";
+import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, Star, Utensils, Camera, Bus, Bed, List, ListOrdered, PlayCircle } from "lucide-react";
 
 /* ---------- UI helpers ---------- */
 const Section = ({ title, children, active }) => (
@@ -66,7 +66,13 @@ const HolidayPackageEdit = () => {
     const [itineraryDays, setItineraryDays] = useState([]);
     const [inclusions, setInclusions] = useState([]);
     const [exclusions, setExclusions] = useState([]);
+    const [cancellationPolicies, setCancellationPolicies] = useState([]);
     const [highlights, setHighlights] = useState([]);
+
+    // Refs for Trip Information textareas
+    const inclusionsRef = useRef(null);
+    const exclusionsRef = useRef(null);
+    const cancellationRef = useRef(null);
     const [accommodations, setAccommodations] = useState([]);
     const [showHotelModal, setShowHotelModal] = useState(false);
     const [hotelSearchQuery, setHotelSearchQuery] = useState("");
@@ -263,6 +269,11 @@ const HolidayPackageEdit = () => {
                     setHighlights(pkg.highlights.map(h => h.text));
                 }
 
+                // Cancellation Policies
+                if (pkg.cancellation_policies && Array.isArray(pkg.cancellation_policies)) {
+                    setCancellationPolicies(pkg.cancellation_policies.map(c => c.text));
+                }
+
                 // Accommodations - NEW STRUCTURE
                 const defaultRoom = { id: Date.now() + 1, type: "", meals: "", passengers: "", checkIn: "", checkOut: "", noOfRooms: "1" };
                 let loadedAccommodations = [];
@@ -420,6 +431,43 @@ const HolidayPackageEdit = () => {
     const removeRow = (setter, index) =>
         setter((p) => p.filter((_, i) => i !== index));
 
+    // Inserts a bullet point at the cursor position in a textarea
+    const insertBullet = (ref, lines, setter) => {
+        const el = ref.current;
+        if (!el) return;
+        const start = el.selectionStart;
+        const currentVal = lines.join('\n');
+        // Find start of current line
+        const lineStart = currentVal.lastIndexOf('\n', start - 1) + 1;
+        const insertText = start === 0 || currentVal[start - 1] === '\n' ? '• ' : '\n• ';
+        const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(start);
+        setter(newVal.split('\n'));
+        setTimeout(() => {
+            el.focus();
+            const newCursor = start + insertText.length;
+            el.setSelectionRange(newCursor, newCursor);
+        }, 0);
+    };
+
+    // Inserts the next numbered item at the cursor position in a textarea
+    const insertNumbered = (ref, lines, setter) => {
+        const el = ref.current;
+        if (!el) return;
+        const start = el.selectionStart;
+        const currentVal = lines.join('\n');
+        // Count existing numbered lines to determine next number
+        const existing = currentVal.split('\n').filter(l => /^\d+\./.test(l.trim()));
+        const nextNum = existing.length + 1;
+        const insertText = start === 0 || currentVal[start - 1] === '\n' ? `${nextNum}. ` : `\n${nextNum}. `;
+        const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(start);
+        setter(newVal.split('\n'));
+        setTimeout(() => {
+            el.focus();
+            const newCursor = start + insertText.length;
+            el.setSelectionRange(newCursor, newCursor);
+        }, 0);
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         if (name === "offer_price" || name === "price") {
@@ -568,6 +616,8 @@ const HolidayPackageEdit = () => {
 
             const highlightsArray = highlights.filter(h => h && h.trim() !== "");
             formDataToSend.append("highlights_raw", JSON.stringify(highlightsArray));
+
+            formDataToSend.append("cancellation_policies_raw", JSON.stringify(cancellationPolicies.filter(c => c && c.trim() !== "")));
 
             // Sanitize accommodations for backend
             const sanitizedAccommodations = accommodations.map(acc => {
@@ -1849,92 +1899,76 @@ const HolidayPackageEdit = () => {
                                     </div>
                                 </Section>
 
-                                {/* POLICY & TRIP INFO */}
-                                {/* TERM & POLICY */}
+                                {/* TRIP INFORMATION */}
                                 <Section title="Trip Information" active={activeSection === 'policy'}>
-                                    <div className="space-y-8">
-                                        <div className="grid grid-cols-2 gap-8">
-                                            <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
-                                                <div className="flex items-center justify-between mb-6">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
-                                                        <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Inclusions</h3>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => addRow(setInclusions, "")}
-                                                        className="px-3 py-1.5 rounded-lg bg-green-100 text-[#14532d] text-[10px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all"
-                                                    >
-                                                        + Add
-                                                    </button>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    {inclusions.map((inc, i) => (
-                                                        <div key={i} className="flex gap-2 group animate-in slide-in-from-left-2" style={{ animationDelay: `${i * 50}ms` }}>
-                                                            <div className="flex-1">
-                                                                <Input
-                                                                    value={inc}
-                                                                    onChange={(e) => {
-                                                                        const copy = [...inclusions];
-                                                                        copy[i] = e.target.value;
-                                                                        setInclusions(copy);
-                                                                    }}
-                                                                    placeholder="e.g. Round trip economy class airfare"
-                                                                />
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeRow(setInclusions, i)}
-                                                                className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                                                            >
-                                                                <X size={16} />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                    <div className="space-y-6 max-w-5xl mx-auto">
 
-                                            <div className="bg-red-50/30 rounded-2xl p-8 border border-red-100/50">
-                                                <div className="flex items-center justify-between mb-6">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-1 h-4 bg-red-500 rounded-full"></div>
-                                                        <h3 className="text-xs font-black text-red-900/40 uppercase tracking-widest">Exclusions</h3>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => addRow(setExclusions, "")}
-                                                        className="px-3 py-1.5 rounded-lg bg-red-100/50 text-red-600 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
-                                                    >
-                                                        + Add
+                                        {/* INCLUSIONS */}
+                                        <div>
+                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5">
+                                                Inclusions <span className="text-sky-400 font-normal text-[10px] opacity-90">(Optional)</span>
+                                            </h3>
+                                            <div className="border border-gray-300 bg-white rounded-sm overflow-hidden shadow-sm">
+                                                <div className="border-b border-gray-200 bg-white px-2 py-1 flex gap-1.5">
+                                                    <button type="button" onClick={() => insertBullet(inclusionsRef, inclusions, setInclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors">
+                                                        <List size={13} />
                                                     </button>
                                                 </div>
-                                                <div className="space-y-3">
-                                                    {exclusions.map((exc, i) => (
-                                                        <div key={i} className="flex gap-2 group animate-in slide-in-from-right-2" style={{ animationDelay: `${i * 50}ms` }}>
-                                                            <div className="flex-1">
-                                                                <Input
-                                                                    value={exc}
-                                                                    onChange={(e) => {
-                                                                        const copy = [...exclusions];
-                                                                        copy[i] = e.target.value;
-                                                                        setExclusions(copy);
-                                                                    }}
-                                                                    placeholder="e.g. Personal expenses like laundry, drinks"
-                                                                    className="border-red-100 focus:border-red-400 focus:ring-red-400/10 placeholder:text-red-200"
-                                                                />
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeRow(setExclusions, i)}
-                                                                className="w-10 h-10 rounded-xl flex items-center justify-center text-red-200 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                                                            >
-                                                                <X size={16} />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                                <textarea
+                                                    ref={inclusionsRef}
+                                                    className="w-full min-h-[90px] px-3 py-2 text-[12px] text-gray-700 focus:outline-none resize-y"
+                                                    placeholder="• Accommodation as per itinerary&#10;• Transfers as per itinerary&#10;• Sightseeing as per itinerary"
+                                                    value={inclusions.join('\n')}
+                                                    onChange={(e) => setInclusions(e.target.value.split('\n'))}
+                                                    spellCheck="false"
+                                                />
                                             </div>
                                         </div>
+
+                                        {/* EXCLUSIONS */}
+                                        <div>
+                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5">
+                                                Exclusions <span className="text-sky-400 font-normal text-[10px] opacity-90">(Optional)</span>
+                                            </h3>
+                                            <div className="border border-gray-300 bg-white rounded-sm overflow-hidden shadow-sm">
+                                                <div className="border-b border-gray-200 bg-white px-2 py-1 flex gap-1.5">
+                                                    <button type="button" onClick={() => insertBullet(exclusionsRef, exclusions, setExclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors">
+                                                        <List size={13} />
+                                                    </button>
+                                                </div>
+                                                <textarea
+                                                    ref={exclusionsRef}
+                                                    className="w-full min-h-[90px] px-3 py-2 text-[12px] text-gray-700 focus:outline-none resize-y"
+                                                    placeholder="• Cost of Visa and travel insurance&#10;• Any heads not mentioned under INCLUSIONS"
+                                                    value={exclusions.join('\n')}
+                                                    onChange={(e) => setExclusions(e.target.value.split('\n'))}
+                                                    spellCheck="false"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* CANCELLATION POLICY */}
+                                        <div>
+                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5">
+                                                Cancellation Policy <span className="text-sky-400 font-normal text-[10px] opacity-90">(Optional)</span>
+                                            </h3>
+                                            <div className="border border-gray-300 bg-white rounded-sm overflow-hidden shadow-sm">
+                                                <div className="border-b border-gray-200 bg-white px-2 py-1 flex gap-1.5">
+                                                    <button type="button" onClick={() => insertNumbered(cancellationRef, cancellationPolicies, setCancellationPolicies)} title="Insert numbered item" className="w-6 h-6 flex items-center justify-center rounded bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">
+                                                        <ListOrdered size={13} />
+                                                    </button>
+                                                </div>
+                                                <textarea
+                                                    ref={cancellationRef}
+                                                    className="w-full min-h-[90px] px-3 py-2 text-[12px] text-gray-700 focus:outline-none resize-y"
+                                                    placeholder="1. 60 days prior – 25% cancellation of the tour cost&#10;2. 45 days prior – 50% cancellation of the tour cost"
+                                                    value={cancellationPolicies.join('\n')}
+                                                    onChange={(e) => setCancellationPolicies(e.target.value.split('\n'))}
+                                                    spellCheck="false"
+                                                />
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </Section>
                             </form>
