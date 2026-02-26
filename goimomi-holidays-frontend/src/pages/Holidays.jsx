@@ -766,7 +766,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 </div>
 
                 {/* IMAGE SECTION - PREMIUM FRAMED DESIGN */}
-                <div className="relative w-full md:w-60 h-48 md:h-auto overflow-hidden m-3 rounded-2xl border-2 border-gray-50 shadow-sm group-hover:border-[#14532d]/20 group-hover:shadow-md transition-all duration-500">
+                <div className="relative w-52 h-52 shrink-0 overflow-hidden m-3 rounded-2xl border-2 border-gray-50 shadow-sm group-hover:border-[#14532d]/20 group-hover:shadow-md transition-all duration-500">
                   <img
                     src={getImageUrl(pkg.card_image)}
                     onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop" }}
