@@ -215,12 +215,12 @@ const AdminDashboard = () => {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
 
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-black text-gray-900 tracking-tighter uppercase">
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-base font-black text-gray-900 tracking-tighter uppercase">
               Dashboard Hub
             </h2>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
             </div>
           </div>
 
@@ -259,7 +259,7 @@ const AdminDashboard = () => {
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-2 px-1">
                   <div className="h-1 w-4 bg-[#14532d] rounded-full"></div>
-                  <h3 className="text-[9px] font-black uppercase tracking-widest text-[#14532d]">Customer Enquiries</h3>
+                  <h3 className="text-sm font-medium uppercase tracking-widest text-[#14532d]">Customer Enquiries</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
                   <AdminCard title="General Enq" count={stats.enquiries} link="/admin/enquiries" icon={<HelpCircle />} />
@@ -288,12 +288,12 @@ const AdminDashboard = () => {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b bg-gray-50/50">
-                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Name</th>
-                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Type</th>
-                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Email</th>
-                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Phone</th>
-                          <th className="text-left py-2 px-2 uppercase text-[9px] font-black tracking-widest text-gray-400">Purpose</th>
-                          <th className="py-2 px-2 text-center uppercase text-[9px] font-black tracking-widest text-gray-400">Action</th>
+                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Name</th>
+                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Type</th>
+                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Email</th>
+                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Phone</th>
+                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Purpose</th>
+                          <th className="py-2 px-2 text-center uppercase text-sm font-medium tracking-widest text-gray-400">Action</th>
                         </tr>
                       </thead>
                       <tbody>

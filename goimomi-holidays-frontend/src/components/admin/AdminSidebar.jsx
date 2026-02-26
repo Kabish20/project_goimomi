@@ -190,11 +190,11 @@ const AdminSidebar = () => {
       <div key={item.name}>
         <li
           onClick={() => handleRowClick(item)}
-          className={`group flex justify-between items-center px-2.5 py-2 border-b border-white/5 hover:bg-white/20 transition-all ${getChangeHandler(item) || isDropdown ? "cursor-pointer" : "cursor-default"
-            } ${isChild ? "pl-8 bg-black/10" : ""}`}
+          className={`group flex justify-between items-center px-2 py-1.5 border-b border-white/5 hover:bg-white/10 transition-all ${getChangeHandler(item) || isDropdown ? "cursor-pointer" : "cursor-default"
+            } ${isChild ? "pl-7 bg-black/10" : ""}`}
           title={isCollapsed ? item.name : ""}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="text-green-400 group-hover:scale-110 transition-transform">
               {item.icon || (isChild && <div className="w-1 h-1 bg-green-400 rounded-full" />)}
             </div>
@@ -246,16 +246,16 @@ const AdminSidebar = () => {
 
   return (
     <aside
-      className={`${isCollapsed ? "w-20" : "w-80"} bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
+      className={`${isCollapsed ? "w-14" : "w-60"} bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
     >
       {/* Header */}
-      <div className={`p-4 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
+      <div className={`p-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
         {!isCollapsed && (
           <h2
-            className="text-lg font-black tracking-tighter text-white cursor-pointer hover:text-green-200 transition-colors"
+            className="text-sm font-bold tracking-widest text-gray-200 cursor-pointer hover:text-white transition-colors uppercase"
             onClick={() => navigate("/")}
           >
-            GOIMOMI <span className="text-white opacity-80 font-medium">ADMIN</span>
+            GOIMOMI <span className="opacity-80 font-medium">ADMIN</span>
           </h2>
         )}
         {isCollapsed && (
@@ -275,7 +275,7 @@ const AdminSidebar = () => {
         {menu.map((section, idx) => (
           <div key={idx} className="mt-4 mb-1">
             {!isCollapsed && (
-              <h3 className="px-6 py-1.5 text-[9px] uppercase font-black tracking-[0.2em] text-gray-400 opacity-60">
+              <h3 className="px-4 py-1.5 text-[11px] font-medium text-gray-200 uppercase tracking-widest opacity-60">
                 {section.title}
               </h3>
             )}

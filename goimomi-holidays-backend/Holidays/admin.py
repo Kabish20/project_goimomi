@@ -11,10 +11,26 @@ class HolidayPackageAdminForm(forms.ModelForm):
         choices=[],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    ending_city = forms.ChoiceField(
+        choices=[],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    package_categories = forms.MultipleChoiceField(
+        choices=[
+            ('Budget', 'Budget'),
+            ('Standard', 'Standard'),
+            ('Deluxe', 'Deluxe'),
+            ('Luxury', 'Luxury'),
+            ('Premium', 'Premium')
+        ],
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
     
     class Meta:
         model = HolidayPackage
-        fields = ['title', 'description', 'category', 'starting_city', 'days', 'start_date', 'group_size', 'Offer_price', 'price', 'header_image', 'card_image']
+        fields = ['title', 'description', 'category', 'supplier', 'fixed_departure', 'package_categories', 'starting_city', 'ending_city', 'days', 'start_date', 'group_size', 'Offer_price', 'price', 'header_image', 'card_image']
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,9 +55,14 @@ class HolidayPackageAdminForm(forms.ModelForm):
             starting_city_choices.append((current_region, region_group))
         
         self.fields['starting_city'].choices = starting_city_choices
+        self.fields['ending_city'].choices = starting_city_choices
         
         # Add custom attributes to enable the "add another" link
         self.fields['starting_city'].widget.attrs.update({
+            'data-model': 'startingcity',
+            'data-app': 'Holidays',
+        })
+        self.fields['ending_city'].widget.attrs.update({
             'data-model': 'startingcity',
             'data-app': 'Holidays',
         })
@@ -90,8 +111,8 @@ class PackageDestinationInline(admin.TabularInline):
 @admin.register(HolidayPackage)
 class HolidayPackageAdmin(admin.ModelAdmin):
     form = HolidayPackageAdminForm
-    list_display = ("title", "Offer_price", "price", "days", "start_date")
-    list_filter = ("category", "starting_city")
+    list_display = ("title", "Offer_price", "price", "days", "supplier", "fixed_departure")
+    list_filter = ("category", "starting_city", "fixed_departure", "supplier")
     search_fields = ("title", "starting_city")
     inlines = [PackageDestinationInline, ItineraryInline, InclusionInline, ExclusionInline]
     
@@ -103,7 +124,7 @@ class HolidayPackageAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'category')
         }),
         ('Location Details', {
-            'fields': ('starting_city',),
+            'fields': ('starting_city', 'ending_city'),
         }),
         ('Duration & Dates', {
             'fields': ('days', 'start_date', 'group_size')

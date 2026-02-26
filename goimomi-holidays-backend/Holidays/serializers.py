@@ -4,8 +4,10 @@ from django.contrib.auth.models import User
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay,
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination,
-    ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster
+    ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster, Airline, HolidayVehicle,
+    SightseeingMaster, MealMaster, CancellationPolicy
 )
+from . import models
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -25,56 +27,77 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class NationalitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Nationality
+        model = models.Nationality
         fields = "__all__"
 
 
 class HolidayEnquirySerializer(serializers.ModelSerializer):
     class Meta:
-        model = HolidayEnquiry
+        model = models.HolidayEnquiry
         fields = "__all__"
 
 
 class UmrahEnquirySerializer(serializers.ModelSerializer):
     class Meta:
-        model = UmrahEnquiry
+        model = models.UmrahEnquiry
         fields = "__all__"
 
 
 class EnquirySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Enquiry
+        model = models.Enquiry
         fields = "__all__"
 
 
 class ItineraryDaySerializer(serializers.ModelSerializer):
     class Meta:
-        model = ItineraryDay
-        fields = ["day_number", "title", "description", "image", "master_template"]
+        model = models.ItineraryDay
+        fields = ["day_number", "title", "description", "image", "master_template", "details_json"]
 
 
 class InclusionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Inclusion
+        model = models.Inclusion
         fields = ["text"]
+
+
+class SightseeingMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SightseeingMaster
+        fields = "__all__"
+
+class MealMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.MealMaster
+        fields = "__all__"
 
 
 class ExclusionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Exclusion
+        model = models.Exclusion
         fields = ["text"]
 
 
 class HighlightSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Highlight
+        model = models.Highlight
         fields = ["text"]
+
+class CancellationPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.CancellationPolicy
+        fields = ["text"]
+
+class HolidayVehicleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.HolidayVehicle
+        fields = "__all__"
 
 
 class PackageDestinationSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='destination.name', read_only=True)
     class Meta:
-        model = PackageDestination
+        model = models.PackageDestination
         fields = ["name", "nights"]
 
 
@@ -83,6 +106,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
     inclusions = InclusionSerializer(many=True, read_only=True)
     exclusions = ExclusionSerializer(many=True, read_only=True)
     highlights = HighlightSerializer(many=True, read_only=True)
+    cancellation_policies = CancellationPolicySerializer(many=True, read_only=True)
     destinations = PackageDestinationSerializer(source='extra_destinations', many=True, read_only=True)
     nights = serializers.SerializerMethodField()
     
@@ -92,9 +116,12 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
     inclusions_raw = serializers.JSONField(write_only=True, required=False)
     exclusions_raw = serializers.JSONField(write_only=True, required=False)
     highlights_raw = serializers.JSONField(write_only=True, required=False)
+    cancellation_policies_raw = serializers.JSONField(write_only=True, required=False)
+    vehicles_raw = serializers.JSONField(write_only=True, required=False)
+    vehicles = HolidayVehicleSerializer(many=True, read_only=True)
 
     class Meta:
-        model = HolidayPackage
+        model = models.HolidayPackage
         fields = "__all__"
 
     def get_nights(self, obj):
@@ -106,26 +133,52 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         return ItineraryDaySerializer(qs, many=True, context=self.context).data
 
     def create(self, validated_data):
+        import json
+        # Handle stringified data from FormData
+        cat_data = validated_data.get('package_categories')
+        if isinstance(cat_data, str):
+            try: validated_data['package_categories'] = json.loads(cat_data)
+            except: validated_data['package_categories'] = []
+            
+        fixed_dep = validated_data.get('fixed_departure')
+        if isinstance(fixed_dep, str):
+            validated_data['fixed_departure'] = fixed_dep.lower() == 'true'
+
         # Extract nested data
         package_destinations_data = validated_data.pop('package_destinations', [])
         itinerary_days_data = validated_data.pop('itinerary_days', [])
         inclusions_data = validated_data.pop('inclusions_raw', [])
         exclusions_data = validated_data.pop('exclusions_raw', [])
         highlights_data = validated_data.pop('highlights_raw', [])
+        cancellation_policies_data = validated_data.pop('cancellation_policies_raw', [])
+        vehicles_data = validated_data.pop('vehicles_raw', [])
         
         # Create the package
         package = HolidayPackage.objects.create(**validated_data)
         
-        self._handle_nested_data(package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data)
+        self._handle_nested_data(package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data)
         return package
 
     def update(self, instance, validated_data):
+        import json
+        # Handle stringified data from FormData
+        cat_data = validated_data.get('package_categories')
+        if isinstance(cat_data, str):
+            try: validated_data['package_categories'] = json.loads(cat_data)
+            except: validated_data['package_categories'] = []
+            
+        fixed_dep = validated_data.get('fixed_departure')
+        if isinstance(fixed_dep, str):
+            validated_data['fixed_departure'] = fixed_dep.lower() == 'true'
+
         # Extract nested data with None as default to detect if they were provided
         package_destinations_data = validated_data.pop('package_destinations', None)
         itinerary_days_data = validated_data.pop('itinerary_days', None)
         inclusions_data = validated_data.pop('inclusions_raw', None)
         exclusions_data = validated_data.pop('exclusions_raw', None)
         highlights_data = validated_data.pop('highlights_raw', None)
+        cancellation_policies_data = validated_data.pop('cancellation_policies_raw', None)
+        vehicles_data = validated_data.pop('vehicles_raw', None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -133,7 +186,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
 
         # ONLY update nested data if it was explicitly provided in the request
         # This prevents data loss when updating only basic fields (like is_active)
-        if any(x is not None for x in [package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data]):
+        if any(x is not None for x in [package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, cancellation_policies_data]):
             
             # Clear existing simple relations ONLY if provided
             if package_destinations_data is not None:
@@ -144,13 +197,17 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                 instance.exclusions.all().delete()
             if highlights_data is not None:
                 instance.highlights.all().delete()
+            if cancellation_policies_data is not None:
+                instance.cancellation_policies.all().delete()
+            if vehicles_data is not None:
+                instance.vehicles.all().delete()
 
             # The _handle_nested_data method already handles itinerary deletion/preservation logic
-            self._handle_nested_data(instance, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data)
+            self._handle_nested_data(instance, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data)
         
         return instance
 
-    def _handle_nested_data(self, package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data):
+    def _handle_nested_data(self, package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data):
         import json
         
         # Helper to ensure we have a list/dict, but ONLY if not None
@@ -166,6 +223,8 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         inclusions_data = ensure_json(inclusions_data)
         exclusions_data = ensure_json(exclusions_data)
         highlights_data = ensure_json(highlights_data)
+        cancellation_policies_data = ensure_json(cancellation_policies_data)
+        vehicles_data = ensure_json(vehicles_data)
 
         # 1. Package Destinations (only if provided)
         if package_destinations_data is not None:
@@ -219,6 +278,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                     # Update existing master
                     master_template_obj.title = title[:200]
                     master_template_obj.description = day_data.get('description', '')
+                    master_template_obj.details_json = day_data.get('details_json', {})
                     if image_file:
                         try:
                             if hasattr(image_file, 'open'): image_file.open()
@@ -244,23 +304,25 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                             name=title[:200],
                             title=title[:200],
                             description=day_data.get('description', ''),
+                            details_json=day_data.get('details_json', {}),
                             image=master_image
                         )
                     except Exception as e:
                         print(f"Error auto-master: {e}")
 
-                # Preserve old image if no new one uploaded
-                if not image_file and day_num in existing_days:
-                    image_file = existing_days[day_num].image
+            # Preserve old image if no new one uploaded
+            if not image_file and day_num in existing_days:
+                image_file = existing_days[day_num].image
 
-                ItineraryDay.objects.create(
-                    package=package,
-                    day_number=day_num,
-                    title=title,
-                    description=day_data.get('description', ''),
-                    master_template=master_template_obj,
-                    image=image_file or (master_template_obj.image if master_template_obj else None)
-                )
+            ItineraryDay.objects.create(
+                package=package,
+                day_number=day_num,
+                title=title,
+                description=day_data.get('description', ''),
+                details_json=day_data.get('details_json', {}),
+                master_template=master_template_obj,
+                image=image_file or (master_template_obj.image if master_template_obj else None)
+            )
 
         # 3. Simple list fields (only if provided)
         if inclusions_data is not None:
@@ -273,28 +335,51 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
             for text in highlights_data:
                 if text: Highlight.objects.create(package=package, text=text)
 
+        if cancellation_policies_data is not None:
+            for text in cancellation_policies_data:
+                if text: CancellationPolicy.objects.create(package=package, text=text)
+
+        # 4. Detailed Vehicles (only if provided)
+        if vehicles_data is not None:
+            for v in vehicles_data:
+                if isinstance(v, dict):
+                    HolidayVehicle.objects.create(
+                        package=package,
+                        category=v.get('category', ''),
+                        vehicle_type=v.get('vehicle_type', ''),
+                        no_of_vehicles=v.get('no_of_vehicles', 1),
+                        pickup_date=v.get('pickup_date') or None,
+                        pickup_location=v.get('pickup_location', ''),
+                        dropoff_date=v.get('dropoff_date') or None,
+                        dropoff_location=v.get('dropoff_location', ''),
+                        vehicle_brand=v.get('vehicle_brand', ''),
+                        pickup_time=v.get('pickup_time') or None,
+                        dropoff_time=v.get('dropoff_time') or None,
+                        remarks=v.get('remarks', '')
+                    )
+
 
 class DestinationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Destination
+        model = models.Destination
         fields = "__all__"
 
 
 class StartingCitySerializer(serializers.ModelSerializer):
     class Meta:
-        model = StartingCity
+        model = models.StartingCity
         fields = "__all__"
 
 
 class UmrahDestinationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UmrahDestination
+        model = models.UmrahDestination
         fields = "__all__"
 
 
 class ItineraryMasterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ItineraryMaster
+        model = models.ItineraryMaster
         fields = "__all__"
 
 
@@ -351,7 +436,7 @@ class VisaSerializer(serializers.ModelSerializer):
 
 class VisaAdditionalDocumentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = VisaAdditionalDocument
+        model = models.VisaAdditionalDocument
         fields = "__all__"
 
 
@@ -401,4 +486,9 @@ class CruiseCalendarSerializer(serializers.ModelSerializer):
 class HotelMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = HotelMaster
+        fields = "__all__"
+
+class AirlineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airline
         fields = "__all__"

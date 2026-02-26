@@ -21,6 +21,9 @@ router.register("countries", CountryViewSet)
 router.register("suppliers", SupplierViewSet)
 router.register("cruise-calendar", CruiseCalendarViewSet)
 router.register("hotel-masters", HotelMasterViewSet)
+router.register("airlines", AirlineViewSet)
+router.register("sightseeing-masters", SightseeingMasterViewSet)
+router.register("meal-masters", MealMasterViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

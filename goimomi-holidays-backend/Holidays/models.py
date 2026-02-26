@@ -84,7 +84,14 @@ class HolidayPackage(models.Model):
         choices=[('Domestic', 'Domestic'), ('International', 'International'), ('Umrah', 'Umrah')],
         default='Domestic'
     )
+    
+    # New Fields
+    supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='packages')
+    fixed_departure = models.BooleanField(default=False)
+    package_categories = models.JSONField(default=list, blank=True, null=True) # ['Budget', 'Standard', 'Deluxe', 'Luxury', 'Premium']
+
     starting_city = models.CharField(max_length=100)
+    ending_city = models.CharField(max_length=100, blank=True, null=True)
 
     days = models.PositiveIntegerField()
     start_date = models.DateField(null=True, blank=True)
@@ -94,6 +101,24 @@ class HolidayPackage(models.Model):
 
     group_size = models.PositiveIntegerField(default=0)
     with_flight = models.BooleanField(default=False)
+    
+    # Arrival Logistics
+    with_arrival = models.BooleanField(default=True)
+    arrival_city = models.CharField(max_length=100, blank=True, null=True)
+    arrival_date = models.DateField(null=True, blank=True)
+    arrival_time = models.TimeField(null=True, blank=True)
+    arrival_airport = models.CharField(max_length=100, blank=True, null=True)
+    arrival_airline = models.CharField(max_length=100, blank=True, null=True)
+    arrival_flight_no = models.CharField(max_length=50, blank=True, null=True)
+
+    # Departure Logistics
+    with_departure = models.BooleanField(default=True)
+    departure_city = models.CharField(max_length=100, blank=True, null=True)
+    departure_date = models.DateField(null=True, blank=True)
+    departure_time = models.TimeField(null=True, blank=True)
+    departure_airport = models.CharField(max_length=100, blank=True, null=True)
+    departure_airline = models.CharField(max_length=100, blank=True, null=True)
+    departure_flight_no = models.CharField(max_length=50, blank=True, null=True)
 
     header_image = models.ImageField(upload_to="packages/headers/", null=True, blank=True)
     card_image = models.ImageField(upload_to="packages/cards/", null=True, blank=True)
@@ -135,6 +160,7 @@ class ItineraryDay(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     image = models.ImageField(upload_to="packages/itinerary/", blank=True, null=True)
+    details_json = models.JSONField(default=dict, blank=True, null=True)
 
     class Meta:
         ordering = ["day_number"]
@@ -179,6 +205,19 @@ class Highlight(models.Model):
         return self.text
 
 
+class CancellationPolicy(models.Model):
+    package = models.ForeignKey(
+        HolidayPackage,
+        related_name="cancellation_policies",
+        on_delete=models.CASCADE
+    )
+    text = models.TextField()
+
+    def __str__(self):
+        return f"Policy for {self.package.title}"
+
+
+
 class Destination(models.Model):
     name = models.CharField(max_length=100)
     region = models.CharField(max_length=100, blank=True, null=True)
@@ -211,6 +250,7 @@ class ItineraryMaster(models.Model):
     title = models.CharField(max_length=200, help_text="The title that will appear in the package (e.g., 'Arrival and Check-in')")
     description = models.TextField()
     image = models.ImageField(upload_to="itinerary_master/", blank=True, null=True)
+    details_json = models.JSONField(default=dict, blank=True, null=True)
 
     def __str__(self):
         return f"{self.destination.name if self.destination else 'Global'} - {self.name}"
@@ -431,3 +471,58 @@ class HotelMaster(models.Model):
 
     def __str__(self):
         return self.name
+
+class Airline(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    logo = models.ImageField(upload_to="airlines/", null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+class HolidayVehicle(models.Model):
+    package = models.ForeignKey(
+        HolidayPackage,
+        related_name="vehicles",
+        on_delete=models.CASCADE
+    )
+    category = models.CharField(max_length=100) # Self Drive, Vehicle with Driver/ Chauffeur
+    vehicle_type = models.CharField(max_length=200)
+    no_of_vehicles = models.PositiveIntegerField(default=1)
+    pickup_date = models.DateField(null=True, blank=True)
+    pickup_location = models.TextField(blank=True, null=True)
+    dropoff_date = models.DateField(null=True, blank=True)
+    dropoff_location = models.TextField(blank=True, null=True)
+    vehicle_brand = models.CharField(max_length=200, blank=True, null=True)
+    pickup_time = models.TimeField(null=True, blank=True)
+    dropoff_time = models.TimeField(null=True, blank=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.vehicle_type} for {self.package.title}"
+
+class SightseeingMaster(models.Model):
+    destination = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name="sightseeing_templates")
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    duration = models.CharField(max_length=100, blank=True, null=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    image = models.ImageField(upload_to="sightseeing/", blank=True, null=True)
+    map_link = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.destination.name} - {self.name}"
+
+class MealMaster(models.Model):
+    name = models.CharField(max_length=255)
+    meal_type = models.CharField(max_length=100, help_text="e.g. Breakfast, Lunch, Dinner")
+    description = models.TextField(blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    image = models.ImageField(upload_to="meals/", blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.meal_type})"

@@ -302,3 +302,22 @@ class HotelMasterViewSet(ModelViewSet):
     queryset = HotelMaster.objects.all().order_by('name')
     serializer_class = HotelMasterSerializer
     pagination_class = None
+
+class AirlineViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Airline.objects.all().order_by('name')
+    serializer_class = AirlineSerializer
+
+class SightseeingMasterViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = SightseeingMaster.objects.all()
+    serializer_class = SightseeingMasterSerializer
+
+class MealMasterViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = MealMaster.objects.all()
+    serializer_class = MealMasterSerializer
+    pagination_class = None
