@@ -816,6 +816,56 @@ const HolidayPackageAdd = () => {
                       {errors.description && <p className="text-red-500 text-[10px] font-bold mt-1.5">⚠ {errors.description}</p>}
                     </div>
 
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        <FormLabel label="Category" required />
+                        <select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleInputChange}
+                          className={`bg-white border-2 ${errors.category ? 'border-red-200' : 'border-gray-100'} p-3 rounded-xl w-full text-gray-800 text-sm focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] transition-all font-bold`}
+                        >
+                          <option value="">Select category</option>
+                          <option value="Domestic">Domestic</option>
+                          <option value="International">International</option>
+                          <option value="Umrah">Umrah</option>
+                        </select>
+                      </div>
+
+                      <div className="bg-gray-50/50 p-4 rounded-2xl border-2 border-gray-50 flex gap-6 mt-1.5">
+                        <div className="flex-1">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Flight</span>
+                          <div className="flex gap-2">
+                            {[true, false].map((val) => (
+                              <button
+                                key={val.toString()}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, with_flight: val })}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.with_flight === val ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-white border-gray-100 text-gray-400'}`}
+                              >
+                                {val ? 'WITH' : 'NO'} FLIGHT
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Status</span>
+                          <div className="flex gap-2">
+                            {[true, false].map((val) => (
+                              <button
+                                key={val.toString()}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, is_active: val })}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.is_active === val ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-white border-gray-100 text-gray-400'}`}
+                              >
+                                {val ? 'ACTIVE' : 'DRAFT'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Trip Highlights Integrated into Overview */}
                     <div className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
                       <div className="flex justify-between items-center mb-8 border-b-2 border-gray-50 pb-6">
@@ -856,74 +906,13 @@ const HolidayPackageAdd = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-8">
-                      <div>
-                        <FormLabel label="Category" required />
-                        <select
-                          name="category"
-                          value={formData.category}
-                          onChange={handleInputChange}
-                          className={`bg-white border-2 ${errors.category ? 'border-red-200' : 'border-gray-100'} p-3 rounded-xl w-full text-gray-800 text-sm focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] transition-all font-bold`}
-                        >
-                          <option value="">Select category</option>
-                          <option value="Domestic">Domestic</option>
-                          <option value="International">International</option>
-                          <option value="Umrah">Umrah</option>
-                        </select>
-                      </div>
 
-                      <div className="bg-gray-50/50 p-4 rounded-2xl border-2 border-gray-50 flex gap-6">
-                        <div className="flex-1">
-                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Flight</span>
-                          <div className="flex gap-2">
-                            {[true, false].map((val) => (
-                              <button
-                                key={val.toString()}
-                                type="button"
-                                onClick={() => setFormData({ ...formData, with_flight: val })}
-                                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.with_flight === val ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-white border-gray-100 text-gray-400'}`}
-                              >
-                                {val ? 'WITH' : 'NO'} FLIGHT
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Status</span>
-                          <div className="flex gap-2">
-                            {[true, false].map((val) => (
-                              <button
-                                key={val.toString()}
-                                type="button"
-                                onClick={() => setFormData({ ...formData, is_active: val })}
-                                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${formData.is_active === val ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-white border-gray-100 text-gray-400'}`}
-                              >
-                                {val ? 'ACTIVE' : 'DRAFT'}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </Section>
 
                 {/* ARRIVAL & DEPARTURE - PAGE 2 */}
                 <Section title="Arrival & Departure" active={currentPage === 2}>
                   <div className="space-y-8">
-                    <div className="max-w-md">
-                      <FormLabel label="Starting City" required />
-                      <SearchableSelect
-                        options={[
-                          { value: "Any City", label: "Any City" },
-                          ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                        ]}
-                        value={formData.starting_city}
-                        onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
-                        placeholder="Where the trip starts..."
-                      />
-                    </div>
-
                     <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
                       <div className="flex justify-between items-center mb-6">
                         <div>
