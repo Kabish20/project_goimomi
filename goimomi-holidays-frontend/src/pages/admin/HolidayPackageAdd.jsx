@@ -589,11 +589,11 @@ const HolidayPackageAdd = () => {
     }
   };
   const navItems = [
-    { id: 1, label: 'Trip Overview', icon: <Globe size={18} />, color: 'bg-emerald-500' },
-    { id: 2, label: 'Arrival & Departure', icon: <Plane size={18} />, color: 'bg-blue-500' },
-    { id: 3, label: 'Day Wise Itinerary', icon: <ClipboardList size={18} />, color: 'bg-indigo-600' },
-    { id: 4, label: 'Pricing', icon: <IndianRupee size={18} />, color: 'bg-amber-500' },
-    { id: 5, label: 'Trip Information', icon: <Info size={18} />, color: 'bg-sky-400' },
+    { id: 1, label: 'Trip Overview', icon: <Globe size={15} />, color: 'bg-emerald-500' },
+    { id: 2, label: 'Arrival & Departure', icon: <Plane size={15} />, color: 'bg-blue-500' },
+    { id: 3, label: 'Day Wise Itinerary', icon: <ClipboardList size={15} />, color: 'bg-indigo-600' },
+    { id: 4, label: 'Pricing', icon: <IndianRupee size={15} />, color: 'bg-amber-500' },
+    { id: 5, label: 'Trip Information', icon: <Info size={15} />, color: 'bg-sky-400' },
   ];
 
   return (
@@ -643,48 +643,44 @@ const HolidayPackageAdd = () => {
 
         <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
           {/* Internal Navigation Sidebar */}
-          <div className="w-64 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-4 shrink-0">
-            <div className="mb-6 px-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[#14532d] uppercase tracking-widest">Progress</span>
-                <span className="text-sm font-medium text-gray-400">{Math.round((currentPage / totalPages) * 100)}%</span>
+          <div className="w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-3 shrink-0">
+            <div className="mb-3 px-1">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Progress</span>
+                <span className="text-[9px] font-bold text-gray-400">{Math.round((currentPage / totalPages) * 100)}%</span>
               </div>
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-[#14532d] transition-all duration-500 ease-out" style={{ width: `${(currentPage / totalPages) * 100}%` }}></div>
               </div>
             </div>
 
-            <nav className="flex-1 space-y-1">
+            <nav className="flex-1 space-y-0.5">
               {navItems.map((item) => (
                 <div key={item.id}>
                   <button
                     type="button"
                     onClick={() => setCurrentPage(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-500 group relative overflow-hidden ${currentPage === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 group relative overflow-hidden ${currentPage === item.id ? 'bg-[#14532d] text-white shadow-lg shadow-green-900/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
                   >
-                    {currentPage === item.id && (
-                      <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
-                    )}
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${currentPage === item.id ? 'scale-110 rotate-3 text-white ' + item.color : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${currentPage === item.id ? 'text-white ' + item.color : 'text-gray-300 group-hover:text-gray-700'}`}>
                       {item.icon}
                     </span>
-                    <span className="text-sm font-medium uppercase tracking-[0.1em]">{item.label}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.08em] leading-tight">{item.label}</span>
                   </button>
                   {item.id === 3 && currentPage === 3 && (
-                    <div className="mt-3 ml-6 pl-4 border-l-2 border-green-50 space-y-1 py-1.5 animate-in slide-in-from-top-4">
+                    <div className="mt-1 ml-4 pl-3 border-l-2 border-green-50 space-y-0.5 py-1 animate-in slide-in-from-top-4">
                       {itineraryDays.map((sub, idx) => (
                         <button
                           key={idx}
                           type="button"
-                          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group relative"
+                          className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10px] font-medium text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group"
                           onClick={() => {
                             const el = document.getElementById(`itinerary-day-${idx}`);
                             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                           }}
                         >
-                          <div className={`w-1 h-1 rounded-full ${currentPage === 5 ? 'bg-green-500' : 'bg-gray-300'} group-hover:scale-150 group-hover:bg-[#14532d] transition-all`}></div>
-                          <span className="text-sm font-medium uppercase tracking-wider">Day {idx + 1}</span>
-                          <span className="text-xs font-medium text-gray-300 ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{getDestinationForDay(idx)}</span>
+                          <div className={`w-1 h-1 rounded-full shrink-0 ${currentPage === 3 ? 'bg-green-500' : 'bg-gray-300'} group-hover:bg-[#14532d] transition-all`}></div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider">Day {idx + 1}</span>
                         </button>
                       ))}
                     </div>
@@ -692,10 +688,9 @@ const HolidayPackageAdd = () => {
                 </div>
               ))}
             </nav>
-            <div className="mt-4 p-5 bg-[#14532d]/5 rounded-2xl border border-[#14532d]/10 relative overflow-hidden">
-              <div className="absolute right-0 bottom-0 w-16 h-16 bg-[#14532d]/5 rounded-tl-[3rem]"></div>
-              <p className="text-sm font-medium text-[#14532d] uppercase tracking-[0.2em] mb-1.5 opacity-60">Admin Notice</p>
-              <p className="text-sm font-medium text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">
+            <div className="mt-3 p-3 bg-[#14532d]/5 rounded-xl border border-[#14532d]/10">
+              <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest mb-1 opacity-60">Tip</p>
+              <p className="text-[10px] font-medium text-gray-500 leading-snug italic">
                 {currentPage === 1 && "Start with the trip details and highlights."}
                 {currentPage === 2 && "Where the journey begins and ends."}
                 {currentPage === 3 && "Define the daily itinerary for the guests."}

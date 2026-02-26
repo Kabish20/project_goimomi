@@ -93,6 +93,7 @@ const HolidayPackageEdit = () => {
         description: "",
         category: "",
         starting_city: "",
+        ending_city: "",
         days: "",
         start_date: "",
         group_size: 0,
@@ -777,11 +778,11 @@ const HolidayPackageEdit = () => {
     }
 
     const navItems = [
-        { id: 'overview', label: 'Trip Overview', icon: <Globe size={18} />, color: 'bg-emerald-500' },
-        { id: 'location', label: 'Arrival & Departure', icon: <Plane size={18} />, color: 'bg-blue-500' },
-        { id: 'itinerary', label: 'Day Wise Itinerary', icon: <ClipboardList size={18} />, color: 'bg-indigo-600' },
-        { id: 'pricing', label: 'Pricing', icon: <IndianRupee size={18} />, color: 'bg-amber-500' },
-        { id: 'policy', label: 'Trip Information', icon: <Info size={18} />, color: 'bg-sky-400' },
+        { id: 'overview', label: 'Trip Overview', icon: <Globe size={15} />, color: 'bg-emerald-500' },
+        { id: 'location', label: 'Arrival & Departure', icon: <Plane size={15} />, color: 'bg-blue-500' },
+        { id: 'itinerary', label: 'Day Wise Itinerary', icon: <ClipboardList size={15} />, color: 'bg-indigo-600' },
+        { id: 'pricing', label: 'Pricing', icon: <IndianRupee size={15} />, color: 'bg-amber-500' },
+        { id: 'policy', label: 'Trip Information', icon: <Info size={15} />, color: 'bg-sky-400' },
     ];
 
     return (
@@ -826,38 +827,34 @@ const HolidayPackageEdit = () => {
 
                 <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
                     {/* Internal Navigation Sidebar */}
-                    <div className="w-64 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-4 shrink-0">
-                        <nav className="flex-1 space-y-1">
+                    <div className="w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-3 shrink-0">
+                        <nav className="flex-1 space-y-0.5">
                             {navItems.map((item) => (
                                 <div key={item.id}>
                                     <button
                                         type="button"
                                         onClick={() => setActiveSection(item.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-500 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-2xl shadow-green-900/30 -translate-y-1' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-lg shadow-green-900/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
                                     >
-                                        {activeSection === item.id && (
-                                            <div className="absolute right-0 top-0 w-20 h-20 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform"></div>
-                                        )}
-                                        <span className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${activeSection === item.id ? 'scale-110 rotate-3 text-white ' + item.color : 'text-gray-300 group-hover:text-gray-900 group-hover:scale-110'}`}>
+                                        <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${activeSection === item.id ? 'text-white ' + item.color : 'text-gray-300 group-hover:text-gray-700'}`}>
                                             {item.icon}
                                         </span>
-                                        <span className="text-sm font-medium uppercase tracking-[0.1em]">{item.label}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.08em] leading-tight">{item.label}</span>
                                     </button>
                                     {item.id === 'itinerary' && activeSection === 'itinerary' && (
-                                        <div className="mt-3 ml-6 pl-4 border-l-2 border-green-50 space-y-1 py-1.5 animate-in slide-in-from-top-4">
+                                        <div className="mt-1 ml-4 pl-3 border-l-2 border-green-50 space-y-0.5 py-1 animate-in slide-in-from-top-4">
                                             {itineraryDays.map((row, idx) => (
                                                 <button
                                                     key={idx}
                                                     type="button"
-                                                    className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group relative"
+                                                    className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10px] font-medium text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group"
                                                     onClick={() => {
                                                         const el = document.getElementById(`itinerary-day-${idx}`);
                                                         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                                     }}
                                                 >
-                                                    <div className={`w-1 h-1 rounded-full ${activeSection === 'itinerary' ? 'bg-green-500' : 'bg-gray-300'} group-hover:scale-150 group-hover:bg-[#14532d] transition-all`}></div>
-                                                    <span className="text-sm font-medium uppercase tracking-wider">Day {idx + 1}</span>
-                                                    <span className="text-xs font-medium text-gray-300 ml-auto opacity-0 group-hover:opacity-100 transition-opacity uppercase">{getDestinationForDay(idx)}</span>
+                                                    <div className={`w-1 h-1 rounded-full shrink-0 ${activeSection === 'itinerary' ? 'bg-green-500' : 'bg-gray-300'} group-hover:bg-[#14532d] transition-all`}></div>
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider">Day {idx + 1}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -865,14 +862,9 @@ const HolidayPackageEdit = () => {
                                 </div>
                             ))}
                         </nav>
-                        <div className="mt-8 p-8 bg-[#14532d]/5 rounded-[2.5rem] border border-[#14532d]/10 relative overflow-hidden">
-                            <div className="absolute right-0 bottom-0 w-20 h-20 bg-[#14532d]/5 rounded-tl-[4rem]"></div>
-                            <p className="text-sm font-medium text-[#14532d] uppercase tracking-[0.2em] mb-2 opacity-60">Admin Notice</p>
-                            <p className="text-sm font-medium text-gray-600 leading-relaxed italic border-l-2 border-[#14532d]/30 pl-3">Modify your package details carefully. Changes will be instantly reflected on the live site upon update.</p>
-                            <div className="mt-4 pt-4 border-t border-[#14532d]/10">
-                                <p className="text-sm font-medium text-[#14532d]/50 uppercase tracking-widest mb-1">Internal Reference</p>
-                                <p className="text-sm font-medium text-[#14532d]">{id}</p>
-                            </div>
+                        <div className="mt-4 p-3 bg-[#14532d]/5 rounded-2xl border border-[#14532d]/10">
+                            <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest mb-1 opacity-60">Ref ID</p>
+                            <p className="text-[10px] font-bold text-[#14532d] break-all">{id}</p>
                         </div>
                     </div>
 
@@ -898,6 +890,34 @@ const HolidayPackageEdit = () => {
                                 <Section title="Trip Overview" active={activeSection === 'overview'}>
                                     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
                                         <div className="space-y-4">
+                                            {/* Starting & Ending City */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <FormLabel label="Starting City" required />
+                                                    <SearchableSelect
+                                                        options={[
+                                                            { value: "Any City", label: "Any City" },
+                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                        ]}
+                                                        value={formData.starting_city}
+                                                        onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
+                                                        placeholder="Where the trip starts..."
+                                                    />
+                                                    {errors.starting_city && <p className="text-red-500 text-[9px] font-bold mt-1 flex items-center gap-1">⚠ {errors.starting_city}</p>}
+                                                </div>
+                                                <div>
+                                                    <FormLabel label="Ending City" />
+                                                    <SearchableSelect
+                                                        options={[
+                                                            { value: "Any City", label: "Any City" },
+                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                        ]}
+                                                        value={formData.ending_city}
+                                                        onChange={(val) => setFormData(prev => ({ ...prev, ending_city: val }))}
+                                                        placeholder="Where the trip ends..."
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div>
                                                     <FormLabel
