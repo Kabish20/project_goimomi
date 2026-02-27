@@ -59,6 +59,7 @@ const menu = [
         children: [
           { name: "Manage Packages", key: "Holiday Packages" },
           { name: "Itinerary Masters" },
+          { name: "Sightseeing Masters" },
         ]
       },
       { name: "Nationalities", icon: <Flag size={18} /> },
@@ -116,6 +117,7 @@ const AdminSidebar = () => {
   const handleChangeVisaApplication = () => navigate("/admin/visa-applications");
   const handleChangeStartingCity = () => navigate("/admin/starting-cities");
   const handleChangeItineraryMaster = () => navigate("/admin/itinerary-masters");
+  const handleChangeSightseeingMaster = () => navigate("/admin/sightseeing-masters");
   const handleChangeNationalities = () => navigate("/admin/nationalities");
   const handleChangeUsers = () => navigate("/admin/users");
   const handleChangeUmrahDestinations = () => navigate("/admin/umrah-destinations");
@@ -125,6 +127,7 @@ const AdminSidebar = () => {
   const handleAddUmrahDestinations = () => navigate("/admin/umrah-destinations/add");
   const handleAddStartingCity = () => navigate("/admin/starting-cities/add");
   const handleAddItineraryMaster = () => navigate("/admin/itinerary-masters/add");
+  const handleAddSightseeingMaster = () => navigate("/admin/sightseeing-masters/add");
   const handleAddNationality = () => navigate("/admin/nationalities/add");
   const handleAddCruiseCalendar = () => navigate("/admin/cruise-calendar/add");
 
@@ -136,6 +139,7 @@ const AdminSidebar = () => {
       case "Holiday Packages": return handleAddPackage;
       case "Starting Cities": return handleAddStartingCity;
       case "Itinerary Masters": return handleAddItineraryMaster;
+      case "Sightseeing Masters": return handleAddSightseeingMaster;
       case "Nationalities": return handleAddNationality;
       case "Holiday Enquiries": return handleAddHolidayEnquiry;
       case "Umrah Enquiries": return handleAddUmrahEnquiry;
@@ -159,6 +163,7 @@ const AdminSidebar = () => {
       case "Umrah Enquiries": return handleChangeUmrahEnquiry;
       case "Starting Cities": return handleChangeStartingCity;
       case "Itinerary Masters": return handleChangeItineraryMaster;
+      case "Sightseeing Masters": return handleChangeSightseeingMaster;
       case "Nationalities": return handleChangeNationalities;
       case "Umrah Destinations": return handleChangeUmrahDestinations;
       case "Cab Enquiries": return handleChangeCabEnquiry;

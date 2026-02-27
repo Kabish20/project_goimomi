@@ -315,6 +315,59 @@ class SightseeingMasterViewSet(ModelViewSet):
     queryset = SightseeingMaster.objects.all()
     serializer_class = SightseeingMasterSerializer
 
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        
+        # Handle 'destination' name to ID mapping if ID is not provided
+        dest_id = data.get('destination')
+        if not dest_id or dest_id == "":
+            dest_name = data.get('city')
+            if dest_name:
+                from .models import Destination
+                dest = Destination.objects.filter(name=dest_name).first()
+                if dest:
+                    data['destination'] = dest.id
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        sightseeing = serializer.save()
+
+        # Handle multiple images
+        images = request.FILES.getlist('gallery_images')
+        for img in images:
+            from .models import SightseeingImage
+            SightseeingImage.objects.create(sightseeing=sightseeing, image=img)
+            
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+        
+        dest_id = data.get('destination')
+        if not dest_id or dest_id == "":
+            dest_name = data.get('city')
+            if dest_name:
+                from .models import Destination
+                dest = Destination.objects.filter(name=dest_name).first()
+                if dest:
+                    data['destination'] = dest.id
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        sightseeing = serializer.save()
+
+        # Handle multiple images (optional: clear existing or just append)
+        images = request.FILES.getlist('gallery_images')
+        if images:
+            # Optionally clear existing gallery if needed
+            # sightseeing.images.all().delete()
+            from .models import SightseeingImage
+            for img in images:
+                SightseeingImage.objects.create(sightseeing=sightseeing, image=img)
+
+        return Response(serializer.data)
+
 class MealMasterViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]

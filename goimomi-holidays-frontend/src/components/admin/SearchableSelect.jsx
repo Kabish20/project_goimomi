@@ -73,11 +73,11 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
             style={dropdownStyle}
             className="bg-white border-2 border-gray-200 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] max-h-52 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150"
         >
-            <div className="p-1.5 border-b border-gray-100 bg-white">
+            <div className="p-1 border-b border-gray-100 bg-white">
                 <input
                     type="text"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1 text-[10px] font-bold text-gray-900 focus:outline-none focus:border-[#14532d] focus:bg-white transition-all placeholder:text-gray-300"
-                    placeholder="Type to filter..."
+                    className="w-full bg-gray-50 border border-gray-100 rounded-md px-2 py-1 text-[10px] font-bold text-gray-900 focus:outline-none focus:border-[#14532d] focus:bg-white transition-all placeholder:text-gray-300"
+                    placeholder="Search options..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
@@ -89,7 +89,7 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
                     filteredOptions.map((option) => (
                         <div
                             key={option.value}
-                            className={`px-3 py-2 text-[12px] cursor-pointer transition-all flex flex-col gap-0 ${option.value === value ? "bg-green-50 text-[#14532d]" : "text-gray-900 hover:bg-gray-50 hover:text-black"}`}
+                            className={`px-3 py-1 text-[11px] cursor-pointer transition-all flex flex-col gap-0 ${option.value === value ? "bg-green-50 text-[#14532d]" : "text-gray-900 hover:bg-gray-50 hover:text-black"}`}
                             onMouseDown={(e) => {
                                 e.preventDefault();
                                 onChange(option.value);

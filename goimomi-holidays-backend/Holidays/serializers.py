@@ -61,7 +61,13 @@ class InclusionSerializer(serializers.ModelSerializer):
         fields = ["text"]
 
 
+class SightseeingImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SightseeingImage
+        fields = "__all__"
+
 class SightseeingMasterSerializer(serializers.ModelSerializer):
+    images = SightseeingImageSerializer(many=True, read_only=True)
     class Meta:
         model = models.SightseeingMaster
         fields = "__all__"

@@ -47,6 +47,9 @@ import StartingCityEdit from "./pages/admin/StartingCityEdit";
 import ItineraryMasterManage from "./pages/admin/ItineraryMasterManage";
 import ItineraryMasterEdit from "./pages/admin/ItineraryMasterEdit";
 import ItineraryMasterAdd from "./pages/admin/ItineraryMasterAdd";
+import SightseeingMasterManage from "./pages/admin/SightseeingMasterManage";
+import SightseeingMasterAdd from "./pages/admin/SightseeingMasterAdd";
+import SightseeingMasterEdit from "./pages/admin/SightseeingMasterEdit";
 import UsersList from "./pages/admin/UsersList";
 import UserAdd from "./pages/admin/UserAdd";
 import UserEdit from "./pages/admin/UserEdit";
@@ -161,6 +164,9 @@ const App = () => {
             <Route path="/admin/itinerary-masters" element={<ItineraryMasterManage />} />
             <Route path="/admin/itinerary-masters/add" element={<ItineraryMasterAdd />} />
             <Route path="/admin/itinerary-masters/edit/:id" element={<ItineraryMasterEdit />} />
+            <Route path="/admin/sightseeing-masters" element={<SightseeingMasterManage />} />
+            <Route path="/admin/sightseeing-masters/add" element={<SightseeingMasterAdd />} />
+            <Route path="/admin/sightseeing-masters/edit/:id" element={<SightseeingMasterEdit />} />
             <Route path="/admin/users" element={<UsersList />} />
             <Route path="/admin/users/add" element={<UserAdd />} />
             <Route path="/admin/users/edit/:id" element={<UserEdit />} />

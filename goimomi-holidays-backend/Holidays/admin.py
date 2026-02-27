@@ -204,3 +204,14 @@ class SupplierAdmin(admin.ModelAdmin):
     list_filter = ('city', 'state', 'country')
     search_fields = ('company_name', 'city', 'state', 'country', 'contact_person')
 
+class SightseeingImageInline(admin.TabularInline):
+    model = SightseeingImage
+    extra = 1
+
+@admin.register(SightseeingMaster)
+class SightseeingMasterAdmin(admin.ModelAdmin):
+    list_display = ('name', 'destination', 'city', 'price')
+    list_filter = ('destination', 'city')
+    search_fields = ('name', 'city', 'description')
+    inlines = [SightseeingImageInline]
+

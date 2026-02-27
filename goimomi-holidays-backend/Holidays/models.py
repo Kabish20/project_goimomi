@@ -499,7 +499,6 @@ class HolidayVehicle(models.Model):
 
     def __str__(self):
         return f"{self.vehicle_type} for {self.package.title}"
-
 class SightseeingMaster(models.Model):
     destination = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name="sightseeing_templates")
     name = models.CharField(max_length=255)
@@ -508,11 +507,21 @@ class SightseeingMaster(models.Model):
     city = models.CharField(max_length=100, blank=True, null=True)
     duration = models.CharField(max_length=100, blank=True, null=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     image = models.ImageField(upload_to="sightseeing/", blank=True, null=True)
     map_link = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.destination.name} - {self.name}"
+
+class SightseeingImage(models.Model):
+    sightseeing = models.ForeignKey(SightseeingMaster, related_name="images", on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="sightseeing/gallery/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image for {self.sightseeing.name}"
 
 class MealMaster(models.Model):
     name = models.CharField(max_length=255)
