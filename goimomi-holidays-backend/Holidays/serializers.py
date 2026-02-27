@@ -150,6 +150,11 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         if isinstance(fixed_dep, str):
             validated_data['fixed_departure'] = fixed_dep.lower() == 'true'
 
+        fixed_data = validated_data.get('fixed_departure_data')
+        if isinstance(fixed_data, str):
+            try: validated_data['fixed_departure_data'] = json.loads(fixed_data)
+            except: validated_data['fixed_departure_data'] = []
+
         # Extract nested data
         package_destinations_data = validated_data.pop('package_destinations', [])
         itinerary_days_data = validated_data.pop('itinerary_days', [])
@@ -176,6 +181,11 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         fixed_dep = validated_data.get('fixed_departure')
         if isinstance(fixed_dep, str):
             validated_data['fixed_departure'] = fixed_dep.lower() == 'true'
+
+        fixed_data = validated_data.get('fixed_departure_data')
+        if isinstance(fixed_data, str):
+            try: validated_data['fixed_departure_data'] = json.loads(fixed_data)
+            except: validated_data['fixed_departure_data'] = []
 
         # Extract nested data with None as default to detect if they were provided
         package_destinations_data = validated_data.pop('package_destinations', None)

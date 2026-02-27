@@ -89,6 +89,7 @@ class HolidayPackage(models.Model):
     supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='packages')
     fixed_departure = models.BooleanField(default=False)
     package_categories = models.JSONField(default=list, blank=True, null=True) # ['Budget', 'Standard', 'Deluxe', 'Luxury', 'Premium']
+    fixed_departure_data = models.JSONField(default=list, blank=True, null=True) 
 
     starting_city = models.CharField(max_length=100)
     ending_city = models.CharField(max_length=100, blank=True, null=True)

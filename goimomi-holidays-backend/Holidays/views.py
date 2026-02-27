@@ -81,10 +81,42 @@ class HolidayPackageViewSet(ModelViewSet):
         
         # In list view, we usually filter by is_active unless 'all=true' is passed
         if self.action == 'list' and not is_all:
+            from django.utils import timezone
+            import json
+            today = timezone.now().date()
+            
+            # Filter by is_active first
             queryset = queryset.filter(is_active=True)
-
-        # For other actions (retrieve, update, etc.), we want the full queryset
-        # so we can manage inactive items.
+            
+            # Filter out expired fixed departures
+            packages = list(queryset)
+            active_ids = []
+            for pkg in packages:
+                if pkg.fixed_departure and pkg.fixed_departure_data:
+                    try:
+                        # Check if any travel date's booking is still valid
+                        is_valid = False
+                        data = pkg.fixed_departure_data
+                        if isinstance(data, str):
+                            data = json.loads(data)
+                        
+                        for slot in data:
+                            valid_until_str = slot.get('booking_valid_until')
+                            if valid_until_str:
+                                valid_until = timezone.datetime.strptime(valid_until_str, '%Y-%m-%d').date()
+                                if valid_until >= today:
+                                    is_valid = True
+                                    break
+                        if is_valid:
+                            active_ids.append(pkg.id)
+                    except:
+                        # If parsing fails, keep it active to be safe
+                        active_ids.append(pkg.id)
+                else:
+                    # Regular packages are already filtered by is_active
+                    active_ids.append(pkg.id)
+            
+            queryset = queryset.filter(id__in=active_ids)
 
         with_flight = self.request.query_params.get('with_flight', None)
         if with_flight is not None:
