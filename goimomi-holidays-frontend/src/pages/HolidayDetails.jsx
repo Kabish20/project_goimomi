@@ -223,15 +223,31 @@ const HolidayDetails = () => {
               {/* CONTENT */}
               {openDay === index && (
                 <div className="bg-white p-5 shadow-md rounded-xl border mt-2">
+                  <div className="flex gap-5 items-start">
 
-                  {item.image && (
-                    <img
-                      src={getImageUrl(item.image)}
-                      className="w-full h-52 object-cover rounded-xl mb-4"
-                    />
-                  )}
+                    {/* Description - Left Side */}
+                    <div className={item.image ? "flex-1" : "w-full"}>
+                      {item.description ? (
+                        <p className="text-gray-700 leading-relaxed">{item.description}</p>
+                      ) : (
+                        <p className="text-gray-400 italic text-sm">No description available for this day.</p>
+                      )}
+                    </div>
 
-                  <p className="text-gray-700">{item.description}</p>
+                    {/* Image Card - Right Side */}
+                    {item.image && (
+                      <div className="w-[40%] shrink-0">
+                        <div className="rounded-2xl overflow-hidden shadow-md border border-gray-100">
+                          <img
+                            src={getImageUrl(item.image)}
+                            alt={item.title}
+                            className="w-full h-48 object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
                 </div>
               )}
             </div>
@@ -255,61 +271,63 @@ const HolidayDetails = () => {
           </div>
         </div>
 
-        {/* RIGHT PRICE CARD */}
-        <div className="w-[35%] sticky top-10 bg-white shadow-xl rounded-2xl p-6 h-fit">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-gray-500 text-sm leading-tight">Starts at per</p>
-              <p className="text-gray-500 text-sm leading-tight">person</p>
-            </div>
+        {/* RIGHT PRICE CARD - Compact */}
+        <div className="w-[35%] sticky top-10 bg-white shadow-md rounded-xl p-4 h-fit border border-gray-100">
+
+          {/* Price Row */}
+          <div className="flex justify-between items-center mb-3">
+            <p className="text-gray-400 text-[11px] font-medium uppercase tracking-wider leading-tight">Starts at<br />per person</p>
             <div className="text-right relative holiday-details-price-info">
               {pkg.price && (
-                <p className="line-through text-gray-400 text-sm">
-                  ₹ {pkg.price.toLocaleString()}
-                </p>
+                <p className="line-through text-gray-400 text-xs">₹ {pkg.price.toLocaleString()}</p>
               )}
-              <div className="flex items-center justify-end gap-1.5">
-                <p className="text-3xl font-bold text-black">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
+              <div className="flex items-center justify-end gap-1">
+                <p className="text-xl font-black text-gray-900">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
                 <button
                   onClick={() => setPricePopupOpen(!pricePopupOpen)}
                   className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                 >
-                  <svg className="w-4 h-4 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
               </div>
 
               {pricePopupOpen && (
-                <div className="absolute bottom-full right-0 mb-3 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-[60] p-4 text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-xs font-bold text-gray-900">Conditions Applied</p>
-                    <div className="h-0.5 w-8 bg-[#14532d] rounded-full mb-1"></div>
-                    <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
-                      Prices are starting from and can change based on peak season and availability.
-                    </p>
-                  </div>
-                  {/* Arrow */}
+                <div className="absolute bottom-full right-0 mb-2 w-44 bg-white rounded-xl shadow-2xl border border-gray-100 z-[60] p-3 text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <p className="text-[10px] font-bold text-gray-900 mb-1">Conditions Applied</p>
+                  <div className="h-0.5 w-6 bg-[#14532d] rounded-full mb-1.5"></div>
+                  <p className="text-[9px] text-gray-500 leading-relaxed">
+                    Prices are starting from and can change based on peak season and availability.
+                  </p>
                   <div className="absolute -bottom-1.5 right-2 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45"></div>
                 </div>
               )}
             </div>
           </div>
-          <div className="border-t pt-4">
-            <p className="text-gray-600 font-medium">{pkg.days}Days / {pkg.nights}Nights</p>
+
+          {/* Duration */}
+          <div className="flex items-center gap-1.5 border-t border-gray-100 pt-2.5 mb-3">
+            <svg className="w-3.5 h-3.5 text-[#14532d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-gray-600 text-[11px] font-semibold">{pkg.days} Days / {pkg.nights} Nights</p>
           </div>
+
+          {/* Enquire Button */}
           <button
             onClick={() => setIsModalOpen(true)}
-            className="w-full bg-[#14532d] text-white py-3 rounded-xl mt-6 text-lg hover:bg-[#0f4022] transition-colors uppercase font-bold tracking-wider"
+            className="w-full bg-[#14532d] text-white py-2 rounded-lg text-[11px] font-black hover:bg-[#0f4022] transition-colors uppercase tracking-widest"
           >
             Enquire Now
           </button>
 
+          {/* Download Button */}
           <button
             onClick={() => downloadPackagePDF(pkg)}
-            className="w-full bg-white text-[#14532d] border-2 border-[#14532d] py-3 rounded-xl mt-3 text-lg hover:bg-gray-50 transition-colors uppercase font-bold tracking-wider flex items-center justify-center gap-2"
+            className="w-full bg-white text-[#14532d] border border-[#14532d] py-2 rounded-lg mt-2 text-[11px] font-black hover:bg-green-50 transition-colors uppercase tracking-widest flex items-center justify-center gap-1.5"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Download Brochure
