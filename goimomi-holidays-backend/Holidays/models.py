@@ -125,6 +125,13 @@ class HolidayPackage(models.Model):
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    sharing = models.CharField(
+        max_length=20,
+        choices=[('TWIN', 'TWIN'), ('TRIPLE', 'TRIPLE'), ('QUAD', 'QUAD'), ('QUINT', 'QUINT')],
+        default='TWIN',
+        blank=True, null=True
+    )
 
     def __str__(self):
         return self.title

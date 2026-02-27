@@ -21,6 +21,7 @@ import Cruise from './pages/Cruise.jsx'
 import VisaSearch from './pages/VisaSearch.jsx'
 import VisaResults from './pages/VisaResults.jsx'
 import VisaApplication from './pages/VisaApplication.jsx'
+import Europeantours from './pages/Europeantours.jsx'
 
 import Hotel from './pages/hotel.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
@@ -139,6 +140,7 @@ const App = () => {
           <Route path="/visa" element={<VisaSearch />} />
           <Route path="/visa/results" element={<VisaResults />} />
           <Route path="/visa/apply/:id" element={<VisaApplication />} />
+          <Route path="/Europeantours" element={<Europeantours />} />
 
 
           <Route path="/admin-login" element={<AdminLogin />} />

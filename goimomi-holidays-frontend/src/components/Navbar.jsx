@@ -184,7 +184,7 @@ const Navbar = () => {
                     Customized Umrah
                   </NavLink>
                   <NavLink
-                    to="/customizedumrah"
+                    to="/Europeantours"
                     onClick={() => setDesktopHoliday(false)}
                     className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light"
                   >

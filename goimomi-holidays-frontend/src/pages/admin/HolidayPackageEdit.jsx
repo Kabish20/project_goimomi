@@ -126,6 +126,7 @@ const HolidayPackageEdit = () => {
         departure_airline: "",
         departure_flight_no: "",
         highlights: "",
+        sharing: "TWIN",
     });
 
     // Previews for existing images to show if no new file selected
@@ -247,6 +248,7 @@ const HolidayPackageEdit = () => {
                     fixed_departure: pkg.fixed_departure || false,
                     package_categories: pkg.package_categories && Array.isArray(pkg.package_categories) ? pkg.package_categories : [],
                     is_active: pkg.is_active !== undefined ? pkg.is_active : true,
+                    sharing: pkg.sharing || "TWIN",
                     arrival_city: pkg.arrival_city || "",
                     with_arrival: pkg.with_arrival !== undefined ? pkg.with_arrival : true,
                     arrival_date: pkg.arrival_date || "",
@@ -312,7 +314,7 @@ const HolidayPackageEdit = () => {
                 }
 
                 // Accommodations - NEW STRUCTURE
-                const defaultRoom = { id: Date.now() + 1, type: "", meals: "", passengers: "", checkIn: "", checkOut: "", noOfRooms: "1" };
+                const defaultRoom = { id: Date.now() + 1, type: "", meals: "", checkIn: "", checkOut: "", noOfRooms: "1" };
                 let loadedAccommodations = [];
 
                 if (pkg.accommodations && Array.isArray(pkg.accommodations)) {
@@ -530,7 +532,7 @@ const HolidayPackageEdit = () => {
             if (!copy[dayIndex].details_json.accommodations) copy[dayIndex].details_json.accommodations = [];
             copy[dayIndex].details_json.accommodations.push({
                 hotelId: savedHotel.id, hotelName: savedHotel.name,
-                roomType: '', meals: '', noOfRooms: '1', checkIn: '', checkOut: '', passengers: ''
+                roomType: '', meals: '', noOfRooms: '1', checkIn: '', checkOut: ''
             });
             copy[dayIndex].details_json._showNewAcc = false;
             setItineraryDays(copy);
@@ -632,6 +634,7 @@ const HolidayPackageEdit = () => {
             if (formData.price) formDataToSend.append("price", formData.price);
             formDataToSend.append("with_flight", formData.with_flight);
             formDataToSend.append("fixed_departure", formData.fixed_departure);
+            formDataToSend.append("sharing", formData.sharing);
             formDataToSend.append("package_categories", JSON.stringify(formData.package_categories || []));
             formDataToSend.append("is_active", formData.is_active);
             formDataToSend.append("with_arrival", formData.with_arrival);
@@ -699,7 +702,6 @@ const HolidayPackageEdit = () => {
                         let details = [];
                         if (r.type) details.push(r.type);
                         if (r.meals) details.push(`(${r.meals})`);
-                        if (r.passengers) details.push(`for ${r.passengers}`);
                         if (r.checkIn && r.checkOut) details.push(`(${r.checkIn} to ${r.checkOut})`);
                         if (r.noOfRooms && r.noOfRooms !== "1") details.push(`${r.noOfRooms} rooms`);
                         return details.join(" ");
@@ -1293,128 +1295,6 @@ const HolidayPackageEdit = () => {
                                             </div>
                                         </div>
 
-                                        {/* Arrival & Departure Flight/Transfer Details */}
-                                        <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 mt-8 border-t border-gray-200 ${!formData.with_flight ? 'opacity-50 blur-[2px] pointer-events-none select-none transition-all duration-300' : 'transition-all duration-300'}`}>
-                                            {/* Arrival */}
-                                            <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
-                                                        <Plane size={14} className="rotate-45" /> Arrival Logistics
-                                                    </h4>
-                                                    <label className="flex items-center gap-2 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.with_arrival}
-                                                            onChange={(e) => setFormData({ ...formData, with_arrival: e.target.checked })}
-                                                            className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                        />
-                                                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Included</span>
-                                                    </label>
-                                                </div>
-                                                <div className={`space-y-4 transition-all duration-300 ${!formData.with_arrival ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="To (Destination)" />
-                                                            <SearchableSelect
-                                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
-                                                                value={formData.arrival_city}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
-                                                                placeholder="e.g. Singapore"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Date" />
-                                                            <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} />
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Time" optional />
-                                                            <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Airport" optional />
-                                                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Enter Airport" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Airline" optional />
-                                                            <SearchableSelect
-                                                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                value={formData.arrival_airline}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                                                placeholder="Select airline"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Flight No." optional />
-                                                            <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="Enter Flight No." />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Departure */}
-                                            <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
-                                                        <Plane size={14} className="-rotate-45" /> Departure Logistics
-                                                    </h4>
-                                                    <label className="flex items-center gap-2 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.with_departure}
-                                                            onChange={(e) => setFormData({ ...formData, with_departure: e.target.checked })}
-                                                            className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                                        />
-                                                        <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Included</span>
-                                                    </label>
-                                                </div>
-                                                <div className={`space-y-4 transition-all duration-300 ${!formData.with_departure ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="To (From City)" />
-                                                            <SearchableSelect
-                                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
-                                                                value={formData.departure_city}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                                                placeholder="e.g. Maldives"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Date" />
-                                                            <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} />
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Time" optional />
-                                                            <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Airport" optional />
-                                                            <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter Airport" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Airline" optional />
-                                                            <SearchableSelect
-                                                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                value={formData.departure_airline}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                                                placeholder="Select airline"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Flight No." optional />
-                                                            <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="Enter Flight No." />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </Section>
 
@@ -1427,18 +1307,18 @@ const HolidayPackageEdit = () => {
                                                     <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
                                                     <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price Settings</h3>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                     <div>
                                                         <FormLabel label="Offer Price" required />
                                                         <div className="relative">
-                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-[10px]">₹</span>
                                                             <Input
                                                                 type="text"
                                                                 name="offer_price"
                                                                 value={formatWithCommas(formData.offer_price)}
                                                                 onChange={handleInputChange}
                                                                 error={errors.offer_price}
-                                                                className="pl-8"
+                                                                className="!pl-6 !py-1.5 !text-[11px]"
                                                                 placeholder="0"
                                                                 required
                                                             />
@@ -1446,20 +1326,34 @@ const HolidayPackageEdit = () => {
                                                     </div>
                                                     <div>
                                                         <FormLabel label="Regular Price" optional />
-                                                        <div className="relative border-l border-gray-100 pl-4">
-                                                            <span className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₹</span>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-[10px]">₹</span>
                                                             <Input
                                                                 type="text"
                                                                 name="price"
                                                                 value={formatWithCommas(formData.price)}
                                                                 onChange={handleInputChange}
-                                                                className="pl-8"
+                                                                className="!pl-6 !py-1.5 !text-[11px]"
                                                                 placeholder="0"
                                                             />
                                                         </div>
                                                     </div>
+                                                    <div>
+                                                        <FormLabel label="Sharing Option" required />
+                                                        <select
+                                                            name="sharing"
+                                                            value={formData.sharing}
+                                                            onChange={handleInputChange}
+                                                            className="bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl w-full text-gray-900 text-[11px] font-black transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200"
+                                                        >
+                                                            <option value="TWIN">TWIN SHARING</option>
+                                                            <option value="TRIPLE">TRIPLE SHARING</option>
+                                                            <option value="QUAD">QUAD SHARING</option>
+                                                            <option value="QUINT">QUINT SHARING</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                                <p className="text-[10px] text-gray-400 font-medium italic">Note: Prices are formatted with commas automatically for Indian Rupees.</p>
+                                                <p className="text-[10px] text-gray-400 font-medium italic mt-2">Note: Prices are formatted with commas automatically for Indian Rupees.</p>
                                             </div>
 
                                             <div className="space-y-6">
@@ -2244,7 +2138,7 @@ const HolidayPackageEdit = () => {
                                                                                     value={roomDetails.noOfRooms || ''}
                                                                                     onChange={e => {
                                                                                         const n = parseInt(e.target.value) || 0;
-                                                                                        const rooms = Array.from({ length: n }, (_, idx) => roomDetails.rooms?.[idx] || { roomType: '', meals: '', passengers: '' });
+                                                                                        const rooms = Array.from({ length: n }, (_, idx) => roomDetails.rooms?.[idx] || { roomType: '', meals: '' });
                                                                                         updateRoomDetails({ noOfRooms: e.target.value, rooms });
                                                                                     }}
                                                                                     className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white"
@@ -2266,14 +2160,13 @@ const HolidayPackageEdit = () => {
                                                                         {(roomDetails.rooms || []).length > 0 && (
                                                                             <div>
                                                                                 {/* Column headers */}
-                                                                                <div className="grid grid-cols-[64px_1fr_1fr_1fr] gap-2 mb-0.5">
+                                                                                <div className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-0.5">
                                                                                     <div />
                                                                                     <p className="text-[9px] font-medium text-gray-600">Room Type</p>
                                                                                     <p className="text-[9px] font-medium text-gray-600">Meal Type</p>
-                                                                                    <p className="text-[9px] font-medium text-gray-600">Passengers <span className="text-sky-400">(Optional)</span></p>
                                                                                 </div>
                                                                                 {(roomDetails.rooms || []).map((room, rIdx) => (
-                                                                                    <div key={rIdx} className="grid grid-cols-[64px_1fr_1fr_1fr] gap-2 mb-1 items-center">
+                                                                                    <div key={rIdx} className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-1 items-center">
                                                                                         <p className="text-[9px] font-medium text-gray-500 text-right pr-1">Night {rIdx + 1} :</p>
                                                                                         <input type="text" value={room.roomType || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], roomType: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} placeholder="Enter Room Type" className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                         <select value={room.meals || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], meals: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
@@ -2283,7 +2176,6 @@ const HolidayPackageEdit = () => {
                                                                                             <option value="MAP">MAP (Half Board)</option>
                                                                                             <option value="AP">AP (Full Board)</option>
                                                                                         </select>
-                                                                                        <input type="text" value={room.passengers || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], passengers: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                     </div>
                                                                                 ))}
                                                                             </div>
@@ -2477,6 +2369,128 @@ const HolidayPackageEdit = () => {
                                 {/* TRIP INFORMATION */}
                                 <Section title="Trip Information" active={activeSection === 'policy'}>
                                     <div className="space-y-6 max-w-5xl mx-auto">
+                                        {/* Arrival & Departure Flight/Transfer Details */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                                            {/* Arrival */}
+                                            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                                                        <Plane size={14} className="rotate-45" /> Arrival Logistics
+                                                    </h4>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.with_arrival}
+                                                            onChange={(e) => setFormData({ ...formData, with_arrival: e.target.checked })}
+                                                            className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Included</span>
+                                                    </label>
+                                                </div>
+                                                <div className={`space-y-3 transition-all duration-300 ${!formData.with_arrival ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <FormLabel label="To (Destination)" />
+                                                            <SearchableSelect
+                                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                                value={formData.arrival_city}
+                                                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
+                                                                placeholder="e.g. Singapore"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Date" />
+                                                            <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <FormLabel label="Time" optional />
+                                                            <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Airport" optional />
+                                                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Enter Airport" className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <FormLabel label="Airline" optional />
+                                                            <SearchableSelect
+                                                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                value={formData.arrival_airline}
+                                                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
+                                                                placeholder="Select airline"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Flight No." optional />
+                                                            <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="Enter Flight No." className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Departure */}
+                                            <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                                                        <Plane size={14} className="-rotate-45" /> Departure Logistics
+                                                    </h4>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.with_departure}
+                                                            onChange={(e) => setFormData({ ...formData, with_departure: e.target.checked })}
+                                                            className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                        />
+                                                        <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Included</span>
+                                                    </label>
+                                                </div>
+                                                <div className={`space-y-3 transition-all duration-300 ${!formData.with_departure ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <FormLabel label="To (From City)" />
+                                                            <SearchableSelect
+                                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                                value={formData.departure_city}
+                                                                onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                                                placeholder="e.g. Maldives"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Date" />
+                                                            <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <FormLabel label="Time" optional />
+                                                            <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Airport" optional />
+                                                            <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter Airport" className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <FormLabel label="Airline" optional />
+                                                            <SearchableSelect
+                                                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                value={formData.departure_airline}
+                                                                onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
+                                                                placeholder="Select airline"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Flight No." optional />
+                                                            <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="Enter Flight No." className="!py-1.5 !text-[11px]" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         {/* INCLUSIONS */}
                                         <div>
