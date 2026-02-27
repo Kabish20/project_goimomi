@@ -2027,49 +2027,6 @@ const HolidayPackageAdd = () => {
                             <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1 !text-[10px]" />
                           </div>
 
-                          {/* Custom Compact Night Selector - Forces Downward */}
-                          <div className="relative mt-3 pt-3 border-t border-blue-50 flex flex-col items-center">
-                            <p className="text-[8px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1.5">Stay Duration</p>
-                            <div className="relative w-full max-w-[140px]">
-                              <button
-                                type="button"
-                                onClick={() => setIsNightsDropdownOpen(!isNightsDropdownOpen)}
-                                className="w-full flex items-center justify-between bg-white border-2 border-[#14532d] rounded-full px-4 py-1 text-[10px] font-black text-[#14532d] uppercase active:scale-95 transition-all shadow-sm shadow-green-100"
-                              >
-                                <span>{formData.arrival_no_of_nights ? `${formData.arrival_no_of_nights} ${formData.arrival_no_of_nights === '1' ? 'NIGHT' : 'NIGHTS'}` : 'SELECT NIGHTS'}</span>
-                                <span className={`ml-2 transition-transform duration-300 ${isNightsDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
-                              </button>
-
-                              {isNightsDropdownOpen && (
-                                <>
-                                  <div className="fixed inset-0 z-[9] cursor-default" onClick={() => setIsNightsDropdownOpen(false)}></div>
-                                  <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white border-2 border-[#14532d] rounded-xl shadow-2xl z-10 overflow-hidden max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(n => (
-                                      <button
-                                        key={n}
-                                        type="button"
-                                        onClick={() => {
-                                          const val = n.toString();
-                                          setFormData(prev => ({ ...prev, arrival_no_of_nights: val }));
-                                          const newItineraryDays = itineraryDays.map(day => {
-                                            const currentRD = day.details_json?._roomDetails || { noOfRooms: '', rooms: [] };
-                                            const rooms = Array.from({ length: n }, (_, idx) => currentRD.rooms?.[idx] || { roomType: '', meals: '' });
-                                            return { ...day, details_json: { ...day.details_json, _roomDetails: { ...currentRD, noOfRooms: val, rooms } } };
-                                          });
-                                          setItineraryDays(newItineraryDays);
-                                          setIsNightsDropdownOpen(false);
-                                        }}
-                                        className="w-full px-4 py-2 text-[10px] font-black uppercase text-gray-700 hover:bg-green-50 hover:text-[#14532d] text-left border-b border-gray-50 last:border-0 transition-colors"
-                                      >
-                                        {n} {n === 1 ? 'NIGHT' : 'NIGHTS'}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                            <p className="text-[7px] text-gray-400 mt-1.5 uppercase font-bold italic">Auto-syncs to itinerary accommodation</p>
-                          </div>
                         </div>
                       </div>
 

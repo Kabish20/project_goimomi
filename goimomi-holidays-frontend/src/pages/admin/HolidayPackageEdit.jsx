@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+﻿import React, { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -1393,55 +1393,9 @@ const HolidayPackageEdit = () => {
                                                             <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Arrival Airport" optional />
-                                                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
-                                                        </div>
-                                                        <div className="relative flex flex-col items-center">
-                                                            <FormLabel label="Stay Duration" optional />
-                                                            <div className="relative w-full">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setIsNightsDropdownOpen(!isNightsDropdownOpen)}
-                                                                    className="w-full flex items-center justify-between bg-white border-2 border-[#14532d] rounded-xl px-4 py-1.5 text-[10px] font-black text-[#14532d] uppercase active:scale-95 transition-all shadow-sm"
-                                                                >
-                                                                    <span>{formData.arrival_no_of_nights ? `${formData.arrival_no_of_nights} ${formData.arrival_no_of_nights === '1' ? 'NIGHT' : 'NIGHTS'}` : 'SELECT NIGHTS'}</span>
-                                                                    <span className={`ml-2 transition-transform duration-300 ${isNightsDropdownOpen ? 'rotate-180' : ''}`}>?</span>
-                                                                </button>
-
-                                                                {isNightsDropdownOpen && (
-                                                                    <>
-                                                                        <div className="fixed inset-0 z-[40]" onClick={() => setIsNightsDropdownOpen(false)}></div>
-                                                                        <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-white border-2 border-[#14532d] rounded-xl shadow-2xl z-[50] overflow-hidden max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
-                                                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(n => (
-                                                                                <button
-                                                                                    key={n}
-                                                                                    type="button"
-                                                                                    onClick={() => {
-                                                                                        const val = n.toString();
-                                                                                        setFormData(prev => ({ ...prev, arrival_no_of_nights: val }));
-                                                                                        const nVal = parseInt(val) || 0;
-                                                                                        if (nVal > 0) {
-                                                                                            const newItineraryDays = itineraryDays.map(day => {
-                                                                                                const currentRD = day.details_json?._roomDetails || { noOfRooms: '', rooms: [] };
-                                                                                                const rooms = Array.from({ length: nVal }, (_, idx) => currentRD.rooms?.[idx] || { roomType: '', meals: '' });
-                                                                                                return { ...day, details_json: { ...day.details_json, _roomDetails: { ...currentRD, noOfRooms: val, rooms } } };
-                                                                                            });
-                                                                                            setItineraryDays(newItineraryDays);
-                                                                                        }
-                                                                                        setIsNightsDropdownOpen(false);
-                                                                                    }}
-                                                                                    className="w-full px-4 py-2 text-[10px] font-black uppercase text-gray-700 hover:bg-[#14532d] hover:text-white text-left border-b border-gray-50 last:border-0 transition-all"
-                                                                                >
-                                                                                    {n} {n === 1 ? 'NIGHT' : 'NIGHTS'}
-                                                                                </button>
-                                                                            ))}
-                                                                        </div>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </div>
+                                                    <div>
+                                                        <FormLabel label="Arrival Airport" optional />
+                                                        <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
                                                     </div>
                                                 </div>
                                             </div>
