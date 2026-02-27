@@ -360,6 +360,37 @@ const HolidayPackageAdd = () => {
     }
   }, [packageDestinations]);
 
+  // Auto-sync Accommodation "No. of Nights" per itinerary day from packageDestinations
+  useEffect(() => {
+    if (!packageDestinations.length || !itineraryDays.length) return;
+    setItineraryDays(prev => prev.map((day, dayIndex) => {
+      // Find which destination this day belongs to
+      let cumulative = 0;
+      let destNights = null;
+      for (const dest of packageDestinations) {
+        const n = parseInt(dest.nights || 0, 10);
+        if (dayIndex >= cumulative && dayIndex < cumulative + n) {
+          destNights = n;
+          break;
+        }
+        cumulative += n;
+      }
+      if (destNights === null) return day; // Day beyond all destinations, leave unchanged
+      const val = destNights.toString();
+      const currentRD = day.details_json?._roomDetails || { noOfRooms: '', rooms: [] };
+      // Only update if value actually changed to avoid infinite loop
+      if (currentRD.noOfRooms === val) return day;
+      const rooms = Array.from({ length: destNights }, (_, idx) => currentRD.rooms?.[idx] || { roomType: '', meals: '' });
+      return {
+        ...day,
+        details_json: {
+          ...day.details_json,
+          _roomDetails: { ...currentRD, noOfRooms: val, rooms }
+        }
+      };
+    }));
+  }, [packageDestinations]);
+
   /* ---------- handlers ---------- */
   const addRow = (setter, row) => setter((p) => [...p, row]);
   const removeRow = (setter, index) =>
