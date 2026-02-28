@@ -251,7 +251,7 @@ const AdminSidebar = () => {
 
   return (
     <aside
-      className={`${isCollapsed ? "w-14" : "w-60"} bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
+      className={`relative ${isCollapsed ? "w-14" : "w-60"} bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
     >
       {/* Header */}
       <div className={`p-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
@@ -270,9 +270,9 @@ const AdminSidebar = () => {
 
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 bg-[#14532d] border border-white/10 text-white rounded-full p-1 shadow-xl hover:bg-[#1a6338] hover:scale-110 transition-all z-[60]"
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-[#14532d] border border-white/20 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg hover:bg-[#1a6338] hover:scale-110 transition-all z-[60]"
       >
-        {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
 
       {/* Content */}

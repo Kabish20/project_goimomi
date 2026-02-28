@@ -137,10 +137,33 @@ const HolidayPackageAdd = () => {
     departure_airport: "",
     departure_airline: "",
     departure_flight_no: "",
-    sharing: "TWIN",
+    sharing: "SINGLE",
     arrival_no_of_nights: "",
   });
   const [fixedDepartureData, setFixedDepartureData] = useState([]);
+
+  // Default logistics block for a travel date slot
+  const mkLogistics = () => ({
+    with_arrival: true,
+    arrival_city: "", arrival_date: "", arrival_time: "",
+    arrival_airport: "", arrival_airline: "", arrival_flight_no: "",
+    with_departure: true,
+    departure_city: "", departure_date: "", departure_time: "",
+    departure_airport: "", departure_airline: "", departure_flight_no: ""
+  });
+
+  // Default new pricing slot
+  const mkSlot = () => ({
+    travel_date: "",
+    valid_from: "",
+    valid_to: "",
+    booking_valid_until: "",
+    logistics: mkLogistics(),
+    tiers: (formData.package_categories || []).reduce((acc, tier) => {
+      acc[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
+      return acc;
+    }, {})
+  });
 
   const [startingCities, setStartingCities] = useState([]);
   const [destinations, setDestinations] = useState([]);
@@ -397,21 +420,38 @@ const HolidayPackageAdd = () => {
     if (!formData.fixed_departure) return;
     setFixedDepartureData(prev => prev.map(slot => {
       const newTiers = { ...slot.tiers };
+      const selectedTiers = formData.package_categories || [];
       // Add missing tiers
-      formData.package_categories.forEach(tier => {
+      selectedTiers.forEach(tier => {
         if (!newTiers[tier]) {
-          newTiers[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "TWIN" }];
+          newTiers[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
         }
       });
       // Remove tiers no longer selected
       Object.keys(newTiers).forEach(tier => {
-        if (!formData.package_categories.includes(tier)) {
+        if (!selectedTiers.includes(tier)) {
           delete newTiers[tier];
         }
       });
       return { ...slot, tiers: newTiers };
     }));
   }, [formData.package_categories, formData.fixed_departure]);
+
+  // Synchronize Fixed Departure Travel Dates with Arrival/Departure Dates
+  useEffect(() => {
+    if (formData.fixed_departure && fixedDepartureData.length > 0) {
+      const firstTravelDate = fixedDepartureData[0]?.travel_date;
+      if (firstTravelDate) {
+        setFormData(prev => ({
+          ...prev,
+          start_date: prev.start_date || firstTravelDate,
+          arrival_date: prev.arrival_date || firstTravelDate
+        }));
+      }
+    }
+  }, [formData.fixed_departure, fixedDepartureData]);
+
+  // Handle Itinerary Days count update
 
   /* ---------- handlers ---------- */
   const addRow = (setter, row) => setter((p) => [...p, row]);
@@ -526,6 +566,15 @@ const HolidayPackageAdd = () => {
       packageDestinations.forEach((dest, index) => {
         if (!dest.destination) newErrors[`dest_${index}`] = "City required";
       });
+    }
+    // Arrival & Departure Logistics (Manual Purpose Validation)
+    if (formData.with_arrival) {
+      if (!formData.arrival_city) newErrors.arrival_city = "Arrival city is required if logistics are enabled";
+      if (!formData.arrival_date) newErrors.arrival_date = "Arrival date is required if logistics are enabled";
+    }
+    if (formData.with_departure) {
+      if (!formData.departure_city) newErrors.departure_city = "Departure city is required if logistics are enabled";
+      if (!formData.departure_date) newErrors.departure_date = "Departure date is required if logistics are enabled";
     }
 
     // Itinerary validations
@@ -1026,7 +1075,11 @@ const HolidayPackageAdd = () => {
                               <button
                                 key={`flight-${val}`}
                                 type="button"
-                                onClick={() => setFormData({ ...formData, with_flight: val })}
+                                onClick={() => setFormData({
+                                  ...formData,
+                                  with_flight: val,
+                                  ...(val ? { with_arrival: true, with_departure: true } : {})
+                                })}
                                 className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all border-2 ${formData.with_flight === val ? 'bg-[#14532d] border-[#14532d] text-white shadow-md shadow-green-900/10' : 'bg-white border-gray-100 text-gray-400 hover:text-gray-600'}`}
                               >
                                 {val ? 'WITH' : 'NO'}
@@ -2000,73 +2053,33 @@ const HolidayPackageAdd = () => {
 
                 {/* PRICING - PAGE 4 */}
                 <Section title="Pricing" active={currentPage === 4}>
-                  {!formData.fixed_departure ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 w-16 h-16 bg-green-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
-                        <FormLabel label="Offer Price (Final)" required />
-                        <div className="relative z-10">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-gray-300 group-hover:text-[#14532d] transition-colors text-xs">₹</span>
-                          <Input type="text" name="offer_price" value={formatWithCommas(formData.offer_price)} onChange={handleInputChange} className="!pl-8 !text-xs !font-black !py-1.5" error={errors.offer_price} />
-                        </div>
-                      </div>
-                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 w-16 h-16 bg-red-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
-                        <FormLabel label="Markup Price (Strike)" optional />
-                        <div className="relative z-10">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-gray-300 group-hover:text-red-400 transition-colors text-xs">₹</span>
-                          <Input type="text" name="price" value={formatWithCommas(formData.price)} onChange={handleInputChange} className="!pl-8 !text-xs !font-black !py-1.5" />
-                        </div>
-                      </div>
-                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 w-16 h-16 bg-blue-50 rounded-bl-full opacity-50 transition-all group-hover:scale-110"></div>
-                        <FormLabel label="Sharing Option" required />
-                        <div className="relative z-10">
-                          <select
-                            name="sharing"
-                            value={formData.sharing}
-                            onChange={handleInputChange}
-                            className="bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl w-full text-gray-900 text-[10px] font-black transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200"
-                          >
-                            <option value="SINGLE">SINGLE SHARING</option>
-                            <option value="TWIN">TWIN SHARING</option>
-                            <option value="TRIPLE">TRIPLE SHARING</option>
-                            <option value="QUAD">QUAD SHARING</option>
-                            <option value="QUINT">QUINT SHARING</option>
-                          </select>
-                        </div>
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+                          {formData.fixed_departure ? "Fixed Departure Pricing" : "Package Pricing & Tiers"}
+                        </h3>
+                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                          {formData.fixed_departure
+                            ? "Configure pricing for specific travel dates"
+                            : "Configure tiered pricing for specific validity ranges"}
+                        </p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <div>
-                          <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Fixed Departure Pricing</h3>
-                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Configure pricing for specific travel dates</p>
-                        </div>
+
+                    {fixedDepartureData.length === 0 ? (
+                      <div className="bg-gray-50 border-2 border-dashed border-gray-100 rounded-[2rem] p-12 text-center">
+                        <Calendar className="mx-auto text-gray-200 mb-4" size={48} />
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No pricing data added yet</p>
+                        <button
+                          type="button"
+                          onClick={() => setFixedDepartureData([mkSlot()])}
+                          className="text-[#14532d] text-[10px] font-black uppercase tracking-widest mt-4 hover:underline"
+                        >
+                          Click here to add your first {formData.fixed_departure ? 'travel date' : 'price range'}
+                        </button>
                       </div>
-
-                      {fixedDepartureData.length === 0 && (
-                        <div className="bg-gray-50 border-2 border-dashed border-gray-100 rounded-[2rem] p-12 text-center">
-                          <Calendar className="mx-auto text-gray-200 mb-4" size={48} />
-                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No travel dates added yet</p>
-                          <button
-                            type="button"
-                            onClick={() => setFixedDepartureData([{
-                              travel_date: "",
-                              booking_valid_until: "",
-                              tiers: formData.package_categories.reduce((acc, tier) => {
-                                acc[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "TWIN" }];
-                                return acc;
-                              }, {})
-                            }])}
-                            className="text-[#14532d] text-[10px] font-black uppercase tracking-widest mt-4 hover:underline"
-                          >
-                            Click here to add your first date
-                          </button>
-                        </div>
-                      )}
-
+                    ) : (
                       <div className="grid grid-cols-1 gap-6">
                         {fixedDepartureData.map((slot, sIdx) => (
                           <div key={sIdx} className="bg-white border-2 border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
@@ -2075,36 +2088,72 @@ const HolidayPackageAdd = () => {
 
                             {/* Header Section from Mockup */}
                             <div className="flex flex-wrap items-center gap-6 mb-8 relative z-10">
-                              <div className="flex items-center gap-3">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">center Travel Date:</span>
-                                <div className="relative group/input">
-                                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/input:text-[#14532d] transition-colors" size={14} />
-                                  <input
-                                    type="date"
-                                    value={slot.travel_date}
-                                    onChange={(e) => {
-                                      const copy = [...fixedDepartureData];
-                                      copy[sIdx].travel_date = e.target.value;
-                                      setFixedDepartureData(copy);
-                                    }}
-                                    className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
-                                  />
+                              {formData.fixed_departure ? (
+                                <div className="flex items-center gap-3">
+                                  <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest whitespace-nowrap">CENTER TRAVEL DATE:</span>
+                                  <div className="relative group/input">
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/input:text-[#14532d] transition-colors" size={14} />
+                                    <input
+                                      type="date"
+                                      value={slot.travel_date}
+                                      onChange={(e) => {
+                                        const copy = [...fixedDepartureData];
+                                        copy[sIdx].travel_date = e.target.value;
+                                        // Auto-sync arrival date in logistics
+                                        if (copy[sIdx].logistics) {
+                                          copy[sIdx].logistics = { ...copy[sIdx].logistics, arrival_date: e.target.value };
+                                        } else {
+                                          copy[sIdx].logistics = { ...mkLogistics(), arrival_date: e.target.value };
+                                        }
+                                        setFixedDepartureData(copy);
+                                      }}
+                                      className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                    />
+                                  </div>
                                 </div>
-                              </div>
+                              ) : (
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest whitespace-nowrap">PRICE VALID FROM:</span>
+                                    <div className="relative group/input">
+                                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
+                                      <input
+                                        type="date"
+                                        value={slot.valid_from}
+                                        onChange={(e) => {
+                                          const copy = [...fixedDepartureData];
+                                          copy[sIdx].valid_from = e.target.value;
+                                          setFixedDepartureData(copy);
+                                        }}
+                                        className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest whitespace-nowrap">VALID TO:</span>
+                                    <div className="relative group/input">
+                                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
+                                      <input
+                                        type="date"
+                                        value={slot.valid_to}
+                                        onChange={(e) => {
+                                          const copy = [...fixedDepartureData];
+                                          copy[sIdx].valid_to = e.target.value;
+                                          setFixedDepartureData(copy);
+                                        }}
+                                        className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
 
                               <div className="flex items-center gap-2">
                                 <button
                                   type="button"
                                   onClick={() => setFixedDepartureData(prev => {
                                     const next = [...prev];
-                                    next.splice(sIdx + 1, 0, {
-                                      travel_date: "",
-                                      booking_valid_until: "",
-                                      tiers: formData.package_categories.reduce((acc, tier) => {
-                                        acc[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "TWIN" }];
-                                        return acc;
-                                      }, {})
-                                    });
+                                    next.splice(sIdx + 1, 0, mkSlot());
                                     return next;
                                   })}
                                   className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
@@ -2148,7 +2197,7 @@ const HolidayPackageAdd = () => {
                                             <div>
                                               {rIdx === 0 && <FormLabel label="Sharing Type" />}
                                               <select
-                                                value={row.sharing || 'TWIN'}
+                                                value={row.sharing || 'SINGLE'}
                                                 onChange={(e) => {
                                                   const copy = [...fixedDepartureData];
                                                   copy[sIdx].tiers[tier][rIdx].sharing = e.target.value;
@@ -2218,7 +2267,7 @@ const HolidayPackageAdd = () => {
                                                   type="button"
                                                   onClick={() => {
                                                     const copy = [...fixedDepartureData];
-                                                    copy[sIdx].tiers[tier].splice(rIdx + 1, 0, { offer_price: "", market_price: "", min_members: "1", sharing: "TWIN" });
+                                                    copy[sIdx].tiers[tier].splice(rIdx + 1, 0, { offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" });
                                                     setFixedDepartureData(copy);
                                                   }}
                                                   className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-600 transition-all font-bold text-xs"
@@ -2250,147 +2299,189 @@ const HolidayPackageAdd = () => {
                             </div>
 
                             {/* Footer Section from Mockup */}
-                            <div className="flex items-center gap-3 justify-center relative z-10">
-                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Booking Valid antill Date:</span>
-                              <div className="relative group/valid">
-                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
-                                <input
-                                  type="date"
-                                  value={slot.booking_valid_until}
-                                  onChange={(e) => {
-                                    const copy = [...fixedDepartureData];
-                                    copy[sIdx].booking_valid_until = e.target.value;
-                                    setFixedDepartureData(copy);
-                                  }}
-                                  className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-amber-500 outline-none transition-all shadow-inner"
-                                />
+                            {formData.fixed_departure && (
+                              <div className="flex flex-col items-center gap-4 relative z-10">
+                                <div className="flex items-center gap-3 justify-center">
+                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID ANTILL DATE (Validity End):</span>
+                                  <div className="relative group/valid">
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
+                                    <input
+                                      type="date"
+                                      value={slot.booking_valid_until}
+                                      onChange={(e) => {
+                                        const copy = [...fixedDepartureData];
+                                        copy[sIdx].booking_valid_until = e.target.value;
+                                        setFixedDepartureData(copy);
+                                      }}
+                                      className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-amber-500 outline-none transition-all shadow-inner"
+                                    />
+                                  </div>
+                                </div>
+                                <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest text-center px-8">Package will automatically de-activate on the live site after this date</p>
                               </div>
-                            </div>
+                            )}
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </Section>
 
                 <Section title="Trip Information" active={currentPage === 5}>
                   <div className="space-y-6 max-w-5xl mx-auto">
-                    {/* Arrival & Departure Flight/Transfer Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                      {/* Arrival */}
-                      <div className="bg-blue-50/20 p-3 rounded-lg border border-blue-100/30">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <Plane size={12} className="rotate-45" /> Arrival Logistics
-                          </h4>
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData.with_arrival}
-                              onChange={(e) => setFormData({ ...formData, with_arrival: e.target.checked })}
-                              className="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest leading-none">Included</span>
-                          </label>
+                    {/* Arrival & Departure Logistics — per travel date when fixed_departure */}
+                    {formData.fixed_departure && fixedDepartureData.length > 0 ? (
+                      <div className="space-y-4 mb-8">
+                        {fixedDepartureData.map((slot, sIdx) => {
+                          const lg = slot.logistics || mkLogistics();
+                          const updateLg = (patch) =>
+                            setFixedDepartureData(prev =>
+                              prev.map((s, i) =>
+                                i === sIdx
+                                  ? { ...s, logistics: { ...(s.logistics || mkLogistics()), ...patch } }
+                                  : s
+                              )
+                            );
+                          return (
+                            <div key={sIdx} className="border-2 border-gray-100 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                              <div className="bg-[#14532d]/5 px-4 py-2 flex items-center gap-2 border-b border-gray-100">
+                                <Calendar size={13} className="text-[#14532d]" />
+                                <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest">
+                                  Travel Date {sIdx + 1}{slot.travel_date ? ` — ${slot.travel_date}` : ''}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                                {/* Arrival */}
+                                <div className="bg-blue-50/20 p-3 rounded-lg border border-blue-100/30">
+                                  <div className="flex justify-between items-center mb-3">
+                                    <h4 className="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
+                                      <Plane size={12} className="rotate-45" /> Arrival Logistics
+                                    </h4>
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                      <input type="checkbox" checked={lg.with_arrival} onChange={(e) => updateLg({ with_arrival: e.target.checked })} className="w-3 h-3 rounded border-gray-300 text-blue-600" />
+                                      <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Included</span>
+                                    </label>
+                                  </div>
+                                  <div className={!lg.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                      <div>
+                                        <FormLabel label="Arrival City" optional />
+                                        <Input value={lg.arrival_city} onChange={(e) => updateLg({ arrival_city: e.target.value })} placeholder="City Name" className="!py-1 !text-[10px]" />
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-1.5">
+                                        <div>
+                                          <FormLabel label="Date" optional />
+                                          {slot.travel_date ? (
+                                            <div className="flex items-center gap-1 bg-[#14532d]/5 border-2 border-[#14532d]/20 px-2 py-1 rounded-xl">
+                                              <Calendar size={10} className="text-[#14532d] shrink-0" />
+                                              <span className="text-[10px] font-black text-[#14532d] tracking-wide">{slot.travel_date}</span>
+                                              <span className="text-[8px] font-black text-[#14532d]/50 uppercase tracking-widest ml-auto">Locked</span>
+                                            </div>
+                                          ) : (
+                                            <Input type="date" value={lg.arrival_date} onChange={(e) => updateLg({ arrival_date: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
+                                          )}
+                                        </div>
+                                        <div><FormLabel label="Time" optional /><Input type="time" value={lg.arrival_time} onChange={(e) => updateLg({ arrival_time: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.arrival_airline} onChange={(val) => updateLg({ arrival_airline: val })} placeholder="Select" className="!py-1 !text-[10px]" /></div>
+                                      <div><FormLabel label="Flight No." optional /><Input value={lg.arrival_flight_no} onChange={(e) => updateLg({ arrival_flight_no: e.target.value })} placeholder="No." className="!py-1 !text-[10px]" /></div>
+                                    </div>
+                                    <div><FormLabel label="Airport" optional /><Input value={lg.arrival_airport} onChange={(e) => updateLg({ arrival_airport: e.target.value })} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
+                                  </div>
+                                </div>
+                                {/* Departure */}
+                                <div className="bg-indigo-50/20 p-3 rounded-lg border border-indigo-100/30">
+                                  <div className="flex justify-between items-center mb-3">
+                                    <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1.5">
+                                      <Plane size={12} className="-rotate-45" /> Departure Logistics
+                                    </h4>
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                      <input type="checkbox" checked={lg.with_departure} onChange={(e) => updateLg({ with_departure: e.target.checked })} className="w-3 h-3 rounded border-indigo-300 text-indigo-600" />
+                                      <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Included</span>
+                                    </label>
+                                  </div>
+                                  <div className={!lg.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                      <div>
+                                        <FormLabel label="Departure City" optional />
+                                        <Input value={lg.departure_city} onChange={(e) => updateLg({ departure_city: e.target.value })} placeholder="City Name" className="!py-1 !text-[10px]" />
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-1.5">
+                                        <div><FormLabel label="Date" optional /><Input type="date" value={lg.departure_date} onChange={(e) => updateLg({ departure_date: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
+                                        <div><FormLabel label="Time" optional /><Input type="time" value={lg.departure_time} onChange={(e) => updateLg({ departure_time: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.departure_airline} onChange={(val) => updateLg({ departure_airline: val })} placeholder="Select" className="!py-1 !text-[10px]" /></div>
+                                      <div><FormLabel label="Flight No." optional /><Input value={lg.departure_flight_no} onChange={(e) => updateLg({ departure_flight_no: e.target.value })} placeholder="No." className="!py-1 !text-[10px]" /></div>
+                                    </div>
+                                    <div><FormLabel label="Airport" optional /><Input value={lg.departure_airport} onChange={(e) => updateLg({ departure_airport: e.target.value })} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      // Non-fixed departure — single shared logistics
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        {/* Arrival */}
+                        <div className="bg-blue-50/20 p-3 rounded-lg border border-blue-100/30">
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
+                              <Plane size={12} className="rotate-45" /> Arrival Logistics
+                            </h4>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input type="checkbox" checked={formData.with_arrival} onChange={(e) => setFormData({ ...formData, with_arrival: e.target.checked })} className="w-3 h-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                              <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest leading-none">Included</span>
+                            </label>
+                          </div>
+                          <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <div><FormLabel label="Arrival City" optional /><Input name="arrival_city" value={formData.arrival_city} onChange={handleInputChange} placeholder="City Name" className="!py-1 !text-[10px]" /></div>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <div><FormLabel label="Date" optional /><Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
+                                <div><FormLabel label="Time" optional /><Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={formData.arrival_airline} onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))} placeholder="Select" className="!py-1 !text-[10px]" /></div>
+                              <div><FormLabel label="Flight No." optional /><Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="No." className="!py-1 !text-[10px]" /></div>
+                            </div>
+                            <div><FormLabel label="Airport" optional /><Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
+                          </div>
                         </div>
-
-                        <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
-                          <div className="grid grid-cols-2 gap-2 mb-2">
-                            <div>
-                              <FormLabel label="Arrival City" optional />
-                              <Input name="arrival_city" value={formData.arrival_city} onChange={handleInputChange} placeholder="City Name" className="!py-1 !text-[10px]" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-1.5">
-                              <div>
-                                <FormLabel label="Date" optional />
-                                <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
+                        {/* Departure */}
+                        <div className="bg-indigo-50/20 p-3 rounded-lg border border-indigo-100/30">
+                          <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1.5">
+                              <Plane size={12} className="-rotate-45" /> Departure Logistics
+                            </h4>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                              <input type="checkbox" checked={formData.with_departure} onChange={(e) => setFormData({ ...formData, with_departure: e.target.checked })} className="w-3 h-3 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500" />
+                              <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest leading-none">Included</span>
+                            </label>
+                          </div>
+                          <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <div><FormLabel label="Departure City" optional /><Input name="departure_city" value={formData.departure_city} onChange={handleInputChange} placeholder="City Name" className="!py-1 !text-[10px]" /></div>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <div><FormLabel label="Date" optional /><Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
+                                <div><FormLabel label="Time" optional /><Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
                               </div>
-                              <div>
-                                <FormLabel label="Time" optional />
-                                <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
-                              </div>
                             </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 mb-2">
-                            <div>
-                              <FormLabel label="Airline" optional />
-                              <SearchableSelect
-                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                value={formData.arrival_airline}
-                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                placeholder="Select"
-                                className="!py-1 !text-[10px]"
-                              />
+                            <div className="grid grid-cols-2 gap-2 mb-2">
+                              <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={formData.departure_airline} onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))} placeholder="Select" className="!py-1 !text-[10px]" /></div>
+                              <div><FormLabel label="Flight No." optional /><Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="No." className="!py-1 !text-[10px]" /></div>
                             </div>
-                            <div>
-                              <FormLabel label="Flight No." optional />
-                              <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="No." className="!py-1 !text-[10px]" />
-                            </div>
+                            <div><FormLabel label="Airport" optional /><Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
                           </div>
-                          <div>
-                            <FormLabel label="Airport" optional />
-                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1 !text-[10px]" />
-                          </div>
-
                         </div>
                       </div>
-
-                      {/* Departure */}
-                      <div className="bg-indigo-50/20 p-3 rounded-lg border border-indigo-100/30">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1.5">
-                            <Plane size={12} className="-rotate-45" /> Departure Logistics
-                          </h4>
-                          <label className="flex items-center gap-1.5 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData.with_departure}
-                              onChange={(e) => setFormData({ ...formData, with_departure: e.target.checked })}
-                              className="w-3 h-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest leading-none">Included</span>
-                          </label>
-                        </div>
-                        <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
-                          <div className="grid grid-cols-2 gap-2 mb-2">
-                            <div>
-                              <FormLabel label="Departure City" optional />
-                              <Input name="departure_city" value={formData.departure_city} onChange={handleInputChange} placeholder="City Name" className="!py-1 !text-[10px]" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-1.5">
-                              <div>
-                                <FormLabel label="Date" optional />
-                                <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
-                              </div>
-                              <div>
-                                <FormLabel label="Time" optional />
-                                <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 mb-2">
-                            <div>
-                              <FormLabel label="Airline" optional />
-                              <SearchableSelect
-                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                value={formData.departure_airline}
-                                onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                placeholder="Select"
-                                className="!py-1 !text-[10px]"
-                              />
-                            </div>
-                            <div>
-                              <FormLabel label="Flight No." optional />
-                              <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="No." className="!py-1 !text-[10px]" />
-                            </div>
-                          </div>
-                          <div>
-                            <FormLabel label="Airport" optional />
-                            <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1 !text-[10px]" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    )}
 
                     {/* INCLUSIONS */}
                     <div>
