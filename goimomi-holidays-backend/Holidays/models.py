@@ -129,8 +129,8 @@ class HolidayPackage(models.Model):
     
     sharing = models.CharField(
         max_length=20,
-        choices=[('TWIN', 'TWIN'), ('TRIPLE', 'TRIPLE'), ('QUAD', 'QUAD'), ('QUINT', 'QUINT')],
-        default='TWIN',
+        choices=[('SINGLE', 'SINGLE'), ('TWIN', 'TWIN'), ('TRIPLE', 'TRIPLE'), ('QUAD', 'QUAD'), ('QUINT', 'QUINT')],
+        default='SINGLE',
         blank=True, null=True
     )
 

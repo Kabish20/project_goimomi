@@ -88,6 +88,13 @@ const AdminSidebar = () => {
     const saved = localStorage.getItem("sidebarCollapsed");
     return saved === "true";
   });
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = () => setIsMobileOpen(prev => !prev);
+    window.addEventListener('admin-sidebar-toggle', handleToggle);
+    return () => window.removeEventListener('admin-sidebar-toggle', handleToggle);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("sidebarCollapsed", isCollapsed);
@@ -187,7 +194,10 @@ const AdminSidebar = () => {
       return;
     }
     const handler = getChangeHandler(item);
-    if (handler) handler();
+    if (handler) {
+      handler();
+      setIsMobileOpen(false); // Close on mobile after navigation
+    }
   };
 
   const renderItem = (item, isChild = false) => {
@@ -253,61 +263,73 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside
-      className={`relative ${isCollapsed ? "w-14" : "w-60"} bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col z-50`}
-    >
-      {/* Header */}
-      <div className={`p-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
-        {!isCollapsed && (
-          <h2
-            className="text-sm font-bold tracking-widest text-gray-200 cursor-pointer hover:text-white transition-colors uppercase"
-            onClick={() => navigate("/")}
-          >
-            GOIMOMI <span className="opacity-80 font-medium">ADMIN</span>
-          </h2>
-        )}
-        {isCollapsed && (
-          <div onClick={() => navigate("/")} className="cursor-pointer bg-[#1f7a45] w-7 h-7 rounded flex items-center justify-center font-bold text-xs">G</div>
-        )}
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[45] lg:hidden transition-opacity duration-300"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
 
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-[#14532d] border border-white/20 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg hover:bg-[#1a6338] hover:scale-110 transition-all z-[60]"
+      <aside
+        className={`fixed lg:relative inset-y-0 left-0 z-50 ${isCollapsed ? "w-14" : "w-60"
+          } bg-[#14532d] text-white h-full transition-all duration-300 ease-in-out border-r border-white/10 flex flex-col ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
       >
-        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-      </button>
+        {/* Header */}
+        <div className={`p-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
+          {!isCollapsed && (
+            <h2
+              className="text-sm font-bold tracking-widest text-gray-200 cursor-pointer hover:text-white transition-colors uppercase"
+              onClick={() => navigate("/")}
+            >
+              GOIMOMI <span className="opacity-80 font-medium">ADMIN</span>
+            </h2>
+          )}
+          {isCollapsed && (
+            <div onClick={() => navigate("/")} className="cursor-pointer bg-[#1f7a45] w-7 h-7 rounded flex items-center justify-center font-bold text-xs">G</div>
+          )}
+        </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-        {menu.map((section, idx) => (
-          <div key={idx} className="mt-4 mb-1">
-            {!isCollapsed && (
-              <h3 className="px-4 py-1.5 text-sm font-medium text-gray-200 uppercase tracking-widest opacity-60">
-                {section.title}
-              </h3>
-            )}
-            {isCollapsed && <div className="h-[1px] bg-white/5 mx-4 my-2" />}
-
-            <ul className="mt-2">
-              {section.items.map((item) => renderItem(item))}
-            </ul>
-          </div>
-        ))}
-      </div>
-
-      {/* Footer / Dash Link */}
-      <div className="p-3 border-t border-white/10">
         <button
-          onClick={() => navigate("/admin-dashboard")}
-          className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2.5"} p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all group`}
-          title="Dashboard"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-[#14532d] border border-white/20 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg hover:bg-[#1a6338] hover:scale-110 transition-all z-[60]"
         >
-          <LayoutDashboard size={16} className="text-green-400" />
-          {!isCollapsed && <span className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors">Dashboard Hub</span>}
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
-      </div>
-    </aside>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+          {menu.map((section, idx) => (
+            <div key={idx} className="mt-4 mb-1">
+              {!isCollapsed && (
+                <h3 className="px-4 py-1.5 text-sm font-medium text-gray-200 uppercase tracking-widest opacity-60">
+                  {section.title}
+                </h3>
+              )}
+              {isCollapsed && <div className="h-[1px] bg-white/5 mx-4 my-2" />}
+
+              <ul className="mt-2">
+                {section.items.map((item) => renderItem(item))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer / Dash Link */}
+        <div className="p-3 border-t border-white/10">
+          <button
+            onClick={() => navigate("/admin-dashboard")}
+            className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2.5"} p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all group`}
+            title="Dashboard"
+          >
+            <LayoutDashboard size={16} className="text-green-400" />
+            {!isCollapsed && <span className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors">Dashboard Hub</span>}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 

@@ -725,7 +725,23 @@ const HolidayPackageEdit = () => {
                 });
             }
         } else {
-            if (!formData.offer_price || parseFloat(formData.offer_price) <= 0) newErrors.offer_price = "Offer price must be greater than 0";
+            if (fixedDepartureData.length === 0) {
+                newErrors.fixedDepartureData = "At least one price tier/range is required";
+            } else {
+                let hasValidPrice = false;
+                fixedDepartureData.forEach((slot, index) => {
+                    if (!slot.valid_from) newErrors[`slot_valid_from_${index}`] = "Valid from date required";
+                    if (!slot.valid_to) newErrors[`slot_valid_to_${index}`] = "Valid to date required";
+
+                    Object.keys(slot.tiers || {}).forEach((tier) => {
+                        slot.tiers[tier].forEach(tierData => {
+                            const op = tierData.offer_price ? tierData.offer_price.toString().replace(/,/g, '') : "0";
+                            if (parseFloat(op) > 0) hasValidPrice = true;
+                        });
+                    });
+                });
+                if (!hasValidPrice) newErrors.offer_price = "At least one offer price must be greater than 0";
+            }
         }
 
         if (packageDestinations.length === 0 && parseInt(formData.days) > 1) {
@@ -770,7 +786,27 @@ const HolidayPackageEdit = () => {
             formDataToSend.append("days", itineraryDays.length);
             if (formData.start_date) formDataToSend.append("start_date", formData.start_date);
             formDataToSend.append("group_size", formData.group_size);
-            formDataToSend.append("Offer_price", formData.offer_price || 0);
+
+            // Calculate the lowest possible price across all slots/tiers
+            let baseOfferPrice = formData.offer_price || 0;
+            if (fixedDepartureData.length > 0) {
+                let lowestPrice = Infinity;
+                fixedDepartureData.forEach(slot => {
+                    Object.values(slot.tiers || {}).forEach(tierList => {
+                        tierList.forEach(tier => {
+                            let op = parseFloat(tier.offer_price ? tier.offer_price.toString().replace(/,/g, '') : "0");
+                            if (!isNaN(op) && op > 0 && op < lowestPrice) {
+                                lowestPrice = op;
+                            }
+                        });
+                    });
+                });
+                if (lowestPrice !== Infinity) {
+                    baseOfferPrice = lowestPrice;
+                }
+            }
+
+            formDataToSend.append("Offer_price", baseOfferPrice);
             if (formData.price) formDataToSend.append("price", formData.price);
             formDataToSend.append("with_flight", formData.with_flight);
             formDataToSend.append("fixed_departure", formData.fixed_departure);
@@ -1006,11 +1042,11 @@ const HolidayPackageEdit = () => {
                     <AdminTopbar />
 
                     {/* Action Header */}
-                    <div className="bg-white border-b border-gray-100 px-8 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
+                    <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90 gap-4 md:gap-0">
                         <div>
-                            <h1 className="text-xl font-black text-gray-900 tracking-tighter">Edit Holiday Package</h1>
-                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
-                                <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">{formData.title || "Package"}</span>
+                            <h1 className="text-lg md:text-xl font-black text-gray-900 tracking-tighter">Edit Holiday Package</h1>
+                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex flex-wrap items-center gap-2">
+                                <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900 whitespace-nowrap">{formData.title || "Package"}</span>
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -1038,9 +1074,9 @@ const HolidayPackageEdit = () => {
                         </div>
                     </div>
 
-                    <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
+                    <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc] flex-col lg:flex-row">
                         {/* Internal Navigation Sidebar */}
-                        <div className="w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-3 shrink-0">
+                        <div className="hidden lg:flex w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex-col p-3 shrink-0">
                             <nav className="flex-1 space-y-0.5">
                                 {navItems.map((item) => (
                                     <div key={item.id}>
@@ -1082,7 +1118,7 @@ const HolidayPackageEdit = () => {
                         </div>
 
                         {/* Form Content Area */}
-                        <div className="flex-1 overflow-y-auto px-12 py-10 custom-scrollbar bg-[#fcfdfc]">
+                        <div className="flex-1 overflow-y-auto px-4 md:px-12 py-6 md:py-10 custom-scrollbar bg-[#fcfdfc]">
                             <div className="max-w-4xl mx-auto pb-12">
                                 {/* Success message */}
                                 {message && (
@@ -1737,7 +1773,7 @@ const HolidayPackageEdit = () => {
                                                             {formData.fixed_departure && (
                                                                 <div className="flex flex-col items-center gap-4 relative z-10">
                                                                     <div className="flex items-center gap-3 justify-center">
-                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL DATE (Validity End):</span>
+                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL:</span>
                                                                         <div className="relative group/valid">
                                                                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
                                                                             <input

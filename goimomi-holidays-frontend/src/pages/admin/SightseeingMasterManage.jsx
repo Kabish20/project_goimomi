@@ -90,18 +90,18 @@ const SightseeingMasterManage = () => {
 
                 {/* Main Scrollable Content */}
                 <div className="flex-1 overflow-y-auto p-4">
-                    <div className="flex justify-between items-center mb-3">
-                        <h1 className="text-base font-black text-gray-900 uppercase tracking-tighter">Sightseeing Masters</h1>
-                        <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
+                        <h1 className="text-sm md:text-base font-black text-gray-900 uppercase tracking-tighter">Sightseeing Masters</h1>
+                        <div className="flex gap-2 w-full sm:w-auto">
                             <button
                                 onClick={fetchSightseeings}
-                                className="bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-gray-700 transition"
+                                className="flex-1 sm:flex-none bg-gray-600 text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-widest hover:bg-gray-700 transition active:scale-95 shadow-lg shadow-gray-900/10"
                             >
                                 Refresh
                             </button>
                             <button
                                 onClick={() => navigate("/admin/sightseeing-masters/add")}
-                                className="flex items-center gap-1.5 bg-[#14532d] text-white px-3 py-1.5 rounded-lg text-xs hover:bg-[#0f4a24] transition"
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-[#14532d] text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-widest hover:bg-[#0f4a24] transition active:scale-95 shadow-lg shadow-green-900/10"
                             >
                                 <Plus size={14} />
                                 Add New

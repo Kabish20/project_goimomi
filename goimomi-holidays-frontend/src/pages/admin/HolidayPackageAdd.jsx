@@ -583,7 +583,23 @@ const HolidayPackageAdd = () => {
         });
       }
     } else {
-      if (!formData.offer_price || parseFloat(formData.offer_price) <= 0) newErrors.offer_price = "Offer price must be greater than 0";
+      if (fixedDepartureData.length === 0) {
+        newErrors.fixedDepartureData = "At least one price tier/range is required";
+      } else {
+        let hasValidPrice = false;
+        fixedDepartureData.forEach((slot, index) => {
+          if (!slot.valid_from) newErrors[`slot_valid_from_${index}`] = "Valid from date required";
+          if (!slot.valid_to) newErrors[`slot_valid_to_${index}`] = "Valid to date required";
+
+          Object.keys(slot.tiers || {}).forEach((tier) => {
+            slot.tiers[tier].forEach(tierData => {
+              const op = tierData.offer_price ? tierData.offer_price.toString().replace(/,/g, '') : "0";
+              if (parseFloat(op) > 0) hasValidPrice = true;
+            });
+          });
+        });
+        if (!hasValidPrice) newErrors.offer_price = "At least one offer price must be greater than 0";
+      }
     }
 
     if (packageDestinations.length === 0 && parseInt(formData.days) > 1) {
@@ -593,15 +609,15 @@ const HolidayPackageAdd = () => {
         if (!dest.destination) newErrors[`dest_${index}`] = "City required";
       });
     }
-    // Arrival & Departure Logistics (Manual Purpose Validation)
-    if (formData.with_arrival) {
-      if (!formData.arrival_city) newErrors.arrival_city = "Arrival city is required if logistics are enabled";
-      if (!formData.arrival_date) newErrors.arrival_date = "Arrival date is required if logistics are enabled";
-    }
-    if (formData.with_departure) {
-      if (!formData.departure_city) newErrors.departure_city = "Departure city is required if logistics are enabled";
-      if (!formData.departure_date) newErrors.departure_date = "Departure date is required if logistics are enabled";
-    }
+    // Arrival & Departure Logistics (Manual Purpose Validation) - Made Optional
+    // if (formData.with_arrival) {
+    //   if (!formData.arrival_city) newErrors.arrival_city = "Arrival city is required if logistics are enabled";
+    //   if (!formData.arrival_date) newErrors.arrival_date = "Arrival date is required if logistics are enabled";
+    // }
+    // if (formData.with_departure) {
+    //   if (!formData.departure_city) newErrors.departure_city = "Departure city is required if logistics are enabled";
+    //   if (!formData.departure_date) newErrors.departure_date = "Departure date is required if logistics are enabled";
+    // }
 
     // Itinerary validations
     itineraryDays.forEach((day, index) => {
@@ -638,8 +654,26 @@ const HolidayPackageAdd = () => {
       if (formData.start_date) formDataToSend.append("start_date", formData.start_date);
       formDataToSend.append("group_size", formData.group_size);
 
-      // For fixed departure, we might want to store a default price or just send the detailed data
-      formDataToSend.append("Offer_price", formData.offer_price || 0);
+      // Calculate the lowest possible price across all slots/tiers
+      let baseOfferPrice = formData.offer_price || 0;
+      if (fixedDepartureData.length > 0) {
+        let lowestPrice = Infinity;
+        fixedDepartureData.forEach(slot => {
+          Object.values(slot.tiers || {}).forEach(tierList => {
+            tierList.forEach(tier => {
+              let op = parseFloat(tier.offer_price ? tier.offer_price.toString().replace(/,/g, '') : "0");
+              if (!isNaN(op) && op > 0 && op < lowestPrice) {
+                lowestPrice = op;
+              }
+            });
+          });
+        });
+        if (lowestPrice !== Infinity) {
+          baseOfferPrice = lowestPrice;
+        }
+      }
+
+      formDataToSend.append("Offer_price", baseOfferPrice);
       if (formData.price) formDataToSend.append("price", formData.price);
 
       formDataToSend.append("with_flight", formData.with_flight);
@@ -719,11 +753,13 @@ const HolidayPackageAdd = () => {
         setMessage("Holiday package added successfully!");
         setErrors({});
         // Reset form
+        // Reset form to its full initial state
         setFormData({
           title: "",
           description: "",
           category: "",
           starting_city: "",
+          ending_city: "",
           days: "",
           start_date: "",
           group_size: 0,
@@ -731,14 +767,43 @@ const HolidayPackageAdd = () => {
           price: "",
           header_image: null,
           card_image: null,
+          supplier: "",
+          with_flight: false,
+          fixed_departure: false,
+          package_categories: [],
           is_active: true,
-          sharing: "TWIN",
+          with_arrival: true,
+          arrival_city: "",
+          arrival_date: "",
+          arrival_time: "",
+          arrival_airport: "",
+          arrival_airline: "",
+          arrival_flight_no: "",
+          with_departure: true,
+          departure_city: "",
+          departure_date: "",
+          departure_time: "",
+          departure_airport: "",
+          departure_airline: "",
+          departure_flight_no: "",
+          sharing: "SINGLE",
+          arrival_no_of_nights: "",
         });
         setPackageDestinations([{ destination: "", nights: 1 }]);
-        setItineraryDays([{ day: "1", title: "", description: "", master_template: "", image: null, save_to_master: false }]);
+        setItineraryDays([{
+          day: "1",
+          title: "",
+          description: "",
+          master_template: "",
+          image: null,
+          save_to_master: false,
+          details_json: { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], vehicles: [""] }
+        }]);
+        setFixedDepartureData([]);
         setInclusions([""]);
         setExclusions([""]);
         setHighlights([""]);
+        setCancellationPolicies([""]);
       }
       // After package is successfully created, save marked itineraries to master
       for (let i = 0; i < itineraryDays.length; i++) {
@@ -822,11 +887,11 @@ const HolidayPackageAdd = () => {
         <AdminTopbar />
 
         {/* Action Header */}
-        <div className="bg-white border-b border-gray-100 px-8 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
+        <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-3.5 flex flex-col md:flex-row justify-between items-start md:items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90 gap-4 md:gap-0">
           <div>
-            <h1 className="text-xl font-black text-gray-900 tracking-tighter">Add Holiday Package</h1>
-            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
-              <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">Step {currentPage} of {totalPages}</span>
+            <h1 className="text-lg md:text-xl font-black text-gray-900 tracking-tighter">Add Holiday Package</h1>
+            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex flex-wrap items-center gap-2">
+              <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900 whitespace-nowrap">Step {currentPage} of {totalPages}</span>
             </p>
           </div>
           <div className="flex gap-3">
@@ -856,9 +921,9 @@ const HolidayPackageAdd = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
+        <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc] flex-col lg:flex-row">
           {/* Internal Navigation Sidebar */}
-          <div className="w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-3 shrink-0">
+          <div className="hidden lg:flex w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex-col p-3 shrink-0">
             <div className="mb-3 px-1">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Progress</span>
@@ -916,7 +981,7 @@ const HolidayPackageAdd = () => {
           </div>
 
           {/* Form Content Area */}
-          <div className="flex-1 overflow-y-auto px-12 py-10 custom-scrollbar bg-[#fcfdfc]">
+          <div className="flex-1 overflow-y-auto px-4 md:px-12 py-6 md:py-10 custom-scrollbar bg-[#fcfdfc]">
             <div className="max-w-4xl mx-auto pb-12">
               {/* Success message */}
               {message && (
@@ -1096,7 +1161,7 @@ const HolidayPackageAdd = () => {
                       </p>}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <FormLabel label="Category" required />
@@ -2382,7 +2447,7 @@ const HolidayPackageAdd = () => {
                             {formData.fixed_departure && (
                               <div className="flex flex-col items-center gap-4 relative z-10">
                                 <div className="flex items-center gap-3 justify-center">
-                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL DATE (Validity End):</span>
+                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL:</span>
                                   <div className="relative group/valid">
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
                                     <input
@@ -2729,12 +2794,12 @@ const HolidayPackageAdd = () => {
                 </Section>
 
                 {/* Navigation Buttons for Pages */}
-                <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center bg-white/50 backdrop-blur-sm p-4 rounded-[2rem]">
+                <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/50 backdrop-blur-sm p-4 rounded-[1.5rem] md:rounded-[2rem]">
                   <button
                     type="button"
                     onClick={() => navigatePage('back')}
                     disabled={currentPage === 1}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${currentPage === 1 ? 'opacity-30 cursor-not-allowed text-gray-400' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95'}`}
+                    className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${currentPage === 1 ? 'opacity-30 cursor-not-allowed text-gray-400' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95'}`}
                   >
                     ← Previous Step
                   </button>
@@ -2749,7 +2814,7 @@ const HolidayPackageAdd = () => {
                     <button
                       type="button"
                       onClick={() => navigatePage('next')}
-                      className="flex items-center gap-2 px-8 py-2 rounded-xl bg-[#14532d] text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-green-900/10 hover:scale-105 active:scale-95 transition-all"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2 rounded-xl bg-[#14532d] text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-green-900/10 hover:scale-105 active:scale-95 transition-all"
                     >
                       Next Step →
                     </button>
@@ -2758,7 +2823,7 @@ const HolidayPackageAdd = () => {
                       onClick={handleSubmit}
                       type="button"
                       disabled={loading}
-                      className="flex items-center gap-2 px-8 py-2 rounded-xl bg-black text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/10 hover:scale-105 active:scale-95 transition-all"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2 rounded-xl bg-black text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/10 hover:scale-105 active:scale-95 transition-all"
                     >
                       {loading ? "SAVING..." : "COMPLETE & SAVE"}
                     </button>

@@ -83,17 +83,17 @@ const DestinationManage = () => {
 
         <div className="flex-1 overflow-y-auto p-4 bg-[#fcfdfc]">
           {/* Header */}
-          <div className="bg-white border-b border-gray-100 px-6 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90 rounded-2xl mb-4">
+          <div className="bg-white border-b border-gray-100 px-6 py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90 rounded-2xl mb-4 gap-4 sm:gap-0">
             <div>
               <h1 className="text-xl font-black text-gray-900 tracking-tighter">Destination Inventory</h1>
-              <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
+              <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex flex-wrap items-center gap-2">
                 <span className="text-green-500">Inventory</span> / <span>Destinations</span> / <span className="text-gray-900">Map Registry</span>
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 w-full sm:w-auto">
               <button
                 onClick={() => navigate("/admin/destinations/add")}
-                className="px-6 py-2 rounded-full bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-2 rounded-full bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 <Plus size={14} />
                 ADD DESTINATION
