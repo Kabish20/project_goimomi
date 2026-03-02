@@ -161,68 +161,96 @@ const SightseeingMasterManage = () => {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {filteredSightseeings.length === 0 && !loading ? (
-                            <div className="col-span-full text-center py-12 text-gray-400 italic text-sm bg-white rounded-xl border-2 border-dashed border-gray-100">
-                                {searchTerm || selectedDestination ? `No sightseeing matching your filters...` : "No sightseeing masters created yet."}
-                            </div>
-                        ) : (
-                            filteredSightseeings.map((s) => (
-                                <div key={s.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden group hover:shadow-xl hover:shadow-[#14532d]/10 transition-all duration-300 flex flex-col">
-                                    <div className="aspect-[4/3] w-full relative overflow-hidden bg-gray-100">
-                                        {s.image ? (
-                                            <img src={s.image} alt={s.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
-                                                <MapPin size={32} strokeWidth={1.5} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest mt-2">No Image</span>
-                                            </div>
-                                        )}
-                                        <div className="absolute top-2 left-2">
-                                            <span className="bg-white/90 backdrop-blur-sm text-[#14532d] px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tighter shadow-sm">
-                                                {destinations.find(d => d.id === s.destination)?.name || "N/A"}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-3 flex-1 flex flex-col">
-                                        <div className="flex justify-between items-start mb-1.5">
-                                            <h3 className="text-[12px] font-black text-gray-900 line-clamp-1 leading-tight">{s.name}</h3>
-                                            <div className="flex items-center gap-0.5 text-[#14532d]">
-                                                <IndianRupee size={9} strokeWidth={3} />
-                                                <span className="text-[11px] font-black tracking-tighter">{s.price || '0'}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1 mb-3">
-                                            <div className="flex items-center gap-1.5 text-gray-500">
-                                                <MapPin size={9} className="shrink-0" />
-                                                <span className="text-[9px] font-bold line-clamp-1 uppercase tracking-tighter">{s.city || 'Location N/A'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-gray-500">
-                                                <Clock size={9} className="shrink-0" />
-                                                <span className="text-[9px] font-bold uppercase tracking-tighter">{s.duration || 'N/A'}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-auto pt-3 border-t border-gray-50 flex gap-2">
-                                            <button
-                                                onClick={() => handleEdit(s.id)}
-                                                className="flex-1 py-1.5 rounded-lg bg-green-50 text-[#14532d] text-[10px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all flex items-center justify-center gap-1.5"
-                                            >
-                                                <Edit2 size={10} /> Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(s.id)}
-                                                className="w-10 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center"
-                                            >
-                                                <Trash2 size={12} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
+                    {/* Sightseeing Table UI */}
+                    <div className="bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-green-900/[0.02] overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-50/50">
+                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Sightseeing Info</th>
+                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Location & Duration</th>
+                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Pricing</th>
+                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-50">
+                                    {loading && filteredSightseeings.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" className="px-8 py-20 text-center">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#14532d]/10 border-t-[#14532d]"></div>
+                                                    <p className="text-gray-400 font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">Syncing Database...</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : filteredSightseeings.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" className="px-8 py-20 text-center text-gray-400 italic text-sm">
+                                                {searchTerm || selectedDestination ? `No sightseeing matching your filters...` : "No sightseeing masters created yet."}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredSightseeings.map((s) => (
+                                            <tr key={s.id} className="group hover:bg-[#fcfdfc] transition-colors border-b border-gray-50 last:border-0">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-12 h-10 rounded-xl bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-105 transition-transform flex items-center justify-center text-gray-300">
+                                                            {s.image ? (
+                                                                <img src={s.image} alt={s.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <MapPin size={16} />
+                                                            )}
+                                                        </div>
+                                                        <div className="overflow-hidden">
+                                                            <p className="text-xs font-black text-gray-900 tracking-tight truncate uppercase">{s.name}</p>
+                                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                                                                {destinations.find(d => d.id === s.destination)?.name || "N/A"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-1.5 text-gray-500">
+                                                            <MapPin size={10} />
+                                                            <span className="text-[10px] font-bold uppercase tracking-tighter">{s.city || 'Location N/A'}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 text-gray-400">
+                                                            <Clock size={10} />
+                                                            <span className="text-[9px] font-medium uppercase tracking-widest">{s.duration || 'N/A'}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right font-black text-gray-900 text-sm">
+                                                    <div className="flex items-center justify-end gap-1 text-[#14532d]">
+                                                        <IndianRupee size={11} strokeWidth={3} />
+                                                        <span>{Number(s.price || 0).toLocaleString()}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => handleEdit(s.id)}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
+                                                            title="Edit"
+                                                        >
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(s.id)}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group/btn"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
