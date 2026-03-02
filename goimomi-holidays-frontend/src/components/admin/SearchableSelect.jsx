@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 
-const SearchableSelect = ({ options, value, onChange, placeholder = "Select...", disabled = false, allowCustom = false }) => {
+const SearchableSelect = ({ options, value, onChange, placeholder = "Select...", disabled = false, allowCustom = false, error }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [dropdownStyle, setDropdownStyle] = useState({});
@@ -147,7 +147,7 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
             ref={wrapperRef}
         >
             <div
-                className={`bg-white border-2 ${isOpen ? 'border-[#14532d] ring-4 ring-[#14532d]/5' : 'border-gray-200 hover:border-gray-300'} px-3 py-1.5 rounded-xl w-full text-black cursor-pointer flex justify-between items-center transition-all ${disabled ? 'pointer-events-none' : ''}`}
+                className={`bg-white border-2 ${error ? 'border-red-200 ring-4 ring-red-50' : isOpen ? 'border-[#14532d] ring-4 ring-[#14532d]/5' : 'border-gray-200 hover:border-gray-300'} px-3 py-1.5 rounded-xl w-full text-black cursor-pointer flex justify-between items-center transition-all ${disabled ? 'pointer-events-none' : ''}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
                 {selectedOption ? (
@@ -164,6 +164,13 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
                 )}
                 <span className={`text-gray-300 text-[10px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
             </div>
+
+            {error && (
+                <p className="text-red-500 text-[8px] font-black mt-1 flex items-center gap-1.5 ml-1 uppercase tracking-[0.1em]">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
+                    {error}
+                </p>
+            )}
 
             {typeof document !== "undefined" && createPortal(dropdown, document.body)}
         </div>

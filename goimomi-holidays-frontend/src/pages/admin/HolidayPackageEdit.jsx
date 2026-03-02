@@ -1178,8 +1178,8 @@ const HolidayPackageEdit = () => {
                                                             value={formData.starting_city}
                                                             onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
                                                             placeholder="Where the trip starts..."
+                                                            error={errors.starting_city}
                                                         />
-                                                        {errors.starting_city && <p className="text-red-500 text-[9px] font-bold mt-1 flex items-center gap-1">? {errors.starting_city}</p>}
                                                     </div>
                                                     <div>
                                                         <FormLabel label="Ending City" />
@@ -1282,7 +1282,10 @@ const HolidayPackageEdit = () => {
                                                         placeholder="Describe the magical experience..."
                                                         className={`bg-white border-2 ${errors.description ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} p-3.5 rounded-xl w-full h-40 text-gray-800 text-xs transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] hover:border-gray-200 resize-none`}
                                                     />
-                                                    {errors.description && <p className="text-red-500 text-[9px] font-bold mt-1.5 flex items-center gap-1">? {errors.description}</p>}
+                                                    {errors.description && <p className="text-red-500 text-[9px] font-black mt-1.5 flex items-center gap-2 ml-1 uppercase tracking-wider italic">
+                                                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
+                                                        {errors.description}
+                                                    </p>}
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1300,6 +1303,10 @@ const HolidayPackageEdit = () => {
                                                                 <option value="International">International</option>
                                                                 <option value="Umrah">Umrah</option>
                                                             </select>
+                                                            {errors.category && <p className="text-red-500 text-[9px] font-black mt-1.5 flex items-center gap-2 ml-1 uppercase tracking-wider italic">
+                                                                <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
+                                                                {errors.category}
+                                                            </p>}
                                                         </div>
                                                         <div>
                                                             <FormLabel label="Supplier" optional />
@@ -1419,6 +1426,7 @@ const HolidayPackageEdit = () => {
                                                                         setPackageDestinations(copy);
                                                                     }}
                                                                     placeholder="Select city..."
+                                                                    error={errors[`dest_${i}`]}
                                                                 />
                                                             </div>
                                                             <div className="w-32">
@@ -1509,7 +1517,7 @@ const HolidayPackageEdit = () => {
                                                                 {formData.fixed_departure ? (
                                                                     <div className="flex flex-col gap-1.5 flex-1 max-w-xs">
                                                                         <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1 flex items-center gap-1.5">
-                                                                            <Calendar size={12} className="opacity-40" /> Center Travel Date
+                                                                            <Calendar size={12} className="opacity-40" /> Enter Travel Date
                                                                         </span>
                                                                         <div className="relative group/input">
                                                                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/input:text-[#14532d] transition-colors" size={14} />
@@ -1729,7 +1737,7 @@ const HolidayPackageEdit = () => {
                                                             {formData.fixed_departure && (
                                                                 <div className="flex flex-col items-center gap-4 relative z-10">
                                                                     <div className="flex items-center gap-3 justify-center">
-                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL:</span>
+                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL DATE (Validity End):</span>
                                                                         <div className="relative group/valid">
                                                                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
                                                                             <input
@@ -2798,12 +2806,13 @@ const HolidayPackageEdit = () => {
                                                                         onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
                                                                         placeholder="Select City"
                                                                         className="!py-1"
+                                                                        error={errors.arrival_city}
                                                                     />
                                                                 </div>
                                                                 <div className="grid grid-cols-2 gap-2">
                                                                     <div>
                                                                         <FormLabel label="Date" optional />
-                                                                        <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
+                                                                        <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
                                                                     </div>
                                                                     <div>
                                                                         <FormLabel label="Time" optional />
@@ -2870,12 +2879,13 @@ const HolidayPackageEdit = () => {
                                                                         onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
                                                                         placeholder="Select City"
                                                                         className="!py-1"
+                                                                        error={errors.departure_city}
                                                                     />
                                                                 </div>
                                                                 <div className="grid grid-cols-2 gap-2">
                                                                     <div>
                                                                         <FormLabel label="Date" optional />
-                                                                        <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
+                                                                        <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
                                                                     </div>
                                                                     <div>
                                                                         <FormLabel label="Time" optional />
