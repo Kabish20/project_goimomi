@@ -1,0 +1,322 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {
+    MapPin,
+    Image as ImageIcon,
+    Plus,
+    X,
+    ArrowLeft,
+    Camera,
+    Globe,
+    Phone,
+    Mail,
+    Link as LinkIcon,
+    Info,
+    Star
+} from "lucide-react";
+import AdminSidebar from "../../components/admin/AdminSidebar";
+import AdminTopbar from "../../components/admin/AdminTopbar";
+
+const FormLabel = ({ label, required, optional }) => (
+    <div className="flex items-center gap-2 mb-1">
+        <span className="text-gray-900 font-black text-[9px] uppercase tracking-[0.1em]">{label} {required && <span className="text-red-500">*</span>}</span>
+        {optional && <span className="text-[#14532d] text-[7px] font-black bg-green-50 px-1 py-0.5 rounded-md border border-green-100/50 uppercase">Optional</span>}
+    </div>
+);
+
+const Input = (props) => (
+    <input
+        {...props}
+        className="bg-white border-2 border-gray-100 px-2.5 py-1.2 rounded-lg w-full text-gray-900 text-[10px] font-bold transition-all placeholder:text-gray-400 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200"
+    />
+);
+
+const Select = (props) => (
+    <select
+        {...props}
+        className="bg-white border-2 border-gray-100 px-2.5 py-1.2 rounded-lg w-full text-gray-900 text-[10px] font-bold transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 appearance-none cursor-pointer"
+    />
+);
+
+const AccommodationAdd = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [images, setImages] = useState([]);
+    const [previews, setPreviews] = useState([]);
+
+    const [formData, setFormData] = useState({
+        name: "",
+        star_category: "3 Star",
+        address: "",
+        city: "",
+        country_code: "",
+        phone: "",
+        website: "",
+        email: "",
+        latitude: "",
+        longitude: ""
+    });
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (images.length + files.length > 5) {
+            alert("Maximum 5 images allowed.");
+            return;
+        }
+
+        setImages(prev => [...prev, ...files]);
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setPreviews(prev => [...prev, ...newPreviews]);
+    };
+
+    const removeImage = (index) => {
+        setImages(prev => prev.filter((_, i) => i !== index));
+        setPreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.name || !formData.city) {
+            alert("Please fill in the Name and City.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const fd = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key] !== null && formData[key] !== "") {
+                    fd.append(key, formData[key]);
+                }
+            });
+
+            images.forEach(img => {
+                fd.append("accommodation_images", img);
+            });
+
+            await axios.post("/api/accommodations/", fd, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            alert("Accommodation created successfully!");
+            navigate("/admin/accommodations");
+        } catch (err) {
+            console.error("Error creating accommodation:", err);
+            alert("Failed to create accommodation.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="flex bg-gray-50 h-full overflow-hidden font-sans">
+            <AdminSidebar />
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+                <AdminTopbar />
+
+                <div className="flex-1 overflow-y-auto p-4 md:p-5">
+                    <div className="max-w-4xl mx-auto">
+                        <button
+                            onClick={() => navigate("/admin/accommodations")}
+                            className="flex items-center gap-1.5 text-gray-400 font-bold text-[8px] uppercase tracking-widest hover:text-[#14532d] transition-all mb-3"
+                        >
+                            <ArrowLeft size={10} /> Back to List
+                        </button>
+
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-5">
+                            <div>
+                                <h1 className="text-lg font-black text-gray-900 tracking-tight leading-none mb-1">Add Accommodation</h1>
+                                <p className="text-gray-400 text-[8px] font-bold uppercase tracking-[0.15em]">Register a new property</p>
+                            </div>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="bg-[#14532d] text-white px-5 py-2 rounded-lg font-black text-[9px] uppercase tracking-widest shadow-lg shadow-green-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                            >
+                                {loading ? "Creating..." : "Save Property"}
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Physical Details */}
+                            <section className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
+                                    <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-wider">Property Details</h2>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="md:col-span-2">
+                                        <FormLabel label="Accommodation Name" required />
+                                        <Input name="name" value={formData.name} onChange={handleInputChange} placeholder="Enter name" />
+                                    </div>
+
+                                    <div>
+                                        <FormLabel label="Star Category" />
+                                        <div className="relative">
+                                            <Select name="star_category" value={formData.star_category} onChange={handleInputChange}>
+                                                <option value="1 Star">1 Star</option>
+                                                <option value="2 Star">2 Star</option>
+                                                <option value="3 Star">3 Star</option>
+                                                <option value="4 Star">4 Star</option>
+                                                <option value="5 Star">5 Star</option>
+                                                <option value="Boutique">Boutique</option>
+                                                <option value="Resort">Resort</option>
+                                            </Select>
+                                            <Star size={10} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <FormLabel label="City (Country)" required />
+                                        <div className="relative">
+                                            <MapPin size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                name="city"
+                                                value={formData.city}
+                                                onChange={handleInputChange}
+                                                placeholder="Select city..."
+                                                className="bg-white border-2 border-gray-100 pl-7 pr-2.5 py-1.2 rounded-lg w-full text-gray-900 text-[10px] font-bold transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <FormLabel label="Address" optional />
+                                        <textarea
+                                            name="address"
+                                            value={formData.address}
+                                            onChange={handleInputChange}
+                                            rows="1"
+                                            placeholder="Enter address"
+                                            className="bg-white border-2 border-gray-100 px-2.5 py-2 rounded-xl w-full text-gray-900 text-[10px] font-bold transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] resize-none"
+                                        />
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Contact Info */}
+                            <section className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
+                                    <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-wider">Contact Info</h2>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div className="col-span-1">
+                                            <FormLabel label="Code" optional />
+                                            <Input name="country_code" value={formData.country_code} onChange={handleInputChange} placeholder="+91" />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <FormLabel label="Phone" optional />
+                                            <div className="relative">
+                                                <Phone size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                <input
+                                                    name="phone"
+                                                    value={formData.phone}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Phone no."
+                                                    className="bg-white border-2 border-gray-100 pl-7 pr-2.5 py-1.2 rounded-lg w-full text-gray-900 text-[10px] font-bold transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d]"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <FormLabel label="Email" optional />
+                                        <div className="relative">
+                                            <Mail size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                name="email"
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={handleInputChange}
+                                                placeholder="Email Id"
+                                                className="bg-white border-2 border-gray-100 pl-7 pr-2.5 py-1.2 rounded-lg w-full text-gray-900 text-[10px] font-bold transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <FormLabel label="Website" optional />
+                                        <div className="relative">
+                                            <LinkIcon size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            <input
+                                                name="website"
+                                                value={formData.website}
+                                                onChange={handleInputChange}
+                                                placeholder="Website URL"
+                                                className="bg-white border-2 border-gray-100 pl-7 pr-2.5 py-1.2 rounded-lg w-full text-gray-900 text-[10px] font-bold transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d]"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Location & Images */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <section className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 h-fit">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-1 h-4 bg-orange-500 rounded-full"></div>
+                                        <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-wider">Location</h2>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <FormLabel label="Lat" optional />
+                                            <Input name="latitude" value={formData.latitude} onChange={handleInputChange} placeholder="Lat" />
+                                        </div>
+                                        <div>
+                                            <FormLabel label="Lng" optional />
+                                            <Input name="longitude" value={formData.longitude} onChange={handleInputChange} placeholder="Lng" />
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex-1">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1 h-4 bg-purple-500 rounded-full"></div>
+                                            <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-wider">Images</h2>
+                                        </div>
+                                        <span className="text-[7px] font-bold text-gray-400 uppercase">{previews.length}/5</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-5 gap-2">
+                                        {previews.map((url, i) => (
+                                            <div key={i} className="aspect-square rounded-lg overflow-hidden relative group border border-gray-50">
+                                                <img src={url} className="w-full h-full object-cover" alt="" />
+                                                <button
+                                                    onClick={() => removeImage(i)}
+                                                    className="absolute top-1 right-1 bg-red-500 text-white p-0.5 rounded-md opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                                                >
+                                                    <X size={8} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        
+                                        {previews.length < 5 && (
+                                            <label className="aspect-square rounded-lg border border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-all group">
+                                                <Plus size={12} className="text-gray-400 group-hover:text-[#14532d]" />
+                                                <input type="file" multiple onChange={handleImageChange} className="hidden" />
+                                            </label>
+                                        )}
+                                    </div>
+                                    <p className="mt-4 text-[9px] text-gray-400 font-medium italic opacity-50">Max size 1MB. JPG, PNG.</p>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default AccommodationAdd;

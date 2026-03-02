@@ -5,7 +5,7 @@ from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay,
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination,
     ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster, Airline, HolidayVehicle,
-    SightseeingMaster, MealMaster, CancellationPolicy
+    SightseeingMaster, MealMaster, CancellationPolicy, RoomType
 )
 from . import models
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -512,4 +512,20 @@ class AirlineSerializer(serializers.ModelSerializer):
 class VehicleBrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.VehicleBrand
+        fields = "__all__"
+
+class AccommodationImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.AccommodationImage
+        fields = "__all__"
+
+class AccommodationSerializer(serializers.ModelSerializer):
+    images = AccommodationImageSerializer(many=True, read_only=True)
+    class Meta:
+        model = models.Accommodation
+        fields = "__all__"
+
+class RoomTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RoomType
         fields = "__all__"

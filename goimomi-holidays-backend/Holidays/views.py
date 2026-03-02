@@ -413,3 +413,45 @@ class VehicleBrandViewSet(ModelViewSet):
     queryset = VehicleBrand.objects.all().order_by('name')
     serializer_class = VehicleBrandSerializer
     pagination_class = None
+
+class AccommodationViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Accommodation.objects.all().order_by('-created_at')
+    serializer_class = AccommodationSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        accommodation = serializer.save()
+
+        # Handle multiple images
+        images = request.FILES.getlist('accommodation_images')
+        for img in images:
+            AccommodationImage.objects.create(accommodation=accommodation, image=img)
+            
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        accommodation = serializer.save()
+
+        # Handle multiple images
+        images = request.FILES.getlist('accommodation_images')
+        if images:
+            # Optionally clear existing images if needed
+            # accommodation.images.all().delete()
+            for img in images:
+                AccommodationImage.objects.create(accommodation=accommodation, image=img)
+
+        return Response(serializer.data)
+
+class RoomTypeViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = RoomType.objects.all()
+    serializer_class = RoomTypeSerializer

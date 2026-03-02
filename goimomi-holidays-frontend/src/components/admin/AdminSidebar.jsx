@@ -37,6 +37,7 @@ const menu = [
           { name: "Manage Countries", key: "Countries" },
           { name: "Holiday Destinations", key: "Destinations" },
           { name: "Umrah Destinations" },
+          { name: "Starting Cities" },
         ]
       },
       {
@@ -60,11 +61,11 @@ const menu = [
           { name: "Manage Packages", key: "Holiday Packages" },
           { name: "Itinerary Masters" },
           { name: "Sightseeing Masters" },
+          { name: "Accommodations" },
         ]
       },
       { name: "Nationalities", icon: <Flag size={18} /> },
 
-      { name: "Starting Cities", icon: <MapPin size={18} /> },
       {
         name: "Visas",
         icon: <FileText size={18} />,
@@ -148,6 +149,7 @@ const AdminSidebar = () => {
       case "Countries": return () => navigate("/admin/countries/add");
       case "Suppliers": return () => navigate("/admin/suppliers/add");
       case "Cruise Calendar": return handleAddCruiseCalendar;
+      case "Accommodations": return () => navigate("/admin/accommodations/add");
       default: return undefined;
     }
   };
@@ -174,6 +176,7 @@ const AdminSidebar = () => {
       case "Countries": return () => navigate("/admin/countries");
       case "Suppliers": return () => navigate("/admin/suppliers");
       case "Cruise Calendar": return () => navigate("/admin/cruise-calendar");
+      case "Accommodations": return () => navigate("/admin/accommodations");
       default: return undefined;
     }
   };

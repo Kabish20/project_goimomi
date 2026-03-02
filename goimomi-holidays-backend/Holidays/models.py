@@ -480,6 +480,30 @@ class HotelMaster(models.Model):
     def __str__(self):
         return self.name
 
+class Accommodation(models.Model):
+    name = models.CharField(max_length=255)
+    star_category = models.CharField(max_length=20, default="3 Star")
+    address = models.TextField(blank=True, null=True)
+    city = models.CharField(max_length=100)
+    country_code = models.CharField(max_length=10, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class AccommodationImage(models.Model):
+    accommodation = models.ForeignKey(Accommodation, related_name="images", on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="accommodations/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image for {self.accommodation.name}"
+
 class Airline(models.Model):
     name = models.CharField(max_length=100, unique=True)
     logo = models.ImageField(upload_to="airlines/", null=True, blank=True)
@@ -545,6 +569,12 @@ class MealMaster(models.Model):
         return f"{self.name} ({self.meal_type})"
 
 class VehicleBrand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class RoomType(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):

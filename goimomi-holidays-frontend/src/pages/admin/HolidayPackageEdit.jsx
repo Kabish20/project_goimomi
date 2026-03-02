@@ -59,20 +59,7 @@ const formatWithCommas = (value) => {
 
 
 
-const insertBullet = (ref, currentArray, setter) => {
-    const text = Array.isArray(currentArray) ? currentArray.join('\n') : (currentArray || "");
-    const textarea = ref.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const bullet = "\u2022 ";
-    const newText = text.substring(0, start) + bullet + text.substring(end);
-    setter(newText.split('\n'));
-    setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + bullet.length, start + bullet.length);
-    }, 0);
-};
+
 
 
 const HolidayPackageEdit = () => {
@@ -103,6 +90,7 @@ const HolidayPackageEdit = () => {
     const [newHotelForm, setNewHotelForm] = useState({
         name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
     });
+    const [roomTypes, setRoomTypes] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     // New Sightseeing panel state
     const [newSightseeingForm, setNewSightseeingForm] = useState({
@@ -249,7 +237,7 @@ const HolidayPackageEdit = () => {
             try {
                 setLoading(true);
                 // Fetch dependencies in parallel
-                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, pkgRes] = await Promise.all([
+                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, roomTypesRes, pkgRes] = await Promise.all([
                     axios.get(`${API_BASE_URL}/starting-cities/`),
                     axios.get(`${API_BASE_URL}/destinations/`),
                     axios.get(`${API_BASE_URL}/suppliers/`),
@@ -259,6 +247,7 @@ const HolidayPackageEdit = () => {
                     axios.get(`${API_BASE_URL}/meal-masters/`),
                     axios.get(`${API_BASE_URL}/airlines/`),
                     axios.get(`${API_BASE_URL}/vehicle-brands/`),
+                    axios.get(`${API_BASE_URL}/room-types/`),
                     axios.get(`${API_BASE_URL}/packages/${id}/`),
                 ]);
 
@@ -284,6 +273,7 @@ const HolidayPackageEdit = () => {
                 if (Array.isArray(mealMastersRes.data)) setMealMasters(mealMastersRes.data);
                 if (Array.isArray(airlinesRes.data)) setAirlines(airlinesRes.data);
                 if (Array.isArray(vehicleBrandsRes.data)) setVehicleBrands(vehicleBrandsRes.data);
+                if (Array.isArray(roomTypesRes.data)) setRoomTypes(roomTypesRes.data);
 
                 // Populate Form Data
                 const pkg = pkgRes.data;
@@ -2083,7 +2073,7 @@ const HolidayPackageEdit = () => {
                                                                                 <label className="flex items-center gap-3 cursor-pointer">
                                                                                     <input type="checkbox" checked={row.save_to_master} onChange={(e) => { const copy = [...itineraryDays]; copy[i].save_to_master = e.target.checked; setItineraryDays(copy); }} className="w-4 h-4 rounded-lg border-gray-300 text-[#14532d] focus:ring-[#14532d]" />
                                                                                     <div className="flex flex-col leading-none">
-                                                                                        <span className="text-[10px] font-black uppercase tracking-tighter">Archive to Masters</span>
+                                                                                        <span className="text-[10px] font-black uppercase tracking-tighter">Save to Master</span>
                                                                                         <span className="text-[8px] opacity-70 font-medium">Available for future packages</span>
                                                                                     </div>
                                                                                 </label>
@@ -2550,7 +2540,19 @@ const HolidayPackageEdit = () => {
                                                                                     {(roomDetails.rooms || []).map((room, rIdx) => (
                                                                                         <div key={rIdx} className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-1 items-center">
                                                                                             <p className="text-[9px] font-medium text-gray-500 text-right pr-1">Night {rIdx + 1} :</p>
-                                                                                            <input type="text" value={room.roomType || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], roomType: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} placeholder="Enter Room Type" className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                            <SearchableSelect
+                                                                                                options={roomTypes.map(rt => ({ value: rt.name, label: rt.name }))}
+                                                                                                value={room.roomType || ''}
+                                                                                                onChange={val => {
+                                                                                                    const copy = [...itineraryDays];
+                                                                                                    const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])];
+                                                                                                    rooms[rIdx] = { ...rooms[rIdx], roomType: val };
+                                                                                                    copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms };
+                                                                                                    setItineraryDays(copy);
+                                                                                                }}
+                                                                                                placeholder="Select/Search Room Type"
+                                                                                                className="w-full"
+                                                                                            />
                                                                                             <select value={room.meals || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], meals: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
                                                                                                 <option value="">Select meals included</option>
                                                                                                 <option value="EP">EP (Room Only)</option>
@@ -2589,21 +2591,21 @@ const HolidayPackageEdit = () => {
                                                                                 <input
                                                                                     type="radio"
                                                                                     name={`vehicleMode_${i}`}
-                                                                                    checked={isSelf}
-                                                                                    onChange={() => updateVD({ mode: 'self_drive' })}
-                                                                                    className="w-3.5 h-3.5 accent-blue-500"
-                                                                                />
-                                                                                <span className="text-[11px] font-medium text-gray-700">Self Drive</span>
-                                                                            </label>
-                                                                            <label className="flex items-center gap-1.5 cursor-pointer">
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    name={`vehicleMode_${i}`}
                                                                                     checked={!isSelf}
                                                                                     onChange={() => updateVD({ mode: 'with_driver' })}
                                                                                     className="w-3.5 h-3.5 accent-blue-500"
                                                                                 />
                                                                                 <span className="text-[11px] font-medium text-gray-700">Vehicle with Driver/ Chaffeur</span>
+                                                                            </label>
+                                                                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    name={`vehicleMode_${i}`}
+                                                                                    checked={isSelf}
+                                                                                    onChange={() => updateVD({ mode: 'self_drive' })}
+                                                                                    className="w-3.5 h-3.5 accent-blue-500"
+                                                                                />
+                                                                                <span className="text-[11px] font-medium text-gray-700">Self Drive</span>
                                                                             </label>
                                                                         </div>
                                                                         {/* Sub-heading */}
@@ -2636,7 +2638,7 @@ const HolidayPackageEdit = () => {
                                                                         {/* Pick Up Date + Pick Up Location */}
                                                                         <div className="grid grid-cols-2 gap-3 mb-2">
                                                                             <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Date</p>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Date <span className="text-sky-400 font-normal">(Optional)</span></p>
                                                                                 <input
                                                                                     type="date"
                                                                                     value={vd.pickUpDate || ''}
@@ -2645,7 +2647,7 @@ const HolidayPackageEdit = () => {
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location</p>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location <span className="text-sky-400 font-normal">(Optional)</span></p>
                                                                                 <input
                                                                                     type="text"
                                                                                     value={vd.pickUpLocation || ''}
@@ -2658,7 +2660,7 @@ const HolidayPackageEdit = () => {
                                                                         {/* Drop Off Date + Drop Off Location */}
                                                                         <div className="grid grid-cols-2 gap-3 mb-2">
                                                                             <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Date</p>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Date <span className="text-sky-400 font-normal">(Optional)</span></p>
                                                                                 <input
                                                                                     type="date"
                                                                                     value={vd.dropOffDate || ''}
@@ -2667,7 +2669,7 @@ const HolidayPackageEdit = () => {
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location</p>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location <span className="text-sky-400 font-normal">(Optional)</span></p>
                                                                                 <input
                                                                                     type="text"
                                                                                     value={vd.dropOffLocation || ''}

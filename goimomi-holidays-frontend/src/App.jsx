@@ -78,6 +78,9 @@ import SupplierEdit from "./pages/admin/SupplierEdit";
 import CruiseCalendarManage from "./pages/admin/CruiseCalendarManage";
 import CruiseCalendarAdd from "./pages/admin/CruiseCalendarAdd";
 import CruiseCalendarEdit from "./pages/admin/CruiseCalendarEdit";
+import AccommodationManage from "./pages/admin/AccommodationManage";
+import AccommodationAdd from "./pages/admin/AccommodationAdd";
+import AccommodationEdit from "./pages/admin/AccommodationEdit";
 
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -196,6 +199,9 @@ const App = () => {
             <Route path="/admin/cruise-calendar" element={<CruiseCalendarManage />} />
             <Route path="/admin/cruise-calendar/add" element={<CruiseCalendarAdd />} />
             <Route path="/admin/cruise-calendar/edit/:id" element={<CruiseCalendarEdit />} />
+            <Route path="/admin/accommodations" element={<AccommodationManage />} />
+            <Route path="/admin/accommodations/add" element={<AccommodationAdd />} />
+            <Route path="/admin/accommodations/edit/:id" element={<AccommodationEdit />} />
           </Route>
         </Routes>
       </main>
