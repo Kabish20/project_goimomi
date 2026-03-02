@@ -406,3 +406,10 @@ class MealMasterViewSet(ModelViewSet):
     queryset = MealMaster.objects.all()
     serializer_class = MealMasterSerializer
     pagination_class = None
+
+class VehicleBrandViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = VehicleBrand.objects.all().order_by('name')
+    serializer_class = VehicleBrandSerializer
+    pagination_class = None

@@ -90,7 +90,7 @@ const HolidayPackageManage = () => {
         {/* Action Header */}
         <div className="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
           <div>
-            <h1 className="text-xl font-black text-gray-900 tracking-tighter">Holiday Inventory</h1>
+            <h1 className="text-xl font-black text-gray-900 tracking-tighter">Holiday Package</h1>
             <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
               <span className="text-green-500">Inventory</span> / <span>Packages</span> / <span className="text-gray-900">Live Management</span>
             </p>

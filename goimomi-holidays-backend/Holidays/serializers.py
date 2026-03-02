@@ -508,3 +508,8 @@ class AirlineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airline
         fields = "__all__"
+
+class VehicleBrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.VehicleBrand
+        fields = "__all__"

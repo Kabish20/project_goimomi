@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Globe, Flag } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 
@@ -40,66 +40,94 @@ const CountryAdd = () => {
     };
 
     return (
-        <div className="flex bg-gray-100 h-full overflow-hidden">
+        <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
+            <style>
+                {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');`}
+            </style>
             <AdminSidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="flex-1 overflow-y-auto p-6">
-                    <div className="max-w-4xl mx-auto">
+
+                {/* Header */}
+                <div className="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
+                    <div>
+                        <h1 className="text-xl font-black text-gray-900 tracking-tighter uppercase">Add New Country</h1>
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
+                            <span className="text-green-500">Geography</span> / <span>Nationalities</span> / <span className="text-gray-900">New Entry</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-12 custom-scrollbar bg-[#fcfdfc]">
+                    <div className="max-w-xl mx-auto">
                         <button
                             onClick={() => navigate("/admin/countries")}
-                            className="flex items-center gap-2 text-gray-500 hover:text-gray-800 mb-6 transition-colors font-bold text-xs uppercase tracking-widest"
+                            className="flex items-center gap-2 text-gray-400 hover:text-[#14532d] mb-8 transition-all font-black text-[10px] uppercase tracking-widest group"
                         >
-                            <ArrowLeft size={16} /> Back to Countries
+                            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                            Back to Library
                         </button>
 
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                            <h1 className="text-xl font-black text-gray-900 mb-8 uppercase tracking-widest">Add New Country</h1>
-
-                            {error && (
-                                <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 font-medium text-sm">
-                                    {error}
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Country Name *</label>
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={form.name}
-                                            onChange={handleChange}
-                                            placeholder="e.g. United Arab Emirates"
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#14532d]/20 focus:border-[#14532d] transition-all font-medium"
-                                        />
+                        <div className="bg-white rounded-[2rem] shadow-xl shadow-green-900/[0.03] border border-gray-100 overflow-hidden">
+                            <div className="p-10">
+                                <div className="flex items-center gap-4 mb-10">
+                                    <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-[#14532d]">
+                                        <Globe size={24} />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Country Code (Optional)</label>
+                                    <div>
+                                        <h2 className="text-lg font-black text-gray-900 tracking-tight leading-none">Country Profile</h2>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1.5">Territorial Identification</p>
+                                    </div>
+                                </div>
+
+                                {error && (
+                                    <div className="mb-8 p-4 bg-red-50 border-2 border-red-100 text-red-700 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="bg-red-100 p-1.5 rounded-full text-xs font-black">!</div>
+                                        <p className="font-bold text-[10px] uppercase tracking-wider">{error}</p>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmit} className="space-y-8">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Official Name *</label>
+                                        <div className="relative group">
+                                            <Flag className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#14532d] transition-colors" size={18} />
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                value={form.name}
+                                                onChange={handleChange}
+                                                placeholder="e.g. United Arab Emirates"
+                                                className="w-full pl-12 pr-6 py-4 rounded-2xl bg-gray-50/50 border-2 border-transparent focus:bg-white focus:border-[#14532d] focus:outline-none transition-all font-bold text-sm text-gray-900 placeholder:text-gray-300 shadow-inner"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">ISO / Short Code</label>
                                         <input
                                             type="text"
                                             name="code"
                                             value={form.code}
                                             onChange={handleChange}
                                             placeholder="e.g. UAE"
-                                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#14532d]/20 focus:border-[#14532d] transition-all font-mono uppercase"
                                             maxLength={3}
+                                            className="w-full px-6 py-4 rounded-2xl bg-gray-50/50 border-2 border-transparent focus:bg-white focus:border-[#14532d] focus:outline-none transition-all font-mono font-black text-sm text-gray-900 placeholder:text-gray-300 uppercase tracking-widest shadow-inner"
                                         />
                                     </div>
-                                </div>
 
-                                <div className="pt-6 border-t border-gray-50">
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#14532d] text-white px-8 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#0f3d21] transition-all shadow-lg active:scale-95 disabled:opacity-50"
-                                    >
-                                        <Save size={18} />
-                                        {loading ? "Saving..." : "Create Country"}
-                                    </button>
-                                </div>
-                            </form>
+                                    <div className="pt-4">
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full flex items-center justify-center gap-3 bg-[#14532d] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0f3d21] transition-all shadow-xl shadow-green-900/20 active:scale-95 disabled:opacity-50"
+                                        >
+                                            <Save size={16} />
+                                            {loading ? "INITIALIZING..." : "PUBLISH COUNTRY"}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -109,3 +137,4 @@ const CountryAdd = () => {
 };
 
 export default CountryAdd;
+

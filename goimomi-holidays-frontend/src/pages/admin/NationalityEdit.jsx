@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Globe, Flag, Map } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -27,7 +27,7 @@ const NationalityEdit = () => {
                 setIsLoading(false);
             } catch (error) {
                 console.error("Error fetching nationality:", error);
-                setStatusMessage({ text: "Failed to fetch nationality data.", type: "error" });
+                setStatusMessage({ text: "Registry access denied or entry not found.", type: "error" });
                 setIsLoading(false);
             }
         };
@@ -38,13 +38,14 @@ const NationalityEdit = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        setStatusMessage({ text: "", type: "" });
     };
 
     const handleSubmit = async (e, action = "save") => {
         if (e) e.preventDefault();
 
         if (!formData.country || !formData.nationality) {
-            setStatusMessage({ text: "Please fill in all required fields.", type: "error" });
+            setStatusMessage({ text: "Identification fields cannot be null.", type: "error" });
             return;
         }
 
@@ -55,153 +56,170 @@ const NationalityEdit = () => {
             await axios.put(`/api/nationalities/${id}/`, formData);
 
             if (action === "continue") {
-                setStatusMessage({ text: "Nationality updated successfully!", type: "success" });
+                setStatusMessage({ text: "Heritage record synchronized successfully.", type: "success" });
                 setIsSubmitting(false);
             } else {
                 navigate("/admin/nationalities");
             }
         } catch (error) {
             console.error("Error updating nationality:", error);
-            setStatusMessage({ text: "Failed to update nationality. Please try again.", type: "error" });
+            setStatusMessage({ text: "Database rejection. Check transmission integrity.", type: "error" });
             setIsSubmitting(false);
         }
     };
 
     const handleDelete = async () => {
-        if (window.confirm("Are you sure you want to delete this nationality?")) {
+        if (window.confirm("Are you sure you want to permanently purge this heritage record?")) {
             try {
                 await axios.delete(`/api/nationalities/${id}/`);
                 navigate("/admin/nationalities");
             } catch (error) {
                 console.error("Error deleting nationality:", error);
-                setStatusMessage({ text: "Failed to delete nationality.", type: "error" });
+                setStatusMessage({ text: "Purge failed. Record is protected or locked.", type: "error" });
             }
         }
     };
 
     if (isLoading) {
         return (
-            <div className="flex bg-gray-100 h-full overflow-hidden">
+            <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
                 <AdminSidebar />
-                <div className="flex-1 flex flex-col h-full overflow-hidden">
-                    <AdminTopbar />
-                    <div className="p-6 flex justify-center items-center min-h-[60vh]">
-                        <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
+                <div className="flex-1 flex flex-col h-full overflow-hidden text-center justify-center items-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#14532d]/10 border-t-[#14532d] mb-4"></div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-300">Accessing Geography Database...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex bg-gray-100 h-full overflow-hidden">
+        <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
+            <style>
+                {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');`}
+            </style>
             <AdminSidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="flex-1 overflow-y-auto p-6">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex items-center justify-between gap-4 mb-8">
-                            <div className="flex items-center gap-4">
-                                <button
-                                    onClick={() => navigate("/admin/nationalities")}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                                >
-                                    <ArrowLeft size={24} className="text-gray-600" />
-                                </button>
-                                <h1 className="text-2xl font-bold text-gray-800">Edit nationality</h1>
-                            </div>
+
+                {/* Header */}
+                <div className="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
+                    <div>
+                        <h1 className="text-xl font-black text-gray-900 tracking-tighter uppercase">Edit Heritage</h1>
+                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
+                            <span className="text-green-500">Geography</span> / <span className="text-gray-900">Record #{id}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-12 custom-scrollbar bg-[#fcfdfc]">
+                    <div className="max-w-xl mx-auto text-left">
+                        <div className="flex items-center justify-between mb-8">
+                            <button
+                                onClick={() => navigate("/admin/nationalities")}
+                                className="flex items-center gap-2 text-gray-400 hover:text-[#14532d] transition-all font-black text-[10px] uppercase tracking-widest group"
+                            >
+                                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                                Back to Matrix
+                            </button>
                             <button
                                 onClick={handleDelete}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors border border-red-200"
+                                className="flex items-center gap-2 text-red-400 hover:text-red-600 transition-all font-black text-[10px] uppercase tracking-widest"
                             >
-                                <Trash2 size={18} />
-                                DELETE
+                                <Trash2 size={14} />
+                                Purge Record
                             </button>
                         </div>
 
-                        {statusMessage.text && (
-                            <div
-                                className={`mb-6 p-4 rounded-lg flex justify-between items-center ${statusMessage.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                                    }`}
-                            >
-                                <span>{statusMessage.text}</span>
-                                <button onClick={() => setStatusMessage({ text: "", type: "" })}>✕</button>
-                            </div>
-                        )}
-
-                        <form className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                            <div className="p-8 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                                            Country Name <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            value={formData.country}
-                                            onChange={handleChange}
-                                            placeholder="e.g., Algeria"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                                            required
-                                        />
+                        <div className="bg-white rounded-[2rem] shadow-xl shadow-green-900/[0.03] border border-gray-100 overflow-hidden">
+                            <div className="p-10">
+                                <div className="flex items-center gap-4 mb-10">
+                                    <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-[#14532d]">
+                                        <Map size={24} />
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                                            Nationality <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="nationality"
-                                            value={formData.nationality}
-                                            onChange={handleChange}
-                                            placeholder="e.g., Algerian"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                                            required
-                                        />
+                                    <div>
+                                        <h2 className="text-lg font-black text-gray-900 tracking-tight leading-none">Modify Profile</h2>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1.5">Update Heritage Data</p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                                        Continent <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        name="continent"
-                                        value={formData.continent}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                                    >
-                                        {continents.map((continent) => (
-                                            <option key={continent} value={continent}>
-                                                {continent}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
+                                {statusMessage.text && (
+                                    <div className={`mb-8 p-4 border-2 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 shadow-xl shadow-green-900/5 ${statusMessage.type === "success" ? "bg-green-50 border-green-100 text-[#14532d]" : "bg-red-50 border-red-100 text-red-700"
+                                        }`}>
+                                        <div className={`p-1.5 rounded-full text-xs font-black ${statusMessage.type === "success" ? "bg-green-100 text-green-500" : "bg-red-100 text-red-500"
+                                            }`}>
+                                            {statusMessage.type === "success" ? "✨" : "!"}
+                                        </div>
+                                        <p className="font-bold text-[10px] uppercase tracking-wider">{statusMessage.text}</p>
+                                    </div>
+                                )}
 
-                            <div className="p-6 bg-gray-50 border-t flex justify-end gap-3">
-                                <button
-                                    type="button"
-                                    onClick={(e) => handleSubmit(e, "save")}
-                                    disabled={isSubmitting}
-                                    className="px-6 py-2.5 bg-[#14532d] hover:bg-[#1f7a45] text-white rounded-lg font-semibold flex items-center gap-2 transition-all disabled:opacity-50"
-                                >
-                                    <Save size={18} />
-                                    SAVE
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => handleSubmit(e, "continue")}
-                                    disabled={isSubmitting}
-                                    className="px-6 py-2.5 border border-[#14532d] text-[#14532d] hover:bg-green-50 rounded-lg font-semibold transition-all disabled:opacity-50"
-                                >
-                                    SAVE AND CONTINUE EDITING
-                                </button>
+                                <form className="space-y-8">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Official Country *</label>
+                                        <div className="relative group">
+                                            <Flag className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#14532d] transition-colors" size={18} />
+                                            <input
+                                                type="text"
+                                                name="country"
+                                                value={formData.country}
+                                                onChange={handleChange}
+                                                className="w-full pl-12 pr-6 py-4 rounded-2xl bg-gray-50/50 border-2 border-transparent focus:bg-white focus:border-[#14532d] focus:outline-none transition-all font-bold text-sm text-gray-900 shadow-inner"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Nationality Tag *</label>
+                                        <div className="relative group">
+                                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#14532d] transition-colors" size={18} />
+                                            <input
+                                                type="text"
+                                                name="nationality"
+                                                value={formData.nationality}
+                                                onChange={handleChange}
+                                                className="w-full pl-12 pr-6 py-4 rounded-2xl bg-gray-50/50 border-2 border-transparent focus:bg-white focus:border-[#14532d] focus:outline-none transition-all font-bold text-sm text-gray-900 shadow-inner"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-1">Continent Association</label>
+                                        <select
+                                            name="continent"
+                                            value={formData.continent}
+                                            onChange={handleChange}
+                                            className="w-full px-6 py-4 rounded-2xl bg-gray-50/50 border-2 border-transparent focus:bg-white focus:border-[#14532d] focus:outline-none transition-all font-black text-[10px] text-gray-900 tracking-widest uppercase shadow-inner cursor-pointer"
+                                        >
+                                            {continents.map((continent) => (
+                                                <option key={continent} value={continent}>
+                                                    {continent.toUpperCase()}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="pt-8 flex flex-col gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleSubmit(e, "save")}
+                                            disabled={isSubmitting}
+                                            className="w-full flex items-center justify-center gap-3 bg-[#14532d] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#0f3d21] transition-all shadow-xl shadow-green-900/20 active:scale-95 disabled:opacity-50"
+                                        >
+                                            <Save size={16} />
+                                            {isSubmitting ? "SYNCHRONIZING..." : "SAVE CHANGES"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleSubmit(e, "continue")}
+                                            disabled={isSubmitting}
+                                            className="w-full flex items-center justify-center gap-3 bg-gray-50 text-gray-400 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all border border-gray-100 disabled:opacity-50"
+                                        >
+                                            Synchronize & Keep Editing
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

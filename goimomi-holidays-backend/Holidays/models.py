@@ -543,3 +543,9 @@ class MealMaster(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.meal_type})"
+
+class VehicleBrand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name

@@ -7,6 +7,7 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
     const [dropdownStyle, setDropdownStyle] = useState({});
     const wrapperRef = useRef(null);
     const dropdownRef = useRef(null);
+    const searchInputRef = useRef(null);
 
     const updateDropdownPosition = useCallback(() => {
         if (!wrapperRef.current) return;
@@ -36,6 +37,16 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
             updateDropdownPosition();
         }
     }, [isOpen, updateDropdownPosition]);
+
+    // Focus the search input WITHOUT causing any page scroll
+    useEffect(() => {
+        if (isOpen && searchInputRef.current) {
+            const raf = requestAnimationFrame(() => {
+                searchInputRef.current?.focus({ preventScroll: true });
+            });
+            return () => cancelAnimationFrame(raf);
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -75,13 +86,13 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
         >
             <div className="p-1 border-b border-gray-100 bg-white">
                 <input
+                    ref={searchInputRef}
                     type="text"
                     className="w-full bg-gray-50 border border-gray-100 rounded-md px-2 py-1 text-[10px] font-bold text-gray-900 focus:outline-none focus:border-[#14532d] focus:bg-white transition-all placeholder:text-gray-300"
                     placeholder="Search options..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
-                    autoFocus
                 />
             </div>
             <div className="overflow-y-auto flex-1 custom-scrollbar">
@@ -121,7 +132,7 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
                                 }}
                                 className="w-full py-2 bg-[#14532d] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
                             >
-                                Use "{searchTerm}"
+                                Use &quot;{searchTerm}&quot;
                             </button>
                         )}
                     </div>

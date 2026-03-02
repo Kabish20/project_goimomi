@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+﻿import React, { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
-import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, Star, Utensils, Camera, Bus, Bed, List, ListOrdered, PlayCircle } from "lucide-react";
+import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, FileText, Star, Utensils, Camera, Bus, Bed, List, ListOrdered, PlayCircle } from "lucide-react";
 
 /* ---------- UI helpers ---------- */
 const Section = ({ title, children, active }) => (
@@ -58,6 +58,23 @@ const formatWithCommas = (value) => {
 };
 
 
+
+const insertBullet = (ref, currentArray, setter) => {
+    const text = Array.isArray(currentArray) ? currentArray.join('\n') : (currentArray || "");
+    const textarea = ref.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const bullet = "\u2022 ";
+    const newText = text.substring(0, start) + bullet + text.substring(end);
+    setter(newText.split('\n'));
+    setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + bullet.length, start + bullet.length);
+    }, 0);
+};
+
+
 const HolidayPackageEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -74,6 +91,7 @@ const HolidayPackageEdit = () => {
     const exclusionsRef = useRef(null);
     const cancellationRef = useRef(null);
     const highlightsRef = useRef(null);
+    const pricingSlotsRef = useRef(null);
     const [accommodations, setAccommodations] = useState([]);
     const [showHotelModal, setShowHotelModal] = useState(false);
     const [hotelSearchQuery, setHotelSearchQuery] = useState("");
@@ -81,6 +99,7 @@ const HolidayPackageEdit = () => {
     const [sightseeingMasters, setSightseeingMasters] = useState([]);
     const [mealMasters, setMealMasters] = useState([]);
     const [airlines, setAirlines] = useState([]);
+    const [vehicleBrands, setVehicleBrands] = useState([]);
     const [newHotelForm, setNewHotelForm] = useState({
         name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
     });
@@ -146,6 +165,30 @@ const HolidayPackageEdit = () => {
     const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("overview");
 
+    // Default logistics block for a travel date slot
+    const mkLogistics = () => ({
+        with_arrival: true,
+        arrival_city: "", arrival_date: "", arrival_time: "",
+        arrival_airport: "", arrival_airline: "", arrival_flight_no: "",
+        with_departure: true,
+        departure_city: "", departure_date: "", departure_time: "",
+        departure_airport: "", departure_airline: "", departure_flight_no: ""
+    });
+
+    // Default new pricing slot
+    const mkSlot = () => ({
+        travel_date: "",
+        valid_from: "",
+        valid_to: "",
+        booking_valid_until: "",
+        logistics: mkLogistics(),
+        tiers: (formData.package_categories || []).reduce((acc, tier) => {
+            acc[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
+            return acc;
+        }, {})
+    });
+
+
     const TITLE_LIMIT = 200;
     const DESC_LIMIT = 2000;
     const HIGHLIGHTS_LIMIT = 1000;
@@ -206,7 +249,7 @@ const HolidayPackageEdit = () => {
             try {
                 setLoading(true);
                 // Fetch dependencies in parallel
-                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, pkgRes] = await Promise.all([
+                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, pkgRes] = await Promise.all([
                     axios.get(`${API_BASE_URL}/starting-cities/`),
                     axios.get(`${API_BASE_URL}/destinations/`),
                     axios.get(`${API_BASE_URL}/suppliers/`),
@@ -215,6 +258,7 @@ const HolidayPackageEdit = () => {
                     axios.get(`${API_BASE_URL}/sightseeing-masters/`),
                     axios.get(`${API_BASE_URL}/meal-masters/`),
                     axios.get(`${API_BASE_URL}/airlines/`),
+                    axios.get(`${API_BASE_URL}/vehicle-brands/`),
                     axios.get(`${API_BASE_URL}/packages/${id}/`),
                 ]);
 
@@ -226,11 +270,20 @@ const HolidayPackageEdit = () => {
                     );
                     setSuppliers(filteredSuppliers);
                 }
-                if (Array.isArray(mastersRes.data)) setItineraryMasters(mastersRes.data);
+                if (Array.isArray(mastersRes.data)) {
+                    const destList = Array.isArray(destRes.data) ? destRes.data : [];
+                    const enriched = mastersRes.data.map(m => ({
+                        ...m,
+                        destination_name: m.destination_name ||
+                            destList.find(d => d.id === m.destination)?.name || ''
+                    }));
+                    setItineraryMasters(enriched);
+                }
                 if (Array.isArray(hotelMastersRes.data)) setHotelMasters(hotelMastersRes.data);
                 if (Array.isArray(sightseeingMastersRes.data)) setSightseeingMasters(sightseeingMastersRes.data);
                 if (Array.isArray(mealMastersRes.data)) setMealMasters(mealMastersRes.data);
                 if (Array.isArray(airlinesRes.data)) setAirlines(airlinesRes.data);
+                if (Array.isArray(vehicleBrandsRes.data)) setVehicleBrands(vehicleBrandsRes.data);
 
                 // Populate Form Data
                 const pkg = pkgRes.data;
@@ -277,7 +330,11 @@ const HolidayPackageEdit = () => {
                                 newTiers[tier] = [newTiers[tier]];
                             }
                         });
-                        return { ...slot, tiers: newTiers };
+                        return {
+                            ...slot,
+                            tiers: newTiers,
+                            logistics: slot.logistics || mkLogistics()
+                        };
                     })
                     : [];
                 setFixedDepartureData(normalizedFD);
@@ -319,9 +376,9 @@ const HolidayPackageEdit = () => {
                     setExclusions(pkg.exclusions.map(e => e.text));
                 }
 
-                // Highlights
+                // Highlights — strip any leading bullet characters stored in the DB
                 if (pkg.highlights && Array.isArray(pkg.highlights)) {
-                    setHighlights(pkg.highlights.map(h => h.text));
+                    setHighlights(pkg.highlights.map(h => h.text.replace(/^[\u2022\u2023\u25E6\u2043\u2219•]\s*/, '')));
                 }
 
                 // Cancellation Policies
@@ -519,7 +576,7 @@ const HolidayPackageEdit = () => {
             // Add missing tiers
             formData.package_categories.forEach(tier => {
                 if (!newTiers[tier]) {
-                    newTiers[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "TWIN" }];
+                    newTiers[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
                 }
             });
             // Remove tiers no longer selected
@@ -560,7 +617,7 @@ const HolidayPackageEdit = () => {
         const currentVal = lines.join('\n');
         // Find start of current line
         const lineStart = currentVal.lastIndexOf('\n', start - 1) + 1;
-        const insertText = start === 0 || currentVal[start - 1] === '\n' ? '? ' : '\n? ';
+        const insertText = start === 0 || currentVal[start - 1] === '\n' ? 'â€¢ ' : '\nâ€¢ ';
         const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(start);
         setter(newVal.split('\n'));
         setTimeout(() => {
@@ -703,8 +760,7 @@ const HolidayPackageEdit = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm()) {
-            setError("Please fix the errors in the form.");
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
         setSaving(true);
@@ -823,7 +879,8 @@ const HolidayPackageEdit = () => {
                 window.scrollTo(0, 0);
             }
 
-            // After package is successfully updated, save marked itineraries to master
+            // After package is successfully updated, save/update marked itineraries to master
+            const updatedDays = [...itineraryDays];
             for (let i = 0; i < itineraryDays.length; i++) {
                 const day = itineraryDays[i];
                 if (day.save_to_master && day.title) {
@@ -833,14 +890,13 @@ const HolidayPackageEdit = () => {
                         masterData.append("title", day.title);
                         masterData.append("description", day.description);
 
-                        // Get destination for this day to categorize master
                         const destName = getDestinationForDay(i);
                         const destObj = destinations.find(d => d.name === destName);
                         if (destObj) {
                             masterData.append("destination", destObj.id);
                         }
 
-                        if (day.image) {
+                        if (day.image instanceof File) {
                             masterData.append("image", day.image);
                         }
 
@@ -848,15 +904,30 @@ const HolidayPackageEdit = () => {
                             masterData.append("details_json", JSON.stringify(day.details_json));
                         }
 
-                        await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
-                            headers: { "Content-Type": "multipart/form-data" }
-                        });
-                        console.log(`Saved day ${i + 1} to master as ${day.master_name}`);
+                        if (day.master_template) {
+                            // Master already exists — UPDATE it instead of creating a duplicate
+                            await axios.put(`${API_BASE_URL}/itinerary-masters/${day.master_template}/`, masterData, {
+                                headers: { "Content-Type": "multipart/form-data" }
+                            });
+                            console.log(`Updated existing master ${day.master_template} for day ${i + 1}`);
+                        } else {
+                            // No master yet — CREATE a new one and store its ID
+                            const masterRes = await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
+                                headers: { "Content-Type": "multipart/form-data" }
+                            });
+                            const newMasterId = masterRes.data?.id;
+                            if (newMasterId) {
+                                updatedDays[i] = { ...updatedDays[i], master_template: newMasterId };
+                            }
+                            console.log(`Created new master for day ${i + 1}`);
+                        }
                     } catch (mErr) {
                         console.error(`Error saving day ${i + 1} to master:`, mErr);
                     }
                 }
             }
+            // Persist the updated master IDs so subsequent saves use PUT not POST
+            setItineraryDays(updatedDays);
         } catch (err) {
             console.error("Error updating package:", err);
             if (err.response?.data) {
@@ -882,8 +953,19 @@ const HolidayPackageEdit = () => {
         if (templateId) {
             const template = itineraryMasters.find(t => t.id === parseInt(templateId));
             if (template) {
-                copy[index].title = template.title || "";
+                copy[index].title = template.title || template.name || "";
                 copy[index].description = template.description || "";
+                // Also load all the day's structured details if available
+                if (template.details_json) {
+                    copy[index].details_json = {
+                        ...copy[index].details_json,
+                        ...template.details_json,
+                        active_tab: copy[index].details_json?.active_tab || 'day_itinerary'
+                    };
+                }
+                if (template.image) {
+                    copy[index].existing_image = template.image;
+                }
             }
         }
         setItineraryDays(copy);
@@ -926,396 +1008,178 @@ const HolidayPackageEdit = () => {
     ];
 
     return (
-        <div className="flex bg-[#fcfdfc] h-screen overflow-hidden">
-            <AdminSidebar />
+        <>
+            <div className="flex bg-[#fcfdfc] h-screen overflow-hidden">
+                <AdminSidebar />
 
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <AdminTopbar />
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                    <AdminTopbar />
 
-                {/* Action Header */}
-                <div className="bg-white border-b border-gray-100 px-8 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
-                    <div>
-                        <h1 className="text-xl font-black text-gray-900 tracking-tighter">Edit Holiday Package</h1>
-                        <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
-                            <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">{formData.title || "Package"}</span>
-                        </p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/admin/packages')}
-                            className="px-6 py-2 rounded-xl border-2 border-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95 shadow-sm"
-                        >
-                            Cancel
-                        </button>
+                    {/* Action Header */}
+                    <div className="bg-white border-b border-gray-100 px-8 py-3.5 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
+                        <div>
+                            <h1 className="text-xl font-black text-gray-900 tracking-tighter">Edit Holiday Package</h1>
+                            <p className="text-[9px] text-gray-400 font-black uppercase tracking-[0.3em] leading-none mt-1.5 flex items-center gap-2">
+                                <span className="text-green-500">Inventory</span> / <span>Holidays</span> / <span className="text-gray-900">{formData.title || "Package"}</span>
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/admin/packages')}
+                                className="px-6 py-2 rounded-xl border-2 border-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95 shadow-sm"
+                            >
+                                Cancel
+                            </button>
 
-                        <button
-                            onClick={handleSubmit}
-                            className="px-8 py-2 rounded-xl bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 disabled:opacity-50 disabled:scale-100"
-                            disabled={saving}
-                            form="package-form"
-                        >
-                            {saving ? (
-                                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            ) : (
-                                <Package size={14} />
-                            )}
-                            {saving ? "UPDATING..." : "UPDATE PACKAGE"}
-                        </button>
-                    </div>
-                </div>
-
-                <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
-                    {/* Internal Navigation Sidebar */}
-                    <div className="w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-3 shrink-0">
-                        <nav className="flex-1 space-y-0.5">
-                            {navItems.map((item) => (
-                                <div key={item.id}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveSection(item.id)}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-lg shadow-green-900/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
-                                    >
-                                        <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${activeSection === item.id ? 'text-white ' + item.color : 'text-gray-300 group-hover:text-gray-700'}`}>
-                                            {item.icon}
-                                        </span>
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.08em] leading-tight">{item.label}</span>
-                                    </button>
-                                    {item.id === 'itinerary' && activeSection === 'itinerary' && (
-                                        <div className="mt-1 ml-4 pl-3 border-l-2 border-green-50 space-y-0.5 py-1 animate-in slide-in-from-top-4">
-                                            {itineraryDays.map((row, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    type="button"
-                                                    className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10px] font-medium text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group"
-                                                    onClick={() => {
-                                                        const el = document.getElementById(`itinerary-day-${idx}`);
-                                                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                                    }}
-                                                >
-                                                    <div className={`w-1 h-1 rounded-full shrink-0 ${activeSection === 'itinerary' ? 'bg-green-500' : 'bg-gray-300'} group-hover:bg-[#14532d] transition-all`}></div>
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider">Day {idx + 1}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </nav>
-                        <div className="mt-4 p-3 bg-[#14532d]/5 rounded-2xl border border-[#14532d]/10">
-                            <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest mb-1 opacity-60">Ref ID</p>
-                            <p className="text-[10px] font-bold text-[#14532d] break-all">{id}</p>
+                            <button
+                                onClick={handleSubmit}
+                                className="px-8 py-2 rounded-xl bg-[#14532d] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-green-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 disabled:opacity-50 disabled:scale-100"
+                                disabled={saving}
+                                form="package-form"
+                            >
+                                {saving ? (
+                                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                ) : (
+                                    <Package size={14} />
+                                )}
+                                {saving ? "UPDATING..." : "UPDATE PACKAGE"}
+                            </button>
                         </div>
                     </div>
 
-                    {/* Form Content Area */}
-                    <div className="flex-1 overflow-y-auto px-12 py-10 custom-scrollbar bg-[#fcfdfc]">
-                        <div className="max-w-4xl mx-auto pb-12">
-                            {/* Messages */}
-                            {message && (
-                                <div className="mb-6 p-4 bg-green-50 border-2 border-green-100 text-[#14532d] rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                                    <div className="bg-green-100 p-2 rounded-full">?</div>
-                                    <p className="font-bold text-xs uppercase tracking-wider">{message}</p>
-                                </div>
-                            )}
-                            {error && (
-                                <div className="mb-6 p-4 bg-red-50 border-2 border-red-100 text-red-700 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                                    <div className="bg-red-100 p-2 rounded-full">?</div>
-                                    <p className="font-bold text-xs uppercase tracking-wider text-left">{error}</p>
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} id="package-form">
-                                {/* PACKAGE INFORMATION */}
-                                <Section title="Trip Overview" active={activeSection === 'overview'}>
-                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                                        <div className="space-y-4">
-                                            {/* Top Options: Departure & Tiers */}
-                                            <div className="bg-gray-100/50 px-5 py-4 rounded-xl border-2 border-white flex flex-col xl:flex-row xl:items-center gap-6">
-                                                {/* Fixed Departure */}
-                                                <div className="flex items-center gap-3 w-max">
-                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Departure</span>
-                                                    <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-gray-200 hover:border-[#14532d]/30 transition-all shadow-sm group">
-                                                        <input
-                                                            type="checkbox"
-                                                            className="w-3.5 h-3.5 rounded border-gray-300 text-[#14532d] focus:ring-[#14532d] transition-all cursor-pointer"
-                                                            checked={formData.fixed_departure}
-                                                            onChange={(e) => setFormData({ ...formData, fixed_departure: e.target.checked })}
-                                                        />
-                                                        <span className="text-[10px] font-bold text-gray-700 group-hover:text-[#14532d] transition-colors">Fixed Departure</span>
-                                                    </label>
-                                                </div>
-
-                                                <div className="hidden xl:block w-px h-6 bg-gray-200"></div>
-
-                                                {/* Package Tiers */}
-                                                <div className="flex flex-col md:flex-row md:items-center gap-3">
-                                                    <div className="min-w-fit">
-                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Package Tiers</span>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {['Budget', 'Standard', 'Deluxe', 'Luxury', 'Premium'].map((tier) => (
-                                                            <label key={tier} className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-gray-100 hover:border-[#14532d]/30 transition-all shadow-sm group">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    className="w-3.5 h-3.5 rounded border-gray-300 text-[#14532d] focus:ring-[#14532d] transition-all cursor-pointer"
-                                                                    checked={formData.package_categories && formData.package_categories.includes(tier)}
-                                                                    onChange={(e) => {
-                                                                        const currentTiers = formData.package_categories || [];
-                                                                        if (e.target.checked) setFormData({ ...formData, package_categories: [...currentTiers, tier] });
-                                                                        else setFormData({ ...formData, package_categories: currentTiers.filter(t => t !== tier) });
-                                                                    }}
-                                                                />
-                                                                <span className="text-[10px] font-bold text-gray-700 group-hover:text-[#14532d] transition-colors">{tier}</span>
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </div>
+                    <div className="flex-1 flex h-full overflow-hidden relative bg-[#fcfdfc]">
+                        {/* Internal Navigation Sidebar */}
+                        <div className="w-48 bg-white border-r border-gray-100 overflow-y-auto custom-scrollbar flex flex-col p-3 shrink-0">
+                            <nav className="flex-1 space-y-0.5">
+                                {navItems.map((item) => (
+                                    <div key={item.id}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveSection(item.id)}
+                                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 group relative overflow-hidden ${activeSection === item.id ? 'bg-[#14532d] text-white shadow-lg shadow-green-900/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                                        >
+                                            <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${activeSection === item.id ? 'text-white ' + item.color : 'text-gray-300 group-hover:text-gray-700'}`}>
+                                                {item.icon}
+                                            </span>
+                                            <span className="text-[10px] font-bold uppercase tracking-[0.08em] leading-tight">{item.label}</span>
+                                        </button>
+                                        {item.id === 'itinerary' && activeSection === 'itinerary' && (
+                                            <div className="mt-1 ml-4 pl-3 border-l-2 border-green-50 space-y-0.5 py-1 animate-in slide-in-from-top-4">
+                                                {itineraryDays.map((row, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10px] font-medium text-gray-400 hover:bg-gray-50 hover:text-[#14532d] transition-all group"
+                                                        onClick={() => {
+                                                            const el = document.getElementById(`itinerary-day-${idx}`);
+                                                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                        }}
+                                                    >
+                                                        <div className={`w-1 h-1 rounded-full shrink-0 ${activeSection === 'itinerary' ? 'bg-green-500' : 'bg-gray-300'} group-hover:bg-[#14532d] transition-all`}></div>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider">Day {idx + 1}</span>
+                                                    </button>
+                                                ))}
                                             </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </nav>
+                            <div className="mt-4 p-3 bg-[#14532d]/5 rounded-2xl border border-[#14532d]/10">
+                                <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest mb-1 opacity-60">Ref ID</p>
+                                <p className="text-[10px] font-bold text-[#14532d] break-all">{id}</p>
+                            </div>
+                        </div>
 
-                                            {/* Starting & Ending City */}
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <FormLabel label="Starting City" required />
-                                                    <SearchableSelect
-                                                        options={[
-                                                            { value: "Any City", label: "Any City" },
-                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                        ]}
-                                                        value={formData.starting_city}
-                                                        onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
-                                                        placeholder="Where the trip starts..."
-                                                    />
-                                                    {errors.starting_city && <p className="text-red-500 text-[9px] font-bold mt-1 flex items-center gap-1">? {errors.starting_city}</p>}
-                                                </div>
-                                                <div>
-                                                    <FormLabel label="Ending City" />
-                                                    <SearchableSelect
-                                                        options={[
-                                                            { value: "Any City", label: "Any City" },
-                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                        ]}
-                                                        value={formData.ending_city}
-                                                        onChange={(val) => setFormData(prev => ({ ...prev, ending_city: val }))}
-                                                        placeholder="Where the trip ends..."
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div>
-                                                    <FormLabel
-                                                        label="Package Title"
-                                                        required
-                                                        limit={TITLE_LIMIT}
-                                                        current={formData.title.length}
-                                                    />
-                                                    <Input
-                                                        name="title"
-                                                        value={formData.title}
-                                                        onChange={handleInputChange}
-                                                        error={errors.title}
-                                                        maxLength={TITLE_LIMIT}
-                                                        placeholder="e.g. Magical Mauritius - 5 Nights Luxury Escape"
-                                                    />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className={`aspect-[21/9] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer`}>
-                                                        {(headerPreview) ? (
-                                                            <>
-                                                                <img src={headerPreview} className="w-full h-full object-cover" alt="Header Preview" />
-                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setHeaderPreview(null);
-                                                                            setFormData({ ...formData, header_image: null });
+                        {/* Form Content Area */}
+                        <div className="flex-1 overflow-y-auto px-12 py-10 custom-scrollbar bg-[#fcfdfc]">
+                            <div className="max-w-4xl mx-auto pb-12">
+                                {/* Success message */}
+                                {message && (
+                                    <div className="mb-6 p-4 bg-green-50 border-2 border-green-100 text-[#14532d] rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="bg-green-100 p-2 rounded-full">✓</div>
+                                        <p className="font-bold text-xs uppercase tracking-wider">{message}</p>
+                                    </div>
+                                )}
+
+                                {/* Validation errors summary */}
+                                {Object.keys(errors).length > 0 && (
+                                    <div className="mb-6 bg-red-50 border-2 border-red-100 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                        <div className="flex items-center gap-3 px-5 py-3 bg-red-100/60 border-b border-red-100">
+                                            <div className="w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-black shrink-0">!</div>
+                                            <p className="font-black text-sm text-red-700 uppercase tracking-wide">Please fix {Object.keys(errors).length} error{Object.keys(errors).length > 1 ? 's' : ''} before saving</p>
+                                        </div>
+                                        <ul className="px-5 py-3 space-y-1.5">
+                                            {Object.entries(errors).map(([key, msg]) => (
+                                                <li key={key} className="flex items-start gap-2 text-[11px] text-red-600">
+                                                    <span className="mt-0.5 shrink-0 w-1.5 h-1.5 rounded-full bg-red-400 inline-block"></span>
+                                                    <span className="font-bold">{msg}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Server/API error */}
+                                {error && (
+                                    <div className="mb-6 p-4 bg-red-50 border-2 border-red-100 text-red-700 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="bg-red-100 p-2 rounded-full">⚠</div>
+                                        <p className="font-bold text-xs uppercase tracking-wider text-left">{error}</p>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmit} id="package-form">
+                                    {/* PACKAGE INFORMATION */}
+                                    <Section title="Trip Overview" active={activeSection === 'overview'}>
+                                        <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                            <div className="space-y-4">
+                                                {/* Top Options: Departure & Tiers */}
+                                                <div className="bg-gray-100/50 px-5 py-4 rounded-xl border-2 border-white flex flex-col xl:flex-row xl:items-center gap-6">
+                                                    {/* Fixed Departure */}
+                                                    <div className="flex items-center gap-3 w-max">
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Departure</span>
+                                                        <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-gray-200 hover:border-[#14532d]/30 transition-all shadow-sm group">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-3.5 h-3.5 rounded border-gray-300 text-[#14532d] focus:ring-[#14532d] transition-all cursor-pointer"
+                                                                checked={formData.fixed_departure}
+                                                                onChange={(e) => setFormData({ ...formData, fixed_departure: e.target.checked })}
+                                                            />
+                                                            <span className="text-[10px] font-bold text-gray-700 group-hover:text-[#14532d] transition-colors">Fixed Departure</span>
+                                                        </label>
+                                                    </div>
+
+                                                    <div className="hidden xl:block w-px h-6 bg-gray-200"></div>
+
+                                                    {/* Package Tiers */}
+                                                    <div className="flex flex-col md:flex-row md:items-center gap-3">
+                                                        <div className="min-w-fit">
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Package Tiers</span>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {['Budget', 'Standard', 'Deluxe', 'Luxury', 'Premium'].map((tier) => (
+                                                                <label key={tier} className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-gray-100 hover:border-[#14532d]/30 transition-all shadow-sm group">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="w-3.5 h-3.5 rounded border-gray-300 text-[#14532d] focus:ring-[#14532d] transition-all cursor-pointer"
+                                                                        checked={formData.package_categories && formData.package_categories.includes(tier)}
+                                                                        onChange={(e) => {
+                                                                            const currentTiers = formData.package_categories || [];
+                                                                            if (e.target.checked) setFormData({ ...formData, package_categories: [...currentTiers, tier] });
+                                                                            else setFormData({ ...formData, package_categories: currentTiers.filter(t => t !== tier) });
                                                                         }}
-                                                                        className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
-                                                                    >
-                                                                        <X size={14} />
-                                                                    </button>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <div className="text-center">
-                                                                <ImageIcon size={18} className="text-gray-300 mx-auto" />
-                                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Header</p>
-                                                            </div>
-                                                        )}
-                                                        <input type="file" name="header_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setHeaderPreview(URL.createObjectURL(e.target.files[0])); } }} />
-                                                    </div>
-                                                    <div className="aspect-[4/3] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
-                                                        {(cardPreview) ? (
-                                                            <>
-                                                                <img src={cardPreview} className="w-full h-full object-cover" alt="Card Preview" />
-                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setCardPreview(null);
-                                                                            setFormData({ ...formData, card_image: null });
-                                                                        }}
-                                                                        className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
-                                                                    >
-                                                                        <X size={14} />
-                                                                    </button>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <div className="text-center">
-                                                                <ImageIcon size={18} className="text-gray-300 mx-auto" />
-                                                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Card</p>
-                                                            </div>
-                                                        )}
-                                                        <input type="file" name="card_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setCardPreview(URL.createObjectURL(e.target.files[0])); } }} />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <FormLabel
-                                                    label="Trip Description"
-                                                    required
-                                                    limit={DESC_LIMIT}
-                                                    current={formData.description.length}
-                                                />
-                                                <textarea
-                                                    name="description"
-                                                    value={formData.description}
-                                                    onChange={handleInputChange}
-                                                    maxLength={DESC_LIMIT}
-                                                    placeholder="Describe the magical experience..."
-                                                    className={`bg-white border-2 ${errors.description ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} p-3.5 rounded-xl w-full h-40 text-gray-800 text-xs transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] hover:border-gray-200 resize-none`}
-                                                />
-                                                {errors.description && <p className="text-red-500 text-[9px] font-bold mt-1.5 flex items-center gap-1">? {errors.description}</p>}
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <FormLabel label="Package Category" required />
-                                                        <select
-                                                            name="category"
-                                                            value={formData.category}
-                                                            onChange={handleInputChange}
-                                                            className={`bg-white border-2 ${errors.category ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} px-4 py-2.5 rounded-xl w-full text-gray-800 text-[11px] transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] hover:border-gray-200 cursor-pointer font-bold`}
-                                                        >
-                                                            <option value="">Select Category</option>
-                                                            <option value="Domestic">Domestic</option>
-                                                            <option value="International">International</option>
-                                                            <option value="Umrah">Umrah</option>
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <FormLabel label="Supplier" optional />
-                                                        <select
-                                                            name="supplier"
-                                                            value={formData.supplier}
-                                                            onChange={handleInputChange}
-                                                            className={`bg-white border-2 border-gray-100 px-4 py-2.5 rounded-xl w-full text-gray-800 text-[11px] transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] hover:border-gray-200 cursor-pointer font-bold`}
-                                                        >
-                                                            <option value="">Select Supplier</option>
-                                                            {suppliers.map(s => (
-                                                                <option key={s.id} value={s.id}>{s.company_name}</option>
+                                                                    />
+                                                                    <span className="text-[10px] font-bold text-gray-700 group-hover:text-[#14532d] transition-colors">{tier}</span>
+                                                                </label>
                                                             ))}
-                                                        </select>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex gap-4 overflow-x-auto">
-                                                    <div className="flex-1 min-w-[120px]">
-                                                        <FormLabel label="Package Status" />
-                                                        <div className="flex bg-white p-1 rounded-xl border-2 border-gray-100 mt-1">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setFormData({ ...formData, is_active: true })}
-                                                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${formData.is_active ? 'bg-green-600 text-white shadow-md shadow-green-900/10' : 'text-gray-400 hover:text-gray-600'}`}
-                                                            >
-                                                                ACTIVE
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setFormData({ ...formData, is_active: false })}
-                                                                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all ${!formData.is_active ? 'bg-gray-400 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                            >
-                                                                HIDDEN
-                                                            </button>
                                                         </div>
                                                     </div>
-
-                                                </div>
-                                            </div>
-
-                                            {/* Trip Highlights Integrated into Overview */}
-                                            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm mt-6">
-                                                <div className="mb-4">
-                                                    <h3 className="text-[14px] font-black text-gray-900 tracking-tight leading-none">Trip Highlights</h3>
-                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Core experience identifiers</p>
-                                                </div>
-                                                <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm">
-                                                    <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5">
-                                                        <button type="button" onClick={() => insertBullet(highlightsRef, highlights, setHighlights)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
-                                                            <List size={12} />
-                                                        </button>
-                                                    </div>
-                                                    <textarea
-                                                        ref={highlightsRef}
-                                                        className="w-full min-h-[80px] p-3 text-[11px] text-gray-700 focus:outline-none resize-y leading-relaxed bg-white"
-                                                        placeholder="� Traditional Malay Dinner Experience&#10;� Sightseeing of major attractions"
-                                                        value={highlights.join('\n')}
-                                                        onChange={(e) => setHighlights(e.target.value.split('\n'))}
-                                                        spellCheck="false"
-                                                    />
-                                                </div>
-                                            </div>
-
-
-                                        </div>
-                                    </div>
-
-
-                                </Section>
-
-
-
-                                {/* ARRIVAL & DEPARTURE */}
-                                <Section title="Arrival & Departure" active={activeSection === 'location'}>
-                                    <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
-                                        <div className="grid grid-cols-2 gap-8 mb-8">
-                                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-1.5 h-4 bg-[#14532d] rounded-full"></div>
-                                                        <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Flight Inclusion</h3>
-                                                    </div>
-                                                    <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setFormData({
-                                                                ...formData,
-                                                                with_flight: true,
-                                                                with_arrival: true,
-                                                                with_departure: true
-                                                            })}
-                                                            className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_flight ? 'bg-[#14532d] text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                        >
-                                                            WITH FLIGHT
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setFormData({ ...formData, with_flight: false })}
-                                                            className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_flight ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                        >
-                                                            NO FLIGHT
-                                                        </button>
-                                                    </div>
                                                 </div>
 
+                                                {/* Starting & Ending City */}
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <FormLabel label="Starting From" required />
+                                                        <FormLabel label="Starting City" required />
                                                         <SearchableSelect
                                                             options={[
                                                                 { value: "Any City", label: "Any City" },
@@ -1325,9 +1189,10 @@ const HolidayPackageEdit = () => {
                                                             onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
                                                             placeholder="Where the trip starts..."
                                                         />
+                                                        {errors.starting_city && <p className="text-red-500 text-[9px] font-bold mt-1 flex items-center gap-1">? {errors.starting_city}</p>}
                                                     </div>
                                                     <div>
-                                                        <FormLabel label="Ending At" required />
+                                                        <FormLabel label="Ending City" />
                                                         <SearchableSelect
                                                             options={[
                                                                 { value: "Any City", label: "Any City" },
@@ -1339,39 +1204,208 @@ const HolidayPackageEdit = () => {
                                                         />
                                                     </div>
                                                 </div>
-                                            </div>
-
-                                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                                <div className="flex items-center gap-2 mb-4">
-                                                    <div className="w-1.5 h-4 bg-[#14532d] rounded-full"></div>
-                                                    <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Route Summary</h3>
-                                                </div>
-                                                <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-dashed-green">
-                                                    <div className="relative">
-                                                        <div className="absolute -left-[20px] top-1.5 w-2 h-2 rounded-full bg-[#14532d] ring-4 ring-green-50"></div>
-                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Departure</p>
-                                                        <p className="text-sm font-black text-gray-900">{formData.starting_city || "---"}</p>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                    <div>
+                                                        <FormLabel
+                                                            label="Package Title"
+                                                            required
+                                                            limit={TITLE_LIMIT}
+                                                            current={formData.title.length}
+                                                        />
+                                                        <Input
+                                                            name="title"
+                                                            value={formData.title}
+                                                            onChange={handleInputChange}
+                                                            error={errors.title}
+                                                            maxLength={TITLE_LIMIT}
+                                                            placeholder="e.g. Magical Mauritius - 5 Nights Luxury Escape"
+                                                        />
                                                     </div>
-                                                    {packageDestinations.slice(0, 3).map((dest, i) => (
-                                                        <div key={i} className="relative">
-                                                            <div className="absolute -left-[20px] top-1.5 w-2 h-2 rounded-full border-2 border-gray-200 bg-white"></div>
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Night {i + 1}</p>
-                                                            <p className="text-sm font-black text-gray-900">{dest.destination || "---"}</p>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className={`aspect-[21/9] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative group hover:border-[#14532d] transition-all cursor-pointer`}>
+                                                            {(headerPreview) ? (
+                                                                <>
+                                                                    <img src={headerPreview} className="w-full h-full object-cover" alt="Header Preview" />
+                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setHeaderPreview(null);
+                                                                                setFormData({ ...formData, header_image: null });
+                                                                            }}
+                                                                            className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
+                                                                        >
+                                                                            <X size={14} />
+                                                                        </button>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <div className="text-center">
+                                                                    <ImageIcon size={18} className="text-gray-300 mx-auto" />
+                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Header</p>
+                                                                </div>
+                                                            )}
+                                                            <input type="file" name="header_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setHeaderPreview(URL.createObjectURL(e.target.files[0])); } }} />
                                                         </div>
-                                                    ))}
-                                                    {packageDestinations.length > 3 && (
-                                                        <p className="text-[10px] font-bold text-[#14532d]">+{packageDestinations.length - 3} More Nights</p>
-                                                    )}
+                                                        <div className="aspect-[4/3] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative group hover:border-[#14532d] transition-all cursor-pointer">
+                                                            {(cardPreview) ? (
+                                                                <>
+                                                                    <img src={cardPreview} className="w-full h-full object-cover" alt="Card Preview" />
+                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setCardPreview(null);
+                                                                                setFormData({ ...formData, card_image: null });
+                                                                            }}
+                                                                            className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
+                                                                        >
+                                                                            <X size={14} />
+                                                                        </button>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <div className="text-center">
+                                                                    <ImageIcon size={18} className="text-gray-300 mx-auto" />
+                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Card</p>
+                                                                </div>
+                                                            )}
+                                                            <input type="file" name="card_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setCardPreview(URL.createObjectURL(e.target.files[0])); } }} />
+                                                        </div>
+                                                    </div>
                                                 </div>
+
+                                                <div>
+                                                    <FormLabel
+                                                        label="Trip Description"
+                                                        required
+                                                        limit={DESC_LIMIT}
+                                                        current={formData.description.length}
+                                                    />
+                                                    <textarea
+                                                        name="description"
+                                                        value={formData.description}
+                                                        onChange={handleInputChange}
+                                                        maxLength={DESC_LIMIT}
+                                                        placeholder="Describe the magical experience..."
+                                                        className={`bg-white border-2 ${errors.description ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} p-3.5 rounded-xl w-full h-40 text-gray-800 text-xs transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] hover:border-gray-200 resize-none`}
+                                                    />
+                                                    {errors.description && <p className="text-red-500 text-[9px] font-bold mt-1.5 flex items-center gap-1">? {errors.description}</p>}
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <FormLabel label="Package Category" required />
+                                                            <select
+                                                                name="category"
+                                                                value={formData.category}
+                                                                onChange={handleInputChange}
+                                                                className={`bg-white border-2 ${errors.category ? 'border-red-200 ring-4 ring-red-50' : 'border-gray-100'} p-3 rounded-xl w-full text-gray-800 text-[11px] focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] transition-all font-bold`}
+                                                            >
+                                                                <option value="">Select Category</option>
+                                                                <option value="Domestic">Domestic</option>
+                                                                <option value="International">International</option>
+                                                                <option value="Umrah">Umrah</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Supplier" optional />
+                                                            <select
+                                                                name="supplier"
+                                                                value={formData.supplier}
+                                                                onChange={handleInputChange}
+                                                                className={`bg-white border-2 border-gray-100 p-3 rounded-xl w-full text-gray-800 text-[11px] focus:outline-none focus:ring-4 focus:ring-[#14532d]/10 focus:border-[#14532d] transition-all font-bold`}
+                                                            >
+                                                                <option value="">Select Supplier</option>
+                                                                {suppliers.map(s => (
+                                                                    <option key={s.id} value={s.id}>{s.company_name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-gray-50/50 p-4 rounded-2xl border-2 border-gray-50 flex gap-4 mt-1.5 overflow-x-auto">
+                                                        <div className="flex-1 min-w-[120px]">
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Flight</span>
+                                                            <div className="flex gap-1.5">
+                                                                {[true, false].map((val) => (
+                                                                    <button
+                                                                        key={`flight-${val}`}
+                                                                        type="button"
+                                                                        onClick={() => setFormData({
+                                                                            ...formData,
+                                                                            with_flight: val,
+                                                                            ...(val ? { with_arrival: true, with_departure: true } : {})
+                                                                        })}
+                                                                        className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all border-2 ${formData.with_flight === val ? 'bg-[#14532d] border-[#14532d] text-white shadow-md shadow-green-900/10' : 'bg-white border-gray-100 text-gray-400 hover:text-gray-600'}`}
+                                                                    >
+                                                                        {val ? 'WITH' : 'NO'}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex-1 min-w-[120px]">
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Status</span>
+                                                            <div className="flex gap-1.5">
+                                                                {[true, false].map((val) => (
+                                                                    <button
+                                                                        key={`act-${val}`}
+                                                                        type="button"
+                                                                        onClick={() => setFormData({ ...formData, is_active: val })}
+                                                                        className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all border-2 ${formData.is_active === val ? 'bg-green-600 border-green-600 text-white shadow-md shadow-green-900/10' : 'bg-white border-gray-100 text-gray-400 hover:text-gray-600'}`}
+                                                                    >
+                                                                        {val ? 'ACTIVE' : 'DRAFT'}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Trip Highlights Integrated into Overview */}
+                                                <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm mt-6">
+                                                    <div className="mb-4">
+                                                        <h3 className="text-[14px] font-black text-gray-900 tracking-tight leading-none">Trip Highlights</h3>
+                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Core experience identifiers</p>
+                                                    </div>
+                                                    <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm">
+                                                        <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5">
+                                                            <button type="button" onClick={() => insertBullet(highlightsRef, highlights, setHighlights)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
+                                                                <List size={12} />
+                                                            </button>
+                                                        </div>
+                                                        <textarea
+                                                            ref={highlightsRef}
+                                                            className="w-full min-h-[80px] p-3 text-[11px] text-gray-700 focus:outline-none resize-y leading-relaxed bg-white"
+                                                            placeholder="• Traditional Malay Dinner Experience&#10;• Sightseeing of major attractions"
+                                                            value={highlights.join('\n')}
+                                                            onChange={(e) => setHighlights(e.target.value.split('\n'))}
+                                                            spellCheck="false"
+                                                        />
+                                                    </div>
+                                                </div>
+
+
                                             </div>
                                         </div>
 
-                                        <div className="space-y-6">
-                                            <div>
+
+                                    </Section>
+
+
+
+                                    {/* ARRIVAL & DEPARTURE */}
+                                    <Section title="Arrival & Departure" active={activeSection === 'location'}>
+                                        <div className="space-y-8">
+                                            <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
                                                 <div className="flex justify-between items-center mb-6">
                                                     <div>
-                                                        <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Package Destinations (Tour Route)</h3>
-                                                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">Group nights by destination</p>
+                                                        <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Package Destinations</h3>
+                                                        <p className="text-[8px] text-gray-400 font-bold uppercase mt-1 tracking-widest">Map your journey stay by stay</p>
                                                     </div>
                                                     <button
                                                         type="button"
@@ -1381,35 +1415,37 @@ const HolidayPackageEdit = () => {
                                                         + ADD DESTINATION
                                                     </button>
                                                 </div>
+
                                                 <div className="space-y-3">
                                                     {packageDestinations.map((row, i) => (
-                                                        <div key={i} className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm group animate-in slide-in-from-left-2" style={{ animationDelay: `${i * 50}ms` }}>
+                                                        <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 bg-white/50 p-2 rounded-2xl border border-gray-50" style={{ animationDelay: `${i * 100}ms` }}>
                                                             <div className="flex-1">
                                                                 <SearchableSelect
-                                                                    options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country || d.region || '' }))}
+                                                                    options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country }))}
                                                                     value={row.destination}
                                                                     onChange={(val) => {
                                                                         const copy = [...packageDestinations];
                                                                         copy[i].destination = val;
                                                                         setPackageDestinations(copy);
                                                                     }}
-                                                                    placeholder="Select City..."
+                                                                    placeholder="Select city..."
                                                                 />
                                                             </div>
-                                                            <div className="w-28">
-                                                                <select
-                                                                    value={row.nights}
-                                                                    onChange={(e) => {
+                                                            <div className="w-32">
+                                                                <SearchableSelect
+                                                                    options={[...Array(30)].map((_, n) => ({
+                                                                        value: String(n + 1),
+                                                                        label: `${n + 1} ${n + 1 === 1 ? 'Night' : 'Nights'}`
+                                                                    }))}
+                                                                    value={String(row.nights)}
+                                                                    onChange={(val) => {
                                                                         const copy = [...packageDestinations];
-                                                                        copy[i].nights = parseInt(e.target.value);
+                                                                        copy[i].nights = parseInt(val);
                                                                         setPackageDestinations(copy);
                                                                     }}
-                                                                    className="w-full bg-gray-50/50 border-2 border-transparent px-3 py-2.5 rounded-xl text-gray-900 text-[10px] font-black uppercase tracking-widest focus:bg-white focus:border-[#14532d] transition-all cursor-pointer appearance-none text-center"
-                                                                >
-                                                                    {[...Array(21)].map((_, n) => (
-                                                                        <option key={n + 1} value={n + 1}>{n + 1} {n + 1 === 1 ? 'Night' : 'Nights'}</option>
-                                                                    ))}
-                                                                </select>
+                                                                    placeholder="Nights"
+                                                                />
+
                                                             </div>
                                                             <button
                                                                 type="button"
@@ -1418,7 +1454,7 @@ const HolidayPackageEdit = () => {
                                                                         removeRow(setPackageDestinations, i);
                                                                     }
                                                                 }}
-                                                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 ${packageDestinations.length > 1 ? 'hover:bg-red-50 text-red-400' : 'text-gray-100 pointer-events-none'}`}
+                                                                className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 ${packageDestinations.length > 1 ? 'hover:bg-red-50 text-red-200 hover:text-red-500' : 'text-gray-100 cursor-not-allowed'}`}
                                                                 disabled={packageDestinations.length <= 1}
                                                             >
                                                                 <X size={16} />
@@ -1427,1635 +1463,1646 @@ const HolidayPackageEdit = () => {
                                                     ))}
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Arrival & Departure Flight/Transfer Details moved to this tab */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-                                            {/* Arrival */}
-                                            <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
-                                                        <Plane size={16} className="rotate-45" /> Arrival Logistics
-                                                    </h4>
-                                                    <label className="flex items-center gap-2 cursor-pointer bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.with_arrival}
-                                                            onChange={(e) => setFormData({ ...formData, with_arrival: e.target.checked })}
-                                                            className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500"
-                                                        />
-                                                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none">Included</span>
-                                                    </label>
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div>
+                                                    <FormLabel label="Total Days (Auto)" required />
+                                                    <Input type="number" name="days" value={formData.days} readOnly className="!bg-gray-50/50 cursor-not-allowed opacity-70" />
                                                 </div>
-
-                                                <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Arrival City" optional />
-                                                            <SearchableSelect
-                                                                options={[
-                                                                    { value: "Any City", label: "Any City" },
-                                                                    ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                                ]}
-                                                                value={formData.arrival_city}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
-                                                                placeholder="Select City"
-                                                                className="!py-1"
-                                                            />
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                            <div>
-                                                                <FormLabel label="Date" optional />
-                                                                <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
-                                                            </div>
-                                                            <div>
-                                                                <FormLabel label="Time" optional />
-                                                                <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Airline" optional />
-                                                            <SearchableSelect
-                                                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                value={formData.arrival_airline}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                                                placeholder="Select Airline"
-                                                                className="!py-1"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Flight No." optional />
-                                                            <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <FormLabel label="Arrival Airport" optional />
-                                                        <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Departure */}
-                                            <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-                                                        <Plane size={16} className="-rotate-45" /> Departure Logistics
-                                                    </h4>
-                                                    <label className="flex items-center gap-2 cursor-pointer bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.with_departure}
-                                                            onChange={(e) => setFormData({ ...formData, with_departure: e.target.checked })}
-                                                            className="w-4 h-4 rounded border-indigo-200 text-indigo-600 focus:ring-indigo-500"
-                                                        />
-                                                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none">Included</span>
-                                                    </label>
-                                                </div>
-                                                <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Departure City" optional />
-                                                            <SearchableSelect
-                                                                options={[
-                                                                    { value: "Any City", label: "Any City" },
-                                                                    ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                                ]}
-                                                                value={formData.departure_city}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                                                placeholder="Select City"
-                                                                className="!py-1"
-                                                            />
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                            <div>
-                                                                <FormLabel label="Date" optional />
-                                                                <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
-                                                            </div>
-                                                            <div>
-                                                                <FormLabel label="Time" optional />
-                                                                <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <FormLabel label="Airline" optional />
-                                                            <SearchableSelect
-                                                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                value={formData.departure_airline}
-                                                                onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                                                placeholder="Select Airline"
-                                                                className="!py-1"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Flight No." optional />
-                                                            <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <FormLabel label="Departure Airport" optional />
-                                                        <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
-                                                    </div>
+                                                <div>
+                                                    <FormLabel label="Group Size" optional />
+                                                    <Input type="number" name="group_size" value={formData.group_size} onChange={handleInputChange} />
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </Section>
 
-                                {/* PRICING */}
-                                <Section title="Pricing & Availability" active={activeSection === 'pricing'}>
-                                    <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
-                                        <div className="grid grid-cols-2 gap-x-12 gap-y-8">
-                                            <div className="space-y-6">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
-                                                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price Settings</h3>
+
+                                    </Section>
+
+                                    {/* PRICING */}
+                                    <Section title="Pricing & Availability" active={activeSection === 'pricing'}>
+                                        <div className="space-y-6">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <div>
+                                                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+                                                        {formData.fixed_departure ? "Fixed Departure Pricing" : "Package Pricing & Tiers"}
+                                                    </h3>
+                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                                        {formData.fixed_departure
+                                                            ? "Configure pricing for specific travel dates"
+                                                            : "Configure tiered pricing for specific validity ranges"}
+                                                    </p>
                                                 </div>
-                                                <div className="space-y-6">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <div>
-                                                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-                                                                {formData.fixed_departure ? "Fixed Departure Pricing" : "Package Pricing & Tiers"}
-                                                            </h3>
-                                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-                                                                {formData.fixed_departure
-                                                                    ? "Configure pricing for specific travel dates"
-                                                                    : "Configure tiered pricing for specific validity ranges"}
-                                                            </p>
-                                                        </div>
-                                                    </div>
+                                            </div>
 
-                                                    {fixedDepartureData.length === 0 && (
-                                                        <div className="bg-gray-50 border-2 border-dashed border-gray-100 rounded-[2.5rem] p-12 text-center">
-                                                            <Calendar className="mx-auto text-gray-200 mb-4" size={48} />
-                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No pricing data added yet</p>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setFixedDepartureData([{
-                                                                    travel_date: "",
-                                                                    valid_from: "",
-                                                                    valid_to: "",
-                                                                    booking_valid_until: "",
-                                                                    tiers: (formData.package_categories || []).reduce((acc, tier) => {
-                                                                        acc[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
-                                                                        return acc;
-                                                                    }, {})
-                                                                }])}
-                                                                className="text-[#14532d] text-[10px] font-black uppercase tracking-widest mt-4 hover:underline"
-                                                            >
-                                                                Click here to add your first {formData.fixed_departure ? 'travel date' : 'price range'}
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                            {fixedDepartureData.length === 0 ? (
+                                                <div className="bg-gray-50 border-2 border-dashed border-gray-100 rounded-[2rem] p-12 text-center">
+                                                    <Calendar className="mx-auto text-gray-200 mb-4" size={48} />
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No pricing data added yet</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFixedDepartureData([mkSlot()])}
+                                                        className="text-[#14532d] text-[10px] font-black uppercase tracking-widest mt-4 hover:underline"
+                                                    >
+                                                        Click here to add your first {formData.fixed_departure ? 'travel date' : 'price range'}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 gap-6" ref={pricingSlotsRef}>
+                                                    {fixedDepartureData.map((slot, sIdx) => (
+                                                        <div key={sIdx} className="bg-white border-2 border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all relative group">
+                                                            {/* Card Decoration */}
+                                                            <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 opacity-40"></div>
 
-                                                    <div className="grid grid-cols-1 gap-6">
-                                                        {fixedDepartureData.map((slot, sIdx) => (
-                                                            <div key={sIdx} className="bg-white border-2 border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
-                                                                <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 opacity-40"></div>
-
-                                                                <div className="flex flex-wrap items-center gap-6 mb-8 relative z-10">
-                                                                    {formData.fixed_departure ? (
-                                                                        <div className="flex items-center gap-3">
-                                                                            <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest whitespace-nowrap">CENTER TRAVEL DATE:</span>
+                                                            {/* Header Section */}
+                                                            <div className="flex flex-wrap items-center gap-6 mb-8 relative z-10">
+                                                                {formData.fixed_departure ? (
+                                                                    <div className="flex flex-col gap-1.5 flex-1 max-w-xs">
+                                                                        <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1 flex items-center gap-1.5">
+                                                                            <Calendar size={12} className="opacity-40" /> Center Travel Date
+                                                                        </span>
+                                                                        <div className="relative group/input">
+                                                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/input:text-[#14532d] transition-colors" size={14} />
+                                                                            <input
+                                                                                type="date"
+                                                                                value={slot.travel_date}
+                                                                                onChange={(e) => {
+                                                                                    const copy = [...fixedDepartureData];
+                                                                                    copy[sIdx].travel_date = e.target.value;
+                                                                                    // Auto-sync arrival date in logistics
+                                                                                    if (copy[sIdx].logistics) {
+                                                                                        copy[sIdx].logistics = { ...copy[sIdx].logistics, arrival_date: e.target.value };
+                                                                                    } else {
+                                                                                        copy[sIdx].logistics = { ...mkLogistics(), arrival_date: e.target.value };
+                                                                                    }
+                                                                                    setFixedDepartureData(copy);
+                                                                                }}
+                                                                                className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                                                                        <div className="flex flex-col gap-1.5">
+                                                                            <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1">Price Valid From</span>
                                                                             <div className="relative group/input">
-                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/input:text-[#14532d] transition-colors" size={14} />
+                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
                                                                                 <input
                                                                                     type="date"
-                                                                                    value={slot.travel_date}
+                                                                                    value={slot.valid_from}
                                                                                     onChange={(e) => {
                                                                                         const copy = [...fixedDepartureData];
-                                                                                        copy[sIdx].travel_date = e.target.value;
+                                                                                        copy[sIdx].valid_from = e.target.value;
                                                                                         setFixedDepartureData(copy);
                                                                                     }}
-                                                                                    className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                                                                    className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
                                                                                 />
                                                                             </div>
                                                                         </div>
-                                                                    ) : (
-                                                                        <div className="flex items-center gap-4">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest whitespace-nowrap">PRICE VALID FROM:</span>
-                                                                                <div className="relative group/input">
-                                                                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
-                                                                                    <input
-                                                                                        type="date"
-                                                                                        value={slot.valid_from}
-                                                                                        onChange={(e) => {
-                                                                                            const copy = [...fixedDepartureData];
-                                                                                            copy[sIdx].valid_from = e.target.value;
-                                                                                            setFixedDepartureData(copy);
-                                                                                        }}
-                                                                                        className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-3">
-                                                                                <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest whitespace-nowrap">VALID TO:</span>
-                                                                                <div className="relative group/input">
-                                                                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
-                                                                                    <input
-                                                                                        type="date"
-                                                                                        value={slot.valid_to}
-                                                                                        onChange={(e) => {
-                                                                                            const copy = [...fixedDepartureData];
-                                                                                            copy[sIdx].valid_to = e.target.value;
-                                                                                            setFixedDepartureData(copy);
-                                                                                        }}
-                                                                                        className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
-                                                                                    />
-                                                                                </div>
+                                                                        <div className="flex flex-col gap-1.5">
+                                                                            <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1">Valid To</span>
+                                                                            <div className="relative group/input">
+                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={slot.valid_to}
+                                                                                    onChange={(e) => {
+                                                                                        const copy = [...fixedDepartureData];
+                                                                                        copy[sIdx].valid_to = e.target.value;
+                                                                                        setFixedDepartureData(copy);
+                                                                                    }}
+                                                                                    className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                                                                />
                                                                             </div>
                                                                         </div>
-                                                                    )}
+                                                                    </div>
+                                                                )}
 
-                                                                    <div className="flex items-center gap-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setFixedDepartureData(prev => {
+                                                                                const next = [...prev];
+                                                                                next.splice(sIdx + 1, 0, mkSlot());
+                                                                                return next;
+                                                                            });
+                                                                            // Scroll back to top of pricing slots after adding
+                                                                            setTimeout(() => {
+                                                                                if (pricingSlotsRef.current) {
+                                                                                    pricingSlotsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                                                }
+                                                                            }, 50);
+                                                                        }}
+                                                                        className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                                                                        title="Add new travel date"
+                                                                    >
+                                                                        <Plus size={16} />
+                                                                    </button>
+                                                                    {fixedDepartureData.length > 1 && (
                                                                         <button
                                                                             type="button"
-                                                                            onClick={() => setFixedDepartureData(prev => {
-                                                                                const next = [...prev];
-                                                                                next.splice(sIdx + 1, 0, {
-                                                                                    travel_date: "",
-                                                                                    valid_from: "",
-                                                                                    valid_to: "",
-                                                                                    booking_valid_until: "",
-                                                                                    tiers: (formData.package_categories || []).reduce((acc, tier) => {
-                                                                                        acc[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
-                                                                                        return acc;
-                                                                                    }, {})
-                                                                                });
-                                                                                return next;
-                                                                            })}
-                                                                            className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
-                                                                            title="Add new travel date"
+                                                                            onClick={() => setFixedDepartureData(prev => prev.filter((_, i) => i !== sIdx))}
+                                                                            className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                                                            title="Remove this travel date"
                                                                         >
-                                                                            <Plus size={16} />
+                                                                            <X size={16} />
                                                                         </button>
-                                                                        {fixedDepartureData.length > 1 && (
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => setFixedDepartureData(prev => prev.filter((_, i) => i !== sIdx))}
-                                                                                className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                                                                                title="Remove this travel date"
-                                                                            >
-                                                                                <X size={16} />
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
+                                                                    )}
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="border border-gray-200 rounded-[2rem] p-8 bg-[#fdfdfd] shadow-inner mb-6 relative z-10">
-                                                                    <div className="space-y-8">
-                                                                        {formData.package_categories.length === 0 ? (
-                                                                            <p className="text-[11px] font-bold text-red-400 italic text-center py-4">No package tiers selected. Please select them in Overview.</p>
-                                                                        ) : (
-                                                                            formData.package_categories.map((tier) => (
-                                                                                <div key={tier} className="space-y-3">
-                                                                                    {slot.tiers[tier]?.map((row, rIdx) => (
-                                                                                        <div key={rIdx} className="flex flex-wrap items-center gap-4 group/tier">
-                                                                                            {rIdx === 0 && (
-                                                                                                <div className="w-24 shrink-0">
-                                                                                                    <span className="text-[11px] font-black text-[#14532d] uppercase tracking-wide group-hover/tier:tracking-widest transition-all">
-                                                                                                        {tier} <span className="text-gray-300 ml-1">?</span>
-                                                                                                    </span>
-                                                                                                </div>
-                                                                                            )}
-                                                                                            {rIdx > 0 && <div className="w-24 shrink-0"></div>}
+                                                            {/* Tiers Container */}
+                                                            <div className="border border-gray-200 rounded-[2rem] p-8 bg-[#fdfdfd] shadow-inner mb-6 relative z-10">
+                                                                <div className="space-y-8">
+                                                                    {formData.package_categories.length === 0 ? (
+                                                                        <p className="text-[11px] font-bold text-red-400 italic text-center py-4">No package tiers selected. Please select them in Step 1.</p>
+                                                                    ) : (
+                                                                        formData.package_categories.map((tier) => (
+                                                                            <div key={tier} className="space-y-3">
+                                                                                {slot.tiers[tier]?.map((row, rIdx) => (
+                                                                                    <div key={rIdx} className="flex flex-wrap items-center gap-4 group/tier">
+                                                                                        {rIdx === 0 && (
+                                                                                            <div className="w-24 shrink-0">
+                                                                                                <span className="text-[11px] font-black text-[#14532d] uppercase tracking-wide group-hover/tier:tracking-widest transition-all">
+                                                                                                    {tier} <span className="text-gray-300 ml-1">&#8594;</span>
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+                                                                                        {rIdx > 0 && <div className="w-24 shrink-0"></div>}
 
-                                                                                            <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
-                                                                                                <div>
-                                                                                                    {rIdx === 0 && <FormLabel label="Sharing Type" />}
-                                                                                                    <select
-                                                                                                        value={row.sharing || 'SINGLE'}
+                                                                                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                                                                                            <div>
+                                                                                                {rIdx === 0 && <FormLabel label="Sharing" />}
+                                                                                                <select
+                                                                                                    value={row.sharing || 'SINGLE'}
+                                                                                                    onChange={(e) => {
+                                                                                                        const copy = [...fixedDepartureData];
+                                                                                                        copy[sIdx].tiers[tier][rIdx].sharing = e.target.value;
+                                                                                                        setFixedDepartureData(copy);
+                                                                                                    }}
+                                                                                                    className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] focus:ring-4 focus:ring-green-50 outline-none transition-all"
+                                                                                                >
+                                                                                                    <option value="SINGLE">SINGLE</option>
+                                                                                                    <option value="TWIN">TWIN</option>
+                                                                                                    <option value="TRIPLE">TRIPLE</option>
+                                                                                                    <option value="QUAD">QUAD</option>
+                                                                                                    <option value="QUINT">QUINT</option>
+                                                                                                </select>
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                {rIdx === 0 && <FormLabel label="Offer Price" />}
+                                                                                                <div className="relative">
+                                                                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">₹</span>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        value={formatWithCommas(row.offer_price || '')}
                                                                                                         onChange={(e) => {
                                                                                                             const copy = [...fixedDepartureData];
-                                                                                                            copy[sIdx].tiers[tier][rIdx].sharing = e.target.value;
+                                                                                                            const cleanVal = e.target.value.replace(/\D/g, "");
+                                                                                                            copy[sIdx].tiers[tier][rIdx].offer_price = cleanVal;
                                                                                                             setFixedDepartureData(copy);
                                                                                                         }}
-                                                                                                        className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] focus:ring-4 focus:ring-green-50 outline-none transition-all"
+                                                                                                        placeholder="Offer Price"
+                                                                                                        className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                {rIdx === 0 && <FormLabel label="Market Price" />}
+                                                                                                <div className="relative">
+                                                                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">₹</span>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        value={formatWithCommas(row.market_price || '')}
+                                                                                                        onChange={(e) => {
+                                                                                                            const copy = [...fixedDepartureData];
+                                                                                                            const cleanVal = e.target.value.replace(/\D/g, "");
+                                                                                                            copy[sIdx].tiers[tier][rIdx].market_price = cleanVal;
+                                                                                                            setFixedDepartureData(copy);
+                                                                                                        }}
+                                                                                                        placeholder="Market Price"
+                                                                                                        className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <div className="flex-1">
+                                                                                                    {rIdx === 0 && <FormLabel label="Min Pax" />}
+                                                                                                    <input
+                                                                                                        type="number"
+                                                                                                        value={row.min_members || '1'}
+                                                                                                        onChange={(e) => {
+                                                                                                            const copy = [...fixedDepartureData];
+                                                                                                            copy[sIdx].tiers[tier][rIdx].min_members = e.target.value;
+                                                                                                            setFixedDepartureData(copy);
+                                                                                                        }}
+                                                                                                        className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                                                                                    />
+                                                                                                </div>
+                                                                                                <div className={`flex items-center gap-1.5 ${rIdx === 0 ? 'mt-3.5' : ''}`}>
+                                                                                                    <button
+                                                                                                        type="button"
+                                                                                                        onClick={() => {
+                                                                                                            const copy = [...fixedDepartureData];
+                                                                                                            copy[sIdx].tiers[tier].splice(rIdx + 1, 0, { offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" });
+                                                                                                            setFixedDepartureData(copy);
+                                                                                                        }}
+                                                                                                        className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-600 transition-all font-bold text-xs"
                                                                                                     >
-                                                                                                        <option value="SINGLE">SINGLE</option>
-                                                                                                        <option value="TWIN">TWIN</option>
-                                                                                                        <option value="TRIPLE">TRIPLE</option>
-                                                                                                        <option value="QUAD">QUAD</option>
-                                                                                                        <option value="QUINT">QUINT</option>
-                                                                                                    </select>
-                                                                                                </div>
-                                                                                                <div>
-                                                                                                    {rIdx === 0 && <FormLabel label="Offer Price" />}
-                                                                                                    <div className="relative">
-                                                                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">?</span>
-                                                                                                        <input
-                                                                                                            type="text"
-                                                                                                            value={formatWithCommas(row.offer_price || '')}
-                                                                                                            onChange={(e) => {
-                                                                                                                const copy = [...fixedDepartureData];
-                                                                                                                const cleanVal = e.target.value.replace(/\D/g, "");
-                                                                                                                copy[sIdx].tiers[tier][rIdx].offer_price = cleanVal;
-                                                                                                                setFixedDepartureData(copy);
-                                                                                                            }}
-                                                                                                            placeholder="Offer Price"
-                                                                                                            className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div>
-                                                                                                    {rIdx === 0 && <FormLabel label="Market Price" />}
-                                                                                                    <div className="relative">
-                                                                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">?</span>
-                                                                                                        <input
-                                                                                                            type="text"
-                                                                                                            value={formatWithCommas(row.market_price || '')}
-                                                                                                            onChange={(e) => {
-                                                                                                                const copy = [...fixedDepartureData];
-                                                                                                                const cleanVal = e.target.value.replace(/\D/g, "");
-                                                                                                                copy[sIdx].tiers[tier][rIdx].market_price = cleanVal;
-                                                                                                                setFixedDepartureData(copy);
-                                                                                                            }}
-                                                                                                            placeholder="Market Price"
-                                                                                                            className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className="flex items-center gap-2">
-                                                                                                    <div className="flex-1">
-                                                                                                        {rIdx === 0 && <FormLabel label="Min Member" />}
-                                                                                                        <input
-                                                                                                            type="number"
-                                                                                                            value={row.min_members || '1'}
-                                                                                                            onChange={(e) => {
-                                                                                                                const copy = [...fixedDepartureData];
-                                                                                                                copy[sIdx].tiers[tier][rIdx].min_members = e.target.value;
-                                                                                                                setFixedDepartureData(copy);
-                                                                                                            }}
-                                                                                                            className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                    <div className={`flex items-center gap-1.5 ${rIdx === 0 ? 'mt-3.5' : ''}`}>
+                                                                                                        +
+                                                                                                    </button>
+                                                                                                    {slot.tiers[tier].length > 1 && (
                                                                                                         <button
                                                                                                             type="button"
                                                                                                             onClick={() => {
                                                                                                                 const copy = [...fixedDepartureData];
-                                                                                                                copy[sIdx].tiers[tier].splice(rIdx + 1, 0, { offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" });
+                                                                                                                copy[sIdx].tiers[tier].splice(rIdx, 1);
                                                                                                                 setFixedDepartureData(copy);
                                                                                                             }}
-                                                                                                            className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-600 transition-all font-bold text-xs"
+                                                                                                            className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-all font-bold text-xs"
                                                                                                         >
-                                                                                                            +
+                                                                                                            -
                                                                                                         </button>
-                                                                                                        {slot.tiers[tier].length > 1 && (
-                                                                                                            <button
-                                                                                                                type="button"
-                                                                                                                onClick={() => {
-                                                                                                                    const copy = [...fixedDepartureData];
-                                                                                                                    copy[sIdx].tiers[tier].splice(rIdx, 1);
-                                                                                                                    setFixedDepartureData(copy);
-                                                                                                                }}
-                                                                                                                className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-all font-bold text-xs"
-                                                                                                            >
-                                                                                                                -
-                                                                                                            </button>
-                                                                                                        )}
-                                                                                                    </div>
+                                                                                                    )}
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                    ))}
-                                                                                </div>
-                                                                            ))
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-
-                                                                {formData.fixed_departure && (
-                                                                    <div className="flex flex-col items-center gap-4 relative z-10">
-                                                                        <div className="flex items-center gap-3 justify-center">
-                                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID ANTILL DATE (Validity End):</span>
-                                                                            <div className="relative group/valid">
-                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
-                                                                                <input
-                                                                                    type="date"
-                                                                                    value={slot.booking_valid_until}
-                                                                                    onChange={(e) => {
-                                                                                        const copy = [...fixedDepartureData];
-                                                                                        copy[sIdx].booking_valid_until = e.target.value;
-                                                                                        setFixedDepartureData(copy);
-                                                                                    }}
-                                                                                    className="bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-amber-500 outline-none transition-all shadow-inner"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                        <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest text-center px-8">Package will automatically de-activate on the live site after this date</p>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <p className="text-[10px] text-gray-400 font-medium italic mt-2">Note: Prices are formatted with commas automatically for Indian Rupees.</p>
-                                            </div>
-
-                                            <div className="space-y-6">
-                                                <div className="w-1 h-4 bg-[#14532d] rounded-full"></div>
-                                                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Trip Schedule</h3>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <FormLabel label="Start Date" required />
-                                                        <Input
-                                                            type="date"
-                                                            name="start_date"
-                                                            value={formData.start_date}
-                                                            onChange={handleInputChange}
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <FormLabel label="Max Group Size" />
-                                                        <Input
-                                                            type="number"
-                                                            name="group_size"
-                                                            value={formData.group_size}
-                                                            onChange={handleInputChange}
-                                                            placeholder="0"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <FormLabel label="Total Duration (Days)" />
-                                                    <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                                                        <div className="p-3 bg-green-50 rounded-lg text-[#14532d]">
-                                                            <Calendar size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xl font-black text-gray-900 leading-none">{formData.days || 1} Days</p>
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{parseInt(formData.days || 1) - 1} Nights Included</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Section>
-
-
-
-                                {/* DAY WISE ITINERARY */}
-                                <Section title="Day Wise Itinerary" active={activeSection === 'itinerary'}>
-                                    <div className="space-y-8">
-                                        {itineraryDays.map((row, i) => (
-                                            <div key={i} className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden shadow-sm animate-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 100}ms` }}>
-                                                <div className="bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl bg-[#14532d] flex flex-col items-center justify-center text-white shadow-lg shadow-green-900/10">
-                                                            <span className="text-[10px] font-black uppercase tracking-tighter leading-none opacity-70">Day</span>
-                                                            <span className="text-lg font-black leading-none">{i + 1}</span>
-                                                        </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Destination</span>
-                                                                <div className="h-1 w-1 rounded-full bg-gray-200"></div>
-                                                                <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest leading-none">{getDestinationForDay(i)}</span>
-                                                            </div>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Enter amazing title for this day..."
-                                                                value={row.title}
-                                                                onChange={(e) => {
-                                                                    const copy = [...itineraryDays];
-                                                                    copy[i].title = e.target.value;
-                                                                    setItineraryDays(copy);
-                                                                }}
-                                                                className="text-lg font-black text-gray-900 bg-transparent border-none focus:ring-0 p-0 w-full placeholder:text-gray-200"
-                                                            />
-                                                            {errors[`itinerary_title_${i}`] && <p className="text-red-500 text-[10px] font-bold mt-1">? {errors[`itinerary_title_${i}`]}</p>}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex bg-white p-1 rounded-xl border border-gray-100 scale-75 origin-right">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const copy = [...itineraryDays];
-                                                                    if (i > 0) {
-                                                                        const temp = copy[i];
-                                                                        copy[i] = copy[i - 1];
-                                                                        copy[i - 1] = temp;
-                                                                        setItineraryDays(copy);
-                                                                    }
-                                                                }}
-                                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#14532d] hover:bg-green-50 transition-all font-bold"
-                                                                title="Move Up"
-                                                            >
-                                                                ?
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const copy = [...itineraryDays];
-                                                                    if (i < copy.length - 1) {
-                                                                        const temp = copy[i];
-                                                                        copy[i] = copy[i + 1];
-                                                                        copy[i + 1] = temp;
-                                                                        setItineraryDays(copy);
-                                                                    }
-                                                                }}
-                                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#14532d] hover:bg-green-50 transition-all font-bold"
-                                                                title="Move Down"
-                                                            >
-                                                                ?
-                                                            </button>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeRow(setItineraryDays, i)}
-                                                            className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-300 hover:bg-red-50 hover:text-red-500 transition-all border border-gray-50 hover:border-red-100"
-                                                        >
-                                                            <X size={18} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <div className="px-8 pb-4">
-                                                    <div className="flex items-center gap-3 mb-6 p-1 bg-gray-100/50 rounded-2xl w-fit">
-                                                        {[
-                                                            { id: 'day_itinerary', label: 'Day Itinerary', icon: <ClipboardList size={14} /> },
-                                                            { id: 'sightseeing', label: 'Sightseeing', icon: <Camera size={14} /> },
-                                                            { id: 'accommodation', label: 'Accommodation', icon: <Bed size={14} /> },
-                                                            { id: 'vehicle', label: 'Vehicle', icon: <Car size={14} /> }
-                                                        ].map(tab => (
-                                                            <button
-                                                                key={tab.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const copy = [...itineraryDays];
-                                                                    if (!copy[i].details_json) {
-                                                                        copy[i].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
-                                                                    }
-                                                                    copy[i].details_json.active_tab = tab.id;
-                                                                    setItineraryDays(copy);
-                                                                }}
-                                                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${(row.details_json?.active_tab || 'day_itinerary') === tab.id
-                                                                    ? 'bg-white text-[#14532d] shadow-sm'
-                                                                    : 'text-gray-400 hover:text-gray-600'
-                                                                    }`}
-                                                            >
-                                                                {tab.icon}
-                                                                {tab.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-
-                                                    {/* TAB CONTENT */}
-                                                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                                        {/* 1. DAY ITINERARY */}
-                                                        {(!row.details_json?.active_tab || row.details_json?.active_tab === 'day_itinerary') && (() => {
-                                                            const dayMasterSearch = row.details_json?._dayMasterSearch || '';
-                                                            const dayMeals = row.details_json?.meals_included || [];
-                                                            const dayTransferType = row.details_json?.transfer_type || '';
-                                                            const updateDay = (patch) => {
-                                                                const copy = [...itineraryDays];
-                                                                copy[i].details_json = { ...copy[i].details_json, ...patch };
-                                                                setItineraryDays(copy);
-                                                            };
-                                                            const filteredDayMasters = dayMasterSearch
-                                                                ? itineraryMasters.filter(m =>
-                                                                    m.name?.toLowerCase().includes(dayMasterSearch.toLowerCase()) ||
-                                                                    m.title?.toLowerCase().includes(dayMasterSearch.toLowerCase())
-                                                                ) : [];
-                                                            const mealOptions = ['No Meals', 'Breakfast', 'Lunch', 'High-Tea', 'Dinner'];
-                                                            return (
-                                                                <div className="grid grid-cols-3 gap-8">
-                                                                    <div className="col-span-2 space-y-4">
-                                                                        {/* Note */}
-                                                                        <p className="text-[10px] text-red-600 font-medium">Note - You can save only one Day Wise Itinerary for each itinerary!</p>
-
-                                                                        {/* Search day itinerary */}
-                                                                        <div>
-                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search day itinerary from the database</p>
-                                                                            <div className="relative">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    value={dayMasterSearch}
-                                                                                    onChange={e => updateDay({ _dayMasterSearch: e.target.value })}
-                                                                                    placeholder="Type to look up for day itinerary in masters"
-                                                                                    className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
-                                                                                />
-                                                                                <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                                            </div>
-                                                                            {filteredDayMasters.length > 0 && (
-                                                                                <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                                                                    {filteredDayMasters.map(m => (
-                                                                                        <button
-                                                                                            key={m.id}
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                handleMasterTemplateChange(i, m.id.toString());
-                                                                                                updateDay({ _dayMasterSearch: '' });
-                                                                                            }}
-                                                                                            className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                                                                        >
-                                                                                            <span className="font-medium text-gray-800">{m.name || m.title}</span>
-                                                                                        </button>
-                                                                                    ))}
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-
-                                                                        {/* Day description or empty state */}
-                                                                        {!row.description ? (
-                                                                            <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
-                                                                                <p className="text-[11px] text-gray-400">No Day Itinerary added</p>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <textarea
-                                                                                value={row.description}
-                                                                                onChange={(e) => {
-                                                                                    const copy = [...itineraryDays];
-                                                                                    copy[i].description = e.target.value;
-                                                                                    setItineraryDays(copy);
-                                                                                }}
-                                                                                rows="6"
-                                                                                placeholder="Describe the day's adventure in detail..."
-                                                                                className="w-full bg-white border border-gray-300 p-3 rounded-sm text-[11px] text-gray-700 leading-relaxed focus:outline-none focus:border-blue-400 transition-all resize-none"
-                                                                            />
-                                                                        )}
-
-                                                                        {/* Meals included */}
-                                                                        <div>
-                                                                            <p className="text-[11px] font-bold text-gray-800 mb-2">Meals included for the day</p>
-                                                                            <div className="flex flex-wrap gap-4">
-                                                                                {mealOptions.map(meal => (
-                                                                                    <label key={meal} className="flex items-center gap-1.5 cursor-pointer">
-                                                                                        <input
-                                                                                            type="checkbox"
-                                                                                            checked={dayMeals.includes(meal)}
-                                                                                            onChange={e => {
-                                                                                                const updated = e.target.checked
-                                                                                                    ? [...dayMeals, meal]
-                                                                                                    : dayMeals.filter(m => m !== meal);
-                                                                                                updateDay({ meals_included: updated });
-                                                                                            }}
-                                                                                            className="w-3.5 h-3.5 border border-gray-300 rounded-sm accent-[#14532d]"
-                                                                                        />
-                                                                                        <span className="text-[11px] text-gray-700">{meal}</span>
-                                                                                    </label>
+                                                                                    </div>
                                                                                 ))}
                                                                             </div>
-                                                                        </div>
+                                                                        ))
+                                                                    )}
+                                                                </div>
+                                                            </div>
 
-                                                                        {/* Transfer Type */}
-                                                                        <div>
-                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Transfer Type</p>
-                                                                            <select
-                                                                                value={dayTransferType}
-                                                                                onChange={e => updateDay({ transfer_type: e.target.value })}
-                                                                                className="w-48 border border-gray-300 rounded-sm px-2 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
-                                                                            >
-                                                                                <option value="">Select Transfer Type</option>
-                                                                                <option value="Private">Private</option>
-                                                                                <option value="Shared">Shared</option>
-                                                                                <option value="Self Drive">Self Drive</option>
-                                                                                <option value="No Transfer">No Transfer</option>
-                                                                            </select>
-                                                                        </div>
-
-                                                                        {/* Save to master */}
-                                                                        <div className="flex items-center gap-6 p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
-                                                                            <div className="flex-1">
-                                                                                <div className="flex items-center gap-3">
-                                                                                    <div className="relative">
-                                                                                        <input
-                                                                                            type="checkbox"
-                                                                                            id={`save_master_${i}`}
-                                                                                            checked={row.save_to_master}
-                                                                                            onChange={(e) => {
-                                                                                                const copy = [...itineraryDays];
-                                                                                                copy[i].save_to_master = e.target.checked;
-                                                                                                setItineraryDays(copy);
-                                                                                            }}
-                                                                                            className="peer hidden"
-                                                                                        />
-                                                                                        <label
-                                                                                            htmlFor={`save_master_${i}`}
-                                                                                            className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-xl border border-gray-200 peer-checked:border-[#14532d] peer-checked:bg-[#14532d] peer-checked:text-white transition-all shadow-sm"
-                                                                                        >
-                                                                                            <div className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center p-0.5">
-                                                                                                {row.save_to_master && <div className="w-full h-full bg-white rounded-full"></div>}
-                                                                                            </div>
-                                                                                            <span className="text-[10px] font-black uppercase tracking-widest">Save to Masters</span>
-                                                                                        </label>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <p className="text-[10px] text-green-700/50 font-medium italic max-w-[150px]">Saving helps you reuse this itinerary description in other packages.</p>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="space-y-4">
-                                                                        <FormLabel label="Day Visual" />
-                                                                        <div className="aspect-square w-full bg-white rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d] transition-all cursor-pointer">
-                                                                            {(row.image || row.existing_image) ? (
-                                                                                <>
-                                                                                    <img
-                                                                                        src={row.image ? URL.createObjectURL(row.image) : row.existing_image}
-                                                                                        className="w-full h-full object-cover"
-                                                                                        alt="Preview"
-                                                                                    />
-                                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                const copy = [...itineraryDays];
-                                                                                                copy[i].image = null;
-                                                                                                copy[i].existing_image = null;
-                                                                                                setItineraryDays(copy);
-                                                                                            }}
-                                                                                            className="bg-red-500 text-white p-3 rounded-full hover:scale-110 transition-transform"
-                                                                                        >
-                                                                                            <X size={20} />
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </>
-                                                                            ) : (
-                                                                                <div className="text-center p-6 pb-2">
-                                                                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 mx-auto mb-3">
-                                                                                        <Package size={24} />
-                                                                                    </div>
-                                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No Image</p>
-                                                                                    <p className="text-[8px] text-gray-300 mt-1">Recommended square size</p>
-                                                                                </div>
-                                                                            )}
+                                                            {formData.fixed_departure && (
+                                                                <div className="flex flex-col items-center gap-4 relative z-10">
+                                                                    <div className="flex items-center gap-3 justify-center">
+                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL:</span>
+                                                                        <div className="relative group/valid">
+                                                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
                                                                             <input
-                                                                                type="file"
-                                                                                accept="image/*"
-                                                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                                type="date"
+                                                                                value={slot.booking_valid_until}
                                                                                 onChange={(e) => {
-                                                                                    if (e.target.files[0]) {
-                                                                                        const copy = [...itineraryDays];
-                                                                                        copy[i].image = e.target.files[0];
-                                                                                        setItineraryDays(copy);
-                                                                                    }
+                                                                                    const copy = [...fixedDepartureData];
+                                                                                    copy[sIdx].booking_valid_until = e.target.value;
+                                                                                    setFixedDepartureData(copy);
                                                                                 }}
+                                                                                className="w-44 bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-amber-500 outline-none transition-all shadow-inner"
                                                                             />
                                                                         </div>
-                                                                        {(row.image || row.existing_image) && (
-                                                                            <p className="text-[10px] text-center font-bold text-[#14532d] uppercase tracking-widest">
-                                                                                {row.image ? "New Image Selected" : "Existing Image"}
-                                                                            </p>
-                                                                        )}
                                                                     </div>
+                                                                    <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest text-center px-8">Package will automatically de-activate on the live site after this date</p>
                                                                 </div>
-                                                            );
-                                                        })()}
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <p className="text-[10px] text-gray-400 font-medium italic mt-2">Note: Prices are formatted with commas automatically for Indian Rupees.</p>
+                                        </div>
+                                    </Section>
 
-                                                        {/* 2. SIGHTSEEING */}
-                                                        {row.details_json?.active_tab === 'sightseeing' && (() => {
-                                                            const sightseeingSearch = row.details_json?._sightseeingSearch || '';
-                                                            const addedSightseeings = (row.details_json?.sightseeing || []).filter(s => s && s.trim());
-                                                            const updateDay = (patch) => {
-                                                                const copy = [...itineraryDays];
-                                                                copy[i].details_json = { ...copy[i].details_json, ...patch };
-                                                                setItineraryDays(copy);
-                                                            };
-                                                            const filteredSightseeings = sightseeingSearch
-                                                                ? sightseeingMasters.filter(sm =>
-                                                                    sm.name?.toLowerCase().includes(sightseeingSearch.toLowerCase()) ||
-                                                                    sm.city?.toLowerCase().includes(sightseeingSearch.toLowerCase())
-                                                                ) : [];
-                                                            return (
-                                                                <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                                    {/* Main sightseeing panel */}
-                                                                    <div className="flex-1 space-y-3">
-                                                                        {/* Search */}
-                                                                        <div>
-                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search sightseeing from the database</p>
-                                                                            <div className="relative">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    value={sightseeingSearch}
-                                                                                    onChange={e => updateDay({ _sightseeingSearch: e.target.value })}
-                                                                                    placeholder="Type to look up for sightseeing in masters"
-                                                                                    className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
+
+
+
+                                    {/* DAY WISE ITINERARY */}
+                                    <Section title="Day Wise Itinerary" active={activeSection === 'itinerary'}>
+                                        <div className="space-y-8">
+                                            {itineraryDays.map((row, i) => (
+                                                <div key={i} id={`itinerary-day-${i}`} className="bg-white rounded-[2rem] border-2 border-gray-100 p-8 relative group/day hover:border-[#14532d]/40 transition-all shadow-sm hover:shadow-2xl hover:shadow-green-900/5 animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 150}ms` }}>
+                                                    <div className="absolute -left-4 top-10 w-8 h-8 rounded-full bg-red-500 border-4 border-white shadow-lg flex items-center justify-center text-white font-black text-[10px] group-hover/day:scale-125 transition-transform z-10">
+                                                        {i + 1}
+                                                    </div>
+
+                                                    <div className="flex justify-between items-start mb-6 pl-4">
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-[#14532d] uppercase tracking-[0.2em] mb-1">Day {i + 1} Profile</p>
+                                                            <h3 className="text-xl font-black text-gray-900">{getDestinationForDay(i)}</h3>
+                                                        </div>
+                                                        <div className="flex gap-4">
+                                                            <select
+                                                                value={row.master_template}
+                                                                onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
+                                                                className="bg-gray-50 border-2 border-transparent px-4 py-2 rounded-xl text-xs font-bold focus:border-[#14532d] focus:bg-white outline-none transition-all"
+                                                            >
+                                                                <option value="">Load from Master...</option>
+                                                                {(() => {
+                                                                    const currentDest = getDestinationForDay(i);
+                                                                    const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
+                                                                    const globalMasters = groupedItineraryMasters["Global / General"] || [];
+                                                                    return (
+                                                                        <>
+                                                                            {destSpecificMasters.length > 0 && <optgroup label={`${currentDest} Templates`}>{destSpecificMasters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</optgroup>}
+                                                                            {globalMasters.length > 0 && <optgroup label="Global Templates">{globalMasters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</optgroup>}
+                                                                        </>
+                                                                    );
+                                                                })()}
+                                                            </select>
+
+                                                            <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 scale-90">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const copy = [...itineraryDays];
+                                                                        if (i > 0) {
+                                                                            const temp = copy[i];
+                                                                            copy[i] = copy[i - 1];
+                                                                            copy[i - 1] = temp;
+                                                                            setItineraryDays(copy);
+                                                                        }
+                                                                    }}
+                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#14532d] hover:bg-white transition-all font-bold"
+                                                                    title="Move Up"
+                                                                >
+                                                                    ↑
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const copy = [...itineraryDays];
+                                                                        if (i < copy.length - 1) {
+                                                                            const temp = copy[i];
+                                                                            copy[i] = copy[i + 1];
+                                                                            copy[i + 1] = temp;
+                                                                            setItineraryDays(copy);
+                                                                        }
+                                                                    }}
+                                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#14532d] hover:bg-white transition-all font-bold"
+                                                                    title="Move Down"
+                                                                >
+                                                                    ↓
+                                                                </button>
+                                                            </div>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeRow(setItineraryDays, i)}
+                                                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white active:scale-95"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* SUB-TABS NAVIGATION */}
+                                                    <div className="flex items-center gap-3 mb-6 pl-4">
+                                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">Add to this day:</span>
+                                                        <div className="flex gap-1.5 bg-gray-50/50 p-1 rounded-2xl border border-gray-100/50 shrink-0">
+                                                            {[
+                                                                { id: 'day_itinerary', label: 'Day Itinerary', symbol: '' },
+                                                                { id: 'sightseeing', label: 'Sightseeing', symbol: '+ ' },
+                                                                { id: 'accommodation', label: 'Accommodation', symbol: '+ ' },
+                                                                { id: 'vehicle', label: 'Vehicle', symbol: '+ ' }
+                                                            ].map(tab => (
+                                                                <button
+                                                                    key={tab.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const copy = [...itineraryDays];
+                                                                        if (!copy[i].details_json) copy[i].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
+                                                                        copy[i].details_json.active_tab = tab.id;
+                                                                        setItineraryDays(copy);
+                                                                    }}
+                                                                    className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${(row.details_json?.active_tab || 'day_itinerary') === tab.id
+                                                                        ? 'bg-[#ffe4e1] text-[#b91c1c] shadow-md scale-105'
+                                                                        : 'text-gray-500 hover:bg-white hover:text-[#14532d]'
+                                                                        }`}
+                                                                >
+                                                                    {tab.symbol}{tab.label}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pl-4">
+
+                                                        {/* TAB CONTENT */}
+                                                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                                            {/* 1. DAY ITINERARY */}
+                                                            {(!row.details_json?.active_tab || row.details_json?.active_tab === 'day_itinerary') && (() => {
+                                                                const dayMasterSearch = row.details_json?._dayMasterSearch || '';
+                                                                const dayMeals = row.details_json?.meals_included || [];
+                                                                const dayTransferType = row.details_json?.transfer_type || '';
+                                                                const updateDay = (patch) => {
+                                                                    const copy = [...itineraryDays];
+                                                                    copy[i].details_json = { ...copy[i].details_json, ...patch };
+                                                                    setItineraryDays(copy);
+                                                                };
+                                                                const filteredDayMasters = dayMasterSearch
+                                                                    ? itineraryMasters.filter(m =>
+                                                                        m.name?.toLowerCase().includes(dayMasterSearch.toLowerCase()) ||
+                                                                        m.title?.toLowerCase().includes(dayMasterSearch.toLowerCase())
+                                                                    ) : [];
+                                                                const mealOptions = ['No Meals', 'Breakfast', 'Lunch', 'High-Tea', 'Dinner'];
+                                                                return (
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                                                                        <div className="space-y-4">
+                                                                            {/* Note */}
+                                                                            <p className="text-[10px] text-red-600 font-medium">Note - You can save only one Day Wise Itinerary for each itinerary!</p>
+
+                                                                            {/* Day title */}
+                                                                            <div>
+                                                                                <FormLabel label="Trip Title (e.g. Flight Arrival)" required />
+                                                                                <Input
+                                                                                    placeholder="Arrival in Singapore..."
+                                                                                    value={row.title}
+                                                                                    onChange={(e) => { const copy = [...itineraryDays]; copy[i].title = e.target.value; setItineraryDays(copy); }}
+                                                                                    error={errors[`itinerary_title_${i}`]}
                                                                                 />
-                                                                                <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                                                                             </div>
-                                                                            {/* Search results dropdown */}
-                                                                            {filteredSightseeings.length > 0 && (
-                                                                                <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                                                                    {filteredSightseeings.map(sm => (
-                                                                                        <button
-                                                                                            key={sm.id}
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                const copy = [...itineraryDays];
-                                                                                                if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
-                                                                                                const already = copy[i].details_json.sightseeing.includes(sm.name);
-                                                                                                if (!already) copy[i].details_json.sightseeing.push(sm.name);
-                                                                                                copy[i].details_json._sightseeingSearch = '';
-                                                                                                setItineraryDays(copy);
-                                                                                            }}
-                                                                                            className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                                                                        >
-                                                                                            <span className="font-medium text-gray-800">{sm.name}</span>
-                                                                                            {sm.city && <span className="text-gray-400 ml-1">? {sm.city}</span>}
-                                                                                        </button>
+
+                                                                            {/* Search day itinerary from masters */}
+                                                                            <div className="relative">
+                                                                                <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search day itinerary from the database</p>
+                                                                                <div className="relative">
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={dayMasterSearch}
+                                                                                        onChange={e => updateDay({ _dayMasterSearch: e.target.value, _dayMasterFocused: true })}
+                                                                                        onFocus={() => updateDay({ _dayMasterFocused: true })}
+                                                                                        onBlur={() => setTimeout(() => updateDay({ _dayMasterFocused: false }), 200)}
+                                                                                        placeholder="Type to search itinerary masters..."
+                                                                                        className="w-full border-2 border-gray-100 rounded-xl px-3 py-2 text-[11px] font-medium focus:outline-none focus:border-[#14532d] bg-gray-50 focus:bg-white transition-all pr-8"
+                                                                                        autoComplete="off"
+                                                                                    />
+                                                                                    <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                                                </div>
+
+                                                                                {/* Dropdown results */}
+                                                                                {(row.details_json?._dayMasterFocused) && (() => {
+                                                                                    const searchVal = dayMasterSearch.toLowerCase();
+                                                                                    const results = searchVal
+                                                                                        ? itineraryMasters.filter(m =>
+                                                                                            m.name?.toLowerCase().includes(searchVal) ||
+                                                                                            m.title?.toLowerCase().includes(searchVal)
+                                                                                        )
+                                                                                        : itineraryMasters.slice(0, 20);
+                                                                                    if (results.length === 0) return null;
+                                                                                    return (
+                                                                                        <div className="absolute left-0 right-0 top-full mt-1 border-2 border-gray-100 rounded-2xl bg-white shadow-xl max-h-48 overflow-y-auto z-50 custom-scrollbar">
+                                                                                            {!searchVal && <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 pt-2 pb-1">All Masters</p>}
+                                                                                            {results.map(m => (
+                                                                                                <button
+                                                                                                    key={m.id}
+                                                                                                    type="button"
+                                                                                                    onMouseDown={(e) => {
+                                                                                                        e.preventDefault();
+                                                                                                        handleMasterTemplateChange(i, m.id.toString());
+                                                                                                        updateDay({ _dayMasterSearch: m.title || m.name || '', _dayMasterFocused: false });
+                                                                                                    }}
+                                                                                                    className="w-full text-left px-3 py-2 text-[11px] hover:bg-green-50 hover:text-[#14532d] border-b border-gray-50 last:border-0 transition-all flex items-center justify-between group"
+                                                                                                >
+                                                                                                    <div>
+                                                                                                        <span className="font-black text-gray-900 group-hover:text-[#14532d]">{m.title || m.name}</span>
+                                                                                                        {m.destination_name && (
+                                                                                                            <span className="ml-2 text-[9px] bg-green-50 text-[#14532d] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider">{m.destination_name}</span>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                    <span className="text-[9px] text-gray-300 group-hover:text-[#14532d] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">Load →</span>
+                                                                                                </button>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    );
+                                                                                })()}
+
+                                                                                {/* Loaded master badge */}
+                                                                                {row.master_template && !row.details_json?._dayMasterFocused && (() => {
+                                                                                    const loaded = itineraryMasters.find(m => m.id === parseInt(row.master_template));
+                                                                                    return loaded ? (
+                                                                                        <div className="mt-1.5 flex items-center gap-1.5">
+                                                                                            <span className="text-[9px] bg-green-50 text-[#14532d] border border-green-100 px-2 py-1 rounded-lg font-black uppercase tracking-wider flex items-center gap-1">
+                                                                                                ✓ {loaded.title || loaded.name}
+                                                                                            </span>
+                                                                                            <button type="button" onClick={() => { handleMasterTemplateChange(i, ''); updateDay({ _dayMasterSearch: '' }); }} className="text-[9px] text-red-400 hover:text-red-600 font-bold transition-all">✕ Clear</button>
+                                                                                        </div>
+                                                                                    ) : null;
+                                                                                })()}
+                                                                            </div>
+
+                                                                            {/* Day description */}
+                                                                            <div>
+                                                                                <FormLabel label="Description" optional />
+                                                                                <textarea
+                                                                                    value={row.description}
+                                                                                    onChange={(e) => { const copy = [...itineraryDays]; copy[i].description = e.target.value; setItineraryDays(copy); }}
+                                                                                    className="bg-gray-50 border-2 border-transparent p-4 rounded-2xl w-full h-40 text-sm font-medium focus:border-[#14532d] focus:bg-white transition-all outline-none resize-none"
+                                                                                    placeholder="Describe the day's journey..."
+                                                                                />
+                                                                            </div>
+
+                                                                            {/* Meals included */}
+                                                                            <div>
+                                                                                <p className="text-[11px] font-bold text-gray-800 mb-2">Meals included for the day</p>
+                                                                                <div className="flex flex-wrap gap-4">
+                                                                                    {mealOptions.map(meal => (
+                                                                                        <label key={meal} className="flex items-center gap-1.5 cursor-pointer">
+                                                                                            <input
+                                                                                                type="checkbox"
+                                                                                                checked={dayMeals.includes(meal)}
+                                                                                                onChange={e => {
+                                                                                                    const updated = e.target.checked
+                                                                                                        ? [...dayMeals, meal]
+                                                                                                        : dayMeals.filter(m => m !== meal);
+                                                                                                    updateDay({ meals_included: updated });
+                                                                                                }}
+                                                                                                className="w-3.5 h-3.5 border border-gray-300 rounded-sm accent-[#14532d]"
+                                                                                            />
+                                                                                            <span className="text-[11px] text-gray-700">{meal}</span>
+                                                                                        </label>
                                                                                     ))}
                                                                                 </div>
-                                                                            )}
+                                                                            </div>
+
+                                                                            {/* Transfer Type */}
+                                                                            <div>
+                                                                                <p className="text-[11px] font-bold text-gray-800 mb-1.5">Transfer Type</p>
+                                                                                <select
+                                                                                    value={dayTransferType}
+                                                                                    onChange={e => updateDay({ transfer_type: e.target.value })}
+                                                                                    className="w-48 border border-gray-300 rounded-sm px-2 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
+                                                                                >
+                                                                                    <option value="">Select Transfer Type</option>
+                                                                                    <option value="Private">Private</option>
+                                                                                    <option value="Shared">Shared</option>
+                                                                                    <option value="Self Drive">Self Drive</option>
+                                                                                    <option value="No Transfer">No Transfer</option>
+                                                                                </select>
+                                                                            </div>
                                                                         </div>
 
-                                                                        {/* Added sightseeings or empty state */}
-                                                                        {addedSightseeings.length === 0 ? (
-                                                                            <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
-                                                                                <p className="text-[11px] text-gray-400">No Sightseeing added</p>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div className="space-y-2">
-                                                                                {addedSightseeings.map((s, sIdx) => {
-                                                                                    const masterData = sightseeingMasters.find(sm => sm.name === s);
-                                                                                    return (
-                                                                                        <div key={sIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
-                                                                                            {masterData?.image && (
-                                                                                                <div className="w-10 h-10 rounded-sm overflow-hidden shrink-0 bg-gray-100">
-                                                                                                    <img src={masterData.image.startsWith('http') ? masterData.image.replace('http://localhost:8000', '').replace('http://127.0.0.1:8000', '') : masterData.image} alt={s} className="w-full h-full object-cover" />
-                                                                                                </div>
-                                                                                            )}
-                                                                                            <div className="flex-1 min-w-0">
-                                                                                                {masterData?.city && <p className="text-[9px] text-gray-400">{masterData.city}</p>}
-                                                                                                <div className="flex items-center gap-2">
-                                                                                                    <p className="text-[11px] font-bold text-gray-900">{s}</p>
-                                                                                                    {masterData?.latitude && masterData?.longitude && (
-                                                                                                        <a
-                                                                                                            href={`https://maps.google.com/?q=${masterData.latitude},${masterData.longitude}`}
-                                                                                                            target="_blank"
-                                                                                                            rel="noopener noreferrer"
-                                                                                                            className="text-[9px] text-blue-500 hover:underline"
-                                                                                                        >View on Map</a>
-                                                                                                    )}
-                                                                                                </div>
-                                                                                                {masterData?.address && <p className="text-[9px] text-gray-500">{masterData.address}</p>}
-                                                                                                {masterData?.description && (
-                                                                                                    <p className="text-[9px] text-gray-500 line-clamp-2 mt-0.5">{masterData.description}</p>
-                                                                                                )}
-                                                                                            </div>
+                                                                        <div className="space-y-4">
+                                                                            <div>
+                                                                                <FormLabel label="Day Visual (Image)" optional />
+                                                                                <div className={`relative border-2 border-dashed rounded-3xl p-4 transition-all min-h-[140px] flex flex-col items-center justify-center ${(row.image || (row.existing_image && row.existing_image !== 'null')) ? 'border-green-200 bg-green-50/30' : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-[#14532d]/40 shadow-inner'}`}>
+                                                                                    {(row.image || (row.existing_image && typeof row.existing_image === 'string' && row.existing_image !== 'null')) ? (
+                                                                                        <div className="relative group/dayimg w-full">
+                                                                                            <img
+                                                                                                src={row.image ? URL.createObjectURL(row.image) : (row.existing_image?.startsWith('http') ? row.existing_image.replace('http://localhost:8000', '').replace('http://127.0.0.1:8000', '') : row.existing_image)}
+                                                                                                className="h-32 w-full object-cover rounded-2xl border-2 border-white shadow-xl transition-transform group-hover/dayimg:scale-[1.02]"
+                                                                                                alt="Preview"
+                                                                                            />
                                                                                             <button
+                                                                                                type="button"
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    const copy = [...itineraryDays];
+                                                                                                    copy[i].image = null;
+                                                                                                    copy[i].existing_image = null;
+                                                                                                    setItineraryDays(copy);
+                                                                                                }}
+                                                                                                className="absolute -top-3 -right-3 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl opacity-0 group-hover/dayimg:opacity-100"
+                                                                                            >
+                                                                                                <X size={20} />
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-300 mb-3 font-black text-2xl shadow-sm">+</div>
+                                                                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Add Preview Image</p>
+                                                                                            <input
+                                                                                                type="file"
+                                                                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                                                accept="image/*"
+                                                                                                onChange={(e) => {
+                                                                                                    const file = e.target.files[0];
+                                                                                                    if (file) {
+                                                                                                        const copy = [...itineraryDays];
+                                                                                                        copy[i].image = file;
+                                                                                                        setItineraryDays(copy);
+                                                                                                    }
+                                                                                                }}
+                                                                                            />
+                                                                                        </>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className={`p-3 rounded-2xl border-2 transition-all ${row.save_to_master ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-gray-50 border-transparent text-gray-500 hover:border-gray-200 hover:bg-white'}`}>
+                                                                                <label className="flex items-center gap-3 cursor-pointer">
+                                                                                    <input type="checkbox" checked={row.save_to_master} onChange={(e) => { const copy = [...itineraryDays]; copy[i].save_to_master = e.target.checked; setItineraryDays(copy); }} className="w-4 h-4 rounded-lg border-gray-300 text-[#14532d] focus:ring-[#14532d]" />
+                                                                                    <div className="flex flex-col leading-none">
+                                                                                        <span className="text-[10px] font-black uppercase tracking-tighter">Archive to Masters</span>
+                                                                                        <span className="text-[8px] opacity-70 font-medium">Available for future packages</span>
+                                                                                    </div>
+                                                                                </label>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })()}
+
+                                                            {/* 2. SIGHTSEEING */}
+                                                            {row.details_json?.active_tab === 'sightseeing' && (() => {
+                                                                const sightseeingSearch = row.details_json?._sightseeingSearch || '';
+                                                                const addedSightseeings = (row.details_json?.sightseeing || []).filter(s => s && s.trim());
+                                                                const updateDay = (patch) => {
+                                                                    const copy = [...itineraryDays];
+                                                                    copy[i].details_json = { ...copy[i].details_json, ...patch };
+                                                                    setItineraryDays(copy);
+                                                                };
+                                                                const filteredSightseeings = sightseeingSearch
+                                                                    ? sightseeingMasters.filter(sm =>
+                                                                        sm.name?.toLowerCase().includes(sightseeingSearch.toLowerCase()) ||
+                                                                        sm.city?.toLowerCase().includes(sightseeingSearch.toLowerCase())
+                                                                    ) : [];
+                                                                return (
+                                                                    <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                                        {/* Main sightseeing panel */}
+                                                                        <div className="flex-1 space-y-3">
+                                                                            {/* Search */}
+                                                                            <div>
+                                                                                <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search sightseeing from the database</p>
+                                                                                <div className="relative">
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={sightseeingSearch}
+                                                                                        onChange={e => updateDay({ _sightseeingSearch: e.target.value })}
+                                                                                        placeholder="Type to look up for sightseeing in masters"
+                                                                                        className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
+                                                                                    />
+                                                                                    <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                                                </div>
+                                                                                {/* Search results dropdown */}
+                                                                                {filteredSightseeings.length > 0 && (
+                                                                                    <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
+                                                                                        {filteredSightseeings.map(sm => (
+                                                                                            <button
+                                                                                                key={sm.id}
                                                                                                 type="button"
                                                                                                 onClick={() => {
                                                                                                     const copy = [...itineraryDays];
-                                                                                                    copy[i].details_json.sightseeing = copy[i].details_json.sightseeing.filter((_, idx) => idx !== sIdx);
+                                                                                                    if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
+                                                                                                    const already = copy[i].details_json.sightseeing.includes(sm.name);
+                                                                                                    if (!already) copy[i].details_json.sightseeing.push(sm.name);
+                                                                                                    copy[i].details_json._sightseeingSearch = '';
                                                                                                     setItineraryDays(copy);
                                                                                                 }}
-                                                                                                className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                                                                className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
                                                                                             >
-                                                                                                <X size={12} />
+                                                                                                <span className="font-medium text-gray-800">{sm.name}</span>
+                                                                                                {sm.city && <span className="text-gray-400 ml-1">? {sm.city}</span>}
                                                                                             </button>
-                                                                                        </div>
-                                                                                    );
-                                                                                })}
+                                                                                        ))}
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
-                                                                        )}
-                                                                    </div>
 
-                                                                    {/* Add New Sightseeing panel */}
-                                                                    <div className="w-56 shrink-0">
-                                                                        {sightseeingPanelDayIndex === i ? (
-                                                                            <div className="border border-gray-200 rounded-sm p-3 bg-gray-50/50 space-y-2">
-                                                                                <div className="flex items-center justify-between">
-                                                                                    <h4 className="text-[11px] font-bold text-gray-800">Add New Sightseeing</h4>
-                                                                                    <button type="button" onClick={() => setSightseeingPanelDayIndex(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
+                                                                            {/* Added sightseeings or empty state */}
+                                                                            {addedSightseeings.length === 0 ? (
+                                                                                <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
+                                                                                    <p className="text-[11px] text-gray-400">No Sightseeing added</p>
                                                                                 </div>
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Sightseeing</p>
-                                                                                    <input type="text" value={newSightseeingForm.name} onChange={e => setNewSightseeingForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                            ) : (
+                                                                                <div className="space-y-2">
+                                                                                    {addedSightseeings.map((s, sIdx) => {
+                                                                                        const masterData = sightseeingMasters.find(sm => sm.name === s);
+                                                                                        return (
+                                                                                            <div key={sIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
+                                                                                                {masterData?.image && (
+                                                                                                    <div className="w-10 h-10 rounded-sm overflow-hidden shrink-0 bg-gray-100">
+                                                                                                        <img src={masterData.image.startsWith('http') ? masterData.image.replace('http://localhost:8000', '').replace('http://127.0.0.1:8000', '') : masterData.image} alt={s} className="w-full h-full object-cover" />
+                                                                                                    </div>
+                                                                                                )}
+                                                                                                <div className="flex-1 min-w-0">
+                                                                                                    {masterData?.city && <p className="text-[9px] text-gray-400">{masterData.city}</p>}
+                                                                                                    <div className="flex items-center gap-2">
+                                                                                                        <p className="text-[11px] font-bold text-gray-900">{s}</p>
+                                                                                                        {masterData?.latitude && masterData?.longitude && (
+                                                                                                            <a
+                                                                                                                href={`https://maps.google.com/?q=${masterData.latitude},${masterData.longitude}`}
+                                                                                                                target="_blank"
+                                                                                                                rel="noopener noreferrer"
+                                                                                                                className="text-[9px] text-blue-500 hover:underline"
+                                                                                                            >View on Map</a>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                    {masterData?.address && <p className="text-[9px] text-gray-500">{masterData.address}</p>}
+                                                                                                    {masterData?.description && (
+                                                                                                        <p className="text-[9px] text-gray-500 line-clamp-2 mt-0.5">{masterData.description}</p>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => {
+                                                                                                        const copy = [...itineraryDays];
+                                                                                                        copy[i].details_json.sightseeing = copy[i].details_json.sightseeing.filter((_, idx) => idx !== sIdx);
+                                                                                                        setItineraryDays(copy);
+                                                                                                    }}
+                                                                                                    className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                                                                >
+                                                                                                    <X size={12} />
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
                                                                                 </div>
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Description <span className="text-gray-400 font-normal">(maximum 3000 characters)</span></p>
-                                                                                    <textarea value={newSightseeingForm.description} onChange={e => setNewSightseeingForm(p => ({ ...p, description: e.target.value }))} maxLength={3000} placeholder="Enter description" rows={3} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 resize-none" />
-                                                                                </div>
-                                                                                <div className="grid grid-cols-2 gap-1.5">
-                                                                                    <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Address <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                        <input type="text" value={newSightseeingForm.address} onChange={e => setNewSightseeingForm(p => ({ ...p, address: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                            )}
+                                                                        </div>
+
+                                                                        {/* Add New Sightseeing panel */}
+                                                                        <div className="w-56 shrink-0">
+                                                                            {sightseeingPanelDayIndex === i ? (
+                                                                                <div className="border border-gray-200 rounded-sm p-3 bg-gray-50/50 space-y-2">
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <h4 className="text-[11px] font-bold text-gray-800">Add New Sightseeing</h4>
+                                                                                        <button type="button" onClick={() => setSightseeingPanelDayIndex(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
                                                                                     </div>
                                                                                     <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
-                                                                                        <select value={newSightseeingForm.city} onChange={e => setNewSightseeingForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
-                                                                                            <option value="">Select a city...</option>
-                                                                                            {destinations.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Sightseeing</p>
+                                                                                        <input type="text" value={newSightseeingForm.name} onChange={e => setNewSightseeingForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Description <span className="text-gray-400 font-normal">(maximum 3000 characters)</span></p>
+                                                                                        <textarea value={newSightseeingForm.description} onChange={e => setNewSightseeingForm(p => ({ ...p, description: e.target.value }))} maxLength={3000} placeholder="Enter description" rows={3} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 resize-none" />
+                                                                                    </div>
+                                                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                                                        <div>
+                                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Address <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                            <input type="text" value={newSightseeingForm.address} onChange={e => setNewSightseeingForm(p => ({ ...p, address: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
+                                                                                            <select value={newSightseeingForm.city} onChange={e => setNewSightseeingForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                                <option value="">Select a city...</option>
+                                                                                                {destinations.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                                                                                            </select>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                                                        <div>
+                                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Duration</p>
+                                                                                            <input type="text" value={newSightseeingForm.duration} onChange={e => setNewSightseeingForm(p => ({ ...p, duration: e.target.value }))} placeholder="e.g. 4 Hours" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Entry Price</p>
+                                                                                            <input type="number" value={newSightseeingForm.price} onChange={e => setNewSightseeingForm(p => ({ ...p, price: e.target.value }))} placeholder="0.00" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Map Link</p>
+                                                                                        <input type="text" value={newSightseeingForm.map_link} onChange={e => setNewSightseeingForm(p => ({ ...p, map_link: e.target.value }))} placeholder="https://maps.google.com/..." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                        <div className="flex gap-1">
+                                                                                            <input type="text" value={newSightseeingForm.latitude} onChange={e => setNewSightseeingForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Latitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                            <input type="text" value={newSightseeingForm.longitude} onChange={e => setNewSightseeingForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Longitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Images <span className="text-gray-400 font-normal">(Add up to 5 images with max file size of 1 MB)</span></p>
+                                                                                        <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
+                                                                                            <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
+                                                                                                <span className="text-sm leading-none">+</span>
+                                                                                                <span>Add{<br />}Images</span>
+                                                                                                <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                                                                                                    const files = Array.from(e.target.files).slice(0, 5);
+                                                                                                    setNewSightseeingForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
+                                                                                                }} />
+                                                                                            </label>
+                                                                                            {(newSightseeingForm.images || []).map((img, imgIdx) => (
+                                                                                                <div key={imgIdx} className="relative w-[46px] h-[40px]">
+                                                                                                    <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
+                                                                                                    <button type="button" onClick={() => setNewSightseeingForm(p => ({ ...p, images: p.images.filter((_, j) => j !== imgIdx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">?</button>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={async () => {
+                                                                                            if (!newSightseeingForm.name.trim()) { alert('Please enter the sightseeing name.'); return; }
+                                                                                            try {
+                                                                                                const fd = new FormData();
+                                                                                                fd.append('name', newSightseeingForm.name);
+                                                                                                fd.append('description', newSightseeingForm.description);
+                                                                                                fd.append('address', newSightseeingForm.address);
+                                                                                                fd.append('city', newSightseeingForm.city);
+                                                                                                fd.append('duration', newSightseeingForm.duration);
+                                                                                                fd.append('price', newSightseeingForm.price);
+                                                                                                fd.append('map_link', newSightseeingForm.map_link);
+                                                                                                fd.append('latitude', newSightseeingForm.latitude);
+                                                                                                fd.append('longitude', newSightseeingForm.longitude);
+                                                                                                if (newSightseeingForm.images && newSightseeingForm.images.length > 0) {
+                                                                                                    fd.append('image', newSightseeingForm.images[0]);
+                                                                                                    newSightseeingForm.images.forEach(img => {
+                                                                                                        fd.append('gallery_images', img);
+                                                                                                    });
+                                                                                                }
+                                                                                                const res = await axios.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                                                                setSightseeingMasters(prev => [...prev, res.data]);
+                                                                                                const copy = [...itineraryDays];
+                                                                                                if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
+                                                                                                copy[i].details_json.sightseeing.push(res.data.name);
+                                                                                                setItineraryDays(copy);
+                                                                                                setNewSightseeingForm({
+                                                                                                    name: '', description: '', address: '', city: '', duration: '', price: '', map_link: '',
+                                                                                                    latitude: '', longitude: '', images: []
+                                                                                                });
+                                                                                                setSightseeingPanelDayIndex(null);
+                                                                                            } catch (err) {
+                                                                                                console.error('Error saving sightseeing:', err);
+                                                                                                alert('Failed to save sightseeing.');
+                                                                                            }
+                                                                                        }}
+                                                                                        className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
+                                                                                    >Add</button>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => { setSightseeingPanelDayIndex(i); setNewSightseeingForm({ name: '', description: '', address: '', city: '', latitude: '', longitude: '', images: [] }); }}
+                                                                                    className="w-full py-2 border border-dashed border-orange-300 text-orange-500 text-[10px] font-medium rounded-sm hover:bg-orange-50 transition-colors"
+                                                                                >+ Add New Sightseeing</button>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })()}
+
+
+                                                            {/* 4. ACCOMMODATION */}
+                                                            {row.details_json?.active_tab === 'accommodation' && (() => {
+                                                                const accs = row.details_json?.accommodations || [];
+                                                                const searchQ = row.details_json?._accSearch || '';
+                                                                const showForm = row.details_json?._showNewAcc || false;
+                                                                const roomDetails = row.details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
+                                                                const updateDay = (patch) => {
+                                                                    const copy = [...itineraryDays];
+                                                                    copy[i].details_json = { ...copy[i].details_json, ...patch };
+                                                                    setItineraryDays(copy);
+                                                                };
+                                                                const updateRoomDetails = (patch) => {
+                                                                    const copy = [...itineraryDays];
+                                                                    const rd = copy[i].details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
+                                                                    copy[i].details_json._roomDetails = { ...rd, ...patch };
+                                                                    setItineraryDays(copy);
+                                                                };
+                                                                const filteredHotels = searchQ
+                                                                    ? hotelMasters.filter(h =>
+                                                                        h.name?.toLowerCase().includes(searchQ.toLowerCase()) ||
+                                                                        h.city?.toLowerCase().includes(searchQ.toLowerCase())
+                                                                    ) : [];
+                                                                return (
+                                                                    <div className="bg-white p-0 space-y-0">
+                                                                        {/* Header */}
+                                                                        <div className="flex items-center justify-between pb-1.5">
+                                                                            <h3 className="text-[12px] font-bold text-gray-900">Accommodation</h3>
+                                                                        </div>
+
+                                                                        {/* Search Accommodation */}
+                                                                        <div className="mb-2">
+                                                                            <p className="text-[10px] text-gray-500 mb-1">Search Accommodation from the database</p>
+                                                                            {/* Search Input */}
+                                                                            <div className="relative">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={searchQ}
+                                                                                    onChange={e => updateDay({ _accSearch: e.target.value })}
+                                                                                    placeholder=""
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[11px] focus:outline-none focus:border-blue-400 pr-6"
+                                                                                />
+                                                                                {searchQ && (
+                                                                                    <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600 font-bold text-[11px]">?</button>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {/* Two-panel dropdown */}
+                                                                            <div className="border border-gray-200 rounded-sm mt-0.5 bg-white shadow-sm">
+                                                                                {/* Top panel: Add New Accommodation */}
+                                                                                <div className="border border-dashed border-orange-200 m-1.5 rounded-sm">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => updateDay({ _showNewAcc: !showForm })}
+                                                                                        className="w-full py-1.5 text-[11px] text-orange-400 font-medium hover:bg-orange-50 transition-colors"
+                                                                                    >
+                                                                                        {showForm ? 'Close Form' : 'Add New Accommodation'}
+                                                                                    </button>
+                                                                                </div>
+                                                                                {/* Bottom panel: search results / empty state */}
+                                                                                <div className="border border-dashed border-gray-200 m-1.5 mt-0 rounded-sm min-h-[44px] max-h-[100px] overflow-y-auto flex flex-col">
+                                                                                    {filteredHotels.length > 0 ? filteredHotels.map(h => (
+                                                                                        <button
+                                                                                            key={h.id}
+                                                                                            type="button"
+                                                                                            onClick={() => {
+                                                                                                const copy = [...itineraryDays];
+                                                                                                if (!copy[i].details_json.accommodations) copy[i].details_json.accommodations = [];
+                                                                                                const alreadyAdded = copy[i].details_json.accommodations.find(a => a.hotelId === h.id);
+                                                                                                if (!alreadyAdded) {
+                                                                                                    copy[i].details_json.accommodations.push({ hotelId: h.id, hotelName: h.name });
+                                                                                                }
+                                                                                                copy[i].details_json._accSearch = '';
+                                                                                                setItineraryDays(copy);
+                                                                                            }}
+                                                                                            className="w-full text-left px-2 py-1 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                                                                                        >
+                                                                                            <span className="font-medium text-gray-800">{h.name}</span>
+                                                                                            {h.city && <span className="text-gray-400 ml-1">? {h.city}</span>}
+                                                                                        </button>
+                                                                                    )) : (
+                                                                                        <div className="flex-1 flex items-center justify-center">
+                                                                                            <p className="text-[10px] text-gray-400">No accommodation added</p>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Selected accommodations tags */}
+                                                                            {accs.length > 0 && (
+                                                                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                                                                    {accs.map((acc, accIdx) => (
+                                                                                        <span key={accIdx} className="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-0.5 font-medium">
+                                                                                            {acc.hotelName}
+                                                                                            <button type="button" onClick={() => { const copy = [...itineraryDays]; copy[i].details_json.accommodations.splice(accIdx, 1); setItineraryDays(copy); }} className="text-blue-400 hover:text-red-500 ml-0.5">?</button>
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+
+                                                                        {/* Add New Accommodation Form */}
+                                                                        {showForm && (
+                                                                            <div className="border border-gray-200 rounded p-3 bg-gray-50/50 space-y-2 mb-2">
+                                                                                <h4 className="text-[11px] font-bold text-gray-800">Add New Accommodation</h4>
+                                                                                {/* Row 1: Name + Star */}
+                                                                                <div className="grid grid-cols-2 gap-2">
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Accommodation</p>
+                                                                                        <input type="text" value={newHotelForm.name} onChange={e => setNewHotelForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name of the acccommodation" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Star Category</p>
+                                                                                        <select value={newHotelForm.stars} onChange={e => setNewHotelForm(p => ({ ...p, stars: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                            <option value="">Select</option>
+                                                                                            {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s} Star</option>)}
                                                                                         </select>
                                                                                     </div>
                                                                                 </div>
-                                                                                <div className="grid grid-cols-2 gap-1.5">
+                                                                                {/* Row 2: Address + City */}
+                                                                                <div className="grid grid-cols-2 gap-2">
                                                                                     <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Duration</p>
-                                                                                        <input type="text" value={newSightseeingForm.duration} onChange={e => setNewSightseeingForm(p => ({ ...p, duration: e.target.value }))} placeholder="e.g. 4 Hours" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Address <span className="text-sky-400 font-normal">(optional)</span></p>
+                                                                                        <input type="text" value={newHotelForm.address} onChange={e => setNewHotelForm(p => ({ ...p, address: e.target.value }))} placeholder="Enter accommodation address" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                     </div>
                                                                                     <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Entry Price</p>
-                                                                                        <input type="number" value={newSightseeingForm.price} onChange={e => setNewSightseeingForm(p => ({ ...p, price: e.target.value }))} placeholder="0.00" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
+                                                                                        <input type="text" value={newHotelForm.city} onChange={e => setNewHotelForm(p => ({ ...p, city: e.target.value }))} placeholder="Select a city..." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                     </div>
                                                                                 </div>
+                                                                                {/* Row 3: Phone */}
                                                                                 <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Map Link</p>
-                                                                                    <input type="text" value={newSightseeingForm.map_link} onChange={e => setNewSightseeingForm(p => ({ ...p, map_link: e.target.value }))} placeholder="https://maps.google.com/..." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                    <div className="flex gap-1">
-                                                                                        <input type="text" value={newSightseeingForm.latitude} onChange={e => setNewSightseeingForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Latitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                        <input type="text" value={newSightseeingForm.longitude} onChange={e => setNewSightseeingForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Longitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Phone No. <span className="text-sky-400 font-normal">(optional)</span></p>
+                                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                                        <input type="text" value={newHotelForm.phone || ''} onChange={e => setNewHotelForm(p => ({ ...p, phone: e.target.value }))} placeholder="Select country code" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <input type="text" placeholder="Enter phone no." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                     </div>
                                                                                 </div>
+                                                                                {/* Row 4: Website + Email */}
+                                                                                <div className="grid grid-cols-2 gap-2">
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Website <span className="text-sky-400 font-normal">(optional)</span></p>
+                                                                                        <input type="text" value={newHotelForm.website} onChange={e => setNewHotelForm(p => ({ ...p, website: e.target.value }))} placeholder="Enter accommodation website" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Email Id <span className="text-sky-400 font-normal">(optional)</span></p>
+                                                                                        <input type="email" value={newHotelForm.email} onChange={e => setNewHotelForm(p => ({ ...p, email: e.target.value }))} placeholder="Type Email Id" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* Row 5: Lat/Lng */}
                                                                                 <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Images <span className="text-gray-400 font-normal">(Add up to 5 images with max file size of 1 MB)</span></p>
+                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Latitude &amp; Longitude <span className="text-sky-400 font-normal">(optional)</span></p>
+                                                                                    <div className="flex gap-2 items-center">
+                                                                                        <input type="text" value={newHotelForm.latitude} onChange={e => setNewHotelForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Latitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <input type="text" value={newHotelForm.longitude} onChange={e => setNewHotelForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Longitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <span className="text-orange-400 text-[13px]">?</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* Row 6: Images */}
+                                                                                <div>
+                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Images <span className="text-gray-400 font-normal">(up to 5, max 1 MB)</span></p>
                                                                                     <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
-                                                                                        <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
+                                                                                        <label className="w-[50px] h-[44px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
                                                                                             <span className="text-sm leading-none">+</span>
-                                                                                            <span>Add{<br />}Images</span>
+                                                                                            <span>Add</span>
                                                                                             <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
                                                                                                 const files = Array.from(e.target.files).slice(0, 5);
-                                                                                                setNewSightseeingForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
+                                                                                                setNewHotelForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
                                                                                             }} />
                                                                                         </label>
-                                                                                        {(newSightseeingForm.images || []).map((img, imgIdx) => (
-                                                                                            <div key={imgIdx} className="relative w-[46px] h-[40px]">
+                                                                                        {(newHotelForm.images || []).map((img, idx) => (
+                                                                                            <div key={idx} className="relative w-[50px] h-[44px]">
                                                                                                 <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
-                                                                                                <button type="button" onClick={() => setNewSightseeingForm(p => ({ ...p, images: p.images.filter((_, j) => j !== imgIdx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">?</button>
+                                                                                                <button type="button" onClick={() => setNewHotelForm(p => ({ ...p, images: p.images.filter((_, j) => j !== idx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">?</button>
                                                                                             </div>
                                                                                         ))}
                                                                                     </div>
                                                                                 </div>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={async () => {
-                                                                                        if (!newSightseeingForm.name.trim()) { alert('Please enter the sightseeing name.'); return; }
-                                                                                        try {
-                                                                                            const fd = new FormData();
-                                                                                            fd.append('name', newSightseeingForm.name);
-                                                                                            fd.append('description', newSightseeingForm.description);
-                                                                                            fd.append('address', newSightseeingForm.address);
-                                                                                            fd.append('city', newSightseeingForm.city);
-                                                                                            fd.append('duration', newSightseeingForm.duration);
-                                                                                            fd.append('price', newSightseeingForm.price);
-                                                                                            fd.append('map_link', newSightseeingForm.map_link);
-                                                                                            fd.append('latitude', newSightseeingForm.latitude);
-                                                                                            fd.append('longitude', newSightseeingForm.longitude);
-                                                                                            if (newSightseeingForm.images && newSightseeingForm.images.length > 0) {
-                                                                                                fd.append('image', newSightseeingForm.images[0]);
-                                                                                                newSightseeingForm.images.forEach(img => {
-                                                                                                    fd.append('gallery_images', img);
-                                                                                                });
-                                                                                            }
-                                                                                            const res = await axios.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                                                                            setSightseeingMasters(prev => [...prev, res.data]);
-                                                                                            const copy = [...itineraryDays];
-                                                                                            if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
-                                                                                            copy[i].details_json.sightseeing.push(res.data.name);
-                                                                                            setItineraryDays(copy);
-                                                                                            setNewSightseeingForm({
-                                                                                                name: '', description: '', address: '', city: '', duration: '', price: '', map_link: '',
-                                                                                                latitude: '', longitude: '', images: []
-                                                                                            });
-                                                                                            setSightseeingPanelDayIndex(null);
-                                                                                        } catch (err) {
-                                                                                            console.error('Error saving sightseeing:', err);
-                                                                                            alert('Failed to save sightseeing.');
-                                                                                        }
-                                                                                    }}
-                                                                                    className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
-                                                                                >Add</button>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => { setSightseeingPanelDayIndex(i); setNewSightseeingForm({ name: '', description: '', address: '', city: '', latitude: '', longitude: '', images: [] }); }}
-                                                                                className="w-full py-2 border border-dashed border-orange-300 text-orange-500 text-[10px] font-medium rounded-sm hover:bg-orange-50 transition-colors"
-                                                                            >+ Add New Sightseeing</button>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })()}
-
-
-                                                        {/* 4. ACCOMMODATION */}
-                                                        {row.details_json?.active_tab === 'accommodation' && (() => {
-                                                            const accs = row.details_json?.accommodations || [];
-                                                            const searchQ = row.details_json?._accSearch || '';
-                                                            const showForm = row.details_json?._showNewAcc || false;
-                                                            const roomDetails = row.details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
-                                                            const updateDay = (patch) => {
-                                                                const copy = [...itineraryDays];
-                                                                copy[i].details_json = { ...copy[i].details_json, ...patch };
-                                                                setItineraryDays(copy);
-                                                            };
-                                                            const updateRoomDetails = (patch) => {
-                                                                const copy = [...itineraryDays];
-                                                                const rd = copy[i].details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
-                                                                copy[i].details_json._roomDetails = { ...rd, ...patch };
-                                                                setItineraryDays(copy);
-                                                            };
-                                                            const filteredHotels = searchQ
-                                                                ? hotelMasters.filter(h =>
-                                                                    h.name?.toLowerCase().includes(searchQ.toLowerCase()) ||
-                                                                    h.city?.toLowerCase().includes(searchQ.toLowerCase())
-                                                                ) : [];
-                                                            return (
-                                                                <div className="bg-white p-0 space-y-0">
-                                                                    {/* Header */}
-                                                                    <div className="flex items-center justify-between pb-1.5">
-                                                                        <h3 className="text-[12px] font-bold text-gray-900">Accommodation</h3>
-                                                                    </div>
-
-                                                                    {/* Search Accommodation */}
-                                                                    <div className="mb-2">
-                                                                        <p className="text-[10px] text-gray-500 mb-1">Search Accommodation from the database</p>
-                                                                        {/* Search Input */}
-                                                                        <div className="relative">
-                                                                            <input
-                                                                                type="text"
-                                                                                value={searchQ}
-                                                                                onChange={e => updateDay({ _accSearch: e.target.value })}
-                                                                                placeholder=""
-                                                                                className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[11px] focus:outline-none focus:border-blue-400 pr-6"
-                                                                            />
-                                                                            {searchQ && (
-                                                                                <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600 font-bold text-[11px]">?</button>
-                                                                            )}
-                                                                        </div>
-
-                                                                        {/* Two-panel dropdown */}
-                                                                        <div className="border border-gray-200 rounded-sm mt-0.5 bg-white shadow-sm">
-                                                                            {/* Top panel: Add New Accommodation */}
-                                                                            <div className="border border-dashed border-orange-200 m-1.5 rounded-sm">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => updateDay({ _showNewAcc: !showForm })}
-                                                                                    className="w-full py-1.5 text-[11px] text-orange-400 font-medium hover:bg-orange-50 transition-colors"
-                                                                                >
-                                                                                    {showForm ? 'Close Form' : 'Add New Accommodation'}
+                                                                                <button type="button" onClick={() => handleSaveNewHotel(i)} className="w-full py-1 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors">
+                                                                                    Save Accommodation
                                                                                 </button>
                                                                             </div>
-                                                                            {/* Bottom panel: search results / empty state */}
-                                                                            <div className="border border-dashed border-gray-200 m-1.5 mt-0 rounded-sm min-h-[44px] max-h-[100px] overflow-y-auto flex flex-col">
-                                                                                {filteredHotels.length > 0 ? filteredHotels.map(h => (
-                                                                                    <button
-                                                                                        key={h.id}
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            const copy = [...itineraryDays];
-                                                                                            if (!copy[i].details_json.accommodations) copy[i].details_json.accommodations = [];
-                                                                                            const alreadyAdded = copy[i].details_json.accommodations.find(a => a.hotelId === h.id);
-                                                                                            if (!alreadyAdded) {
-                                                                                                copy[i].details_json.accommodations.push({ hotelId: h.id, hotelName: h.name });
-                                                                                            }
-                                                                                            copy[i].details_json._accSearch = '';
-                                                                                            setItineraryDays(copy);
-                                                                                        }}
-                                                                                        className="w-full text-left px-2 py-1 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                                                                    >
-                                                                                        <span className="font-medium text-gray-800">{h.name}</span>
-                                                                                        {h.city && <span className="text-gray-400 ml-1">? {h.city}</span>}
-                                                                                    </button>
-                                                                                )) : (
-                                                                                    <div className="flex-1 flex items-center justify-center">
-                                                                                        <p className="text-[10px] text-gray-400">No accommodation added</p>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-
-                                                                        {/* Selected accommodations tags */}
-                                                                        {accs.length > 0 && (
-                                                                            <div className="flex flex-wrap gap-1.5 mt-2">
-                                                                                {accs.map((acc, accIdx) => (
-                                                                                    <span key={accIdx} className="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-0.5 font-medium">
-                                                                                        {acc.hotelName}
-                                                                                        <button type="button" onClick={() => { const copy = [...itineraryDays]; copy[i].details_json.accommodations.splice(accIdx, 1); setItineraryDays(copy); }} className="text-blue-400 hover:text-red-500 ml-0.5">?</button>
-                                                                                    </span>
-                                                                                ))}
-                                                                            </div>
                                                                         )}
-                                                                    </div>
 
-                                                                    {/* Add New Accommodation Form */}
-                                                                    {showForm && (
-                                                                        <div className="border border-gray-200 rounded p-3 bg-gray-50/50 space-y-2 mb-2">
-                                                                            <h4 className="text-[11px] font-bold text-gray-800">Add New Accommodation</h4>
-                                                                            {/* Row 1: Name + Star */}
-                                                                            <div className="grid grid-cols-2 gap-2">
+                                                                        {/* Divider */}
+                                                                        <hr className="border-gray-200 my-2" />
+
+                                                                        {/* Add Room Details */}
+                                                                        <div>
+                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Add Room Details</p>
+                                                                            {/* No. of Rooms / Check In / Check Out */}
+                                                                            <div className="grid grid-cols-3 gap-2 mb-2">
                                                                                 <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Accommodation</p>
-                                                                                    <input type="text" value={newHotelForm.name} onChange={e => setNewHotelForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name of the acccommodation" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Star Category</p>
-                                                                                    <select value={newHotelForm.stars} onChange={e => setNewHotelForm(p => ({ ...p, stars: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                    <p className="text-[10px] font-medium text-gray-600 mb-0.5">No. of Nights</p>
+                                                                                    <select
+                                                                                        value={roomDetails.noOfRooms || ''}
+                                                                                        onChange={e => {
+                                                                                            const n = parseInt(e.target.value) || 0;
+                                                                                            const rooms = Array.from({ length: n }, (_, idx) => roomDetails.rooms?.[idx] || { roomType: '', meals: '' });
+                                                                                            updateRoomDetails({ noOfRooms: e.target.value, rooms });
+                                                                                        }}
+                                                                                        className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white"
+                                                                                    >
                                                                                         <option value="">Select</option>
-                                                                                        {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s} Star</option>)}
+                                                                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
                                                                                     </select>
                                                                                 </div>
+                                                                                <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
+                                                                                    <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check In</p>
+                                                                                    <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkIn || ''} onChange={e => updateRoomDetails({ checkIn: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                </div>
+                                                                                <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
+                                                                                    <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check Out</p>
+                                                                                    <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkOut || ''} onChange={e => updateRoomDetails({ checkOut: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                </div>
                                                                             </div>
-                                                                            {/* Row 2: Address + City */}
-                                                                            <div className="grid grid-cols-2 gap-2">
+                                                                            {/* Per-room rows */}
+                                                                            {(roomDetails.rooms || []).length > 0 && (
                                                                                 <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Address <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                    <input type="text" value={newHotelForm.address} onChange={e => setNewHotelForm(p => ({ ...p, address: e.target.value }))} placeholder="Enter accommodation address" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
-                                                                                    <input type="text" value={newHotelForm.city} onChange={e => setNewHotelForm(p => ({ ...p, city: e.target.value }))} placeholder="Select a city..." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                            </div>
-                                                                            {/* Row 3: Phone */}
-                                                                            <div>
-                                                                                <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Phone No. <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                <div className="grid grid-cols-2 gap-2">
-                                                                                    <input type="text" value={newHotelForm.phone || ''} onChange={e => setNewHotelForm(p => ({ ...p, phone: e.target.value }))} placeholder="Select country code" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                    <input type="text" placeholder="Enter phone no." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                            </div>
-                                                                            {/* Row 4: Website + Email */}
-                                                                            <div className="grid grid-cols-2 gap-2">
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Website <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                    <input type="text" value={newHotelForm.website} onChange={e => setNewHotelForm(p => ({ ...p, website: e.target.value }))} placeholder="Enter accommodation website" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Email Id <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                    <input type="email" value={newHotelForm.email} onChange={e => setNewHotelForm(p => ({ ...p, email: e.target.value }))} placeholder="Type Email Id" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                            </div>
-                                                                            {/* Row 5: Lat/Lng */}
-                                                                            <div>
-                                                                                <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Latitude &amp; Longitude <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                <div className="flex gap-2 items-center">
-                                                                                    <input type="text" value={newHotelForm.latitude} onChange={e => setNewHotelForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Latitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                    <input type="text" value={newHotelForm.longitude} onChange={e => setNewHotelForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Longitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                    <span className="text-orange-400 text-[13px]">?</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            {/* Row 6: Images */}
-                                                                            <div>
-                                                                                <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Images <span className="text-gray-400 font-normal">(up to 5, max 1 MB)</span></p>
-                                                                                <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
-                                                                                    <label className="w-[50px] h-[44px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
-                                                                                        <span className="text-sm leading-none">+</span>
-                                                                                        <span>Add</span>
-                                                                                        <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                                                                                            const files = Array.from(e.target.files).slice(0, 5);
-                                                                                            setNewHotelForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
-                                                                                        }} />
-                                                                                    </label>
-                                                                                    {(newHotelForm.images || []).map((img, idx) => (
-                                                                                        <div key={idx} className="relative w-[50px] h-[44px]">
-                                                                                            <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
-                                                                                            <button type="button" onClick={() => setNewHotelForm(p => ({ ...p, images: p.images.filter((_, j) => j !== idx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">?</button>
+                                                                                    {/* Column headers */}
+                                                                                    <div className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-0.5">
+                                                                                        <div />
+                                                                                        <p className="text-[9px] font-medium text-gray-600">Room Type</p>
+                                                                                        <p className="text-[9px] font-medium text-gray-600">Meal Type</p>
+                                                                                    </div>
+                                                                                    {(roomDetails.rooms || []).map((room, rIdx) => (
+                                                                                        <div key={rIdx} className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-1 items-center">
+                                                                                            <p className="text-[9px] font-medium text-gray-500 text-right pr-1">Night {rIdx + 1} :</p>
+                                                                                            <input type="text" value={room.roomType || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], roomType: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} placeholder="Enter Room Type" className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                            <select value={room.meals || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], meals: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                                <option value="">Select meals included</option>
+                                                                                                <option value="EP">EP (Room Only)</option>
+                                                                                                <option value="CP">CP (Breakfast)</option>
+                                                                                                <option value="MAP">MAP (Half Board)</option>
+                                                                                                <option value="AP">AP (Full Board)</option>
+                                                                                            </select>
                                                                                         </div>
                                                                                     ))}
                                                                                 </div>
-                                                                            </div>
-                                                                            <button type="button" onClick={() => handleSaveNewHotel(i)} className="w-full py-1 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors">
-                                                                                Save Accommodation
-                                                                            </button>
+                                                                            )}
                                                                         </div>
-                                                                    )}
+                                                                    </div>
+                                                                );
+                                                            })()}
 
-                                                                    {/* Divider */}
-                                                                    <hr className="border-gray-200 my-2" />
-
-                                                                    {/* Add Room Details */}
-                                                                    <div>
-                                                                        <p className="text-[11px] font-bold text-gray-800 mb-1.5">Add Room Details</p>
-                                                                        {/* No. of Rooms / Check In / Check Out */}
-                                                                        <div className="grid grid-cols-3 gap-2 mb-2">
+                                                            {/* 5. VEHICLE */}
+                                                            {row.details_json?.active_tab === 'vehicle' && (() => {
+                                                                const vd = row.details_json?.vehicle_data || {};
+                                                                const vehicleMode = vd.mode || 'self_drive';
+                                                                const updateVD = (patch) => {
+                                                                    const copy = [...itineraryDays];
+                                                                    copy[i].details_json.vehicle_data = { ...vd, ...patch };
+                                                                    setItineraryDays(copy);
+                                                                };
+                                                                const isSelf = vehicleMode === 'self_drive';
+                                                                return (
+                                                                    <div className="bg-white p-0">
+                                                                        {/* Header row */}
+                                                                        <div className="mb-3">
+                                                                            <h3 className="text-[13px] font-bold text-gray-900">Vehicle</h3>
+                                                                        </div>
+                                                                        {/* Radio buttons */}
+                                                                        <div className="flex items-center gap-6 mb-3">
+                                                                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    name={`vehicleMode_${i}`}
+                                                                                    checked={isSelf}
+                                                                                    onChange={() => updateVD({ mode: 'self_drive' })}
+                                                                                    className="w-3.5 h-3.5 accent-blue-500"
+                                                                                />
+                                                                                <span className="text-[11px] font-medium text-gray-700">Self Drive</span>
+                                                                            </label>
+                                                                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    name={`vehicleMode_${i}`}
+                                                                                    checked={!isSelf}
+                                                                                    onChange={() => updateVD({ mode: 'with_driver' })}
+                                                                                    className="w-3.5 h-3.5 accent-blue-500"
+                                                                                />
+                                                                                <span className="text-[11px] font-medium text-gray-700">Vehicle with Driver/ Chaffeur</span>
+                                                                            </label>
+                                                                        </div>
+                                                                        {/* Sub-heading */}
+                                                                        <p className="text-[11px] font-bold text-gray-800 mb-2">
+                                                                            {isSelf ? 'Self Drive' : 'Vehicle with Driver/ Chaffeur'}
+                                                                        </p>
+                                                                        {/* Vehicle Type + No. of Vehicles */}
+                                                                        <div className="grid grid-cols-[1fr_180px] gap-3 mb-2">
                                                                             <div>
-                                                                                <p className="text-[10px] font-medium text-gray-600 mb-0.5">No. of Nights</p>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Vehicle Type</p>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={vd.vehicleType || ''}
+                                                                                    onChange={e => updateVD({ vehicleType: e.target.value })}
+                                                                                    placeholder="Enter vehicle type - eg. sedan/ suv/ coach etc."
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">No. of Vehicles</p>
                                                                                 <select
-                                                                                    value={roomDetails.noOfRooms || ''}
-                                                                                    onChange={e => {
-                                                                                        const n = parseInt(e.target.value) || 0;
-                                                                                        const rooms = Array.from({ length: n }, (_, idx) => roomDetails.rooms?.[idx] || { roomType: '', meals: '' });
-                                                                                        updateRoomDetails({ noOfRooms: e.target.value, rooms });
-                                                                                    }}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white"
+                                                                                    value={vd.noOfVehicles || '1'}
+                                                                                    onChange={e => updateVD({ noOfVehicles: e.target.value })}
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
                                                                                 >
-                                                                                    <option value="">Select</option>
                                                                                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
                                                                                 </select>
                                                                             </div>
-                                                                            <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
-                                                                                <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check In</p>
-                                                                                <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkIn || ''} onChange={e => updateRoomDetails({ checkIn: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                            </div>
-                                                                            <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
-                                                                                <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check Out</p>
-                                                                                <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkOut || ''} onChange={e => updateRoomDetails({ checkOut: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                            </div>
                                                                         </div>
-                                                                        {/* Per-room rows */}
-                                                                        {(roomDetails.rooms || []).length > 0 && (
+                                                                        {/* Pick Up Date + Pick Up Location */}
+                                                                        <div className="grid grid-cols-2 gap-3 mb-2">
                                                                             <div>
-                                                                                {/* Column headers */}
-                                                                                <div className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-0.5">
-                                                                                    <div />
-                                                                                    <p className="text-[9px] font-medium text-gray-600">Room Type</p>
-                                                                                    <p className="text-[9px] font-medium text-gray-600">Meal Type</p>
-                                                                                </div>
-                                                                                {(roomDetails.rooms || []).map((room, rIdx) => (
-                                                                                    <div key={rIdx} className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-1 items-center">
-                                                                                        <p className="text-[9px] font-medium text-gray-500 text-right pr-1">Night {rIdx + 1} :</p>
-                                                                                        <input type="text" value={room.roomType || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], roomType: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} placeholder="Enter Room Type" className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                        <select value={room.meals || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], meals: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
-                                                                                            <option value="">Select meals included</option>
-                                                                                            <option value="EP">EP (Room Only)</option>
-                                                                                            <option value="CP">CP (Breakfast)</option>
-                                                                                            <option value="MAP">MAP (Half Board)</option>
-                                                                                            <option value="AP">AP (Full Board)</option>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                ))}
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Date</p>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={vd.pickUpDate || ''}
+                                                                                    onChange={e => updateVD({ pickUpDate: e.target.value })}
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                />
                                                                             </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })()}
-
-                                                        {/* 5. VEHICLE */}
-                                                        {row.details_json?.active_tab === 'vehicle' && (() => {
-                                                            const vd = row.details_json?.vehicle_data || {};
-                                                            const vehicleMode = vd.mode || 'self_drive';
-                                                            const updateVD = (patch) => {
-                                                                const copy = [...itineraryDays];
-                                                                copy[i].details_json.vehicle_data = { ...vd, ...patch };
-                                                                setItineraryDays(copy);
-                                                            };
-                                                            const isSelf = vehicleMode === 'self_drive';
-                                                            return (
-                                                                <div className="bg-white p-0">
-                                                                    {/* Header row */}
-                                                                    <div className="mb-3">
-                                                                        <h3 className="text-[13px] font-bold text-gray-900">Vehicle</h3>
-                                                                    </div>
-                                                                    {/* Radio buttons */}
-                                                                    <div className="flex items-center gap-6 mb-3">
-                                                                        <label className="flex items-center gap-1.5 cursor-pointer">
-                                                                            <input
-                                                                                type="radio"
-                                                                                name={`vehicleMode_${i}`}
-                                                                                checked={isSelf}
-                                                                                onChange={() => updateVD({ mode: 'self_drive' })}
-                                                                                className="w-3.5 h-3.5 accent-blue-500"
-                                                                            />
-                                                                            <span className="text-[11px] font-medium text-gray-700">Self Drive</span>
-                                                                        </label>
-                                                                        <label className="flex items-center gap-1.5 cursor-pointer">
-                                                                            <input
-                                                                                type="radio"
-                                                                                name={`vehicleMode_${i}`}
-                                                                                checked={!isSelf}
-                                                                                onChange={() => updateVD({ mode: 'with_driver' })}
-                                                                                className="w-3.5 h-3.5 accent-blue-500"
-                                                                            />
-                                                                            <span className="text-[11px] font-medium text-gray-700">Vehicle with Driver/ Chaffeur</span>
-                                                                        </label>
-                                                                    </div>
-                                                                    {/* Sub-heading */}
-                                                                    <p className="text-[11px] font-bold text-gray-800 mb-2">
-                                                                        {isSelf ? 'Self Drive' : 'Vehicle with Driver/ Chaffeur'}
-                                                                    </p>
-                                                                    {/* Vehicle Type + No. of Vehicles */}
-                                                                    <div className="grid grid-cols-[1fr_180px] gap-3 mb-2">
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Vehicle Type</p>
-                                                                            <input
-                                                                                type="text"
-                                                                                value={vd.vehicleType || ''}
-                                                                                onChange={e => updateVD({ vehicleType: e.target.value })}
-                                                                                placeholder="Enter vehicle type - eg. sedan/ suv/ coach etc."
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
+                                                                            <div>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location</p>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={vd.pickUpLocation || ''}
+                                                                                    onChange={e => updateVD({ pickUpLocation: e.target.value })}
+                                                                                    placeholder={isSelf ? 'Enter address from where vehicle will be picked up' : 'Enter address from where passenger will be picked up'}
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                />
+                                                                            </div>
                                                                         </div>
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">No. of Vehicles</p>
-                                                                            <select
-                                                                                value={vd.noOfVehicles || '1'}
-                                                                                onChange={e => updateVD({ noOfVehicles: e.target.value })}
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
-                                                                            >
-                                                                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
-                                                                            </select>
+                                                                        {/* Drop Off Date + Drop Off Location */}
+                                                                        <div className="grid grid-cols-2 gap-3 mb-2">
+                                                                            <div>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Date</p>
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={vd.dropOffDate || ''}
+                                                                                    onChange={e => updateVD({ dropOffDate: e.target.value })}
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location</p>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={vd.dropOffLocation || ''}
+                                                                                    onChange={e => updateVD({ dropOffLocation: e.target.value })}
+                                                                                    placeholder={isSelf ? 'Enter address to where the vehicle will be dropped off' : 'Enter address where passenger will be dropped off'}
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                />
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    {/* Pick Up Date + Pick Up Location */}
-                                                                    <div className="grid grid-cols-2 gap-3 mb-2">
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Date</p>
-                                                                            <input
-                                                                                type="date"
-                                                                                value={vd.pickUpDate || ''}
-                                                                                onChange={e => updateVD({ pickUpDate: e.target.value })}
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location</p>
-                                                                            <input
-                                                                                type="text"
-                                                                                value={vd.pickUpLocation || ''}
-                                                                                onChange={e => updateVD({ pickUpLocation: e.target.value })}
-                                                                                placeholder={isSelf ? 'Enter address from where vehicle will be picked up' : 'Enter address from where passenger will be picked up'}
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
+                                                                        {/* Vehicle Brand + Pick Up time + Drop off time */}
+                                                                        <div className="grid grid-cols-3 gap-3">
+                                                                            <div>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">
+                                                                                    Vehicle Brand <span className="text-sky-400 font-normal">(Optional)</span>
+                                                                                </p>
+                                                                                <SearchableSelect
+                                                                                    options={vehicleBrands.map(b => ({ value: b.name, label: b.name }))}
+                                                                                    value={vd.vehicleBrand || ''}
+                                                                                    onChange={val => updateVD({ vehicleBrand: val })}
+                                                                                    placeholder="Select Brand"
+                                                                                    className="w-full"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
+                                                                                    Pick Up time <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span>
+                                                                                </p>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={vd.pickUpTime || ''}
+                                                                                    onChange={e => updateVD({ pickUpTime: e.target.value })}
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
+                                                                                    Drop off time <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span>
+                                                                                </p>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={vd.dropOffTime || ''}
+                                                                                    onChange={e => updateVD({ dropOffTime: e.target.value })}
+                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                />
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                    {/* Drop Off Date + Drop Off Location */}
-                                                                    <div className="grid grid-cols-2 gap-3 mb-2">
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Date</p>
-                                                                            <input
-                                                                                type="date"
-                                                                                value={vd.dropOffDate || ''}
-                                                                                onChange={e => updateVD({ dropOffDate: e.target.value })}
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location</p>
-                                                                            <input
-                                                                                type="text"
-                                                                                value={vd.dropOffLocation || ''}
-                                                                                onChange={e => updateVD({ dropOffLocation: e.target.value })}
-                                                                                placeholder={isSelf ? 'Enter address to where the vehicle will be dropped off' : 'Enter address where passenger will be dropped off'}
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                    {/* Vehicle Brand + Pick Up time + Drop off time */}
-                                                                    <div className="grid grid-cols-3 gap-3">
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5">
-                                                                                Vehicle Brand <span className="text-sky-400 font-normal">(Optional)</span>
-                                                                            </p>
-                                                                            <input
-                                                                                type="text"
-                                                                                value={vd.vehicleBrand || ''}
-                                                                                onChange={e => updateVD({ vehicleBrand: e.target.value })}
-                                                                                placeholder="Enter Vehicle Brand"
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
-                                                                                Pick Up time <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span>
-                                                                            </p>
-                                                                            <input
-                                                                                type="time"
-                                                                                value={vd.pickUpTime || ''}
-                                                                                onChange={e => updateVD({ pickUpTime: e.target.value })}
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
-                                                                                Drop off time <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span>
-                                                                            </p>
-                                                                            <input
-                                                                                type="time"
-                                                                                value={vd.dropOffTime || ''}
-                                                                                onChange={e => updateVD({ dropOffTime: e.target.value })}
-                                                                                className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })()}
+                                                                );
+                                                            })()}
+                                                        </div>
                                                     </div>
+
                                                 </div>
+                                            ))}
 
-                                            </div>
-                                        ))}
-
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const nextDay = itineraryDays.length + 1;
-                                                setItineraryDays([...itineraryDays, {
-                                                    day: nextDay,
-                                                    title: "",
-                                                    description: "",
-                                                    master_template: "",
-                                                    image: null,
-                                                    existing_image: null,
-                                                    save_to_master: false,
-                                                    details_json: { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] }
-                                                }]);
-                                            }}
-                                            className="w-full py-6 rounded-3xl border-4 border-dashed border-gray-100 flex flex-col items-center gap-2 text-gray-400 hover:border-[#14532d] hover:bg-green-50/30 hover:text-[#14532d] transition-all"
-                                        >
-                                            <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center border-2 border-white shadow-inner">
-                                                <span className="text-2xl font-light">+</span>
-                                            </div>
-                                            <span className="text-xs font-black uppercase tracking-[0.2em]">Add Itinerary Day</span>
-                                        </button>
-                                    </div>
-                                </Section>
-
-                                {/* TRIP INFORMATION */}
-                                <Section title="Trip Information" active={activeSection === 'policy'}>
-                                    <div className="space-y-6 max-w-5xl mx-auto">
-                                        {/* Arrival & Departure Logistics blocks moved to 'Arrival & Departure' section */}
-
-                                        {/* INCLUSIONS */}
-                                        <div>
-                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5">
-                                                Inclusions <span className="text-sky-400 font-normal text-[10px] opacity-90">(Optional)</span>
-                                            </h3>
-                                            <div className="border border-gray-300 bg-white rounded-sm overflow-hidden shadow-sm">
-                                                <div className="border-b border-gray-200 bg-white px-2 py-1 flex gap-1.5">
-                                                    <button type="button" onClick={() => insertBullet(inclusionsRef, inclusions, setInclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors">
-                                                        <List size={13} />
-                                                    </button>
-                                                </div>
-                                                <textarea
-                                                    ref={inclusionsRef}
-                                                    className="w-full min-h-[90px] px-3 py-2 text-[12px] text-gray-700 focus:outline-none resize-y"
-                                                    placeholder="? Accommodation as per itinerary&#10;? Transfers as per itinerary&#10;? Sightseeing as per itinerary"
-                                                    value={inclusions.join('\n')}
-                                                    onChange={(e) => setInclusions(e.target.value.split('\n'))}
-                                                    spellCheck="false"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* EXCLUSIONS */}
-                                        <div>
-                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5">
-                                                Exclusions <span className="text-sky-400 font-normal text-[10px] opacity-90">(Optional)</span>
-                                            </h3>
-                                            <div className="border border-gray-300 bg-white rounded-sm overflow-hidden shadow-sm">
-                                                <div className="border-b border-gray-200 bg-white px-2 py-1 flex gap-1.5">
-                                                    <button type="button" onClick={() => insertBullet(exclusionsRef, exclusions, setExclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors">
-                                                        <List size={13} />
-                                                    </button>
-                                                </div>
-                                                <textarea
-                                                    ref={exclusionsRef}
-                                                    className="w-full min-h-[90px] px-3 py-2 text-[12px] text-gray-700 focus:outline-none resize-y"
-                                                    placeholder="? Cost of Visa and travel insurance&#10;? Any heads not mentioned under INCLUSIONS"
-                                                    value={exclusions.join('\n')}
-                                                    onChange={(e) => setExclusions(e.target.value.split('\n'))}
-                                                    spellCheck="false"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* CANCELLATION POLICY */}
-                                        <div>
-                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5">
-                                                Cancellation Policy <span className="text-sky-400 font-normal text-[10px] opacity-90">(Optional)</span>
-                                            </h3>
-                                            <div className="border border-gray-300 bg-white rounded-sm overflow-hidden shadow-sm">
-                                                <div className="border-b border-gray-200 bg-white px-2 py-1 flex gap-1.5">
-                                                    <button type="button" onClick={() => insertNumbered(cancellationRef, cancellationPolicies, setCancellationPolicies)} title="Insert numbered item" className="w-6 h-6 flex items-center justify-center rounded bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">
-                                                        <ListOrdered size={13} />
-                                                    </button>
-                                                </div>
-                                                <textarea
-                                                    ref={cancellationRef}
-                                                    className="w-full min-h-[90px] px-3 py-2 text-[12px] text-gray-700 focus:outline-none resize-y"
-                                                    placeholder="1. 60 days prior ? 25% cancellation of the tour cost&#10;2. 45 days prior ? 50% cancellation of the tour cost"
-                                                    value={cancellationPolicies.join('\n')}
-                                                    onChange={(e) => setCancellationPolicies(e.target.value.split('\n'))}
-                                                    spellCheck="false"
-                                                />
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </Section>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Add New Accommodation Modal */}
-            {showHotelModal && (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all">
-                    <div className="bg-white rounded-[1.5rem] w-full max-w-xl h-fit max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-                        <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest leading-none">Add New Accommodation</h2>
-                            <button onClick={() => setShowHotelModal(false)} className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all font-outfit">
-                                <X size={14} />
-                            </button>
-                        </div>
-
-                        <div className="p-4 overflow-y-auto custom-scrollbar space-y-2.5 flex-1 min-h-0 text-left">
-                            <div className="grid grid-cols-12 gap-2.5">
-                                <div className="col-span-8">
-                                    <FormLabel label="Name" required />
-                                    <Input placeholder="Hotel name" value={newHotelForm.name} onChange={(e) => setNewHotelForm({ ...newHotelForm, name: e.target.value })} />
-                                </div>
-                                <div className="col-span-4">
-                                    <FormLabel label="Stars" required />
-                                    <select className="w-full bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black outline-none focus:border-[#14532d] transition-all" value={newHotelForm.stars} onChange={(e) => setNewHotelForm({ ...newHotelForm, stars: Number(e.target.value) })}>
-                                        {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Star</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2.5">
-                                <div>
-                                    <FormLabel label="City" required />
-                                    <SearchableSelect
-                                        options={destinations.map(d => ({ value: d.name, label: d.name }))}
-                                        value={newHotelForm.city}
-                                        onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
-                                        placeholder="Select City"
-                                    />
-                                </div>
-                                <div>
-                                    <FormLabel label="Address" optional />
-                                    <Input placeholder="Hotel address" value={newHotelForm.address} onChange={(e) => setNewHotelForm({ ...newHotelForm, address: e.target.value })} />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2.5">
-                                <div>
-                                    <FormLabel label="Phone" optional />
-                                    <Input placeholder="Phone number" value={newHotelForm.phone} onChange={(e) => setNewHotelForm({ ...newHotelForm, phone: e.target.value })} />
-                                </div>
-                                <div>
-                                    <FormLabel label="Website" optional />
-                                    <Input placeholder="URL" value={newHotelForm.website} onChange={(e) => setNewHotelForm({ ...newHotelForm, website: e.target.value })} />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-12 gap-2.5">
-                                <div className="col-span-6">
-                                    <FormLabel label="Email" optional />
-                                    <Input placeholder="Email address" value={newHotelForm.email} onChange={(e) => setNewHotelForm({ ...newHotelForm, email: e.target.value })} />
-                                </div>
-                                <div className="col-span-3">
-                                    <FormLabel label="Lat" optional />
-                                    <Input placeholder="0.00" value={newHotelForm.latitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, latitude: e.target.value })} />
-                                </div>
-                                <div className="col-span-3">
-                                    <FormLabel label="Long" optional />
-                                    <Input placeholder="0.00" value={newHotelForm.longitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, longitude: e.target.value })} />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <FormLabel label="Images" optional />
-                                <div className="flex flex-wrap gap-2.5 min-h-[40px]">
-                                    {newHotelForm.images && newHotelForm.images.map((img, idx) => (
-                                        <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden group border-2 border-gray-100 shadow-sm animate-in zoom-in-50">
-                                            <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" alt="Preview" />
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    const newImgs = [...newHotelForm.images];
-                                                    newImgs.splice(idx, 1);
-                                                    setNewHotelForm({ ...newHotelForm, images: newImgs });
+                                                    const nextDay = itineraryDays.length + 1;
+                                                    setItineraryDays([...itineraryDays, {
+                                                        day: nextDay.toString(),
+                                                        title: "",
+                                                        description: "",
+                                                        master_template: "",
+                                                        image: null,
+                                                        existing_image: null,
+                                                        save_to_master: false,
+                                                        details_json: { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] }
+                                                    }]);
                                                 }}
-                                                className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="w-full py-6 rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-[#14532d]/40 hover:text-[#14532d] transition-all hover:bg-green-50 active:scale-[0.99] group"
                                             >
-                                                <X size={12} className="text-white" />
+                                                <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center font-black text-2xl mb-2 group-hover:scale-110 group-hover:bg-white shadow-sm transition-all">+</div>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Add Discovery Day</span>
                                             </button>
-                                            {idx === 0 && <div className="absolute top-0 left-0 bg-[#14532d] text-[5px] text-white font-black px-1 py-0.5 uppercase">Main</div>}
                                         </div>
-                                    ))}
-                                    <input type="file" id="hotel-image-upload-edit" className="hidden" multiple onChange={(e) => {
-                                        const files = Array.from(e.target.files);
-                                        setNewHotelForm({ ...newHotelForm, images: [...(newHotelForm.images || []), ...files] });
-                                    }} />
-                                    <label htmlFor="hotel-image-upload-edit" className="w-14 h-14 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center bg-gray-50/30 hover:bg-gray-50 transition-all cursor-pointer group">
-                                        <Plus size={14} className="text-gray-300 group-hover:text-[#14532d] transition-colors" />
-                                        <span className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Add</span>
-                                    </label>
+                                    </Section>
+
+
+
+
+
+
+
+
+                                    {/* TRIP INFORMATION */}
+                                    <Section title="Trip Information" active={activeSection === 'policy'}>
+                                        <div className="space-y-6 max-w-5xl mx-auto">
+                                            {/* Global Arrival & Departure Logistics */}
+                                            {!formData.fixed_departure && (
+                                                <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${!formData.with_flight ? 'opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500' : 'transition-all duration-300'}`}>
+                                                    {/* Arrival */}
+                                                    <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
+                                                        <div className="flex justify-between items-center mb-6">
+                                                            <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                                                                <Plane size={16} className="rotate-45" /> Arrival Logistics
+                                                            </h4>
+                                                            <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setFormData({ ...formData, with_arrival: true })}
+                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_arrival ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                                >
+                                                                    INCLUDED
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setFormData({ ...formData, with_arrival: false })}
+                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_arrival ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                                >
+                                                                    EXCLUDED
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <FormLabel label="Arrival City" optional />
+                                                                    <SearchableSelect
+                                                                        options={[
+                                                                            { value: "Any City", label: "Any City" },
+                                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                                        ]}
+                                                                        value={formData.arrival_city}
+                                                                        onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
+                                                                        placeholder="Select City"
+                                                                        className="!py-1"
+                                                                    />
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    <div>
+                                                                        <FormLabel label="Date" optional />
+                                                                        <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <FormLabel label="Time" optional />
+                                                                        <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <FormLabel label="Airline" optional />
+                                                                    <SearchableSelect
+                                                                        options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                        value={formData.arrival_airline}
+                                                                        onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
+                                                                        placeholder="Select Airline"
+                                                                        className="!py-1"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <FormLabel label="Flight No." optional />
+                                                                    <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <FormLabel label="Arrival Airport" optional />
+                                                                <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Departure */}
+                                                    <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
+                                                        <div className="flex justify-between items-center mb-6">
+                                                            <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
+                                                                <Plane size={16} className="-rotate-45" /> Departure Logistics
+                                                            </h4>
+                                                            <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setFormData({ ...formData, with_departure: true })}
+                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_departure ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                                >
+                                                                    INCLUDED
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setFormData({ ...formData, with_departure: false })}
+                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_departure ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                                >
+                                                                    EXCLUDED
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <FormLabel label="Departure City" optional />
+                                                                    <SearchableSelect
+                                                                        options={[
+                                                                            { value: "Any City", label: "Any City" },
+                                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                                        ]}
+                                                                        value={formData.departure_city}
+                                                                        onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                                                        placeholder="Select City"
+                                                                        className="!py-1"
+                                                                    />
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    <div>
+                                                                        <FormLabel label="Date" optional />
+                                                                        <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <FormLabel label="Time" optional />
+                                                                        <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <FormLabel label="Airline" optional />
+                                                                    <SearchableSelect
+                                                                        options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                        value={formData.departure_airline}
+                                                                        onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
+                                                                        placeholder="Select Airline"
+                                                                        className="!py-1"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <FormLabel label="Flight No." optional />
+                                                                    <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <FormLabel label="Departure Airport" optional />
+                                                                <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div>
+                                                <h3 className="text-[14px] font-black text-gray-900 tracking-tight leading-none mb-1 flex items-center gap-2">
+                                                    <FileText size={16} className="text-[#14532d]" /> Package Policy & Details
+                                                </h3>
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 mb-6">Terms, conditions and coverage</p>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                    <div className="space-y-6">
+                                                        <div>
+                                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5 focus-within:text-[#14532d] transition-colors">
+                                                                Inclusions <span className="text-orange-400 font-normal text-[10px] opacity-90">(Required)</span>
+                                                            </h3>
+                                                            <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm hover:border-[#14532d]/30 transition-all">
+                                                                <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5 text-[#14532d]">
+                                                                    <button type="button" onClick={() => insertBullet(inclusionsRef, inclusions, setInclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
+                                                                        <List size={12} />
+                                                                    </button>
+                                                                </div>
+                                                                <textarea
+                                                                    ref={inclusionsRef}
+                                                                    value={inclusions.join('\n')}
+                                                                    onChange={(e) => setInclusions(e.target.value.split('\n'))}
+                                                                    rows="12"
+                                                                    className="w-full p-4 text-[12px] text-gray-700 focus:outline-none resize-none leading-relaxed bg-white"
+                                                                    placeholder="â€¢ Accommodation as per itinerary..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5 focus-within:text-[#14532d] transition-colors">
+                                                                Exclusions <span className="text-orange-400 font-normal text-[10px] opacity-90">(Required)</span>
+                                                            </h3>
+                                                            <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm hover:border-[#14532d]/30 transition-all">
+                                                                <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5">
+                                                                    <button type="button" onClick={() => insertBullet(exclusionsRef, exclusions, setExclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
+                                                                        <List size={12} />
+                                                                    </button>
+                                                                </div>
+                                                                <textarea
+                                                                    ref={exclusionsRef}
+                                                                    value={exclusions.join('\n')}
+                                                                    onChange={(e) => setExclusions(e.target.value.split('\n'))}
+                                                                    rows="12"
+                                                                    className="w-full p-4 text-[12px] text-gray-700 focus:outline-none resize-none leading-relaxed bg-white"
+                                                                    placeholder="â€¢ Any personal expenses..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-6">
+                                                        <div>
+                                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5 focus-within:text-[#14532d] transition-colors">
+                                                                Terms & Policy <span className="text-orange-400 font-normal text-[10px] opacity-90">(Required)</span>
+                                                            </h3>
+                                                            <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm hover:border-[#14532d]/30 transition-all">
+                                                                <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5">
+                                                                    <button type="button" onClick={() => insertBullet(cancellationRef, cancellationPolicies, setCancellationPolicies)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
+                                                                        <List size={12} />
+                                                                    </button>
+                                                                </div>
+                                                                <textarea
+                                                                    ref={cancellationRef}
+                                                                    value={cancellationPolicies.join('\n')}
+                                                                    onChange={(e) => setCancellationPolicies(e.target.value.split('\n'))}
+                                                                    rows="27"
+                                                                    className="w-full p-4 text-[12px] text-gray-700 focus:outline-none resize-none leading-relaxed bg-white"
+                                                                    placeholder="â€¢ 30 days before departure..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Section>
+                                </form>
+                            </div >
+                        </div >
+                    </div >
+                </div >
+
+                {/* Add New Accommodation Modal */}
+                {
+                    showHotelModal && (
+                        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all">
+                            <div className="bg-white rounded-[1.5rem] w-full max-w-xl h-fit max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                                <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                                    <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest leading-none">Add New Accommodation</h2>
+                                    <button onClick={() => setShowHotelModal(false)} className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all font-outfit">
+                                        <X size={14} />
+                                    </button>
                                 </div>
-                                {newHotelForm.images?.length > 1 && (
-                                    <p className="text-[7px] text-gray-400 font-bold italic uppercase tracking-wider">* Only the first image will be saved to masters</p>
-                                )}
+
+                                <div className="p-4 overflow-y-auto custom-scrollbar space-y-2.5 flex-1 min-h-0 text-left">
+                                    <div className="grid grid-cols-12 gap-2.5">
+                                        <div className="col-span-8">
+                                            <FormLabel label="Name" required />
+                                            <Input placeholder="Hotel name" value={newHotelForm.name} onChange={(e) => setNewHotelForm({ ...newHotelForm, name: e.target.value })} />
+                                        </div>
+                                        <div className="col-span-4">
+                                            <FormLabel label="Stars" required />
+                                            <select className="w-full bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black outline-none focus:border-[#14532d] transition-all" value={newHotelForm.stars} onChange={(e) => setNewHotelForm({ ...newHotelForm, stars: Number(e.target.value) })}>
+                                                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Star</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <div>
+                                            <FormLabel label="City" required />
+                                            <SearchableSelect
+                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                value={newHotelForm.city}
+                                                onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
+                                                placeholder="Select City"
+                                            />
+                                        </div>
+                                        <div>
+                                            <FormLabel label="Address" optional />
+                                            <Input placeholder="Hotel address" value={newHotelForm.address} onChange={(e) => setNewHotelForm({ ...newHotelForm, address: e.target.value })} />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2.5">
+                                        <div>
+                                            <FormLabel label="Phone" optional />
+                                            <Input placeholder="Phone number" value={newHotelForm.phone} onChange={(e) => setNewHotelForm({ ...newHotelForm, phone: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <FormLabel label="Website" optional />
+                                            <Input placeholder="URL" value={newHotelForm.website} onChange={(e) => setNewHotelForm({ ...newHotelForm, website: e.target.value })} />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-12 gap-2.5">
+                                        <div className="col-span-6">
+                                            <FormLabel label="Email" optional />
+                                            <Input placeholder="Email address" value={newHotelForm.email} onChange={(e) => setNewHotelForm({ ...newHotelForm, email: e.target.value })} />
+                                        </div>
+                                        <div className="col-span-3">
+                                            <FormLabel label="Lat" optional />
+                                            <Input placeholder="0.00" value={newHotelForm.latitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, latitude: e.target.value })} />
+                                        </div>
+                                        <div className="col-span-3">
+                                            <FormLabel label="Long" optional />
+                                            <Input placeholder="0.00" value={newHotelForm.longitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, longitude: e.target.value })} />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <FormLabel label="Images" optional />
+                                        <div className="flex flex-wrap gap-2.5 min-h-[40px]">
+                                            {newHotelForm.images && newHotelForm.images.map((img, idx) => (
+                                                <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden group border-2 border-gray-100 shadow-sm animate-in zoom-in-50">
+                                                    <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" alt="Preview" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newImgs = [...newHotelForm.images];
+                                                            newImgs.splice(idx, 1);
+                                                            setNewHotelForm({ ...newHotelForm, images: newImgs });
+                                                        }}
+                                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <X size={12} className="text-white" />
+                                                    </button>
+                                                    {idx === 0 && <div className="absolute top-0 left-0 bg-[#14532d] text-[5px] text-white font-black px-1 py-0.5 uppercase">Main</div>}
+                                                </div>
+                                            ))}
+                                            <input type="file" id="hotel-image-upload-edit" className="hidden" multiple onChange={(e) => {
+                                                const files = Array.from(e.target.files);
+                                                setNewHotelForm({ ...newHotelForm, images: [...(newHotelForm.images || []), ...files] });
+                                            }} />
+                                            <label htmlFor="hotel-image-upload-edit" className="w-14 h-14 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center bg-gray-50/30 hover:bg-gray-50 transition-all cursor-pointer group">
+                                                <Plus size={14} className="text-gray-300 group-hover:text-[#14532d] transition-colors" />
+                                                <span className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Add</span>
+                                            </label>
+                                        </div>
+                                        {newHotelForm.images?.length > 1 && (
+                                            <p className="text-[7px] text-gray-400 font-bold italic uppercase tracking-wider">* Only the first image will be saved to masters</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                                    <button type="button" onClick={() => setShowHotelModal(false)} className="px-5 py-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-600 transition-all font-outfit">Cancel</button>
+                                    <button type="button" onClick={handleSaveHotel} className="px-6 py-1.5 bg-[#14532d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-green-900/10 hover:scale-105 active:scale-95 transition-all font-outfit">Save Hotel</button>
+                                </div>
                             </div>
                         </div>
-
-                        <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                            <button type="button" onClick={() => setShowHotelModal(false)} className="px-5 py-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-600 transition-all font-outfit">Cancel</button>
-                            <button type="button" onClick={handleSaveHotel} className="px-6 py-1.5 bg-[#14532d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-green-900/10 hover:scale-105 active:scale-95 transition-all font-outfit">Save Hotel</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+                    )
+                }
+            </div >
+        </>
     );
 };
 
 export default HolidayPackageEdit;
+
 
