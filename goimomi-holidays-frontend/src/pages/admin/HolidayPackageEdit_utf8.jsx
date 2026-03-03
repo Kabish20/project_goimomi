@@ -239,6 +239,7 @@ const HolidayPackageEdit = () => {
                     description: pkg.description || "",
                     category: pkg.category || "",
                     starting_city: pkg.starting_city || "",
+                    ending_city: pkg.ending_city || "",
                     days: pkg.days?.toString() || "",
                     start_date: pkg.start_date || "",
                     group_size: pkg.group_size || 0,
@@ -459,7 +460,21 @@ const HolidayPackageEdit = () => {
                     const newDays = [];
                     for (let i = prev.length + 1; i <= dayCount; i++) {
                         newDays.push({
-                            day: i.toString(), title: "", description: "", master_template: "", image: null, save_to_master: false
+                            day: i.toString(),
+                            title: "",
+                            description: "",
+                            master_template: "",
+                            image: null,
+                            save_to_master: false,
+                            details_json: {
+                                active_tab: 'day_itinerary',
+                                sightseeing: [""],
+                                transfers: [""],
+                                accommodations: [],
+                                meals: [""],
+                                vehicles: [""],
+                                vehicle_data: { mode: 'with_driver' }
+                            }
                         });
                     }
                     return [...prev, ...newDays];
@@ -720,6 +735,7 @@ const HolidayPackageEdit = () => {
             formDataToSend.append("category", formData.category);
             if (formData.supplier) formDataToSend.append("supplier", formData.supplier);
             formDataToSend.append("starting_city", formData.starting_city);
+            formDataToSend.append("ending_city", formData.ending_city);
             // Ensure 'days' matches the actual number of itinerary rows
             formDataToSend.append("days", itineraryDays.length);
             if (formData.start_date) formDataToSend.append("start_date", formData.start_date);
@@ -793,16 +809,7 @@ const HolidayPackageEdit = () => {
             // Sanitize accommodations for backend
             const sanitizedAccommodations = accommodations.map(acc => {
                 if (acc && acc.hotelName) {
-                    // Combine hotel name and room details into a single string for the backend's 'text' field
-                    const roomDetails = acc.rooms.map(r => {
-                        let details = [];
-                        if (r.type) details.push(r.type);
-                        if (r.meals) details.push(`(${r.meals})`);
-                        if (r.checkIn && r.checkOut) details.push(`(${r.checkIn} to ${r.checkOut})`);
-                        if (r.noOfRooms && r.noOfRooms !== "1") details.push(`${r.noOfRooms} rooms`);
-                        return details.join(" ");
-                    }).filter(Boolean).join(", ");
-                    return `${acc.hotelName}${roomDetails ? ` - ${roomDetails}` : ''}`;
+                    return acc.hotelName;
                 }
                 return "";
             }).filter(a => a !== "");
@@ -2117,6 +2124,7 @@ const HolidayPackageEdit = () => {
                                                                                 <option value="Private">Private</option>
                                                                                 <option value="Shared">Shared</option>
                                                                                 <option value="Self Drive">Self Drive</option>
+                                                                                <option value="Vehicle with Driver/ Chaffeur">Vehicle with Driver/ Chaffeur</option>
                                                                                 <option value="No Transfer">No Transfer</option>
                                                                             </select>
                                                                         </div>
@@ -2445,18 +2453,12 @@ const HolidayPackageEdit = () => {
                                                             const accs = row.details_json?.accommodations || [];
                                                             const searchQ = row.details_json?._accSearch || '';
                                                             const showForm = row.details_json?._showNewAcc || false;
-                                                            const roomDetails = row.details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
                                                             const updateDay = (patch) => {
                                                                 const copy = [...itineraryDays];
                                                                 copy[i].details_json = { ...copy[i].details_json, ...patch };
                                                                 setItineraryDays(copy);
                                                             };
-                                                            const updateRoomDetails = (patch) => {
-                                                                const copy = [...itineraryDays];
-                                                                const rd = copy[i].details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
-                                                                copy[i].details_json._roomDetails = { ...rd, ...patch };
-                                                                setItineraryDays(copy);
-                                                            };
+
                                                             const filteredHotels = searchQ
                                                                 ? hotelMasters.filter(h =>
                                                                     h.name?.toLowerCase().includes(searchQ.toLowerCase()) ||
@@ -2626,60 +2628,7 @@ const HolidayPackageEdit = () => {
                                                                     {/* Divider */}
                                                                     <hr className="border-gray-200 my-2" />
 
-                                                                    {/* Add Room Details */}
-                                                                    <div>
-                                                                        <p className="text-[11px] font-bold text-gray-800 mb-1.5">Add Room Details</p>
-                                                                        {/* No. of Rooms / Check In / Check Out */}
-                                                                        <div className="grid grid-cols-3 gap-2 mb-2">
-                                                                            <div>
-                                                                                <p className="text-[10px] font-medium text-gray-600 mb-0.5">No. of Nights</p>
-                                                                                <select
-                                                                                    value={roomDetails.noOfRooms || ''}
-                                                                                    onChange={e => {
-                                                                                        const n = parseInt(e.target.value) || 0;
-                                                                                        const rooms = Array.from({ length: n }, (_, idx) => roomDetails.rooms?.[idx] || { roomType: '', meals: '' });
-                                                                                        updateRoomDetails({ noOfRooms: e.target.value, rooms });
-                                                                                    }}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white"
-                                                                                >
-                                                                                    <option value="">Select</option>
-                                                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
-                                                                                </select>
-                                                                            </div>
-                                                                            <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
-                                                                                <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check In</p>
-                                                                                <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkIn || ''} onChange={e => updateRoomDetails({ checkIn: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                            </div>
-                                                                            <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
-                                                                                <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check Out</p>
-                                                                                <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkOut || ''} onChange={e => updateRoomDetails({ checkOut: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                            </div>
-                                                                        </div>
-                                                                        {/* Per-room rows */}
-                                                                        {(roomDetails.rooms || []).length > 0 && (
-                                                                            <div>
-                                                                                {/* Column headers */}
-                                                                                <div className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-0.5">
-                                                                                    <div />
-                                                                                    <p className="text-[9px] font-medium text-gray-600">Room Type</p>
-                                                                                    <p className="text-[9px] font-medium text-gray-600">Meal Type</p>
-                                                                                </div>
-                                                                                {(roomDetails.rooms || []).map((room, rIdx) => (
-                                                                                    <div key={rIdx} className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-1 items-center">
-                                                                                        <p className="text-[9px] font-medium text-gray-500 text-right pr-1">Night {rIdx + 1} :</p>
-                                                                                        <input type="text" value={room.roomType || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], roomType: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} placeholder="Enter Room Type" className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                        <select value={room.meals || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], meals: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
-                                                                                            <option value="">Select meals included</option>
-                                                                                            <option value="EP">EP (Room Only)</option>
-                                                                                            <option value="CP">CP (Breakfast)</option>
-                                                                                            <option value="MAP">MAP (Half Board)</option>
-                                                                                            <option value="AP">AP (Full Board)</option>
-                                                                                        </select>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
+
                                                                 </div>
                                                             );
                                                         })()}
@@ -2687,7 +2636,7 @@ const HolidayPackageEdit = () => {
                                                         {/* 5. VEHICLE */}
                                                         {row.details_json?.active_tab === 'vehicle' && (() => {
                                                             const vd = row.details_json?.vehicle_data || {};
-                                                            const vehicleMode = vd.mode || 'self_drive';
+                                                            const vehicleMode = vd.mode || 'with_driver';
                                                             const updateVD = (patch) => {
                                                                 const copy = [...itineraryDays];
                                                                 copy[i].details_json.vehicle_data = { ...vd, ...patch };
@@ -2938,6 +2887,58 @@ const HolidayPackageEdit = () => {
 
                                     </div>
                                 </Section>
+
+                                {/* NEXT STEP BUTTON HANDLER */}
+                                <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/50 backdrop-blur-sm p-4 rounded-[2rem]">
+                                    {(() => {
+                                        const currentIndex = navItems.findIndex(item => item.id === activeSection);
+                                        return (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (currentIndex > 0) {
+                                                            setActiveSection(navItems[currentIndex - 1].id);
+                                                            document.querySelector('.flex-1.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+                                                        }
+                                                    }}
+                                                    disabled={currentIndex === 0}
+                                                    className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${currentIndex === 0 ? 'opacity-30 cursor-not-allowed text-gray-400' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95'}`}
+                                                >
+                                                    ← Previous Step
+                                                </button>
+
+                                                <div className="flex gap-2">
+                                                    {navItems.map((item, i) => (
+                                                        <div key={item.id} className={`h-1.5 rounded-full transition-all duration-500 ${activeSection === item.id ? 'w-8 bg-[#14532d]' : 'w-1.5 bg-gray-200'}`}></div>
+                                                    ))}
+                                                </div>
+
+                                                {currentIndex < navItems.length - 1 ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setActiveSection(navItems[currentIndex + 1].id);
+                                                            document.querySelector('.flex-1.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+                                                        }}
+                                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2 rounded-xl bg-[#14532d] text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-green-900/10 hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        Next Step →
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleSubmit}
+                                                        type="button"
+                                                        disabled={saving}
+                                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2 rounded-xl bg-black text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/10 hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        {saving ? "SAVING..." : "COMPLETE & SAVE"}
+                                                    </button>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
                             </form>
                         </div>
                     </div>

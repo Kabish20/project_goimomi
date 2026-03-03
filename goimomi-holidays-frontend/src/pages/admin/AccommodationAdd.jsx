@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import SearchableSelect from "../../components/admin/SearchableSelect";
 
 const FormLabel = ({ label, required, optional }) => (
     <div className="flex items-center gap-2 mb-1">
@@ -44,6 +45,7 @@ const AccommodationAdd = () => {
     const [loading, setLoading] = useState(false);
     const [images, setImages] = useState([]);
     const [previews, setPreviews] = useState([]);
+    const [destinations, setDestinations] = useState([]);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -57,6 +59,18 @@ const AccommodationAdd = () => {
         latitude: "",
         longitude: ""
     });
+
+    useEffect(() => {
+        const fetchDestinations = async () => {
+            try {
+                const res = await axios.get("/api/destinations/");
+                setDestinations(res.data);
+            } catch (err) {
+                console.error("Error fetching destinations:", err);
+            }
+        };
+        fetchDestinations();
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -173,17 +187,20 @@ const AccommodationAdd = () => {
                                         </div>
                                     </div>
 
-                                    <div>
+                                    <div className="z-10 relative">
                                         <FormLabel label="City (Country)" required />
                                         <div className="relative">
-                                            <MapPin size={10} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                                placeholder="Select city..."
-                                                className="bg-white border-2 border-gray-100 pl-7 pr-2.5 py-1.2 rounded-lg w-full text-gray-900 text-[10px] font-bold transition-all focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d]"
-                                            />
+                                            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 text-gray-400">
+                                                <MapPin size={10} />
+                                            </div>
+                                            <div className="pl-6 w-full">
+                                                <SearchableSelect
+                                                    options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                    value={formData.city}
+                                                    onChange={(val) => handleInputChange({ target: { name: 'city', value: val } })}
+                                                    placeholder="Select city..."
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -300,7 +317,7 @@ const AccommodationAdd = () => {
                                                 </button>
                                             </div>
                                         ))}
-                                        
+
                                         {previews.length < 5 && (
                                             <label className="aspect-square rounded-lg border border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-all group">
                                                 <Plus size={12} className="text-gray-400 group-hover:text-[#14532d]" />

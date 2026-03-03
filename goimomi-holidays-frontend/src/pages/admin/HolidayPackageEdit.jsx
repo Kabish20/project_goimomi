@@ -242,7 +242,7 @@ const HolidayPackageEdit = () => {
                     axios.get(`${API_BASE_URL}/destinations/`),
                     axios.get(`${API_BASE_URL}/suppliers/`),
                     axios.get(`${API_BASE_URL}/itinerary-masters/`),
-                    axios.get(`${API_BASE_URL}/hotel-masters/`),
+                    axios.get(`${API_BASE_URL}/accommodations/`),
                     axios.get(`${API_BASE_URL}/sightseeing-masters/`),
                     axios.get(`${API_BASE_URL}/meal-masters/`),
                     axios.get(`${API_BASE_URL}/airlines/`),
@@ -282,6 +282,7 @@ const HolidayPackageEdit = () => {
                     description: pkg.description || "",
                     category: pkg.category || "",
                     starting_city: pkg.starting_city || "",
+                    ending_city: pkg.ending_city || "",
                     days: pkg.days?.toString() || "",
                     start_date: pkg.start_date || "",
                     group_size: pkg.group_size || 0,
@@ -482,7 +483,7 @@ const HolidayPackageEdit = () => {
                 formDataToSend.append("image", newHotelForm.images[0]);
             }
 
-            const response = await axios.post(`${API_BASE_URL}/hotel-masters/`, formDataToSend);
+            const response = await axios.post(`${API_BASE_URL}/accommodations/`, formDataToSend);
             setHotelMasters(prev => [...prev, response.data]);
             setShowHotelModal(false);
             setNewHotelForm({
@@ -506,7 +507,21 @@ const HolidayPackageEdit = () => {
                     const newDays = [];
                     for (let i = prev.length + 1; i <= dayCount; i++) {
                         newDays.push({
-                            day: i.toString(), title: "", description: "", master_template: "", image: null, save_to_master: false
+                            day: i.toString(),
+                            title: "",
+                            description: "",
+                            master_template: "",
+                            image: null,
+                            save_to_master: false,
+                            details_json: {
+                                active_tab: 'day_itinerary',
+                                sightseeing: [""],
+                                transfers: [""],
+                                accommodations: [],
+                                meals: [""],
+                                vehicles: [""],
+                                vehicle_data: { mode: 'with_driver' }
+                            }
                         });
                     }
                     return [...prev, ...newDays];
@@ -649,14 +664,27 @@ const HolidayPackageEdit = () => {
     const handleSaveNewHotel = async (dayIndex) => {
         if (!newHotelForm.name.trim()) { alert('Please enter the accommodation name.'); return; }
         try {
-            const res = await axios.post(`/api/hotel-masters/`, {
-                name: newHotelForm.name, stars: newHotelForm.stars,
-                address: newHotelForm.address, city: newHotelForm.city,
-                website: newHotelForm.website, email: newHotelForm.email,
-                latitude: newHotelForm.latitude, longitude: newHotelForm.longitude,
-            });
+            const fd = new FormData();
+            fd.append('name', newHotelForm.name);
+            fd.append('stars', newHotelForm.stars || '3');
+            fd.append('address', newHotelForm.address);
+            fd.append('city', newHotelForm.city);
+            fd.append('website', newHotelForm.website || '');
+            fd.append('email', newHotelForm.email || '');
+            fd.append('latitude', newHotelForm.latitude || '');
+            fd.append('longitude', newHotelForm.longitude || '');
+
+            if (newHotelForm.images && newHotelForm.images.length > 0) {
+                fd.append('image', newHotelForm.images[0]);
+                newHotelForm.images.forEach(img => {
+                    fd.append('gallery_images', img);
+                });
+            }
+
+            const res = await axios.post(`/api/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
             const savedHotel = res.data;
             setHotelMasters(prev => [...prev, savedHotel]);
+
             const copy = [...itineraryDays];
             if (!copy[dayIndex].details_json.accommodations) copy[dayIndex].details_json.accommodations = [];
             copy[dayIndex].details_json.accommodations.push({
@@ -665,6 +693,7 @@ const HolidayPackageEdit = () => {
             });
             copy[dayIndex].details_json._showNewAcc = false;
             setItineraryDays(copy);
+
             setNewHotelForm({ name: '', stars: '3', address: '', city: '', phone: '', website: '', email: '', latitude: '', longitude: '', images: [] });
         } catch (err) {
             console.error('Error saving hotel:', err);
@@ -782,6 +811,7 @@ const HolidayPackageEdit = () => {
             formDataToSend.append("category", formData.category);
             if (formData.supplier) formDataToSend.append("supplier", formData.supplier);
             formDataToSend.append("starting_city", formData.starting_city);
+            formDataToSend.append("ending_city", formData.ending_city);
             // Ensure 'days' matches the actual number of itinerary rows
             formDataToSend.append("days", itineraryDays.length);
             if (formData.start_date) formDataToSend.append("start_date", formData.start_date);
@@ -875,16 +905,7 @@ const HolidayPackageEdit = () => {
             // Sanitize accommodations for backend
             const sanitizedAccommodations = accommodations.map(acc => {
                 if (acc && acc.hotelName) {
-                    // Combine hotel name and room details into a single string for the backend's 'text' field
-                    const roomDetails = acc.rooms.map(r => {
-                        let details = [];
-                        if (r.type) details.push(r.type);
-                        if (r.meals) details.push(`(${r.meals})`);
-                        if (r.checkIn && r.checkOut) details.push(`(${r.checkIn} to ${r.checkOut})`);
-                        if (r.noOfRooms && r.noOfRooms !== "1") details.push(`${r.noOfRooms} rooms`);
-                        return details.join(" ");
-                    }).filter(Boolean).join(", ");
-                    return `${acc.hotelName}${roomDetails ? ` - ${roomDetails}` : ''}`;
+                    return acc.hotelName;
                 }
                 return "";
             }).filter(a => a !== "");
@@ -1817,24 +1838,7 @@ const HolidayPackageEdit = () => {
                                                             <h3 className="text-xl font-black text-gray-900">{getDestinationForDay(i)}</h3>
                                                         </div>
                                                         <div className="flex gap-4">
-                                                            <select
-                                                                value={row.master_template}
-                                                                onChange={(e) => handleMasterTemplateChange(i, e.target.value)}
-                                                                className="bg-gray-50 border-2 border-transparent px-4 py-2 rounded-xl text-xs font-bold focus:border-[#14532d] focus:bg-white outline-none transition-all"
-                                                            >
-                                                                <option value="">Load from Master...</option>
-                                                                {(() => {
-                                                                    const currentDest = getDestinationForDay(i);
-                                                                    const destSpecificMasters = currentDest && currentDest !== "---" ? (groupedItineraryMasters[currentDest] || []) : [];
-                                                                    const globalMasters = groupedItineraryMasters["Global / General"] || [];
-                                                                    return (
-                                                                        <>
-                                                                            {destSpecificMasters.length > 0 && <optgroup label={`${currentDest} Templates`}>{destSpecificMasters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</optgroup>}
-                                                                            {globalMasters.length > 0 && <optgroup label="Global Templates">{globalMasters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</optgroup>}
-                                                                        </>
-                                                                    );
-                                                                })()}
-                                                            </select>
+
 
                                                             <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 scale-90">
                                                                 <button
@@ -1925,8 +1929,13 @@ const HolidayPackageEdit = () => {
                                                                     copy[i].details_json = { ...copy[i].details_json, ...patch };
                                                                     setItineraryDays(copy);
                                                                 };
+                                                                const currentDest = getDestinationForDay(i);
+                                                                const availableMasters = [
+                                                                    ...(currentDest && currentDest !== "---" && groupedItineraryMasters[currentDest] ? groupedItineraryMasters[currentDest] : []),
+                                                                    ...(groupedItineraryMasters["Global / General"] || [])
+                                                                ];
                                                                 const filteredDayMasters = dayMasterSearch
-                                                                    ? itineraryMasters.filter(m =>
+                                                                    ? availableMasters.filter(m =>
                                                                         m.name?.toLowerCase().includes(dayMasterSearch.toLowerCase()) ||
                                                                         m.title?.toLowerCase().includes(dayMasterSearch.toLowerCase())
                                                                     ) : [];
@@ -1968,16 +1977,22 @@ const HolidayPackageEdit = () => {
                                                                                 {/* Dropdown results */}
                                                                                 {(row.details_json?._dayMasterFocused) && (() => {
                                                                                     const searchVal = dayMasterSearch.toLowerCase();
+                                                                                    const currentDest = getDestinationForDay(i);
+                                                                                    const availableMasters = [
+                                                                                        ...(currentDest && currentDest !== "---" && groupedItineraryMasters[currentDest] ? groupedItineraryMasters[currentDest] : []),
+                                                                                        ...(groupedItineraryMasters["Global / General"] || [])
+                                                                                    ];
+
                                                                                     const results = searchVal
-                                                                                        ? itineraryMasters.filter(m =>
+                                                                                        ? availableMasters.filter(m =>
                                                                                             m.name?.toLowerCase().includes(searchVal) ||
                                                                                             m.title?.toLowerCase().includes(searchVal)
                                                                                         )
-                                                                                        : itineraryMasters.slice(0, 20);
+                                                                                        : availableMasters.slice(0, 20);
                                                                                     if (results.length === 0) return null;
                                                                                     return (
                                                                                         <div className="absolute left-0 right-0 top-full mt-1 border-2 border-gray-100 rounded-2xl bg-white shadow-xl max-h-48 overflow-y-auto z-50 custom-scrollbar">
-                                                                                            {!searchVal && <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 pt-2 pb-1">All Masters</p>}
+                                                                                            {!searchVal && <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 pt-2 pb-1">Relevant Masters</p>}
                                                                                             {results.map(m => (
                                                                                                 <button
                                                                                                     key={m.id}
@@ -2062,6 +2077,7 @@ const HolidayPackageEdit = () => {
                                                                                     <option value="Private">Private</option>
                                                                                     <option value="Shared">Shared</option>
                                                                                     <option value="Self Drive">Self Drive</option>
+                                                                                    <option value="Vehicle with Driver/ Chaffeur">Vehicle with Driver/ Chaffeur</option>
                                                                                     <option value="No Transfer">No Transfer</option>
                                                                                 </select>
                                                                             </div>
@@ -2136,10 +2152,18 @@ const HolidayPackageEdit = () => {
                                                                     copy[i].details_json = { ...copy[i].details_json, ...patch };
                                                                     setItineraryDays(copy);
                                                                 };
-                                                                const filteredSightseeings = sightseeingSearch
+                                                                const currentDest = getDestinationForDay(i);
+                                                                const allowedSightseeings = currentDest && currentDest !== "---"
                                                                     ? sightseeingMasters.filter(sm =>
-                                                                        sm.name?.toLowerCase().includes(sightseeingSearch.toLowerCase()) ||
-                                                                        sm.city?.toLowerCase().includes(sightseeingSearch.toLowerCase())
+                                                                        (sm.city && sm.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
+                                                                        (sm.destination_name && sm.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase())
+                                                                    )
+                                                                    : sightseeingMasters;
+
+                                                                const filteredSightseeings = sightseeingSearch
+                                                                    ? allowedSightseeings.filter(sm =>
+                                                                        sm.name?.toLowerCase().includes(sightseeingSearch.trim().toLowerCase()) ||
+                                                                        sm.city?.toLowerCase().includes(sightseeingSearch.trim().toLowerCase())
                                                                     ) : [];
                                                                 return (
                                                                     <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -2157,6 +2181,11 @@ const HolidayPackageEdit = () => {
                                                                                         className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
                                                                                     />
                                                                                     <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                                                    {sightseeingSearch && (
+                                                                                        <button type="button" onClick={() => updateDay({ _sightseeingSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                                                                            <X size={12} />
+                                                                                        </button>
+                                                                                    )}
                                                                                 </div>
                                                                                 {/* Search results dropdown */}
                                                                                 {filteredSightseeings.length > 0 && (
@@ -2167,16 +2196,14 @@ const HolidayPackageEdit = () => {
                                                                                                 type="button"
                                                                                                 onClick={() => {
                                                                                                     const copy = [...itineraryDays];
-                                                                                                    if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
-                                                                                                    const already = copy[i].details_json.sightseeing.includes(sm.name);
-                                                                                                    if (!already) copy[i].details_json.sightseeing.push(sm.name);
+                                                                                                    copy[i].details_json.sightseeing = [sm.name];
                                                                                                     copy[i].details_json._sightseeingSearch = '';
                                                                                                     setItineraryDays(copy);
                                                                                                 }}
                                                                                                 className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
                                                                                             >
                                                                                                 <span className="font-medium text-gray-800">{sm.name}</span>
-                                                                                                {sm.city && <span className="text-gray-400 ml-1">? {sm.city}</span>}
+                                                                                                {sm.city && <span className="text-gray-400 ml-1">· {sm.city}</span>}
                                                                                             </button>
                                                                                         ))}
                                                                                     </div>
@@ -2279,7 +2306,7 @@ const HolidayPackageEdit = () => {
                                                                                         <input type="text" value={newSightseeingForm.map_link} onChange={e => setNewSightseeingForm(p => ({ ...p, map_link: e.target.value }))} placeholder="https://maps.google.com/..." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                     </div>
                                                                                     <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-orange-400 text-[10px]">ⓘ</span> <span className="text-sky-400 font-normal">(Optional)</span></p>
                                                                                         <div className="flex gap-1">
                                                                                             <input type="text" value={newSightseeingForm.latitude} onChange={e => setNewSightseeingForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Latitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                             <input type="text" value={newSightseeingForm.longitude} onChange={e => setNewSightseeingForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Longitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
@@ -2299,7 +2326,7 @@ const HolidayPackageEdit = () => {
                                                                                             {(newSightseeingForm.images || []).map((img, imgIdx) => (
                                                                                                 <div key={imgIdx} className="relative w-[46px] h-[40px]">
                                                                                                     <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
-                                                                                                    <button type="button" onClick={() => setNewSightseeingForm(p => ({ ...p, images: p.images.filter((_, j) => j !== imgIdx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">?</button>
+                                                                                                    <button type="button" onClick={() => setNewSightseeingForm(p => ({ ...p, images: p.images.filter((_, j) => j !== imgIdx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
                                                                                                 </div>
                                                                                             ))}
                                                                                         </div>
@@ -2328,8 +2355,7 @@ const HolidayPackageEdit = () => {
                                                                                                 const res = await axios.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
                                                                                                 setSightseeingMasters(prev => [...prev, res.data]);
                                                                                                 const copy = [...itineraryDays];
-                                                                                                if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
-                                                                                                copy[i].details_json.sightseeing.push(res.data.name);
+                                                                                                copy[i].details_json.sightseeing = [res.data.name];
                                                                                                 setItineraryDays(copy);
                                                                                                 setNewSightseeingForm({
                                                                                                     name: '', description: '', address: '', city: '', duration: '', price: '', map_link: '',
@@ -2347,7 +2373,7 @@ const HolidayPackageEdit = () => {
                                                                             ) : (
                                                                                 <button
                                                                                     type="button"
-                                                                                    onClick={() => { setSightseeingPanelDayIndex(i); setNewSightseeingForm({ name: '', description: '', address: '', city: '', latitude: '', longitude: '', images: [] }); }}
+                                                                                    onClick={() => { setSightseeingPanelDayIndex(i); setNewSightseeingForm({ name: '', description: '', address: '', city: getDestinationForDay(i) !== '---' ? getDestinationForDay(i) : '', latitude: '', longitude: '', images: [] }); }}
                                                                                     className="w-full py-2 border border-dashed border-orange-300 text-orange-500 text-[10px] font-medium rounded-sm hover:bg-orange-50 transition-colors"
                                                                                 >+ Add New Sightseeing</button>
                                                                             )}
@@ -2362,110 +2388,133 @@ const HolidayPackageEdit = () => {
                                                                 const accs = row.details_json?.accommodations || [];
                                                                 const searchQ = row.details_json?._accSearch || '';
                                                                 const showForm = row.details_json?._showNewAcc || false;
-                                                                const roomDetails = row.details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
                                                                 const updateDay = (patch) => {
                                                                     const copy = [...itineraryDays];
                                                                     copy[i].details_json = { ...copy[i].details_json, ...patch };
                                                                     setItineraryDays(copy);
                                                                 };
-                                                                const updateRoomDetails = (patch) => {
-                                                                    const copy = [...itineraryDays];
-                                                                    const rd = copy[i].details_json?._roomDetails || { noOfRooms: '', checkIn: '', checkOut: '', rooms: [] };
-                                                                    copy[i].details_json._roomDetails = { ...rd, ...patch };
-                                                                    setItineraryDays(copy);
-                                                                };
-                                                                const filteredHotels = searchQ
+
+                                                                const currentDest = getDestinationForDay(i);
+                                                                const allowedHotels = currentDest && currentDest !== "---"
                                                                     ? hotelMasters.filter(h =>
-                                                                        h.name?.toLowerCase().includes(searchQ.toLowerCase()) ||
-                                                                        h.city?.toLowerCase().includes(searchQ.toLowerCase())
+                                                                        (h.city && h.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
+                                                                        (h.destination_name && h.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase())
+                                                                    )
+                                                                    : hotelMasters;
+
+                                                                const filteredHotels = searchQ
+                                                                    ? allowedHotels.filter(h =>
+                                                                        h.name?.toLowerCase().includes(searchQ.trim().toLowerCase()) ||
+                                                                        h.city?.toLowerCase().includes(searchQ.trim().toLowerCase())
                                                                     ) : [];
                                                                 return (
-                                                                    <div className="bg-white p-0 space-y-0">
-                                                                        {/* Header */}
-                                                                        <div className="flex items-center justify-between pb-1.5">
-                                                                            <h3 className="text-[12px] font-bold text-gray-900">Accommodation</h3>
-                                                                        </div>
-
-                                                                        {/* Search Accommodation */}
-                                                                        <div className="mb-2">
-                                                                            <p className="text-[10px] text-gray-500 mb-1">Search Accommodation from the database</p>
-                                                                            {/* Search Input */}
-                                                                            <div className="relative">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    value={searchQ}
-                                                                                    onChange={e => updateDay({ _accSearch: e.target.value })}
-                                                                                    placeholder=""
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[11px] focus:outline-none focus:border-blue-400 pr-6"
-                                                                                />
-                                                                                {searchQ && (
-                                                                                    <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600 font-bold text-[11px]">?</button>
+                                                                    <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                                        {/* Main accommodation panel */}
+                                                                        <div className="flex-1 space-y-3">
+                                                                            {/* Search */}
+                                                                            <div>
+                                                                                <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search accommodation from the database</p>
+                                                                                <div className="relative">
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={searchQ}
+                                                                                        onChange={e => updateDay({ _accSearch: e.target.value })}
+                                                                                        placeholder="Type to look up for accommodation in masters"
+                                                                                        className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
+                                                                                    />
+                                                                                    <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                                                    {searchQ && (
+                                                                                        <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                                                                            <X size={12} />
+                                                                                        </button>
+                                                                                    )}
+                                                                                </div>
+                                                                                {/* Search results dropdown */}
+                                                                                {filteredHotels.length > 0 && (
+                                                                                    <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
+                                                                                        {filteredHotels.map(h => (
+                                                                                            <button
+                                                                                                key={h.id}
+                                                                                                type="button"
+                                                                                                onClick={() => {
+                                                                                                    const copy = [...itineraryDays];
+                                                                                                    if (!copy[i].details_json.accommodations) copy[i].details_json.accommodations = [];
+                                                                                                    const alreadyAdded = copy[i].details_json.accommodations.find(a => a.hotelId === h.id);
+                                                                                                    if (!alreadyAdded) {
+                                                                                                        copy[i].details_json.accommodations.push({ hotelId: h.id, hotelName: h.name });
+                                                                                                    }
+                                                                                                    copy[i].details_json._accSearch = '';
+                                                                                                    setItineraryDays(copy);
+                                                                                                }}
+                                                                                                className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                                                                                            >
+                                                                                                <span className="font-medium text-gray-800">{h.name}</span>
+                                                                                                {h.city && <span className="text-gray-400 ml-1">· {h.city}</span>}
+                                                                                            </button>
+                                                                                        ))}
+                                                                                    </div>
                                                                                 )}
                                                                             </div>
 
-                                                                            {/* Two-panel dropdown */}
-                                                                            <div className="border border-gray-200 rounded-sm mt-0.5 bg-white shadow-sm">
-                                                                                {/* Top panel: Add New Accommodation */}
-                                                                                <div className="border border-dashed border-orange-200 m-1.5 rounded-sm">
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => updateDay({ _showNewAcc: !showForm })}
-                                                                                        className="w-full py-1.5 text-[11px] text-orange-400 font-medium hover:bg-orange-50 transition-colors"
-                                                                                    >
-                                                                                        {showForm ? 'Close Form' : 'Add New Accommodation'}
-                                                                                    </button>
+                                                                            {/* Added accommodations or empty state */}
+                                                                            {accs.length === 0 ? (
+                                                                                <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
+                                                                                    <p className="text-[11px] text-gray-400">No Accommodation added</p>
                                                                                 </div>
-                                                                                {/* Bottom panel: search results / empty state */}
-                                                                                <div className="border border-dashed border-gray-200 m-1.5 mt-0 rounded-sm min-h-[44px] max-h-[100px] overflow-y-auto flex flex-col">
-                                                                                    {filteredHotels.length > 0 ? filteredHotels.map(h => (
-                                                                                        <button
-                                                                                            key={h.id}
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                const copy = [...itineraryDays];
-                                                                                                if (!copy[i].details_json.accommodations) copy[i].details_json.accommodations = [];
-                                                                                                const alreadyAdded = copy[i].details_json.accommodations.find(a => a.hotelId === h.id);
-                                                                                                if (!alreadyAdded) {
-                                                                                                    copy[i].details_json.accommodations.push({ hotelId: h.id, hotelName: h.name });
-                                                                                                }
-                                                                                                copy[i].details_json._accSearch = '';
-                                                                                                setItineraryDays(copy);
-                                                                                            }}
-                                                                                            className="w-full text-left px-2 py-1 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                                                                        >
-                                                                                            <span className="font-medium text-gray-800">{h.name}</span>
-                                                                                            {h.city && <span className="text-gray-400 ml-1">? {h.city}</span>}
-                                                                                        </button>
-                                                                                    )) : (
-                                                                                        <div className="flex-1 flex items-center justify-center">
-                                                                                            <p className="text-[10px] text-gray-400">No accommodation added</p>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            </div>
-
-                                                                            {/* Selected accommodations tags */}
-                                                                            {accs.length > 0 && (
-                                                                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                                                                    {accs.map((acc, accIdx) => (
-                                                                                        <span key={accIdx} className="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-0.5 font-medium">
-                                                                                            {acc.hotelName}
-                                                                                            <button type="button" onClick={() => { const copy = [...itineraryDays]; copy[i].details_json.accommodations.splice(accIdx, 1); setItineraryDays(copy); }} className="text-blue-400 hover:text-red-500 ml-0.5">?</button>
-                                                                                        </span>
-                                                                                    ))}
+                                                                            ) : (
+                                                                                <div className="space-y-2">
+                                                                                    {accs.map((acc, accIdx) => {
+                                                                                        const h = hotelMasters.find(hm => hm.id === acc.hotelId);
+                                                                                        return (
+                                                                                            <div key={accIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
+                                                                                                {(h?.image || (h?.images && h.images.length > 0)) && (
+                                                                                                    <div className="w-16 h-16 shrink-0 rounded-sm overflow-hidden bg-gray-100 border border-gray-200">
+                                                                                                        <img src={h?.image ? getImageUrl(h.image) : (h?.images?.[0]?.image ? getImageUrl(h.images[0].image) : '/placeholder.png')} alt={h?.name} className="w-full h-full object-cover" />
+                                                                                                    </div>
+                                                                                                )}
+                                                                                                <div className="flex-1 min-w-0">
+                                                                                                    {h?.city && <p className="text-[9px] text-gray-400">{h.city}</p>}
+                                                                                                    <div className="flex items-center gap-2">
+                                                                                                        <p className="text-[11px] font-bold text-gray-900">{acc.hotelName}</p>
+                                                                                                        {h?.stars && (
+                                                                                                            <div className="flex items-center">
+                                                                                                                {[...Array(Number(h.stars))].map((_, starI) => (
+                                                                                                                    <Star key={starI} size={8} className="fill-yellow-400 text-yellow-400" />
+                                                                                                                ))}
+                                                                                                            </div>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                    {h?.address && <p className="text-[9px] text-gray-500">{h.address}</p>}
+                                                                                                </div>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => {
+                                                                                                        const copy = [...itineraryDays];
+                                                                                                        copy[i].details_json.accommodations.splice(accIdx, 1);
+                                                                                                        setItineraryDays(copy);
+                                                                                                    }}
+                                                                                                    className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                                                                >
+                                                                                                    <X size={12} />
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
                                                                                 </div>
                                                                             )}
                                                                         </div>
 
-                                                                        {/* Add New Accommodation Form */}
-                                                                        {showForm && (
-                                                                            <div className="border border-gray-200 rounded p-3 bg-gray-50/50 space-y-2 mb-2">
-                                                                                <h4 className="text-[11px] font-bold text-gray-800">Add New Accommodation</h4>
-                                                                                {/* Row 1: Name + Star */}
-                                                                                <div className="grid grid-cols-2 gap-2">
+                                                                        {/* Add New Accommodation Form panel */}
+                                                                        <div className="w-56 shrink-0">
+                                                                            {showForm ? (
+                                                                                <div className="border border-gray-200 rounded-sm p-3 bg-gray-50/50 space-y-2">
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <h4 className="text-[11px] font-bold text-gray-800">Add New Accommodation</h4>
+                                                                                        <button type="button" onClick={() => updateDay({ _showNewAcc: false })} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={12} /></button>
+                                                                                    </div>
                                                                                     <div>
                                                                                         <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Accommodation</p>
-                                                                                        <input type="text" value={newHotelForm.name} onChange={e => setNewHotelForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name of the acccommodation" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <input type="text" value={newHotelForm.name} onChange={e => setNewHotelForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                     </div>
                                                                                     <div>
                                                                                         <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Star Category</p>
@@ -2474,139 +2523,58 @@ const HolidayPackageEdit = () => {
                                                                                             {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s} Star</option>)}
                                                                                         </select>
                                                                                     </div>
-                                                                                </div>
-                                                                                {/* Row 2: Address + City */}
-                                                                                <div className="grid grid-cols-2 gap-2">
                                                                                     <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Address <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                        <input type="text" value={newHotelForm.address} onChange={e => setNewHotelForm(p => ({ ...p, address: e.target.value }))} placeholder="Enter accommodation address" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Address <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                        <input type="text" value={newHotelForm.address} onChange={e => setNewHotelForm(p => ({ ...p, address: e.target.value }))} placeholder="Enter address" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                     </div>
                                                                                     <div>
                                                                                         <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
-                                                                                        <input type="text" value={newHotelForm.city} onChange={e => setNewHotelForm(p => ({ ...p, city: e.target.value }))} placeholder="Select a city..." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                    </div>
-                                                                                </div>
-                                                                                {/* Row 3: Phone */}
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Phone No. <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                    <div className="grid grid-cols-2 gap-2">
-                                                                                        <input type="text" value={newHotelForm.phone || ''} onChange={e => setNewHotelForm(p => ({ ...p, phone: e.target.value }))} placeholder="Select country code" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                        <input type="text" placeholder="Enter phone no." className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                    </div>
-                                                                                </div>
-                                                                                {/* Row 4: Website + Email */}
-                                                                                <div className="grid grid-cols-2 gap-2">
-                                                                                    <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Website <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                        <input type="text" value={newHotelForm.website} onChange={e => setNewHotelForm(p => ({ ...p, website: e.target.value }))} placeholder="Enter accommodation website" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                        <select value={newHotelForm.city} onChange={e => setNewHotelForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                            <option value="">Select a city...</option>
+                                                                                            {destinations.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                                                                                        </select>
                                                                                     </div>
                                                                                     <div>
-                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Email Id <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                        <input type="email" value={newHotelForm.email} onChange={e => setNewHotelForm(p => ({ ...p, email: e.target.value }))} placeholder="Type Email Id" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                    </div>
-                                                                                </div>
-                                                                                {/* Row 5: Lat/Lng */}
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Latitude &amp; Longitude <span className="text-sky-400 font-normal">(optional)</span></p>
-                                                                                    <div className="flex gap-2 items-center">
-                                                                                        <input type="text" value={newHotelForm.latitude} onChange={e => setNewHotelForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Latitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                        <input type="text" value={newHotelForm.longitude} onChange={e => setNewHotelForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Longitude" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                        <span className="text-orange-400 text-[13px]">?</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                                {/* Row 6: Images */}
-                                                                                <div>
-                                                                                    <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Images <span className="text-gray-400 font-normal">(up to 5, max 1 MB)</span></p>
-                                                                                    <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
-                                                                                        <label className="w-[50px] h-[44px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
-                                                                                            <span className="text-sm leading-none">+</span>
-                                                                                            <span>Add</span>
-                                                                                            <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                                                                                                const files = Array.from(e.target.files).slice(0, 5);
-                                                                                                setNewHotelForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
-                                                                                            }} />
-                                                                                        </label>
-                                                                                        {(newHotelForm.images || []).map((img, idx) => (
-                                                                                            <div key={idx} className="relative w-[50px] h-[44px]">
-                                                                                                <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
-                                                                                                <button type="button" onClick={() => setNewHotelForm(p => ({ ...p, images: p.images.filter((_, j) => j !== idx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">?</button>
-                                                                                            </div>
-                                                                                        ))}
-                                                                                    </div>
-                                                                                </div>
-                                                                                <button type="button" onClick={() => handleSaveNewHotel(i)} className="w-full py-1 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors">
-                                                                                    Save Accommodation
-                                                                                </button>
-                                                                            </div>
-                                                                        )}
-
-                                                                        {/* Divider */}
-                                                                        <hr className="border-gray-200 my-2" />
-
-                                                                        {/* Add Room Details */}
-                                                                        <div>
-                                                                            <p className="text-[11px] font-bold text-gray-800 mb-1.5">Add Room Details</p>
-                                                                            {/* No. of Rooms / Check In / Check Out */}
-                                                                            <div className="grid grid-cols-3 gap-2 mb-2">
-                                                                                <div>
-                                                                                    <p className="text-[10px] font-medium text-gray-600 mb-0.5">No. of Nights</p>
-                                                                                    <select
-                                                                                        value={roomDetails.noOfRooms || ''}
-                                                                                        onChange={e => {
-                                                                                            const n = parseInt(e.target.value) || 0;
-                                                                                            const rooms = Array.from({ length: n }, (_, idx) => roomDetails.rooms?.[idx] || { roomType: '', meals: '' });
-                                                                                            updateRoomDetails({ noOfRooms: e.target.value, rooms });
-                                                                                        }}
-                                                                                        className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white"
-                                                                                    >
-                                                                                        <option value="">Select</option>
-                                                                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
-                                                                                    </select>
-                                                                                </div>
-                                                                                <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
-                                                                                    <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check In</p>
-                                                                                    <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkIn || ''} onChange={e => updateRoomDetails({ checkIn: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                                <div className={!formData.fixed_departure ? "opacity-40 blur-[1px] pointer-events-none select-none transition-all duration-300" : "transition-all duration-300"}>
-                                                                                    <p className="text-[10px] font-medium text-gray-600 mb-0.5">Check Out</p>
-                                                                                    <input disabled={!formData.fixed_departure} type="date" value={roomDetails.checkOut || ''} onChange={e => updateRoomDetails({ checkOut: e.target.value })} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                                                                </div>
-                                                                            </div>
-                                                                            {/* Per-room rows */}
-                                                                            {(roomDetails.rooms || []).length > 0 && (
-                                                                                <div>
-                                                                                    {/* Column headers */}
-                                                                                    <div className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-0.5">
-                                                                                        <div />
-                                                                                        <p className="text-[9px] font-medium text-gray-600">Room Type</p>
-                                                                                        <p className="text-[9px] font-medium text-gray-600">Meal Type</p>
-                                                                                    </div>
-                                                                                    {(roomDetails.rooms || []).map((room, rIdx) => (
-                                                                                        <div key={rIdx} className="grid grid-cols-[64px_1fr_1fr] gap-2 mb-1 items-center">
-                                                                                            <p className="text-[9px] font-medium text-gray-500 text-right pr-1">Night {rIdx + 1} :</p>
-                                                                                            <SearchableSelect
-                                                                                                options={roomTypes.map(rt => ({ value: rt.name, label: rt.name }))}
-                                                                                                value={room.roomType || ''}
-                                                                                                onChange={val => {
-                                                                                                    const copy = [...itineraryDays];
-                                                                                                    const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])];
-                                                                                                    rooms[rIdx] = { ...rooms[rIdx], roomType: val };
-                                                                                                    copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms };
-                                                                                                    setItineraryDays(copy);
-                                                                                                }}
-                                                                                                placeholder="Select/Search Room Type"
-                                                                                                className="w-full"
-                                                                                            />
-                                                                                            <select value={room.meals || ''} onChange={e => { const copy = [...itineraryDays]; const rooms = [...(copy[i].details_json._roomDetails?.rooms || [])]; rooms[rIdx] = { ...rooms[rIdx], meals: e.target.value }; copy[i].details_json._roomDetails = { ...copy[i].details_json._roomDetails, rooms }; setItineraryDays(copy); }} className="w-full border border-gray-300 rounded-sm px-1.5 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
-                                                                                                <option value="">Select meals included</option>
-                                                                                                <option value="EP">EP (Room Only)</option>
-                                                                                                <option value="CP">CP (Breakfast)</option>
-                                                                                                <option value="MAP">MAP (Half Board)</option>
-                                                                                                <option value="AP">AP (Full Board)</option>
-                                                                                            </select>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                        <div className="flex gap-1">
+                                                                                            <input type="text" value={newHotelForm.latitude} onChange={e => setNewHotelForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Lat" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                                            <input type="text" value={newHotelForm.longitude} onChange={e => setNewHotelForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Long" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                                                                         </div>
-                                                                                    ))}
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Images <span className="text-gray-400 font-normal">(Up to 5)</span></p>
+                                                                                        <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
+                                                                                            <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
+                                                                                                <span className="text-sm leading-none">+</span>
+                                                                                                <span>Add</span>
+                                                                                                <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                                                                                                    const files = Array.from(e.target.files).slice(0, 5);
+                                                                                                    setNewHotelForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
+                                                                                                }} />
+                                                                                            </label>
+                                                                                            {(newHotelForm.images || []).map((img, idx) => (
+                                                                                                <div key={idx} className="relative w-[46px] h-[40px]">
+                                                                                                    <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
+                                                                                                    <button type="button" onClick={() => setNewHotelForm(p => ({ ...p, images: p.images.filter((_, j) => j !== idx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleSaveNewHotel(i)}
+                                                                                        className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
+                                                                                    >Save Accommodation</button>
                                                                                 </div>
+                                                                            ) : (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => {
+                                                                                        updateDay({ _showNewAcc: true });
+                                                                                        setNewHotelForm({ name: '', stars: '3', address: '', city: getDestinationForDay(i) !== '---' ? getDestinationForDay(i) : '', website: '', email: '', latitude: '', longitude: '', images: [] });
+                                                                                    }}
+                                                                                    className="w-full py-2 border border-dashed border-orange-300 text-orange-500 text-[10px] font-medium rounded-sm hover:bg-orange-50 transition-colors"
+                                                                                >+ Add New Accommodation</button>
                                                                             )}
                                                                         </div>
                                                                     </div>
@@ -2616,7 +2584,7 @@ const HolidayPackageEdit = () => {
                                                             {/* 5. VEHICLE */}
                                                             {row.details_json?.active_tab === 'vehicle' && (() => {
                                                                 const vd = row.details_json?.vehicle_data || {};
-                                                                const vehicleMode = vd.mode || 'self_drive';
+                                                                const vehicleMode = vd.mode || 'with_driver';
                                                                 const updateVD = (patch) => {
                                                                     const copy = [...itineraryDays];
                                                                     copy[i].details_json.vehicle_data = { ...vd, ...patch };
@@ -2803,156 +2771,155 @@ const HolidayPackageEdit = () => {
                                     <Section title="Trip Information" active={activeSection === 'policy'}>
                                         <div className="space-y-6 max-w-5xl mx-auto">
                                             {/* Global Arrival & Departure Logistics */}
-                                            {!formData.fixed_departure && (
-                                                <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${!formData.with_flight ? 'opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500' : 'transition-all duration-300'}`}>
-                                                    {/* Arrival */}
-                                                    <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
-                                                        <div className="flex justify-between items-center mb-6">
-                                                            <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
-                                                                <Plane size={16} className="rotate-45" /> Arrival Logistics
-                                                            </h4>
-                                                            <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setFormData({ ...formData, with_arrival: true })}
-                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_arrival ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                                >
-                                                                    INCLUDED
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setFormData({ ...formData, with_arrival: false })}
-                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_arrival ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                                >
-                                                                    EXCLUDED
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <div>
-                                                                    <FormLabel label="Arrival City" optional />
-                                                                    <SearchableSelect
-                                                                        options={[
-                                                                            { value: "Any City", label: "Any City" },
-                                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                                        ]}
-                                                                        value={formData.arrival_city}
-                                                                        onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
-                                                                        placeholder="Select City"
-                                                                        className="!py-1"
-                                                                        error={errors.arrival_city}
-                                                                    />
-                                                                </div>
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <div>
-                                                                        <FormLabel label="Date" optional />
-                                                                        <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
-                                                                    </div>
-                                                                    <div>
-                                                                        <FormLabel label="Time" optional />
-                                                                        <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <div>
-                                                                    <FormLabel label="Airline" optional />
-                                                                    <SearchableSelect
-                                                                        options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                        value={formData.arrival_airline}
-                                                                        onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                                                        placeholder="Select Airline"
-                                                                        className="!py-1"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <FormLabel label="Flight No." optional />
-                                                                    <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <FormLabel label="Arrival Airport" optional />
-                                                                <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
-                                                            </div>
+                                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${!formData.with_flight ? 'opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500' : 'transition-all duration-300'}`}>
+                                                {/* Arrival */}
+                                                <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                                                            <Plane size={16} className="rotate-45" /> Arrival Logistics
+                                                        </h4>
+                                                        <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, with_arrival: true })}
+                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_arrival ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                INCLUDED
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, with_arrival: false })}
+                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_arrival ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                EXCLUDED
+                                                            </button>
                                                         </div>
                                                     </div>
 
-                                                    {/* Departure */}
-                                                    <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
-                                                        <div className="flex justify-between items-center mb-6">
-                                                            <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-                                                                <Plane size={16} className="-rotate-45" /> Departure Logistics
-                                                            </h4>
-                                                            <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setFormData({ ...formData, with_departure: true })}
-                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_departure ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                                >
-                                                                    INCLUDED
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setFormData({ ...formData, with_departure: false })}
-                                                                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_departure ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                                >
-                                                                    EXCLUDED
-                                                                </button>
+                                                    <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div>
+                                                                <FormLabel label="Arrival City" optional />
+                                                                <SearchableSelect
+                                                                    options={[
+                                                                        { value: "Any City", label: "Any City" },
+                                                                        ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                                    ]}
+                                                                    value={formData.arrival_city}
+                                                                    onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
+                                                                    placeholder="Select City"
+                                                                    className="!py-1"
+                                                                    error={errors.arrival_city}
+                                                                />
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                <div>
+                                                                    <FormLabel label="Date" optional />
+                                                                    <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
+                                                                </div>
+                                                                <div>
+                                                                    <FormLabel label="Time" optional />
+                                                                    <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <div>
-                                                                    <FormLabel label="Departure City" optional />
-                                                                    <SearchableSelect
-                                                                        options={[
-                                                                            { value: "Any City", label: "Any City" },
-                                                                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                                        ]}
-                                                                        value={formData.departure_city}
-                                                                        onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                                                        placeholder="Select City"
-                                                                        className="!py-1"
-                                                                        error={errors.departure_city}
-                                                                    />
-                                                                </div>
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <div>
-                                                                        <FormLabel label="Date" optional />
-                                                                        <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
-                                                                    </div>
-                                                                    <div>
-                                                                        <FormLabel label="Time" optional />
-                                                                        <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <div>
-                                                                    <FormLabel label="Airline" optional />
-                                                                    <SearchableSelect
-                                                                        options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                        value={formData.departure_airline}
-                                                                        onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                                                        placeholder="Select Airline"
-                                                                        className="!py-1"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <FormLabel label="Flight No." optional />
-                                                                    <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
-                                                                </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div>
+                                                                <FormLabel label="Airline" optional />
+                                                                <SearchableSelect
+                                                                    options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                    value={formData.arrival_airline}
+                                                                    onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
+                                                                    placeholder="Select Airline"
+                                                                    className="!py-1"
+                                                                />
                                                             </div>
                                                             <div>
-                                                                <FormLabel label="Departure Airport" optional />
-                                                                <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
+                                                                <FormLabel label="Flight No." optional />
+                                                                <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
                                                             </div>
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Arrival Airport" optional />
+                                                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
                                                         </div>
                                                     </div>
                                                 </div>
-                                            )}
+
+                                                {/* Departure */}
+                                                <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
+                                                            <Plane size={16} className="-rotate-45" /> Departure Logistics
+                                                        </h4>
+                                                        <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, with_departure: true })}
+                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_departure ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                INCLUDED
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setFormData({ ...formData, with_departure: false })}
+                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_departure ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                            >
+                                                                EXCLUDED
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div>
+                                                                <FormLabel label="Departure City" optional />
+                                                                <SearchableSelect
+                                                                    options={[
+                                                                        { value: "Any City", label: "Any City" },
+                                                                        ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                                    ]}
+                                                                    value={formData.departure_city}
+                                                                    onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                                                    placeholder="Select City"
+                                                                    className="!py-1"
+                                                                    error={errors.departure_city}
+                                                                />
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                <div>
+                                                                    <FormLabel label="Date" optional />
+                                                                    <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
+                                                                </div>
+                                                                <div>
+                                                                    <FormLabel label="Time" optional />
+                                                                    <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div>
+                                                                <FormLabel label="Airline" optional />
+                                                                <SearchableSelect
+                                                                    options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                    value={formData.departure_airline}
+                                                                    onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
+                                                                    placeholder="Select Airline"
+                                                                    className="!py-1"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <FormLabel label="Flight No." optional />
+                                                                <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <FormLabel label="Departure Airport" optional />
+                                                            <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
 
                                             <div>
                                                 <h3 className="text-[14px] font-black text-gray-900 tracking-tight leading-none mb-1 flex items-center gap-2">
@@ -3029,6 +2996,58 @@ const HolidayPackageEdit = () => {
                                             </div>
                                         </div>
                                     </Section>
+
+                                    {/* NEXT STEP BUTTON HANDLER */}
+                                    <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white/50 backdrop-blur-sm p-4 rounded-[2rem]">
+                                        {(() => {
+                                            const currentIndex = navItems.findIndex(item => item.id === activeSection);
+                                            return (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (currentIndex > 0) {
+                                                                setActiveSection(navItems[currentIndex - 1].id);
+                                                                document.querySelector('.flex-1.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+                                                            }
+                                                        }}
+                                                        disabled={currentIndex === 0}
+                                                        className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${currentIndex === 0 ? 'opacity-30 cursor-not-allowed text-gray-400' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95'}`}
+                                                    >
+                                                        ← Previous Step
+                                                    </button>
+
+                                                    <div className="flex gap-2">
+                                                        {navItems.map((item, i) => (
+                                                            <div key={item.id} className={`h-1.5 rounded-full transition-all duration-500 ${activeSection === item.id ? 'w-8 bg-[#14532d]' : 'w-1.5 bg-gray-200'}`}></div>
+                                                        ))}
+                                                    </div>
+
+                                                    {currentIndex < navItems.length - 1 ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setActiveSection(navItems[currentIndex + 1].id);
+                                                                document.querySelector('.flex-1.overflow-y-auto')?.scrollTo({ top: 0, behavior: 'smooth' });
+                                                            }}
+                                                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2 rounded-xl bg-[#14532d] text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-green-900/10 hover:scale-105 active:scale-95 transition-all"
+                                                        >
+                                                            Next Step →
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={handleSubmit}
+                                                            type="button"
+                                                            disabled={saving}
+                                                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2 rounded-xl bg-black text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/10 hover:scale-105 active:scale-95 transition-all"
+                                                        >
+                                                            {saving ? "SAVING..." : "COMPLETE & SAVE"}
+                                                        </button>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
+                                    </div>
                                 </form>
                             </div >
                         </div >

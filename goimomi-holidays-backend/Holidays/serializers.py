@@ -134,8 +134,8 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         return sum(d.nights for d in obj.extra_destinations.all())
 
     def get_itinerary(self, obj):
-        # Only show up to 'days' number of itinerary items
-        qs = obj.itinerary.all()[:obj.days]
+        # Return all itinerary items belonging to this package
+        qs = obj.itinerary.all()
         return ItineraryDaySerializer(qs, many=True, context=self.context).data
 
     def create(self, validated_data):
@@ -271,13 +271,13 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
             # We will delete them but keep references to their image files
             package.itinerary.all().delete()
 
+            current_day_num = 0
             for i, day_data in enumerate(itinerary_days_data):
                 title = day_data.get('title', '').strip()
                 if not title: continue
 
-                day_num = day_data.get('day')
-                try: day_num = int(day_num)
-                except: day_num = i + 1
+                current_day_num += 1
+                day_num = current_day_num
 
                 # Handle Image
                 image_file = None
@@ -326,19 +326,19 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                     except Exception as e:
                         print(f"Error auto-master: {e}")
 
-            # Preserve old image if no new one uploaded
-            if not image_file and day_num in existing_days:
-                image_file = existing_days[day_num].image
+                # Preserve old image if no new one uploaded
+                if not image_file and day_num in existing_days:
+                    image_file = existing_days[day_num].image
 
-            ItineraryDay.objects.create(
-                package=package,
-                day_number=day_num,
-                title=title,
-                description=day_data.get('description', ''),
-                details_json=day_data.get('details_json', {}),
-                master_template=master_template_obj,
-                image=image_file or (master_template_obj.image if master_template_obj else None)
-            )
+                ItineraryDay.objects.create(
+                    package=package,
+                    day_number=day_num,
+                    title=title,
+                    description=day_data.get('description', ''),
+                    details_json=day_data.get('details_json', {}),
+                    master_template=master_template_obj,
+                    image=image_file or (master_template_obj.image if master_template_obj else None)
+                )
 
         # 3. Simple list fields (only if provided)
         if inclusions_data is not None:
