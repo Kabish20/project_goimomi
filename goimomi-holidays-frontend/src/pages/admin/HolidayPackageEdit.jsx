@@ -59,8 +59,83 @@ const formatWithCommas = (value) => {
 
 
 
+const DynamicList = ({ label, items, setItems, placeholder, required }) => {
+    const addItem = () => setItems([...items, ""]);
+    const removeItem = (idx) => {
+        const copy = [...items];
+        copy.splice(idx, 1);
+        setItems(copy.length > 0 ? copy : [""]);
+    };
+    const updateItem = (idx, val) => {
+        const copy = [...items];
+        copy[idx] = val;
+        setItems(copy);
+    };
 
+    return (
+        <div className="space-y-0 group/list animate-in fade-in duration-500">
+            <div className="bg-[#14532d] text-white px-6 py-2.5 rounded-t-2xl flex items-center justify-between border-b border-white/10 shadow-sm relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
+                <div className="flex items-center gap-3 relative z-10">
+                    <div className="w-1.5 h-4 bg-green-400 rounded-full"></div>
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em] drop-shadow-sm">{label}</span>
+                    {required && <span className="text-[9px] font-black text-green-300/80 uppercase tracking-widest px-2 py-0.5 bg-white/10 rounded-full">Required</span>}
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/5">
+                    <ClipboardList size={14} className="text-green-100" />
+                </div>
+            </div>
+            <div className="bg-white border-2 border-[#14532d]/10 border-t-0 p-8 rounded-b-[2.5rem] shadow-[0_20px_50px_-20px_rgba(20,83,45,0.08)] space-y-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full -mr-16 -mt-16 opacity-40"></div>
 
+                {items.length === 0 || (items.length === 1 && !items[0]) ? (
+                    <div className="py-8 text-center text-gray-300 border-2 border-dashed border-gray-100 rounded-[2rem]">
+                        <p className="text-[10px] font-black uppercase tracking-widest">No {label.toLowerCase()} added yet</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3.5 relative z-10">
+                        {items.map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-4 group/row animate-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${idx * 50}ms` }}>
+                                <div className="hidden sm:flex w-6 h-6 shrink-0 bg-emerald-50 rounded-lg items-center justify-center text-[#14532d] text-[9px] font-black group-hover/row:bg-[#14532d] group-hover/row:text-white transition-all">
+                                    {idx + 1}
+                                </div>
+                                <div className="flex-1 relative group/input">
+                                    <input
+                                        type="text"
+                                        value={item}
+                                        onChange={(e) => updateItem(idx, e.target.value)}
+                                        placeholder={placeholder}
+                                        className="w-full bg-gray-50/50 border-2 border-gray-100 px-5 py-2.5 rounded-xl text-[11px] font-bold text-gray-700 outline-none focus:bg-white focus:border-[#14532d] focus:ring-4 focus:ring-green-50 transition-all hover:border-gray-200"
+                                    />
+                                    <div className="absolute bottom-0 left-5 right-5 h-0.5 bg-[#14532d] scale-x-0 group-focus-within/input:scale-x-100 transition-transform duration-500 rounded-full"></div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeItem(idx)}
+                                    className="px-4 py-2 flex items-center gap-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all group/btn active:scale-95"
+                                >
+                                    <X size={14} className="text-indigo-400 group-hover/btn:text-red-500 transition-colors" />
+                                    <span className="hidden md:inline text-[9px] font-black uppercase tracking-widest">Remove</span>
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <button
+                    type="button"
+                    onClick={addItem}
+                    className="flex items-center gap-3 text-[#14b8a6] hover:text-[#0d9488] text-[10px] font-black uppercase tracking-[0.15em] pl-2 mt-6 group/add transition-all active:translate-x-1"
+                >
+                    <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center group-hover/add:bg-[#14b8a6] group-hover/add:text-white transition-all shadow-sm">
+                        <Plus size={16} />
+                    </div>
+                    <span>Add another {label.slice(0, -1)}</span>
+                </button>
+            </div>
+        </div>
+    );
+};
 
 const HolidayPackageEdit = () => {
     const { id } = useParams();
@@ -358,23 +433,31 @@ const HolidayPackageEdit = () => {
                 }
 
                 // Inclusions
-                if (pkg.inclusions && Array.isArray(pkg.inclusions)) {
+                if (pkg.inclusions && Array.isArray(pkg.inclusions) && pkg.inclusions.length > 0) {
                     setInclusions(pkg.inclusions.map(i => i.text));
+                } else {
+                    setInclusions([""]);
                 }
 
                 // Exclusions
-                if (pkg.exclusions && Array.isArray(pkg.exclusions)) {
+                if (pkg.exclusions && Array.isArray(pkg.exclusions) && pkg.exclusions.length > 0) {
                     setExclusions(pkg.exclusions.map(e => e.text));
+                } else {
+                    setExclusions([""]);
                 }
 
                 // Highlights — strip any leading bullet characters stored in the DB
-                if (pkg.highlights && Array.isArray(pkg.highlights)) {
+                if (pkg.highlights && Array.isArray(pkg.highlights) && pkg.highlights.length > 0) {
                     setHighlights(pkg.highlights.map(h => h.text.replace(/^[\u2022\u2023\u25E6\u2043\u2219•]\s*/, '')));
+                } else {
+                    setHighlights([""]);
                 }
 
                 // Cancellation Policies
-                if (pkg.cancellation_policies && Array.isArray(pkg.cancellation_policies)) {
+                if (pkg.cancellation_policies && Array.isArray(pkg.cancellation_policies) && pkg.cancellation_policies.length > 0) {
                     setCancellationPolicies(pkg.cancellation_policies.map(c => c.text));
+                } else {
+                    setCancellationPolicies([""]);
                 }
 
                 // Accommodations - NEW STRUCTURE
@@ -1467,26 +1550,14 @@ const HolidayPackageEdit = () => {
                                                 </div>
 
                                                 {/* Trip Highlights Integrated into Overview */}
-                                                <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm mt-6">
-                                                    <div className="mb-4">
-                                                        <h3 className="text-[14px] font-black text-gray-900 tracking-tight leading-none">Trip Highlights</h3>
-                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1">Core experience identifiers</p>
-                                                    </div>
-                                                    <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm">
-                                                        <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5">
-                                                            <button type="button" onClick={() => insertBullet(highlightsRef, highlights, setHighlights)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
-                                                                <List size={12} />
-                                                            </button>
-                                                        </div>
-                                                        <textarea
-                                                            ref={highlightsRef}
-                                                            className="w-full min-h-[80px] p-3 text-[11px] text-gray-700 focus:outline-none resize-y leading-relaxed bg-white"
-                                                            placeholder="• Traditional Malay Dinner Experience&#10;• Sightseeing of major attractions"
-                                                            value={highlights.join('\n')}
-                                                            onChange={(e) => setHighlights(e.target.value.split('\n'))}
-                                                            spellCheck="false"
-                                                        />
-                                                    </div>
+                                                <div className="mt-8">
+                                                    <DynamicList
+                                                        label="Trip Highlights"
+                                                        items={highlights}
+                                                        setItems={setHighlights}
+                                                        placeholder="e.g. Traditional Malay Dinner Experience"
+                                                        required
+                                                    />
                                                 </div>
 
 
@@ -3105,70 +3176,31 @@ const HolidayPackageEdit = () => {
                                                 </h3>
                                                 <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mt-1 mb-6">Terms, conditions and coverage</p>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                    <div className="space-y-6">
-                                                        <div>
-                                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5 focus-within:text-[#14532d] transition-colors">
-                                                                Inclusions <span className="text-orange-400 font-normal text-[10px] opacity-90">(Required)</span>
-                                                            </h3>
-                                                            <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm hover:border-[#14532d]/30 transition-all">
-                                                                <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5 text-[#14532d]">
-                                                                    <button type="button" onClick={() => insertBullet(inclusionsRef, inclusions, setInclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
-                                                                        <List size={12} />
-                                                                    </button>
-                                                                </div>
-                                                                <textarea
-                                                                    ref={inclusionsRef}
-                                                                    value={inclusions.join('\n')}
-                                                                    onChange={(e) => setInclusions(e.target.value.split('\n'))}
-                                                                    rows="12"
-                                                                    className="w-full p-4 text-[12px] text-gray-700 focus:outline-none resize-none leading-relaxed bg-white"
-                                                                    placeholder="â€¢ Accommodation as per itinerary..."
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5 focus-within:text-[#14532d] transition-colors">
-                                                                Exclusions <span className="text-orange-400 font-normal text-[10px] opacity-90">(Required)</span>
-                                                            </h3>
-                                                            <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm hover:border-[#14532d]/30 transition-all">
-                                                                <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5">
-                                                                    <button type="button" onClick={() => insertBullet(exclusionsRef, exclusions, setExclusions)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
-                                                                        <List size={12} />
-                                                                    </button>
-                                                                </div>
-                                                                <textarea
-                                                                    ref={exclusionsRef}
-                                                                    value={exclusions.join('\n')}
-                                                                    onChange={(e) => setExclusions(e.target.value.split('\n'))}
-                                                                    rows="12"
-                                                                    className="w-full p-4 text-[12px] text-gray-700 focus:outline-none resize-none leading-relaxed bg-white"
-                                                                    placeholder="â€¢ Any personal expenses..."
-                                                                />
-                                                            </div>
-                                                        </div>
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                                    <div className="space-y-10">
+                                                        <DynamicList
+                                                            label="Inclusions"
+                                                            items={inclusions}
+                                                            setItems={setInclusions}
+                                                            placeholder="e.g. Accommodation as per itinerary..."
+                                                            required
+                                                        />
+                                                        <DynamicList
+                                                            label="Exclusions"
+                                                            items={exclusions}
+                                                            setItems={setExclusions}
+                                                            placeholder="e.g. Personal expenses, laundry etc."
+                                                            required
+                                                        />
                                                     </div>
-                                                    <div className="space-y-6">
-                                                        <div>
-                                                            <h3 className="text-[12px] font-bold text-gray-800 tracking-tight mb-2 flex items-center gap-1.5 focus-within:text-[#14532d] transition-colors">
-                                                                Terms & Policy <span className="text-orange-400 font-normal text-[10px] opacity-90">(Required)</span>
-                                                            </h3>
-                                                            <div className="border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm hover:border-[#14532d]/30 transition-all">
-                                                                <div className="border-b border-gray-100 bg-gray-50/50 px-2 py-1.5 flex gap-1.5">
-                                                                    <button type="button" onClick={() => insertBullet(cancellationRef, cancellationPolicies, setCancellationPolicies)} title="Insert bullet point" className="w-6 h-6 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#14532d] transition-all shadow-sm">
-                                                                        <List size={12} />
-                                                                    </button>
-                                                                </div>
-                                                                <textarea
-                                                                    ref={cancellationRef}
-                                                                    value={cancellationPolicies.join('\n')}
-                                                                    onChange={(e) => setCancellationPolicies(e.target.value.split('\n'))}
-                                                                    rows="27"
-                                                                    className="w-full p-4 text-[12px] text-gray-700 focus:outline-none resize-none leading-relaxed bg-white"
-                                                                    placeholder="â€¢ 30 days before departure..."
-                                                                />
-                                                            </div>
-                                                        </div>
+                                                    <div className="space-y-10">
+                                                        <DynamicList
+                                                            label="Terms & Policy"
+                                                            items={cancellationPolicies}
+                                                            setItems={setCancellationPolicies}
+                                                            placeholder="e.g. 30 days before departure - 25% charge"
+                                                            required
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
