@@ -406,9 +406,35 @@ const HolidayPackageAdd = () => {
     const totalNights = packageDestinations.reduce((acc, d) => acc + parseInt(d.nights || 0, 10), 0);
     const calculatedDays = totalNights + 1;
     if (formData.days !== calculatedDays.toString()) {
-      setFormData(prev => ({ ...prev, days: calculatedDays.toString() }));
+      setFormData(prev => ({
+        ...prev,
+        days: calculatedDays.toString(),
+        arrival_no_of_nights: totalNights.toString()
+      }));
     }
   }, [packageDestinations]);
+
+  // Automatically sync Departure Date when Arrival Date or Days change
+  useEffect(() => {
+    if (!formData.arrival_date || !formData.days) return;
+    const arrival = new Date(formData.arrival_date);
+    if (isNaN(arrival.getTime())) return;
+
+    const totalNights = parseInt(formData.days, 10) - 1;
+    if (totalNights < 0) return;
+
+    const departure = new Date(arrival);
+    departure.setDate(arrival.getDate() + totalNights);
+
+    const yyyy = departure.getFullYear();
+    const mm = String(departure.getMonth() + 1).padStart(2, '0');
+    const dd = String(departure.getDate()).padStart(2, '0');
+    const depStr = `${yyyy}-${mm}-${dd}`;
+
+    if (formData.departure_date !== depStr) {
+      setFormData(prev => ({ ...prev, departure_date: depStr }));
+    }
+  }, [formData.arrival_date, formData.days]);
 
   // Auto-sync Accommodation "No. of Nights" per itinerary day from packageDestinations
   useEffect(() => {
@@ -443,7 +469,6 @@ const HolidayPackageAdd = () => {
 
   // Sync fixedDepartureData tiers with selected package categories
   useEffect(() => {
-    if (!formData.fixed_departure) return;
     setFixedDepartureData(prev => prev.map(slot => {
       const newTiers = { ...slot.tiers };
       const selectedTiers = formData.package_categories || [];
@@ -543,6 +568,18 @@ const HolidayPackageAdd = () => {
       return packageDestinations[packageDestinations.length - 1].destination || "---";
     }
     return "---";
+  };
+
+  const getDestIndexForDay = (dayIndex) => {
+    let currentDay = 0;
+    for (let i = 0; i < packageDestinations.length; i++) {
+      const nights = parseInt(packageDestinations[i].nights || 0, 10);
+      if (dayIndex >= currentDay && dayIndex < currentDay + nights) {
+        return i;
+      }
+      currentDay += nights;
+    }
+    return -1;
   };
 
   const handleFileChange = (e) => {
@@ -751,9 +788,51 @@ const HolidayPackageAdd = () => {
       });
 
       if (response.status === 201) {
-        setMessage("Holiday package added successfully!");
+        // After package is successfully created, save/update marked itineraries to master
+        const updatedDays = [...itineraryDays];
+        let mastersToSaveCount = itineraryDays.filter(d => d.save_to_master && d.title).length;
+
+        if (mastersToSaveCount > 0) {
+          setMessage(`Package created! Now saving ${mastersToSaveCount} master template(s)...`);
+
+          for (let i = 0; i < itineraryDays.length; i++) {
+            const day = itineraryDays[i];
+            if (day.save_to_master && day.title) {
+              try {
+                const masterData = new FormData();
+                const destName = getDestinationForDay(i);
+                // Generate Internal ID as "Destination Name [Day Number]"
+                masterData.append("name", `${destName} ${i + 1}`);
+                masterData.append("title", day.title);
+                masterData.append("description", day.description || "");
+
+                const destObj = destinations.find(d => d.name === destName);
+                if (destObj) {
+                  masterData.append("destination", destObj.id);
+                }
+
+                if (day.image instanceof File) {
+                  masterData.append("image", day.image);
+                }
+
+                if (day.details_json) {
+                  masterData.append("details_json", JSON.stringify(day.details_json));
+                }
+
+                // Always create a NEW master entry as "Another" entry
+                await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
+                  headers: { "Content-Type": "multipart/form-data" }
+                });
+                console.log(`Created another master entry for day ${i + 1}`);
+              } catch (mErr) {
+                console.error(`Error storing another master for day ${i + 1}:`, mErr);
+              }
+            }
+          }
+        }
+
+        setMessage("Holiday package and Master Templates added successfully!");
         setErrors({});
-        // Reset form
         // Reset form to its full initial state
         setFormData({
           title: "",
@@ -805,52 +884,9 @@ const HolidayPackageAdd = () => {
         setExclusions([""]);
         setHighlights([""]);
         setCancellationPolicies([""]);
+        setAccommodations([]);
+        setVehicles([""]);
       }
-      // After package is successfully created, save marked itineraries to master
-      for (let i = 0; i < itineraryDays.length; i++) {
-        const day = itineraryDays[i];
-        if (day.save_to_master && day.title) {
-          try {
-            const masterData = new FormData();
-            masterData.append("name", day.title);
-            masterData.append("title", day.title);
-            masterData.append("description", day.description || "");
-
-            // Get destination for this day to categorize master
-            const destName = getDestinationForDay(i);
-            const destObj = destinations.find(d => d.name === destName);
-            if (destObj) {
-              masterData.append("destination", destObj.id);
-            }
-
-            if (day.image instanceof File) {
-              masterData.append("image", day.image);
-            }
-
-            if (day.details_json) {
-              masterData.append("details_json", JSON.stringify(day.details_json));
-            }
-
-            if (day.master_template) {
-              // Master already exists — UPDATE it instead of creating a duplicate
-              await axios.put(`${API_BASE_URL}/itinerary-masters/${day.master_template}/`, masterData, {
-                headers: { "Content-Type": "multipart/form-data" }
-              });
-              console.log(`Updated existing master ${day.master_template} for day ${i + 1}`);
-            } else {
-              // No master yet — CREATE a new one
-              await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
-                headers: { "Content-Type": "multipart/form-data" }
-              });
-              console.log(`Created new master for day ${i + 1}`);
-            }
-          } catch (mErr) {
-            console.error(`Error saving day ${i + 1} to master:`, mErr);
-            // We don't stop the main package creation if master saving fails
-          }
-        }
-      }
-
     } catch (err) {
       console.error("Error adding package:", err);
       if (err.response?.data) {
@@ -1538,12 +1574,14 @@ const HolidayPackageAdd = () => {
                                       )}
                                     </div>
                                   </div>
-                                  <div className={`p-3 rounded-2xl border-2 transition-all ${row.save_to_master ? 'bg-[#14532d] border-[#14532d] text-white' : 'bg-gray-50 border-transparent text-gray-500 hover:border-gray-200 hover:bg-white'}`}>
+                                  <div className={`p-3 rounded-2xl border-2 transition-all ${row.save_to_master ? 'bg-[#14532d] border-[#14532d] text-white shadow-lg shadow-green-900/20' : 'bg-gray-50 border-transparent text-gray-500 hover:border-gray-200 hover:bg-white'}`}>
                                     <label className="flex items-center gap-3 cursor-pointer">
                                       <input type="checkbox" checked={row.save_to_master} onChange={(e) => { const copy = [...itineraryDays]; copy[i].save_to_master = e.target.checked; setItineraryDays(copy); }} className="w-4 h-4 rounded-lg border-gray-300 text-[#14532d] focus:ring-[#14532d]" />
                                       <div className="flex flex-col leading-none">
-                                        <span className="text-[10px] font-black uppercase tracking-tighter">Save to Master</span>
-                                        <span className="text-[8px] opacity-70 font-medium">Available for future packages</span>
+                                        <span className="text-[10px] font-black uppercase tracking-tighter">
+                                          EDIT & SAVE TO MASTER
+                                        </span>
+                                        <span className="text-[8px] opacity-70 font-medium">Changes will be saved to your reuseable library</span>
                                       </div>
                                     </label>
                                   </div>
@@ -1694,7 +1732,10 @@ const HolidayPackageAdd = () => {
                                           <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
                                           <select value={newSightseeingForm.city} onChange={e => setNewSightseeingForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
                                             <option value="">Select a city...</option>
-                                            {destinations.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                                            {/* Only show current destination or destinations in the package */}
+                                            {[...new Set([getDestinationForDay(i), ...packageDestinations.map(d => d.destination)])].filter(d => d && d !== "---").map(d => (
+                                              <option key={d} value={d}>{d}</option>
+                                            ))}
                                           </select>
                                         </div>
                                       </div>
@@ -1815,200 +1856,326 @@ const HolidayPackageAdd = () => {
                                 h.city?.toLowerCase().includes(searchQ.trim().toLowerCase())
                               ) : [];
                             return (
-                              <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                {/* Main accommodation panel */}
-                                <div className="flex-1 space-y-3">
-                                  {/* Search */}
-                                  <div>
-                                    <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search accommodation from the database</p>
-                                    <div className="relative">
-                                      <input
-                                        type="text"
-                                        value={searchQ}
-                                        onChange={e => updateDay({ _accSearch: e.target.value })}
-                                        placeholder="Type to look up for accommodation in masters"
-                                        className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
-                                      />
-                                      <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                      {searchQ && (
-                                        <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                          <X size={12} />
-                                        </button>
+                              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                {(() => {
+                                  const coveringStay = (() => {
+                                    for (let j_cov = i - 1; j_cov >= 0; j_cov--) {
+                                      const prevDay = itineraryDays[j_cov];
+                                      if (getDestinationForDay(j_cov) !== getDestinationForDay(i)) break;
+                                      const n = parseInt(prevDay.details_json?.accommodation_stay_nights || 1);
+                                      if (j_cov + n > i) return { originDay: j_cov + 1, hotel: prevDay.details_json?.accommodations?.[0] };
+                                    }
+                                    return null;
+                                  })();
+
+                                  if (coveringStay) {
+                                    const h_cov = hotelMasters.find(hm => hm.id === coveringStay.hotel?.hotelId);
+                                    return (
+                                      <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4 flex items-center justify-between mb-4 animate-in fade-in zoom-in duration-300">
+                                        <div className="flex items-center gap-4">
+                                          <div className="w-10 h-10 rounded-lg bg-white border border-amber-200 flex items-center justify-center shrink-0">
+                                            <Hotel size={18} className="text-amber-500" />
+                                          </div>
+                                          <div>
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                              <p className="text-[11px] font-black text-amber-900 leading-none">{h_cov?.name || coveringStay.hotel?.hotelName || "Continued Stay"}</p>
+                                              <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest bg-white px-1.5 py-0.5 rounded border border-amber-200">Part of Stay</span>
+                                            </div>
+                                            <p className="text-[9px] font-bold text-amber-600/70 uppercase tracking-wider">Stay continued from Day {coveringStay.originDay}</p>
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest leading-none mb-1">Accommodation</p>
+                                          <p className="text-[10px] font-black text-amber-900 uppercase">Controlled by Day {coveringStay.originDay}</p>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+
+                                  const destIdx = getDestIndexForDay(i);
+                                  const destRow = destIdx !== -1 ? packageDestinations[destIdx] : null;
+                                  if (!destRow) return null;
+
+                                  let daysPassedInDest = 0;
+                                  for (let k = 0; k < i; k++) {
+                                    if (getDestIndexForDay(k) === destIdx) daysPassedInDest++;
+                                  }
+                                  const maxAllowed = Math.max(1, parseInt(destRow.nights || 0) - daysPassedInDest);
+
+                                  return (
+                                    <div className="flex flex-col items-end mb-2">
+                                      <p className="text-[10px] font-black text-gray-400 uppercase mb-1 tracking-widest">{destRow.destination} Stay</p>
+                                      <div className="w-32">
+                                        <SearchableSelect
+                                          options={[...Array(maxAllowed)].map((_, n) => ({
+                                            value: String(n + 1),
+                                            label: `${n + 1} ${n + 1 === 1 ? 'Night' : 'Nights'}`
+                                          }))}
+                                          value={row.details_json?.accommodation_stay_nights || "1"}
+                                          onChange={(val) => {
+                                            const copy = [...itineraryDays];
+                                            copy[i].details_json.accommodation_stay_nights = val;
+                                            const hotel = copy[i].details_json.accommodations?.[0];
+                                            if (hotel) {
+                                              const n_val = parseInt(val);
+                                              const d_name = getDestinationForDay(i);
+                                              for (let j = i + 1; j < copy.length; j++) {
+                                                if (getDestinationForDay(j) === d_name) {
+                                                  if (j < i + n_val) {
+                                                    copy[j].details_json.accommodations = [{ ...hotel, is_inherited: true }];
+                                                  } else if (copy[j].details_json.accommodations?.[0]?.is_inherited) {
+                                                    copy[j].details_json.accommodations = [];
+                                                  }
+                                                } else break;
+                                              }
+                                            }
+                                            setItineraryDays(copy);
+                                          }}
+                                          placeholder="Nights"
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                                <div className="flex gap-4">
+                                  {/* Main accommodation panel */}
+                                  <div className="flex-1 space-y-3">
+                                    {/* Search */}
+                                    <div>
+                                      <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search accommodation from the database</p>
+                                      <div className="relative">
+                                        <input
+                                          type="text"
+                                          value={searchQ}
+                                          onChange={e => updateDay({ _accSearch: e.target.value })}
+                                          placeholder="Type to look up for accommodation in masters"
+                                          className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
+                                        />
+                                        <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        {searchQ && (
+                                          <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                            <X size={12} />
+                                          </button>
+                                        )}
+                                      </div>
+                                      {/* Search results dropdown */}
+                                      {filteredHotels.length > 0 && (
+                                        <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
+                                          {filteredHotels.map(h => (
+                                            <button
+                                              key={h.id}
+                                              type="button"
+                                              onClick={() => {
+                                                const copy = [...itineraryDays];
+                                                const dest = getDestinationForDay(i);
+                                                // Apply stay to connected days based on nights
+                                                const n_pick = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
+                                                for (let k = i; k < i + n_pick && k < copy.length; k++) {
+                                                  if (getDestinationForDay(k) === dest) {
+                                                    if (!copy[k].details_json) copy[k].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
+                                                    copy[k].details_json.accommodations = [{ hotelId: h.id, hotelName: h.name, is_inherited: k > i }];
+                                                  } else break;
+                                                }
+                                                copy[i].details_json._accSearch = '';
+                                                setItineraryDays(copy);
+                                              }}
+                                              className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                                            >
+                                              <span className="font-medium text-gray-800">{h.name}</span>
+                                              {h.city && <span className="text-gray-400 ml-1">· {h.city}</span>}
+                                            </button>
+                                          ))}
+                                        </div>
                                       )}
                                     </div>
-                                    {/* Search results dropdown */}
-                                    {filteredHotels.length > 0 && (
-                                      <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                        {filteredHotels.map(h => (
-                                          <button
-                                            key={h.id}
-                                            type="button"
-                                            onClick={() => {
-                                              const copy = [...itineraryDays];
-                                              if (!copy[i].details_json.accommodations) copy[i].details_json.accommodations = [];
-                                              const alreadyAdded = copy[i].details_json.accommodations.find(a => a.hotelId === h.id);
-                                              if (!alreadyAdded) {
-                                                copy[i].details_json.accommodations.push({ hotelId: h.id, hotelName: h.name });
-                                              }
-                                              copy[i].details_json._accSearch = '';
-                                              setItineraryDays(copy);
-                                            }}
-                                            className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                          >
-                                            <span className="font-medium text-gray-800">{h.name}</span>
-                                            {h.city && <span className="text-gray-400 ml-1">· {h.city}</span>}
-                                          </button>
-                                        ))}
+
+                                    {/* Added accommodations or empty state */}
+                                    {accs.filter(acc => {
+                                      const h = hotelMasters.find(hm => hm.id === acc.hotelId);
+                                      if (!h) return true;
+                                      const currentDest = getDestinationForDay(i);
+                                      if (!currentDest || currentDest === "---") return true;
+                                      return (h.city && h.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
+                                        (h.destination_name && h.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase());
+                                    }).length === 0 ? (
+                                      <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
+                                        <p className="text-[11px] text-gray-400">No Accommodation added</p>
+                                      </div>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        {accs.filter(acc => {
+                                          const h = hotelMasters.find(hm => hm.id === acc.hotelId);
+                                          if (!h) return true;
+                                          const currentDest = getDestinationForDay(i);
+                                          if (!currentDest || currentDest === "---") return true;
+                                          return (h.city && h.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
+                                            (h.destination_name && h.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase());
+                                        }).map((acc, accIdx) => {
+                                          const h = hotelMasters.find(hm => hm.id === acc.hotelId);
+                                          return (
+                                            <div key={accIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
+                                              {h?.image && (
+                                                <div className="w-10 h-10 rounded-sm overflow-hidden shrink-0 bg-gray-100">
+                                                  <img src={h.image.startsWith('http') ? h.image.replace('http://localhost:8000', '').replace('http://127.0.0.1:8000', '') : h.image} alt={acc.hotelName} className="w-full h-full object-cover" />
+                                                </div>
+                                              )}
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                  {acc.is_inherited ? (
+                                                    <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Continuing Stay</span>
+                                                  ) : (
+                                                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">Stay Start / Check-in</span>
+                                                  )}
+                                                  {h?.city && <p className="text-[9px] text-gray-400 italic font-medium">{h.city}</p>}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                  <p className="text-[11px] font-bold text-gray-900 line-clamp-1">{acc.hotelName}</p>
+                                                  {h?.stars && (
+                                                    <div className="flex items-center">
+                                                      {[...Array(Number(h.stars))].map((_, starI) => (
+                                                        <Star key={starI} size={8} className="fill-yellow-400 text-yellow-400" />
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                                {h?.address && <p className="text-[9px] text-gray-400 line-clamp-1 truncate">{h.address}</p>}
+                                              </div>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const copy = [...itineraryDays];
+                                                  const dest = getDestinationForDay(i);
+                                                  const hotelIdToRemove = acc.hotelId;
+                                                  // Remove from connected days based on nights
+                                                  const n_rem = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
+                                                  for (let k_rem = i; k_rem < i + n_rem && k_rem < copy.length; k_rem++) {
+                                                    if (getDestinationForDay(k_rem) === dest && copy[k_rem].details_json?.accommodations) {
+                                                      copy[k_rem].details_json.accommodations = copy[k_rem].details_json.accommodations.filter(a => a.hotelId !== hotelIdToRemove);
+                                                    } else break;
+                                                  }
+                                                  setItineraryDays(copy);
+                                                }}
+                                                className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                              >
+                                                <X size={12} />
+                                              </button>
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     )}
                                   </div>
 
-                                  {/* Added accommodations or empty state */}
-                                  {accs.length === 0 ? (
-                                    <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
-                                      <p className="text-[11px] text-gray-400">No Accommodation added</p>
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-2">
-                                      {accs.map((acc, accIdx) => {
-                                        const h = hotelMasters.find(hm => hm.id === acc.hotelId);
-                                        return (
-                                          <div key={accIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
-                                            {h?.image && (
-                                              <div className="w-10 h-10 rounded-sm overflow-hidden shrink-0 bg-gray-100">
-                                                <img src={h.image.startsWith('http') ? h.image.replace('http://localhost:8000', '').replace('http://127.0.0.1:8000', '') : h.image} alt={acc.hotelName} className="w-full h-full object-cover" />
-                                              </div>
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                              {h?.city && <p className="text-[9px] text-gray-400">{h.city}</p>}
-                                              <div className="flex items-center gap-2">
-                                                <p className="text-[11px] font-bold text-gray-900">{acc.hotelName}</p>
-                                                {h?.stars && (
-                                                  <div className="flex items-center">
-                                                    {[...Array(Number(h.stars))].map((_, starI) => (
-                                                      <Star key={starI} size={8} className="fill-yellow-400 text-yellow-400" />
-                                                    ))}
-                                                  </div>
-                                                )}
-                                              </div>
-                                              {h?.address && <p className="text-[9px] text-gray-500">{h.address}</p>}
-                                            </div>
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                const copy = [...itineraryDays];
-                                                copy[i].details_json.accommodations.splice(accIdx, 1);
-                                                setItineraryDays(copy);
-                                              }}
-                                              className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                                            >
-                                              <X size={12} />
-                                            </button>
+                                  {/* Add New Accommodation Form panel */}
+                                  <div className="w-56 shrink-0">
+                                    {showForm ? (
+                                      <div className="border border-gray-200 rounded-sm p-3 bg-gray-50/50 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                          <h4 className="text-[11px] font-bold text-gray-800">Add New Accommodation</h4>
+                                          <button type="button" onClick={() => updateDay({ _showNewAcc: false })} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={12} /></button>
+                                        </div>
+                                        <div>
+                                          <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Accommodation</p>
+                                          <input type="text" value={newHotelForm.name} onChange={e => setNewHotelForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Star Category</p>
+                                          <select value={newHotelForm.stars} onChange={e => setNewHotelForm(p => ({ ...p, stars: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                            <option value="">Select</option>
+                                            {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s} Star</option>)}
+                                          </select>
+                                        </div>
+                                        <div>
+                                          <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Address <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                          <input type="text" value={newHotelForm.address} onChange={e => setNewHotelForm(p => ({ ...p, address: e.target.value }))} placeholder="Enter address" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
+                                          <select value={newHotelForm.city} onChange={e => setNewHotelForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                            <option value="">Select a city...</option>
+                                            {/* Only show current destination or destinations in the package */}
+                                            {[...new Set([getDestinationForDay(i), ...packageDestinations.map(d => d.destination)])].filter(d => d && d !== "---").map(d => (
+                                              <option key={d} value={d}>{d}</option>
+                                            ))}
+                                          </select>
+                                        </div>
+                                        <div>
+                                          <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                          <div className="flex gap-1">
+                                            <input type="text" value={newHotelForm.latitude} onChange={e => setNewHotelForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Lat" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                            <input type="text" value={newHotelForm.longitude} onChange={e => setNewHotelForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Long" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                           </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Add New Accommodation Form panel */}
-                                <div className="w-56 shrink-0">
-                                  {showForm ? (
-                                    <div className="border border-gray-200 rounded-sm p-3 bg-gray-50/50 space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <h4 className="text-[11px] font-bold text-gray-800">Add New Accommodation</h4>
-                                        <button type="button" onClick={() => updateDay({ _showNewAcc: false })} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={12} /></button>
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Accommodation</p>
-                                        <input type="text" value={newHotelForm.name} onChange={e => setNewHotelForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Star Category</p>
-                                        <select value={newHotelForm.stars} onChange={e => setNewHotelForm(p => ({ ...p, stars: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
-                                          <option value="">Select</option>
-                                          {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s} Star</option>)}
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Address <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                        <input type="text" value={newHotelForm.address} onChange={e => setNewHotelForm(p => ({ ...p, address: e.target.value }))} placeholder="Enter address" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City (Country)</p>
-                                        <select value={newHotelForm.city} onChange={e => setNewHotelForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
-                                          <option value="">Select a city...</option>
-                                          {destinations.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-                                        </select>
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Latitude & Longitude <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                        <div className="flex gap-1">
-                                          <input type="text" value={newHotelForm.latitude} onChange={e => setNewHotelForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Lat" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
-                                          <input type="text" value={newHotelForm.longitude} onChange={e => setNewHotelForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Long" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
                                         </div>
-                                      </div>
-                                      <div>
-                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Images <span className="text-gray-400 font-normal">(Up to 5)</span></p>
-                                        <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
-                                          <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
-                                            <span className="text-sm leading-none">+</span>
-                                            <span>Add</span>
-                                            <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
-                                              const files = Array.from(e.target.files).slice(0, 5);
-                                              setNewHotelForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
-                                            }} />
-                                          </label>
-                                          {(newHotelForm.images || []).map((img, idx) => (
-                                            <div key={idx} className="relative w-[46px] h-[40px]">
-                                              <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
-                                              <button type="button" onClick={() => setNewHotelForm(p => ({ ...p, images: p.images.filter((_, j) => j !== idx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
-                                            </div>
-                                          ))}
+                                        <div>
+                                          <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Accommodation Images <span className="text-gray-400 font-normal">(Up to 5)</span></p>
+                                          <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
+                                            <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
+                                              <span className="text-sm leading-none">+</span>
+                                              <span>Add</span>
+                                              <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
+                                                const files = Array.from(e.target.files).slice(0, 5);
+                                                setNewHotelForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));
+                                              }} />
+                                            </label>
+                                            {(newHotelForm.images || []).map((img, idx) => (
+                                              <div key={idx} className="relative w-[46px] h-[40px]">
+                                                <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
+                                                <button type="button" onClick={() => setNewHotelForm(p => ({ ...p, images: p.images.filter((_, j) => j !== idx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
+                                              </div>
+                                            ))}
+                                          </div>
                                         </div>
+                                        <button
+                                          type="button"
+                                          onClick={async () => {
+                                            if (!newHotelForm.name.trim()) { alert('Please enter name'); return; }
+                                            try {
+                                              const fd = new FormData();
+                                              fd.append('name', newHotelForm.name);
+                                              fd.append('stars', newHotelForm.stars);
+                                              fd.append('address', newHotelForm.address);
+                                              fd.append('city', newHotelForm.city);
+                                              fd.append('latitude', newHotelForm.latitude);
+                                              fd.append('longitude', newHotelForm.longitude);
+                                              if (newHotelForm.images && newHotelForm.images.length > 0) {
+                                                fd.append('image', newHotelForm.images[0]);
+                                                newHotelForm.images.forEach(img => fd.append('gallery_images', img));
+                                              }
+                                              const res = await axios.post(`${API_BASE_URL}/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                              setHotelMasters(prev => [...prev, res.data]);
+                                              const copy = [...itineraryDays];
+                                              const dest = getDestinationForDay(i);
+                                              const savedHotel = res.data;
+                                              // Apply stay to connected days
+                                              const n_nights = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
+                                              for (let j = i; j < i + n_nights && j < copy.length; j++) {
+                                                if (getDestinationForDay(j) === dest) {
+                                                  if (!copy[j].details_json) copy[j].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
+                                                  copy[j].details_json.accommodations = [{ hotelId: savedHotel.id, hotelName: savedHotel.name, is_inherited: j > i }];
+                                                } else break;
+                                              }
+                                              copy[i].details_json._showNewAcc = false;
+                                              setItineraryDays(copy);
+                                              setNewHotelForm({ name: '', stars: '3', address: '', city: '', website: '', email: '', latitude: '', longitude: '', images: [] });
+                                            } catch (err) {
+                                              console.error('Error saving hotel:', err);
+                                              alert('Failed to save accommodation.');
+                                            }
+                                          }}
+                                          className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
+                                        >Save Accommodation</button>
                                       </div>
+                                    ) : (
                                       <button
                                         type="button"
-                                        onClick={async () => {
-                                          if (!newHotelForm.name.trim()) { alert('Please enter name'); return; }
-                                          try {
-                                            const fd = new FormData();
-                                            fd.append('name', newHotelForm.name);
-                                            fd.append('stars', newHotelForm.stars);
-                                            fd.append('address', newHotelForm.address);
-                                            fd.append('city', newHotelForm.city);
-                                            fd.append('latitude', newHotelForm.latitude);
-                                            fd.append('longitude', newHotelForm.longitude);
-                                            if (newHotelForm.images && newHotelForm.images.length > 0) {
-                                              fd.append('image', newHotelForm.images[0]);
-                                              newHotelForm.images.forEach(img => fd.append('gallery_images', img));
-                                            }
-                                            const res = await axios.post(`${API_BASE_URL}/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                            setHotelMasters(prev => [...prev, res.data]);
-                                            const copy = [...itineraryDays];
-                                            if (!copy[i].details_json.accommodations) copy[i].details_json.accommodations = [];
-                                            copy[i].details_json.accommodations.push({ hotelId: res.data.id, hotelName: res.data.name });
-                                            copy[i].details_json._showNewAcc = false;
-                                            setItineraryDays(copy);
-                                            setNewHotelForm({ name: '', stars: '3', address: '', city: '', phone: '', website: '', email: '', latitude: '', longitude: '', images: [] });
-                                          } catch (err) {
-                                            console.error('Error saving hotel:', err);
-                                            alert('Failed to save accommodation.');
-                                          }
+                                        onClick={() => {
+                                          updateDay({ _showNewAcc: true });
+                                          setNewHotelForm({ name: '', stars: '3', address: '', city: getDestinationForDay(i) !== '---' ? getDestinationForDay(i) : '', phone: '', website: '', email: '', latitude: '', longitude: '', images: [] });
                                         }}
-                                        className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
-                                      >Save Accommodation</button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        updateDay({ _showNewAcc: true });
-                                        setNewHotelForm({ name: '', stars: '3', address: '', city: getDestinationForDay(i) !== '---' ? getDestinationForDay(i) : '', phone: '', website: '', email: '', latitude: '', longitude: '', images: [] });
-                                      }}
-                                      className="w-full py-2 border border-dashed border-orange-300 text-orange-500 text-[10px] font-medium rounded-sm hover:bg-orange-50 transition-colors"
-                                    >+ Add New Accommodation</button>
-                                  )}
+                                        className="w-full py-2 border border-dashed border-orange-300 text-orange-500 text-[10px] font-medium rounded-sm hover:bg-orange-50 transition-colors"
+                                      >+ Add New Accommodation</button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -2479,7 +2646,7 @@ const HolidayPackageAdd = () => {
                         </div>
 
                         <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-3 gap-4">
                             <div>
                               <FormLabel label="Arrival City" optional />
                               <SearchableSelect
@@ -2493,6 +2660,10 @@ const HolidayPackageAdd = () => {
                                 className="!py-1"
                                 error={errors.arrival_city}
                               />
+                            </div>
+                            <div className="flex flex-col">
+                              <FormLabel label="No. of Nights" required />
+                              <Input type="number" name="arrival_no_of_nights" value={formData.arrival_no_of_nights} onChange={handleInputChange} className="!py-1" />
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
