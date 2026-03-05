@@ -25,6 +25,7 @@ const VehicleMasterAdd = () => {
     const [brands, setBrands] = useState([]);
     const [drivers, setDrivers] = useState([]);
     const [countries, setCountries] = useState([]);
+    const [pickupPoints, setPickupPoints] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
 
@@ -53,6 +54,7 @@ const VehicleMasterAdd = () => {
         fetchBrands();
         fetchDrivers();
         fetchCountries();
+        fetchPickupPoints();
     }, []);
 
     const fetchCountries = async () => {
@@ -82,6 +84,15 @@ const VehicleMasterAdd = () => {
         }
     };
 
+    const fetchPickupPoints = async () => {
+        try {
+            const res = await axios.get("/api/pickup-point-masters/");
+            setPickupPoints(res.data || []);
+        } catch (err) {
+            console.error("Error fetching pickup points:", err);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -99,8 +110,8 @@ const VehicleMasterAdd = () => {
         e.preventDefault();
 
         if (currentStep === 1) {
-            if (!formData.driver) {
-                alert("Please select a Driver Name.");
+            if (!formData.name || !formData.brand || !formData.seating_capacity || !formData.luggage_capacity) {
+                alert("Please fill in all required vehicle specifications.");
                 return;
             }
             setCurrentStep(2);
@@ -222,12 +233,12 @@ const VehicleMasterAdd = () => {
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="md:col-span-2">
-                                                <FormLabel label="Vehicle Name / Model" optional />
+                                                <FormLabel label="Vehicle Name / Model" required />
                                                 <Input name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Toyota Innova Crysta" />
                                             </div>
 
                                             <div className="md:col-span-2">
-                                                <FormLabel label="Vehicle Brand" optional />
+                                                <FormLabel label="Vehicle Brand" required />
                                                 <SearchableSelect
                                                     options={brands.map(b => ({ value: b.id, label: b.name }))}
                                                     value={formData.brand}
@@ -237,7 +248,7 @@ const VehicleMasterAdd = () => {
                                             </div>
 
                                             <div>
-                                                <FormLabel label="Seating Capacity" optional />
+                                                <FormLabel label="Seating Capacity" required />
                                                 <div className="relative">
                                                     <Users size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                                                     <input
@@ -251,7 +262,7 @@ const VehicleMasterAdd = () => {
                                             </div>
 
                                             <div>
-                                                <FormLabel label="Luggage Capacity (Bags)" optional />
+                                                <FormLabel label="Luggage Capacity (Bags)" required />
                                                 <div className="relative">
                                                     <Briefcase size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                                                     <input
@@ -265,7 +276,7 @@ const VehicleMasterAdd = () => {
                                             </div>
 
                                             <div>
-                                                <FormLabel label="Transmission / Drive" optional />
+                                                <FormLabel label="Transmission / Drive" required />
                                                 <div className="relative">
                                                     <Settings size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                                                     <select
@@ -281,7 +292,7 @@ const VehicleMasterAdd = () => {
                                             </div>
 
                                             <div>
-                                                <FormLabel label="Driver Name" required />
+                                                <FormLabel label="Driver Name" optional />
                                                 <SearchableSelect
                                                     options={drivers.map(d => ({ value: d.id, label: d.name, subtitle: d.mobile_number }))}
                                                     value={formData.driver}
@@ -434,23 +445,29 @@ const VehicleMasterAdd = () => {
                                                     <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
                                                         <td className="p-2">
                                                             <div className="relative">
-                                                                <MapPin size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
-                                                                <input
-                                                                    className="w-full bg-white border border-gray-100 pl-8 pr-3 py-2 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#14532d]"
-                                                                    placeholder="Pickup Point"
+                                                                <SearchableSelect
+                                                                    options={pickupPoints.map(p => ({
+                                                                        value: p.name,
+                                                                        label: p.name,
+                                                                        subtitle: p.city_name
+                                                                    }))}
                                                                     value={route.start_from}
-                                                                    onChange={(e) => handleRouteParamChange(idx, 'start_from', e.target.value)}
+                                                                    onChange={val => handleRouteParamChange(idx, 'start_from', val)}
+                                                                    placeholder="Pickup Point"
                                                                 />
                                                             </div>
                                                         </td>
                                                         <td className="p-2">
                                                             <div className="relative">
-                                                                <MapPin size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
-                                                                <input
-                                                                    className="w-full bg-white border border-gray-100 pl-8 pr-3 py-2 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#14532d]"
-                                                                    placeholder="Drop Destination"
+                                                                <SearchableSelect
+                                                                    options={pickupPoints.map(p => ({
+                                                                        value: p.name,
+                                                                        label: p.name,
+                                                                        subtitle: p.city_name
+                                                                    }))}
                                                                     value={route.drop_to}
-                                                                    onChange={(e) => handleRouteParamChange(idx, 'drop_to', e.target.value)}
+                                                                    onChange={val => handleRouteParamChange(idx, 'drop_to', val)}
+                                                                    placeholder="Drop Destination"
                                                                 />
                                                             </div>
                                                         </td>

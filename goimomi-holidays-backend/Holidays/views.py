@@ -473,3 +473,8 @@ class VehicleRateCardViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = VehicleRateCard.objects.all().order_by('-created_at')
     serializer_class = VehicleRateCardSerializer
+class PickupPointMasterViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = PickupPointMaster.objects.all()
+    serializer_class = PickupPointMasterSerializer

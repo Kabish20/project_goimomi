@@ -5,7 +5,7 @@ from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay,
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination,
     ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster, Airline, HolidayVehicle,
-    SightseeingMaster, MealMaster, CancellationPolicy, RoomType, VehicleMaster
+    SightseeingMaster, MealMaster, CancellationPolicy, RoomType, VehicleMaster, PickupPointMaster
 )
 from . import models
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -115,6 +115,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
     cancellation_policies = CancellationPolicySerializer(many=True, read_only=True)
     destinations = PackageDestinationSerializer(source='extra_destinations', many=True, read_only=True)
     nights = serializers.SerializerMethodField()
+    fixed_departure_data = serializers.SerializerMethodField()
     
     # Use distinct field names for writing to avoid clashing with read-only fields
     package_destinations = serializers.JSONField(write_only=True, required=False)
@@ -137,6 +138,51 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         # Return all itinerary items belonging to this package
         qs = obj.itinerary.all()
         return ItineraryDaySerializer(qs, many=True, context=self.context).data
+
+    def get_fixed_departure_data(self, obj):
+        """
+        For the public-facing API, filter out pricing slots where valid_to has expired.
+        For admin requests (detected by ?all=true or when the request comes from admin),
+        return all slots unfiltered.
+        """
+        from datetime import date
+        import json
+
+        data = obj.fixed_departure_data
+        if not data:
+            return data
+
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except Exception:
+                return data
+
+        # Check if this is an admin request (pass ?admin=true to skip filtering)
+        request = self.context.get('request')
+        is_admin = request and (
+            request.query_params.get('admin', 'false').lower() == 'true' or
+            request.query_params.get('all', 'false').lower() == 'true'
+        )
+        if is_admin:
+            return data
+
+        # For public: filter out slots where valid_to has passed
+        today = date.today()
+        filtered = []
+        for slot in data:
+            valid_to_str = slot.get('valid_to')
+            if valid_to_str:
+                try:
+                    valid_to = date.fromisoformat(valid_to_str)
+                    if valid_to >= today:
+                        filtered.append(slot)
+                    # else: expired slot — skip it
+                except (ValueError, TypeError):
+                    filtered.append(slot)  # Keep if date can't be parsed
+            else:
+                filtered.append(slot)  # Keep if no valid_to set
+        return filtered
 
     def create(self, validated_data):
         import json
@@ -545,4 +591,9 @@ class DriverMasterSerializer(serializers.ModelSerializer):
 class VehicleRateCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.VehicleRateCard
+        fields = "__all__"
+class PickupPointMasterSerializer(serializers.ModelSerializer):
+    city_name = serializers.ReadOnlyField(source='city.name')
+    class Meta:
+        model = PickupPointMaster
         fields = "__all__"

@@ -26,6 +26,7 @@ const VehicleRateCardEdit = () => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [countries, setCountries] = useState([]);
+    const [pickupPoints, setPickupPoints] = useState([]);
     const [rateCard, setRateCard] = useState({
         country: "",
         name: "",
@@ -36,6 +37,7 @@ const VehicleRateCardEdit = () => {
 
     useEffect(() => {
         fetchCountries();
+        fetchPickupPoints();
         fetchRateCard();
     }, [id]);
 
@@ -45,6 +47,15 @@ const VehicleRateCardEdit = () => {
             setCountries(res.data || []);
         } catch (err) {
             console.error("Error fetching countries:", err);
+        }
+    };
+
+    const fetchPickupPoints = async () => {
+        try {
+            const res = await axios.get("/api/pickup-point-masters/");
+            setPickupPoints(res.data || []);
+        } catch (err) {
+            console.error("Error fetching pickup points:", err);
         }
     };
 
@@ -232,23 +243,29 @@ const VehicleRateCardEdit = () => {
                                                 <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
                                                     <td className="p-2">
                                                         <div className="relative">
-                                                            <MapPin size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
-                                                            <input
-                                                                className="w-full bg-white border border-gray-100 pl-8 pr-3 py-2 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#14532d]"
-                                                                placeholder="Pickup Point"
+                                                            <SearchableSelect
+                                                                options={pickupPoints.map(p => ({
+                                                                    value: p.name,
+                                                                    label: p.name,
+                                                                    subtitle: p.city_name
+                                                                }))}
                                                                 value={route.start_from}
-                                                                onChange={(e) => handleRouteParamChange(idx, 'start_from', e.target.value)}
+                                                                onChange={val => handleRouteParamChange(idx, 'start_from', val)}
+                                                                placeholder="Pickup Point"
                                                             />
                                                         </div>
                                                     </td>
                                                     <td className="p-2">
                                                         <div className="relative">
-                                                            <MapPin size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" />
-                                                            <input
-                                                                className="w-full bg-white border border-gray-100 pl-8 pr-3 py-2 rounded-lg text-[11px] font-bold focus:outline-none focus:border-[#14532d]"
-                                                                placeholder="Drop Destination"
+                                                            <SearchableSelect
+                                                                options={pickupPoints.map(p => ({
+                                                                    value: p.name,
+                                                                    label: p.name,
+                                                                    subtitle: p.city_name
+                                                                }))}
                                                                 value={route.drop_to}
-                                                                onChange={(e) => handleRouteParamChange(idx, 'drop_to', e.target.value)}
+                                                                onChange={val => handleRouteParamChange(idx, 'drop_to', val)}
+                                                                placeholder="Drop Destination"
                                                             />
                                                         </div>
                                                     </td>

@@ -349,7 +349,6 @@ const Navbar = () => {
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
                       onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
                     >
-                      <img src="https://cdn-icons-png.flaticon.com/128/701/701349.png" alt="Europe" className="w-5 h-5 object-contain" />
                       European Tour
                     </NavLink>
                   </div>

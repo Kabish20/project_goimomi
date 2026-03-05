@@ -168,6 +168,7 @@ const HolidayPackageEdit = () => {
     });
     const [roomTypes, setRoomTypes] = useState([]);
     const [vehicleMasters, setVehicleMasters] = useState([]);
+    const [pickupPoints, setPickupPoints] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     // New Sightseeing panel state
     const [newSightseeingForm, setNewSightseeingForm] = useState({
@@ -314,7 +315,7 @@ const HolidayPackageEdit = () => {
             try {
                 setLoading(true);
                 // Fetch dependencies in parallel
-                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pkgRes] = await Promise.all([
+                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pickupPointsRes, pkgRes] = await Promise.all([
                     axios.get(`${API_BASE_URL}/starting-cities/`),
                     axios.get(`${API_BASE_URL}/destinations/`),
                     axios.get(`${API_BASE_URL}/suppliers/`),
@@ -327,7 +328,8 @@ const HolidayPackageEdit = () => {
                     axios.get(`${API_BASE_URL}/vehicle-masters/`),
                     axios.get(`${API_BASE_URL}/driver-masters/`),
                     axios.get(`${API_BASE_URL}/room-types/`),
-                    axios.get(`${API_BASE_URL}/packages/${id}/`),
+                    axios.get(`${API_BASE_URL}/pickup-point-masters/`),
+                    axios.get(`${API_BASE_URL}/packages/${id}/?all=true`),
                 ]);
 
                 if (Array.isArray(citiesRes.data)) setStartingCities(citiesRes.data);
@@ -355,6 +357,7 @@ const HolidayPackageEdit = () => {
                 if (Array.isArray(vehicleMastersRes.data)) setVehicleMasters(vehicleMastersRes.data);
                 if (Array.isArray(driverMastersRes.data)) setDriverMasters(driverMastersRes.data);
                 if (Array.isArray(roomTypesRes.data)) setRoomTypes(roomTypesRes.data);
+                if (Array.isArray(pickupPointsRes.data)) setPickupPoints(pickupPointsRes.data);
 
                 // Populate Form Data
                 const pkg = pkgRes.data;
@@ -1697,256 +1700,271 @@ const HolidayPackageEdit = () => {
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-1 gap-6" ref={pricingSlotsRef}>
-                                                    {fixedDepartureData.map((slot, sIdx) => (
-                                                        <div key={sIdx} className="bg-white border-2 border-gray-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all relative group">
-                                                            {/* Card Decoration */}
-                                                            <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 opacity-40"></div>
-
-                                                            {/* Header Section */}
-                                                            <div className="flex flex-wrap items-center gap-6 mb-8 relative z-10">
-                                                                {formData.fixed_departure ? (
-                                                                    <div className="flex flex-col gap-1.5 flex-1 max-w-xs">
-                                                                        <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1 flex items-center gap-1.5">
-                                                                            <Calendar size={12} className="opacity-40" /> Enter Travel Date
-                                                                        </span>
-                                                                        <div className="relative group/input">
-                                                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/input:text-[#14532d] transition-colors" size={14} />
-                                                                            <input
-                                                                                type="date"
-                                                                                value={slot.travel_date}
-                                                                                onChange={(e) => {
-                                                                                    const copy = [...fixedDepartureData];
-                                                                                    copy[sIdx].travel_date = e.target.value;
-                                                                                    // Auto-sync arrival date in logistics
-                                                                                    if (copy[sIdx].logistics) {
-                                                                                        copy[sIdx].logistics = { ...copy[sIdx].logistics, arrival_date: e.target.value };
-                                                                                    } else {
-                                                                                        copy[sIdx].logistics = { ...mkLogistics(), arrival_date: e.target.value };
-                                                                                    }
-                                                                                    setFixedDepartureData(copy);
-                                                                                }}
-                                                                                className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                                                                        <div className="flex flex-col gap-1.5">
-                                                                            <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1">Price Valid From</span>
-                                                                            <div className="relative group/input">
-                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
-                                                                                <input
-                                                                                    type="date"
-                                                                                    value={slot.valid_from}
-                                                                                    onChange={(e) => {
-                                                                                        const copy = [...fixedDepartureData];
-                                                                                        copy[sIdx].valid_from = e.target.value;
-                                                                                        setFixedDepartureData(copy);
-                                                                                    }}
-                                                                                    className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="flex flex-col gap-1.5">
-                                                                            <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1">Valid To</span>
-                                                                            <div className="relative group/input">
-                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
-                                                                                <input
-                                                                                    type="date"
-                                                                                    value={slot.valid_to}
-                                                                                    onChange={(e) => {
-                                                                                        const copy = [...fixedDepartureData];
-                                                                                        copy[sIdx].valid_to = e.target.value;
-                                                                                        setFixedDepartureData(copy);
-                                                                                    }}
-                                                                                    className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
+                                                    {fixedDepartureData.map((slot, sIdx) => {
+                                                        const isExpired = (() => {
+                                                            const validTo = slot.valid_to || slot.booking_valid_until;
+                                                            if (!validTo) return false;
+                                                            return new Date(validTo) < new Date(new Date().toDateString());
+                                                        })();
+                                                        return (
+                                                            <div key={sIdx} className={`bg-white border-2 ${isExpired ? 'border-red-200 opacity-75' : 'border-gray-100'} rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all relative group`}>
+                                                                {/* Expired Badge */}
+                                                                {isExpired && (
+                                                                    <div className="absolute top-4 right-6 z-20 flex items-center gap-1.5 bg-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+                                                                        <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                                                                        EXPIRED — Hidden from Live
                                                                     </div>
                                                                 )}
+                                                                {/* Card Decoration */}
+                                                                <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 opacity-40"></div>
 
-                                                                <div className="flex items-center gap-2">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            setFixedDepartureData(prev => {
-                                                                                const next = [...prev];
-                                                                                next.splice(sIdx + 1, 0, mkSlot());
-                                                                                return next;
-                                                                            });
-                                                                            // Scroll back to top of pricing slots after adding
-                                                                            setTimeout(() => {
-                                                                                if (pricingSlotsRef.current) {
-                                                                                    pricingSlotsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                                                                }
-                                                                            }, 50);
-                                                                        }}
-                                                                        className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
-                                                                        title="Add new travel date"
-                                                                    >
-                                                                        <Plus size={16} />
-                                                                    </button>
-                                                                    {fixedDepartureData.length > 1 && (
+                                                                {/* Header Section */}
+                                                                <div className="flex flex-wrap items-center gap-6 mb-8 relative z-10">
+                                                                    {formData.fixed_departure ? (
+                                                                        <div className="flex flex-col gap-1.5 flex-1 max-w-xs">
+                                                                            <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1 flex items-center gap-1.5">
+                                                                                <Calendar size={12} className="opacity-40" /> Enter Travel Date
+                                                                            </span>
+                                                                            <div className="relative group/input">
+                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/input:text-[#14532d] transition-colors" size={14} />
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={slot.travel_date}
+                                                                                    onChange={(e) => {
+                                                                                        const copy = [...fixedDepartureData];
+                                                                                        copy[sIdx].travel_date = e.target.value;
+                                                                                        // Auto-sync arrival date in logistics
+                                                                                        if (copy[sIdx].logistics) {
+                                                                                            copy[sIdx].logistics = { ...copy[sIdx].logistics, arrival_date: e.target.value };
+                                                                                        } else {
+                                                                                            copy[sIdx].logistics = { ...mkLogistics(), arrival_date: e.target.value };
+                                                                                        }
+                                                                                        setFixedDepartureData(copy);
+                                                                                    }}
+                                                                                    className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                                                                            <div className="flex flex-col gap-1.5">
+                                                                                <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1">Price Valid From</span>
+                                                                                <div className="relative group/input">
+                                                                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
+                                                                                    <input
+                                                                                        type="date"
+                                                                                        value={slot.valid_from}
+                                                                                        onChange={(e) => {
+                                                                                            const copy = [...fixedDepartureData];
+                                                                                            copy[sIdx].valid_from = e.target.value;
+                                                                                            setFixedDepartureData(copy);
+                                                                                        }}
+                                                                                        className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="flex flex-col gap-1.5">
+                                                                                <span className="text-[9px] font-black text-[#14532d] uppercase tracking-[0.15em] ml-1">Valid To</span>
+                                                                                <div className="relative group/input">
+                                                                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 transition-colors" size={14} />
+                                                                                    <input
+                                                                                        type="date"
+                                                                                        value={slot.valid_to}
+                                                                                        onChange={(e) => {
+                                                                                            const copy = [...fixedDepartureData];
+                                                                                            copy[sIdx].valid_to = e.target.value;
+                                                                                            setFixedDepartureData(copy);
+                                                                                        }}
+                                                                                        className="w-full bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-[#14532d] outline-none transition-all shadow-inner"
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div className="flex items-center gap-2">
                                                                         <button
                                                                             type="button"
-                                                                            onClick={() => setFixedDepartureData(prev => prev.filter((_, i) => i !== sIdx))}
-                                                                            className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                                                                            title="Remove this travel date"
+                                                                            onClick={() => {
+                                                                                setFixedDepartureData(prev => {
+                                                                                    const next = [...prev];
+                                                                                    next.splice(sIdx + 1, 0, mkSlot());
+                                                                                    return next;
+                                                                                });
+                                                                                // Scroll back to top of pricing slots after adding
+                                                                                setTimeout(() => {
+                                                                                    if (pricingSlotsRef.current) {
+                                                                                        pricingSlotsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                                                    }
+                                                                                }, 50);
+                                                                            }}
+                                                                            className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all shadow-sm"
+                                                                            title="Add new travel date"
                                                                         >
-                                                                            <X size={16} />
+                                                                            <Plus size={16} />
                                                                         </button>
-                                                                    )}
+                                                                        {fixedDepartureData.length > 1 && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setFixedDepartureData(prev => prev.filter((_, i) => i !== sIdx))}
+                                                                                className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                                                                title="Remove this travel date"
+                                                                            >
+                                                                                <X size={16} />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
 
-                                                            {/* Tiers Container */}
-                                                            <div className="border border-gray-200 rounded-[2rem] p-8 bg-[#fdfdfd] shadow-inner mb-6 relative z-10">
-                                                                <div className="space-y-8">
-                                                                    {formData.package_categories.length === 0 ? (
-                                                                        <p className="text-[11px] font-bold text-red-400 italic text-center py-4">No package tiers selected. Please select them in Step 1.</p>
-                                                                    ) : (
-                                                                        formData.package_categories.map((tier) => (
-                                                                            <div key={tier} className="space-y-3">
-                                                                                {slot.tiers[tier]?.map((row, rIdx) => (
-                                                                                    <div key={rIdx} className="flex flex-wrap items-center gap-4 group/tier">
-                                                                                        {rIdx === 0 && (
-                                                                                            <div className="w-24 shrink-0">
-                                                                                                <span className="text-[11px] font-black text-[#14532d] uppercase tracking-wide group-hover/tier:tracking-widest transition-all">
-                                                                                                    {tier} <span className="text-gray-300 ml-1">&#8594;</span>
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        )}
-                                                                                        {rIdx > 0 && <div className="w-24 shrink-0"></div>}
+                                                                {/* Tiers Container */}
+                                                                <div className="border border-gray-200 rounded-[2rem] p-8 bg-[#fdfdfd] shadow-inner mb-6 relative z-10">
+                                                                    <div className="space-y-8">
+                                                                        {formData.package_categories.length === 0 ? (
+                                                                            <p className="text-[11px] font-bold text-red-400 italic text-center py-4">No package tiers selected. Please select them in Step 1.</p>
+                                                                        ) : (
+                                                                            formData.package_categories.map((tier) => (
+                                                                                <div key={tier} className="space-y-3">
+                                                                                    {slot.tiers[tier]?.map((row, rIdx) => (
+                                                                                        <div key={rIdx} className="flex flex-wrap items-center gap-4 group/tier">
+                                                                                            {rIdx === 0 && (
+                                                                                                <div className="w-24 shrink-0">
+                                                                                                    <span className="text-[11px] font-black text-[#14532d] uppercase tracking-wide group-hover/tier:tracking-widest transition-all">
+                                                                                                        {tier} <span className="text-gray-300 ml-1">&#8594;</span>
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            )}
+                                                                                            {rIdx > 0 && <div className="w-24 shrink-0"></div>}
 
-                                                                                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-                                                                                            <div>
-                                                                                                {rIdx === 0 && <FormLabel label="Sharing" />}
-                                                                                                <select
-                                                                                                    value={row.sharing || 'SINGLE'}
-                                                                                                    onChange={(e) => {
-                                                                                                        const copy = [...fixedDepartureData];
-                                                                                                        copy[sIdx].tiers[tier][rIdx].sharing = e.target.value;
-                                                                                                        setFixedDepartureData(copy);
-                                                                                                    }}
-                                                                                                    className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] focus:ring-4 focus:ring-green-50 outline-none transition-all"
-                                                                                                >
-                                                                                                    <option value="SINGLE">SINGLE</option>
-                                                                                                    <option value="TWIN">TWIN</option>
-                                                                                                    <option value="TRIPLE">TRIPLE</option>
-                                                                                                    <option value="QUAD">QUAD</option>
-                                                                                                    <option value="QUINT">QUINT</option>
-                                                                                                </select>
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                {rIdx === 0 && <FormLabel label="Offer Price" />}
-                                                                                                <div className="relative">
-                                                                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">₹</span>
-                                                                                                    <input
-                                                                                                        type="text"
-                                                                                                        value={formatWithCommas(row.offer_price || '')}
+                                                                                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                                                                                                <div>
+                                                                                                    {rIdx === 0 && <FormLabel label="Sharing" />}
+                                                                                                    <select
+                                                                                                        value={row.sharing || 'SINGLE'}
                                                                                                         onChange={(e) => {
                                                                                                             const copy = [...fixedDepartureData];
-                                                                                                            const cleanVal = e.target.value.replace(/\D/g, "");
-                                                                                                            copy[sIdx].tiers[tier][rIdx].offer_price = cleanVal;
+                                                                                                            copy[sIdx].tiers[tier][rIdx].sharing = e.target.value;
                                                                                                             setFixedDepartureData(copy);
                                                                                                         }}
-                                                                                                        placeholder="Offer Price"
-                                                                                                        className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
-                                                                                                    />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                {rIdx === 0 && <FormLabel label="Market Price" />}
-                                                                                                <div className="relative">
-                                                                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">₹</span>
-                                                                                                    <input
-                                                                                                        type="text"
-                                                                                                        value={formatWithCommas(row.market_price || '')}
-                                                                                                        onChange={(e) => {
-                                                                                                            const copy = [...fixedDepartureData];
-                                                                                                            const cleanVal = e.target.value.replace(/\D/g, "");
-                                                                                                            copy[sIdx].tiers[tier][rIdx].market_price = cleanVal;
-                                                                                                            setFixedDepartureData(copy);
-                                                                                                        }}
-                                                                                                        placeholder="Market Price"
-                                                                                                        className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
-                                                                                                    />
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                <div className="flex-1">
-                                                                                                    {rIdx === 0 && <FormLabel label="Min Pax" />}
-                                                                                                    <input
-                                                                                                        type="number"
-                                                                                                        value={row.min_members || '1'}
-                                                                                                        onChange={(e) => {
-                                                                                                            const copy = [...fixedDepartureData];
-                                                                                                            copy[sIdx].tiers[tier][rIdx].min_members = e.target.value;
-                                                                                                            setFixedDepartureData(copy);
-                                                                                                        }}
-                                                                                                        className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
-                                                                                                    />
-                                                                                                </div>
-                                                                                                <div className={`flex items-center gap-1.5 ${rIdx === 0 ? 'mt-3.5' : ''}`}>
-                                                                                                    <button
-                                                                                                        type="button"
-                                                                                                        onClick={() => {
-                                                                                                            const copy = [...fixedDepartureData];
-                                                                                                            copy[sIdx].tiers[tier].splice(rIdx + 1, 0, { offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" });
-                                                                                                            setFixedDepartureData(copy);
-                                                                                                        }}
-                                                                                                        className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-600 transition-all font-bold text-xs"
+                                                                                                        className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] focus:ring-4 focus:ring-green-50 outline-none transition-all"
                                                                                                     >
-                                                                                                        +
-                                                                                                    </button>
-                                                                                                    {slot.tiers[tier].length > 1 && (
+                                                                                                        <option value="SINGLE">SINGLE</option>
+                                                                                                        <option value="TWIN">TWIN</option>
+                                                                                                        <option value="TRIPLE">TRIPLE</option>
+                                                                                                        <option value="QUAD">QUAD</option>
+                                                                                                        <option value="QUINT">QUINT</option>
+                                                                                                    </select>
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    {rIdx === 0 && <FormLabel label="Offer Price" />}
+                                                                                                    <div className="relative">
+                                                                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">₹</span>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={formatWithCommas(row.offer_price || '')}
+                                                                                                            onChange={(e) => {
+                                                                                                                const copy = [...fixedDepartureData];
+                                                                                                                const cleanVal = e.target.value.replace(/\D/g, "");
+                                                                                                                copy[sIdx].tiers[tier][rIdx].offer_price = cleanVal;
+                                                                                                                setFixedDepartureData(copy);
+                                                                                                            }}
+                                                                                                            placeholder="Offer Price"
+                                                                                                            className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    {rIdx === 0 && <FormLabel label="Market Price" />}
+                                                                                                    <div className="relative">
+                                                                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-[10px] font-black">₹</span>
+                                                                                                        <input
+                                                                                                            type="text"
+                                                                                                            value={formatWithCommas(row.market_price || '')}
+                                                                                                            onChange={(e) => {
+                                                                                                                const copy = [...fixedDepartureData];
+                                                                                                                const cleanVal = e.target.value.replace(/\D/g, "");
+                                                                                                                copy[sIdx].tiers[tier][rIdx].market_price = cleanVal;
+                                                                                                                setFixedDepartureData(copy);
+                                                                                                            }}
+                                                                                                            placeholder="Market Price"
+                                                                                                            className="bg-white border border-gray-200 pl-6 pr-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div className="flex items-center gap-2">
+                                                                                                    <div className="flex-1">
+                                                                                                        {rIdx === 0 && <FormLabel label="Min Pax" />}
+                                                                                                        <input
+                                                                                                            type="number"
+                                                                                                            value={row.min_members || '1'}
+                                                                                                            onChange={(e) => {
+                                                                                                                const copy = [...fixedDepartureData];
+                                                                                                                copy[sIdx].tiers[tier][rIdx].min_members = e.target.value;
+                                                                                                                setFixedDepartureData(copy);
+                                                                                                            }}
+                                                                                                            className="bg-white border border-gray-200 px-3 py-1.5 rounded-xl w-full text-[10px] font-black focus:border-[#14532d] outline-none transition-all"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                    <div className={`flex items-center gap-1.5 ${rIdx === 0 ? 'mt-3.5' : ''}`}>
                                                                                                         <button
                                                                                                             type="button"
                                                                                                             onClick={() => {
                                                                                                                 const copy = [...fixedDepartureData];
-                                                                                                                copy[sIdx].tiers[tier].splice(rIdx, 1);
+                                                                                                                copy[sIdx].tiers[tier].splice(rIdx + 1, 0, { offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" });
                                                                                                                 setFixedDepartureData(copy);
                                                                                                             }}
-                                                                                                            className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-all font-bold text-xs"
+                                                                                                            className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-600 hover:border-green-600 transition-all font-bold text-xs"
                                                                                                         >
-                                                                                                            -
+                                                                                                            +
                                                                                                         </button>
-                                                                                                    )}
+                                                                                                        {slot.tiers[tier].length > 1 && (
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                onClick={() => {
+                                                                                                                    const copy = [...fixedDepartureData];
+                                                                                                                    copy[sIdx].tiers[tier].splice(rIdx, 1);
+                                                                                                                    setFixedDepartureData(copy);
+                                                                                                                }}
+                                                                                                                className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-all font-bold text-xs"
+                                                                                                            >
+                                                                                                                -
+                                                                                                            </button>
+                                                                                                        )}
+                                                                                                    </div>
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        ))
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {formData.fixed_departure && (
-                                                                <div className="flex flex-col items-center gap-4 relative z-10">
-                                                                    <div className="flex items-center gap-3 justify-center">
-                                                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL:</span>
-                                                                        <div className="relative group/valid">
-                                                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
-                                                                            <input
-                                                                                type="date"
-                                                                                value={slot.booking_valid_until}
-                                                                                onChange={(e) => {
-                                                                                    const copy = [...fixedDepartureData];
-                                                                                    copy[sIdx].booking_valid_until = e.target.value;
-                                                                                    setFixedDepartureData(copy);
-                                                                                }}
-                                                                                className="w-44 bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-amber-500 outline-none transition-all shadow-inner"
-                                                                            />
-                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                            ))
+                                                                        )}
                                                                     </div>
-                                                                    <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest text-center px-8">Package will automatically de-activate on the live site after this date</p>
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    ))}
+
+                                                                {formData.fixed_departure && (
+                                                                    <div className="flex flex-col items-center gap-4 relative z-10">
+                                                                        <div className="flex items-center gap-3 justify-center">
+                                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">BOOKING VALID UNTIL:</span>
+                                                                            <div className="relative group/valid">
+                                                                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 group-hover/valid:text-amber-500 transition-colors" size={14} />
+                                                                                <input
+                                                                                    type="date"
+                                                                                    value={slot.booking_valid_until}
+                                                                                    onChange={(e) => {
+                                                                                        const copy = [...fixedDepartureData];
+                                                                                        copy[sIdx].booking_valid_until = e.target.value;
+                                                                                        setFixedDepartureData(copy);
+                                                                                    }}
+                                                                                    className="w-44 bg-gray-50 border-2 border-transparent pl-10 pr-4 py-2 rounded-xl text-gray-900 text-[11px] font-black focus:bg-white focus:border-amber-500 outline-none transition-all shadow-inner"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                        <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest text-center px-8">Package will automatically de-activate on the live site after this date</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+
                                                 </div>
                                             )}
                                             <p className="text-[10px] text-gray-400 font-medium italic mt-2">Note: Prices are formatted with commas automatically for Indian Rupees.</p>
@@ -2846,12 +2864,15 @@ const HolidayPackageEdit = () => {
                                                                             </div>
                                                                             <div>
                                                                                 <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                <input
-                                                                                    type="text"
+                                                                                <SearchableSelect
+                                                                                    options={pickupPoints.map(p => ({
+                                                                                        value: p.name,
+                                                                                        label: p.name,
+                                                                                        subtitle: p.city_name
+                                                                                    }))}
                                                                                     value={vd.pickUpLocation || ''}
-                                                                                    onChange={e => updateVD({ pickUpLocation: e.target.value })}
-                                                                                    placeholder={isSelf ? 'Enter address from where vehicle will be picked up' : 'Enter address from where passenger will be picked up'}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                    onChange={val => updateVD({ pickUpLocation: val })}
+                                                                                    placeholder="🔍 Search pickup point..."
                                                                                 />
                                                                             </div>
                                                                         </div>
@@ -2868,12 +2889,15 @@ const HolidayPackageEdit = () => {
                                                                             </div>
                                                                             <div>
                                                                                 <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                <input
-                                                                                    type="text"
+                                                                                <SearchableSelect
+                                                                                    options={pickupPoints.map(p => ({
+                                                                                        value: p.name,
+                                                                                        label: p.name,
+                                                                                        subtitle: p.city_name
+                                                                                    }))}
                                                                                     value={vd.dropOffLocation || ''}
-                                                                                    onChange={e => updateVD({ dropOffLocation: e.target.value })}
-                                                                                    placeholder={isSelf ? 'Enter address to where the vehicle will be dropped off' : 'Enter address where passenger will be dropped off'}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                    onChange={val => updateVD({ dropOffLocation: val })}
+                                                                                    placeholder="🔍 Search drop point..."
                                                                                 />
                                                                             </div>
                                                                         </div>

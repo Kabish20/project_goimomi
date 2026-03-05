@@ -30,6 +30,7 @@ router.register("room-types", RoomTypeViewSet)
 router.register("vehicle-masters", VehicleMasterViewSet)
 router.register("driver-masters", DriverMasterViewSet)
 router.register("vehicle-rate-cards", VehicleRateCardViewSet)
+router.register("pickup-point-masters", PickupPointMasterViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

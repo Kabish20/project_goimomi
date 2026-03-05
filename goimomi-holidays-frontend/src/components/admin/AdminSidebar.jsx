@@ -73,6 +73,7 @@ const menu = [
           { name: "Manage Vehicles", key: "Vehicle Masters" },
           { name: "Driver Masters" },
           { name: "Route Rate Cards" },
+          { name: "Pickup Point Masters" },
         ]
       },
       { name: "Nationalities", icon: <Flag size={18} /> },
@@ -155,6 +156,8 @@ const AdminSidebar = () => {
   const handleChangeDriverMaster = () => navigate("/admin/driver-masters");
   const handleAddRateCard = () => navigate("/admin/vehicle-rate-cards/add");
   const handleChangeRateCard = () => navigate("/admin/vehicle-rate-cards");
+  const handleAddPickupPoint = () => navigate("/admin/pickup-point-masters/add");
+  const handleChangePickupPoint = () => navigate("/admin/pickup-point-masters");
 
   const getAddHandler = (item) => {
     const key = typeof item === 'string' ? item : (item.key || item.name);
@@ -177,6 +180,7 @@ const AdminSidebar = () => {
       case "Vehicle Masters": return handleAddVehicleMaster;
       case "Driver Masters": return handleAddDriverMaster;
       case "Route Rate Cards": return handleAddRateCard;
+      case "Pickup Point Masters": return handleAddPickupPoint;
       default: return undefined;
     }
   };
@@ -207,6 +211,7 @@ const AdminSidebar = () => {
       case "Vehicle Masters": return handleChangeVehicleMaster;
       case "Driver Masters": return handleChangeDriverMaster;
       case "Route Rate Cards": return handleChangeRateCard;
+      case "Pickup Point Masters": return handleChangePickupPoint;
       default: return undefined;
     }
   };

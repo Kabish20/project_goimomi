@@ -73,7 +73,7 @@ const VehicleRateCardManage = () => {
                 <div className="flex-1 overflow-y-auto p-4 md:p-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                         <div>
-                            <h1 className="text-xl font-black text-gray-900 tracking-tight leading-none mb-1 uppercase text-[#14532d]">Vehicle Rate Cards</h1>
+                            <h1 className="text-xl font-black tracking-tight leading-none mb-1 uppercase text-[#14532d]">Vehicle Rate Cards</h1>
                             <p className="text-gray-400 text-[9px] font-bold uppercase tracking-widest">Route-based pricing inventory</p>
                         </div>
                         <div className="flex gap-2 w-full sm:w-auto">

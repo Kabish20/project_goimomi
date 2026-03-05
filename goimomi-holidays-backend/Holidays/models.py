@@ -619,3 +619,10 @@ class VehicleRateCard(models.Model):
 
     def __str__(self):
         return self.name
+
+class PickupPointMaster(models.Model):
+    city = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name='pickup_points')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name} ({self.city.name})"

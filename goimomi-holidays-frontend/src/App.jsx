@@ -90,6 +90,9 @@ import DriverMasterEdit from "./pages/admin/DriverMasterEdit.jsx";
 import VehicleRateCardManage from "./pages/admin/VehicleRateCardManage.jsx";
 import VehicleRateCardAdd from "./pages/admin/VehicleRateCardAdd.jsx";
 import VehicleRateCardEdit from "./pages/admin/VehicleRateCardEdit.jsx";
+import PickupPointManage from "./pages/admin/PickupPointManage.jsx";
+import PickupPointAdd from "./pages/admin/PickupPointAdd.jsx";
+import PickupPointEdit from "./pages/admin/PickupPointEdit.jsx";
 
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -220,6 +223,9 @@ const App = () => {
             <Route path="/admin/vehicle-rate-cards" element={<VehicleRateCardManage />} />
             <Route path="/admin/vehicle-rate-cards/add" element={<VehicleRateCardAdd />} />
             <Route path="/admin/vehicle-rate-cards/edit/:id" element={<VehicleRateCardEdit />} />
+            <Route path="/admin/pickup-point-masters" element={<PickupPointManage />} />
+            <Route path="/admin/pickup-point-masters/add" element={<PickupPointAdd />} />
+            <Route path="/admin/pickup-point-masters/edit/:id" element={<PickupPointEdit />} />
           </Route>
         </Routes>
       </main>

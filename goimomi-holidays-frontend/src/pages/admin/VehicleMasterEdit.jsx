@@ -104,8 +104,8 @@ const VehicleMasterEdit = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.driver) {
-            alert("Please select a Driver Name.");
+        if (!formData.name || !formData.brand || !formData.seating_capacity || !formData.luggage_capacity) {
+            alert("Please fill in all required vehicle specifications.");
             return;
         }
 
@@ -180,12 +180,12 @@ const VehicleMasterEdit = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="md:col-span-2">
-                                            <FormLabel label="Vehicle Name / Model" optional />
+                                            <FormLabel label="Vehicle Name / Model" required />
                                             <Input name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g. Toyota Innova Crysta" />
                                         </div>
 
                                         <div className="md:col-span-2">
-                                            <FormLabel label="Vehicle Brand" optional />
+                                            <FormLabel label="Vehicle Brand" required />
                                             <SearchableSelect
                                                 options={brands.map(b => ({ value: b.id, label: b.name }))}
                                                 value={formData.brand}
@@ -195,7 +195,7 @@ const VehicleMasterEdit = () => {
                                         </div>
 
                                         <div>
-                                            <FormLabel label="Seating Capacity" optional />
+                                            <FormLabel label="Seating Capacity" required />
                                             <div className="relative">
                                                 <Users size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                                                 <input
@@ -209,7 +209,7 @@ const VehicleMasterEdit = () => {
                                         </div>
 
                                         <div>
-                                            <FormLabel label="Luggage Capacity (Bags)" optional />
+                                            <FormLabel label="Luggage Capacity (Bags)" required />
                                             <div className="relative">
                                                 <Briefcase size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                                                 <input
@@ -223,7 +223,7 @@ const VehicleMasterEdit = () => {
                                         </div>
 
                                         <div>
-                                            <FormLabel label="Transmission / Drive" optional />
+                                            <FormLabel label="Transmission / Drive" required />
                                             <div className="relative">
                                                 <Settings size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                                                 <select
@@ -239,7 +239,7 @@ const VehicleMasterEdit = () => {
                                         </div>
 
                                         <div>
-                                            <FormLabel label="Driver Name" required />
+                                            <FormLabel label="Driver Name" optional />
                                             <SearchableSelect
                                                 options={drivers.map(d => ({ value: d.id, label: d.name, subtitle: d.mobile_number }))}
                                                 value={formData.driver}
