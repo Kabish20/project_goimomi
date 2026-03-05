@@ -1109,7 +1109,7 @@ const HolidayPackageEdit = () => {
                                         master_template: String(newMasterId),
                                         save_to_master: false
                                     };
-                                    console.log(`Created another master entry for day ${i + 1}: ${newMasterId}`);
+
                                 }
                             } catch (mErr) {
                                 console.error(`Error storing another master for day ${i + 1}:`, mErr);

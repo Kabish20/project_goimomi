@@ -369,8 +369,8 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                             details_json=day_data.get('details_json', {}),
                             image=master_image
                         )
-                    except Exception as e:
-                        print(f"Error auto-master: {e}")
+                    except Exception:
+                        pass
 
                 # Preserve old image if no new one uploaded
                 if not image_file and day_num in existing_days:

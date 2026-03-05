@@ -6,9 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Calendar, Users, MapPin, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
 const HolidayEnquiryAdd = () => {
-    useEffect(() => {
-        console.log("HolidayEnquiryAdd Mounted");
-    }, []);
+
 
     const navigate = useNavigate();
     const API_BASE_URL = "/api";
@@ -117,7 +115,6 @@ const HolidayEnquiryAdd = () => {
             };
 
             await axios.post(`${API_BASE_URL}/holiday-form/`, payload);
-            alert("Enquiry added successfully!");
             navigate("/admin/holiday-enquiries");
         } catch (err) {
             console.error(err);

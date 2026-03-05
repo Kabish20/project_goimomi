@@ -23,9 +23,7 @@ const DestinationManage = () => {
   const fetchDestinations = async () => {
     try {
       setLoading(true);
-      console.log("Fetching destinations from:", `${API_BASE_URL}/destinations/`);
       const response = await axios.get(`${API_BASE_URL}/destinations/`);
-      console.log("API Response:", response.data);
       setDestinations(response.data);
       setFilteredDestinations(response.data);
       setError("");

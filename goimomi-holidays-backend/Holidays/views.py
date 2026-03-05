@@ -20,13 +20,6 @@ class AdminLoginView(APIView):
         password = request.data.get("password")
         
         user = authenticate(username=username, password=password)
-        
-        with open("login_debug.log", "a") as f:
-            f.write(f"Login attempt for username='{username}'\n")
-            if user:
-                 f.write(f"User found: {user.username}, is_staff={user.is_staff}, is_superuser={user.is_superuser}\n")
-            else:
-                 f.write("User authentication failed\n")
 
         if user is not None:
             if user.is_staff:

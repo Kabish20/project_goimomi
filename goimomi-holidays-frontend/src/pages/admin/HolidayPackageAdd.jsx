@@ -913,7 +913,7 @@ const HolidayPackageAdd = () => {
                 await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
                   headers: { "Content-Type": "multipart/form-data" }
                 });
-                console.log(`Created another master entry for day ${i + 1}`);
+
               } catch (mErr) {
                 console.error(`Error storing another master for day ${i + 1}:`, mErr);
               }

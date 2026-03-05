@@ -213,7 +213,7 @@ const VisaApplicationEdit = () => {
     }
   };
 
-  const handleDeleteAdditionalDoc = async (docId, _applicantId) => {
+  const handleDeleteAdditionalDoc = async (docId) => {
     if (!window.confirm('Are you sure you want to delete this document?')) return;
     try {
       setIsUploading(true);
