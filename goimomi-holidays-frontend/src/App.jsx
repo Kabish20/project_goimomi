@@ -81,6 +81,15 @@ import CruiseCalendarEdit from "./pages/admin/CruiseCalendarEdit.jsx";
 import AccommodationManage from "./pages/admin/AccommodationManage.jsx";
 import AccommodationAdd from "./pages/admin/AccommodationAdd.jsx";
 import AccommodationEdit from "./pages/admin/AccommodationEdit.jsx";
+import VehicleMasterManage from "./pages/admin/VehicleMasterManage.jsx";
+import VehicleMasterAdd from "./pages/admin/VehicleMasterAdd.jsx";
+import VehicleMasterEdit from "./pages/admin/VehicleMasterEdit.jsx";
+import DriverMasterManage from "./pages/admin/DriverMasterManage.jsx";
+import DriverMasterAdd from "./pages/admin/DriverMasterAdd.jsx";
+import DriverMasterEdit from "./pages/admin/DriverMasterEdit.jsx";
+import VehicleRateCardManage from "./pages/admin/VehicleRateCardManage.jsx";
+import VehicleRateCardAdd from "./pages/admin/VehicleRateCardAdd.jsx";
+import VehicleRateCardEdit from "./pages/admin/VehicleRateCardEdit.jsx";
 
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -202,6 +211,15 @@ const App = () => {
             <Route path="/admin/accommodations" element={<AccommodationManage />} />
             <Route path="/admin/accommodations/add" element={<AccommodationAdd />} />
             <Route path="/admin/accommodations/edit/:id" element={<AccommodationEdit />} />
+            <Route path="/admin/vehicle-masters" element={<VehicleMasterManage />} />
+            <Route path="/admin/vehicle-masters/add" element={<VehicleMasterAdd />} />
+            <Route path="/admin/vehicle-masters/edit/:id" element={<VehicleMasterEdit />} />
+            <Route path="/admin/driver-masters" element={<DriverMasterManage />} />
+            <Route path="/admin/driver-masters/add" element={<DriverMasterAdd />} />
+            <Route path="/admin/driver-masters/edit/:id" element={<DriverMasterEdit />} />
+            <Route path="/admin/vehicle-rate-cards" element={<VehicleRateCardManage />} />
+            <Route path="/admin/vehicle-rate-cards/add" element={<VehicleRateCardAdd />} />
+            <Route path="/admin/vehicle-rate-cards/edit/:id" element={<VehicleRateCardEdit />} />
           </Route>
         </Routes>
       </main>

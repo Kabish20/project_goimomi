@@ -15,7 +15,8 @@ import {
   LayoutDashboard,
   Flag,
   Sun,
-  Calendar
+  Calendar,
+  Car
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -62,6 +63,16 @@ const menu = [
           { name: "Itinerary Masters" },
           { name: "Sightseeing Masters" },
           { name: "Accommodations" },
+        ]
+      },
+      {
+        name: "Vehicle Masters",
+        icon: <Car size={18} />,
+        isDropdown: true,
+        children: [
+          { name: "Manage Vehicles", key: "Vehicle Masters" },
+          { name: "Driver Masters" },
+          { name: "Route Rate Cards" },
         ]
       },
       { name: "Nationalities", icon: <Flag size={18} /> },
@@ -138,6 +149,12 @@ const AdminSidebar = () => {
   const handleAddSightseeingMaster = () => navigate("/admin/sightseeing-masters/add");
   const handleAddNationality = () => navigate("/admin/nationalities/add");
   const handleAddCruiseCalendar = () => navigate("/admin/cruise-calendar/add");
+  const handleAddVehicleMaster = () => navigate("/admin/vehicle-masters/add");
+  const handleChangeVehicleMaster = () => navigate("/admin/vehicle-masters");
+  const handleAddDriverMaster = () => navigate("/admin/driver-masters/add");
+  const handleChangeDriverMaster = () => navigate("/admin/driver-masters");
+  const handleAddRateCard = () => navigate("/admin/vehicle-rate-cards/add");
+  const handleChangeRateCard = () => navigate("/admin/vehicle-rate-cards");
 
   const getAddHandler = (item) => {
     const key = typeof item === 'string' ? item : (item.key || item.name);
@@ -157,6 +174,9 @@ const AdminSidebar = () => {
       case "Suppliers": return () => navigate("/admin/suppliers/add");
       case "Cruise Calendar": return handleAddCruiseCalendar;
       case "Accommodations": return () => navigate("/admin/accommodations/add");
+      case "Vehicle Masters": return handleAddVehicleMaster;
+      case "Driver Masters": return handleAddDriverMaster;
+      case "Route Rate Cards": return handleAddRateCard;
       default: return undefined;
     }
   };
@@ -184,6 +204,9 @@ const AdminSidebar = () => {
       case "Suppliers": return () => navigate("/admin/suppliers");
       case "Cruise Calendar": return () => navigate("/admin/cruise-calendar");
       case "Accommodations": return () => navigate("/admin/accommodations");
+      case "Vehicle Masters": return handleChangeVehicleMaster;
+      case "Driver Masters": return handleChangeDriverMaster;
+      case "Route Rate Cards": return handleChangeRateCard;
       default: return undefined;
     }
   };

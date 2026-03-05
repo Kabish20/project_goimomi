@@ -579,3 +579,43 @@ class RoomType(models.Model):
 
     def __str__(self):
         return self.name
+
+class VehicleMaster(models.Model):
+    name = models.CharField(max_length=255, null=True, blank=True)
+    brand = models.ForeignKey(VehicleBrand, on_delete=models.SET_NULL, null=True, blank=True, related_name='vehicles')
+    seating_capacity = models.PositiveIntegerField(null=True, blank=True)
+    luggage_capacity = models.PositiveIntegerField(null=True, blank=True)
+    drive = models.CharField(max_length=100, choices=[('Manual', 'Manual'), ('Automatic', 'Automatic')], default='Manual', null=True, blank=True)
+    driver = models.ForeignKey("DriverMaster", on_delete=models.SET_NULL, null=True, blank=True, related_name='vehicles')
+    photo = models.ImageField(upload_to="vehicles/", blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.brand.name} {self.name}"
+
+class DriverMaster(models.Model):
+    name = models.CharField(max_length=255)
+    id_no = models.CharField(max_length=255)
+    id_copy = models.FileField(upload_to="driver_ids/", blank=True, null=True)
+    photo = models.ImageField(upload_to="drivers/", blank=True, null=True)
+    mobile_number = models.CharField(max_length=20)
+    whatsapp_number = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class VehicleRateCard(models.Model):
+    name = models.CharField(max_length=255)
+    country = models.CharField(max_length=100)
+    validity_start = models.DateField()
+    validity_end = models.DateField()
+    # Storing the tabular data as JSON
+    # Structure: [{ "start_from": "...", "drop_to": "...", "v1": "", "v2": "", "v3": "", "v4": "" }]
+    routes = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

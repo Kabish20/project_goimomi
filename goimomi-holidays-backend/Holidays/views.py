@@ -455,3 +455,21 @@ class RoomTypeViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = RoomType.objects.all()
     serializer_class = RoomTypeSerializer
+
+class VehicleMasterViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = VehicleMaster.objects.all().order_by('-created_at')
+    serializer_class = VehicleMasterSerializer
+
+class DriverMasterViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = DriverMaster.objects.all().order_by('-created_at')
+    serializer_class = DriverMasterSerializer
+
+class VehicleRateCardViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = VehicleRateCard.objects.all().order_by('-created_at')
+    serializer_class = VehicleRateCardSerializer

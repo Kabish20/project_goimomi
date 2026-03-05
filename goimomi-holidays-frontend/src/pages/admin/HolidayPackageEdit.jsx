@@ -161,11 +161,13 @@ const HolidayPackageEdit = () => {
     const [sightseeingMasters, setSightseeingMasters] = useState([]);
     const [mealMasters, setMealMasters] = useState([]);
     const [airlines, setAirlines] = useState([]);
+    const [driverMasters, setDriverMasters] = useState([]);
     const [vehicleBrands, setVehicleBrands] = useState([]);
     const [newHotelForm, setNewHotelForm] = useState({
         name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
     });
     const [roomTypes, setRoomTypes] = useState([]);
+    const [vehicleMasters, setVehicleMasters] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     // New Sightseeing panel state
     const [newSightseeingForm, setNewSightseeingForm] = useState({
@@ -312,7 +314,7 @@ const HolidayPackageEdit = () => {
             try {
                 setLoading(true);
                 // Fetch dependencies in parallel
-                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, roomTypesRes, pkgRes] = await Promise.all([
+                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pkgRes] = await Promise.all([
                     axios.get(`${API_BASE_URL}/starting-cities/`),
                     axios.get(`${API_BASE_URL}/destinations/`),
                     axios.get(`${API_BASE_URL}/suppliers/`),
@@ -322,6 +324,8 @@ const HolidayPackageEdit = () => {
                     axios.get(`${API_BASE_URL}/meal-masters/`),
                     axios.get(`${API_BASE_URL}/airlines/`),
                     axios.get(`${API_BASE_URL}/vehicle-brands/`),
+                    axios.get(`${API_BASE_URL}/vehicle-masters/`),
+                    axios.get(`${API_BASE_URL}/driver-masters/`),
                     axios.get(`${API_BASE_URL}/room-types/`),
                     axios.get(`${API_BASE_URL}/packages/${id}/`),
                 ]);
@@ -348,6 +352,8 @@ const HolidayPackageEdit = () => {
                 if (Array.isArray(mealMastersRes.data)) setMealMasters(mealMastersRes.data);
                 if (Array.isArray(airlinesRes.data)) setAirlines(airlinesRes.data);
                 if (Array.isArray(vehicleBrandsRes.data)) setVehicleBrands(vehicleBrandsRes.data);
+                if (Array.isArray(vehicleMastersRes.data)) setVehicleMasters(vehicleMastersRes.data);
+                if (Array.isArray(driverMastersRes.data)) setDriverMasters(driverMastersRes.data);
                 if (Array.isArray(roomTypesRes.data)) setRoomTypes(roomTypesRes.data);
 
                 // Populate Form Data
@@ -772,7 +778,14 @@ const HolidayPackageEdit = () => {
     const handleSaveNewHotel = async (dayIndex) => {
         if (!newHotelForm.name.trim()) { alert('Please enter the accommodation name.'); return; }
         try {
+            const destObj = destinations.find(d => d.name === newHotelForm.city);
+            if (!destObj) {
+                alert('Please select a valid city from the list.');
+                return;
+            }
+
             const fd = new FormData();
+            fd.append('destination', destObj.id);
             fd.append('name', newHotelForm.name);
             fd.append('stars', newHotelForm.stars || '3');
             fd.append('address', newHotelForm.address);
@@ -808,8 +821,11 @@ const HolidayPackageEdit = () => {
 
             setNewHotelForm({ name: '', stars: '3', address: '', city: '', phone: '', website: '', email: '', latitude: '', longitude: '', images: [] });
         } catch (err) {
-            console.error('Error saving hotel:', err);
-            alert('Failed to save accommodation. Please try again.');
+            console.error('Error saving hotel:', err.response?.data || err);
+            const errorMsg = err.response?.data
+                ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
+                : err.message;
+            alert(`Failed to save accommodation.\n${errorMsg}`);
         }
     };
 
@@ -1363,7 +1379,7 @@ const HolidayPackageEdit = () => {
                                                             ]}
                                                             value={formData.starting_city}
                                                             onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
-                                                            placeholder="Where the trip starts..."
+                                                            placeholder="🔍 Where the trip starts..."
                                                             error={errors.starting_city}
                                                         />
                                                     </div>
@@ -1376,7 +1392,7 @@ const HolidayPackageEdit = () => {
                                                             ]}
                                                             value={formData.ending_city}
                                                             onChange={(val) => setFormData(prev => ({ ...prev, ending_city: val }))}
-                                                            placeholder="Where the trip ends..."
+                                                            placeholder="🔍 Where the trip ends..."
                                                         />
                                                     </div>
                                                 </div>
@@ -1599,7 +1615,7 @@ const HolidayPackageEdit = () => {
                                                                         copy[i].destination = val;
                                                                         setPackageDestinations(copy);
                                                                     }}
-                                                                    placeholder="Select city..."
+                                                                    placeholder="🔍 Select city..."
                                                                     error={errors[`dest_${i}`]}
                                                                 />
                                                             </div>
@@ -2075,77 +2091,18 @@ const HolidayPackageEdit = () => {
                                                                             </div>
 
                                                                             {/* Search day itinerary from masters */}
-                                                                            <div className="relative">
+                                                                            <div>
                                                                                 <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search day itinerary from the database</p>
-                                                                                <div className="relative">
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={dayMasterSearch}
-                                                                                        onChange={e => updateDay({ _dayMasterSearch: e.target.value, _dayMasterFocused: true })}
-                                                                                        onFocus={() => updateDay({ _dayMasterFocused: true })}
-                                                                                        onBlur={() => setTimeout(() => updateDay({ _dayMasterFocused: false }), 200)}
-                                                                                        placeholder="Type to search itinerary masters..."
-                                                                                        className="w-full border-2 border-gray-100 rounded-xl px-3 py-2 text-[11px] font-medium focus:outline-none focus:border-[#14532d] bg-gray-50 focus:bg-white transition-all pr-8"
-                                                                                        autoComplete="off"
-                                                                                    />
-                                                                                    <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                                                </div>
-
-                                                                                {/* Dropdown results */}
-                                                                                {(row.details_json?._dayMasterFocused) && (() => {
-                                                                                    const searchVal = dayMasterSearch.toLowerCase();
-                                                                                    const currentDest = getDestinationForDay(i);
-                                                                                    const availableMasters = [
-                                                                                        ...(currentDest && currentDest !== "---" && groupedItineraryMasters[currentDest] ? groupedItineraryMasters[currentDest] : []),
-                                                                                        ...(groupedItineraryMasters["Global / General"] || [])
-                                                                                    ];
-
-                                                                                    const results = searchVal
-                                                                                        ? availableMasters.filter(m =>
-                                                                                            m.name?.toLowerCase().includes(searchVal) ||
-                                                                                            m.title?.toLowerCase().includes(searchVal)
-                                                                                        )
-                                                                                        : availableMasters.slice(0, 20);
-                                                                                    if (results.length === 0) return null;
-                                                                                    return (
-                                                                                        <div className="absolute left-0 right-0 top-full mt-1 border-2 border-gray-100 rounded-2xl bg-white shadow-xl max-h-48 overflow-y-auto z-50 custom-scrollbar">
-                                                                                            {!searchVal && <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest px-3 pt-2 pb-1">Relevant Masters</p>}
-                                                                                            {results.map(m => (
-                                                                                                <button
-                                                                                                    key={m.id}
-                                                                                                    type="button"
-                                                                                                    onMouseDown={(e) => {
-                                                                                                        e.preventDefault();
-                                                                                                        handleMasterTemplateChange(i, m.id.toString());
-                                                                                                        updateDay({ _dayMasterSearch: m.title || m.name || '', _dayMasterFocused: false });
-                                                                                                    }}
-                                                                                                    className="w-full text-left px-3 py-2 text-[11px] hover:bg-green-50 hover:text-[#14532d] border-b border-gray-50 last:border-0 transition-all flex items-center justify-between group"
-                                                                                                >
-                                                                                                    <div>
-                                                                                                        <span className="font-black text-gray-900 group-hover:text-[#14532d]">{m.title || m.name}</span>
-                                                                                                        {m.destination_name && (
-                                                                                                            <span className="ml-2 text-[9px] bg-green-50 text-[#14532d] px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider">{m.destination_name}</span>
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                    <span className="text-[9px] text-gray-300 group-hover:text-[#14532d] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">Load →</span>
-                                                                                                </button>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    );
-                                                                                })()}
-
-                                                                                {/* Loaded master badge */}
-                                                                                {row.master_template && !row.details_json?._dayMasterFocused && (() => {
-                                                                                    const loaded = itineraryMasters.find(m => m.id === parseInt(row.master_template));
-                                                                                    return loaded ? (
-                                                                                        <div className="mt-1.5 flex items-center gap-1.5">
-                                                                                            <span className="text-[9px] bg-green-50 text-[#14532d] border border-green-100 px-2 py-1 rounded-lg font-black uppercase tracking-wider flex items-center gap-1">
-                                                                                                ✓ {loaded.title || loaded.name}
-                                                                                            </span>
-                                                                                            <button type="button" onClick={() => { handleMasterTemplateChange(i, ''); updateDay({ _dayMasterSearch: '' }); }} className="text-[9px] text-red-400 hover:text-red-600 font-bold transition-all">✕ Clear</button>
-                                                                                        </div>
-                                                                                    ) : null;
-                                                                                })()}
+                                                                                <SearchableSelect
+                                                                                    options={availableMasters.map(m => ({
+                                                                                        value: m.id.toString(),
+                                                                                        label: m.title || m.name,
+                                                                                        subtitle: m.destination_name || (destinations.find(d => d.id === m.destination)?.name)
+                                                                                    }))}
+                                                                                    value={row.master_template?.toString()}
+                                                                                    onChange={(val) => handleMasterTemplateChange(i, val)}
+                                                                                    placeholder="🔍 Search for day itinerary in masters..."
+                                                                                />
                                                                             </div>
 
                                                                             {/* Day description */}
@@ -2291,42 +2248,23 @@ const HolidayPackageEdit = () => {
                                                                             {/* Search */}
                                                                             <div>
                                                                                 <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search sightseeing from the database</p>
-                                                                                <div className="relative">
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        value={sightseeingSearch}
-                                                                                        onChange={e => updateDay({ _sightseeingSearch: e.target.value })}
-                                                                                        placeholder="Type to look up for sightseeing in masters"
-                                                                                        className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
-                                                                                    />
-                                                                                    <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                                                    {sightseeingSearch && (
-                                                                                        <button type="button" onClick={() => updateDay({ _sightseeingSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                                                                            <X size={12} />
-                                                                                        </button>
-                                                                                    )}
-                                                                                </div>
-                                                                                {/* Search results dropdown */}
-                                                                                {filteredSightseeings.length > 0 && (
-                                                                                    <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                                                                        {filteredSightseeings.map(sm => (
-                                                                                            <button
-                                                                                                key={sm.id}
-                                                                                                type="button"
-                                                                                                onClick={() => {
-                                                                                                    const copy = [...itineraryDays];
-                                                                                                    copy[i].details_json.sightseeing = [sm.name];
-                                                                                                    copy[i].details_json._sightseeingSearch = '';
-                                                                                                    setItineraryDays(copy);
-                                                                                                }}
-                                                                                                className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                                                                            >
-                                                                                                <span className="font-medium text-gray-800">{sm.name}</span>
-                                                                                                {sm.city && <span className="text-gray-400 ml-1">· {sm.city}</span>}
-                                                                                            </button>
-                                                                                        ))}
-                                                                                    </div>
-                                                                                )}
+                                                                                <SearchableSelect
+                                                                                    options={allowedSightseeings.map(sm => ({
+                                                                                        value: sm.name,
+                                                                                        label: sm.name,
+                                                                                        subtitle: sm.city
+                                                                                    }))}
+                                                                                    value=""
+                                                                                    onChange={(val) => {
+                                                                                        const copy = [...itineraryDays];
+                                                                                        if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
+                                                                                        if (!copy[i].details_json.sightseeing.includes(val)) {
+                                                                                            copy[i].details_json.sightseeing.push(val);
+                                                                                        }
+                                                                                        setItineraryDays(copy);
+                                                                                    }}
+                                                                                    placeholder="🔍 Search for sightseeing in masters..."
+                                                                                />
                                                                             </div>
 
                                                                             {/* Added sightseeings or empty state */}
@@ -2458,16 +2396,31 @@ const HolidayPackageEdit = () => {
                                                                                         onClick={async () => {
                                                                                             if (!newSightseeingForm.name.trim()) { alert('Please enter the sightseeing name.'); return; }
                                                                                             try {
+                                                                                                // Find the destination object to get its ID
+                                                                                                const destObj = destinations.find(d => d.name === newSightseeingForm.city);
+                                                                                                if (!destObj) {
+                                                                                                    alert('Please select a valid city from the list.');
+                                                                                                    return;
+                                                                                                }
+
                                                                                                 const fd = new FormData();
+                                                                                                fd.append('destination', destObj.id);
                                                                                                 fd.append('name', newSightseeingForm.name);
                                                                                                 fd.append('description', newSightseeingForm.description);
                                                                                                 fd.append('address', newSightseeingForm.address);
                                                                                                 fd.append('city', newSightseeingForm.city);
                                                                                                 fd.append('duration', newSightseeingForm.duration);
-                                                                                                fd.append('price', newSightseeingForm.price);
+                                                                                                fd.append('price', newSightseeingForm.price || 0);
                                                                                                 fd.append('map_link', newSightseeingForm.map_link);
-                                                                                                fd.append('latitude', newSightseeingForm.latitude);
-                                                                                                fd.append('longitude', newSightseeingForm.longitude);
+
+                                                                                                // Handle potentially large or invalid lat/long values
+                                                                                                if (newSightseeingForm.latitude && !isNaN(newSightseeingForm.latitude)) {
+                                                                                                    fd.append('latitude', newSightseeingForm.latitude);
+                                                                                                }
+                                                                                                if (newSightseeingForm.longitude && !isNaN(newSightseeingForm.longitude)) {
+                                                                                                    fd.append('longitude', newSightseeingForm.longitude);
+                                                                                                }
+
                                                                                                 if (newSightseeingForm.images && newSightseeingForm.images.length > 0) {
                                                                                                     fd.append('image', newSightseeingForm.images[0]);
                                                                                                     newSightseeingForm.images.forEach(img => {
@@ -2485,8 +2438,11 @@ const HolidayPackageEdit = () => {
                                                                                                 });
                                                                                                 setSightseeingPanelDayIndex(null);
                                                                                             } catch (err) {
-                                                                                                console.error('Error saving sightseeing:', err);
-                                                                                                alert('Failed to save sightseeing.');
+                                                                                                console.error('Error saving sightseeing:', err.response?.data || err);
+                                                                                                const errorMsg = err.response?.data
+                                                                                                    ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
+                                                                                                    : err.message;
+                                                                                                alert(`Failed to save sightseeing.\n${errorMsg}`);
                                                                                             }
                                                                                         }}
                                                                                         className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
@@ -2622,50 +2578,29 @@ const HolidayPackageEdit = () => {
                                                                                 {/* Search */}
                                                                                 <div>
                                                                                     <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search accommodation from the database</p>
-                                                                                    <div className="relative">
-                                                                                        <input
-                                                                                            type="text"
-                                                                                            value={searchQ}
-                                                                                            onChange={e => updateDay({ _accSearch: e.target.value })}
-                                                                                            placeholder="Type to look up for accommodation in masters"
-                                                                                            className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
-                                                                                        />
-                                                                                        <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                                                        {searchQ && (
-                                                                                            <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                                                                                <X size={12} />
-                                                                                            </button>
-                                                                                        )}
-                                                                                    </div>
-                                                                                    {/* Search results dropdown */}
-                                                                                    {filteredHotels.length > 0 && (
-                                                                                        <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                                                                            {filteredHotels.map(h => (
-                                                                                                <button
-                                                                                                    key={h.id}
-                                                                                                    type="button"
-                                                                                                    onClick={() => {
-                                                                                                        const copy = [...itineraryDays];
-                                                                                                        const dest = getDestinationForDay(i);
-                                                                                                        // Apply stay to connected days based on nights
-                                                                                                        const n_pick = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
-                                                                                                        for (let k = i; k < i + n_pick && k < copy.length; k++) {
-                                                                                                            if (getDestinationForDay(k) === dest) {
-                                                                                                                if (!copy[k].details_json) copy[k].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
-                                                                                                                copy[k].details_json.accommodations = [{ hotelId: h.id, hotelName: h.name, is_inherited: k > i }];
-                                                                                                            } else break;
-                                                                                                        }
-                                                                                                        copy[i].details_json._accSearch = '';
-                                                                                                        setItineraryDays(copy);
-                                                                                                    }}
-                                                                                                    className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                                                                                >
-                                                                                                    <span className="font-medium text-gray-800">{h.name}</span>
-                                                                                                    {h.city && <span className="text-gray-400 ml-1">· {h.city}</span>}
-                                                                                                </button>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    )}
+                                                                                    <SearchableSelect
+                                                                                        options={allowedHotels.map(h => ({
+                                                                                            value: h.id.toString(),
+                                                                                            label: h.name,
+                                                                                            subtitle: h.city
+                                                                                        }))}
+                                                                                        value={accs?.[0]?.hotelId?.toString() || ""}
+                                                                                        onChange={(val) => {
+                                                                                            const h = hotelMasters.find(hm => hm.id === parseInt(val));
+                                                                                            if (!h) return;
+                                                                                            const copy = [...itineraryDays];
+                                                                                            const dest = getDestinationForDay(i);
+                                                                                            const n_pick = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
+                                                                                            for (let k = i; k < i + n_pick && k < copy.length; k++) {
+                                                                                                if (getDestinationForDay(k) === dest) {
+                                                                                                    if (!copy[k].details_json) copy[k].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
+                                                                                                    copy[k].details_json.accommodations = [{ hotelId: h.id, hotelName: h.name, is_inherited: k > i }];
+                                                                                                } else break;
+                                                                                            }
+                                                                                            setItineraryDays(copy);
+                                                                                        }}
+                                                                                        placeholder="🔍 Search for accommodation in masters..."
+                                                                                    />
                                                                                 </div>
 
                                                                                 {/* Added accommodations or empty state */}
@@ -2873,12 +2808,18 @@ const HolidayPackageEdit = () => {
                                                                         <div className="grid grid-cols-[1fr_180px] gap-3 mb-2">
                                                                             <div>
                                                                                 <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Vehicle Type</p>
-                                                                                <input
-                                                                                    type="text"
+                                                                                <SearchableSelect
+                                                                                    options={vehicleMasters.map(v => ({
+                                                                                        value: v.name,
+                                                                                        label: v.name,
+                                                                                        subtitle: `${v.brand_name} • ${v.seating_capacity} Seats`
+                                                                                    }))}
                                                                                     value={vd.vehicleType || ''}
-                                                                                    onChange={e => updateVD({ vehicleType: e.target.value })}
-                                                                                    placeholder="Enter vehicle type - eg. sedan/ suv/ coach etc."
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                                                                    onChange={val => updateVD({
+                                                                                        vehicleType: val,
+                                                                                        _vehicleDetails: vehicleMasters.find(v => v.name === val)
+                                                                                    })}
+                                                                                    placeholder="🔍 Select vehicle model..."
                                                                                 />
                                                                             </div>
                                                                             <div>
@@ -2973,6 +2914,28 @@ const HolidayPackageEdit = () => {
                                                                                 />
                                                                             </div>
                                                                         </div>
+                                                                        {/* Driver Selection */}
+                                                                        {!isSelf && (
+                                                                            <div className="mt-3">
+                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-1">Driver Name <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                                <SearchableSelect
+                                                                                    options={driverMasters.map(d => ({
+                                                                                        value: d.id.toString(),
+                                                                                        label: d.name,
+                                                                                        subtitle: d.mobile_number
+                                                                                    }))}
+                                                                                    value={vd.driverId || ''}
+                                                                                    onChange={val => {
+                                                                                        const d = driverMasters.find(dm => dm.id.toString() === val);
+                                                                                        updateVD({
+                                                                                            driverId: val,
+                                                                                            driverName: d?.name || ''
+                                                                                        });
+                                                                                    }}
+                                                                                    placeholder="🔍 Select driver from masters..."
+                                                                                />
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 );
                                                             })()}

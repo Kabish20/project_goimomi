@@ -27,6 +27,9 @@ router.register("meal-masters", MealMasterViewSet)
 router.register("vehicle-brands", VehicleBrandViewSet)
 router.register("accommodations", AccommodationViewSet)
 router.register("room-types", RoomTypeViewSet)
+router.register("vehicle-masters", VehicleMasterViewSet)
+router.register("driver-masters", DriverMasterViewSet)
+router.register("vehicle-rate-cards", VehicleRateCardViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

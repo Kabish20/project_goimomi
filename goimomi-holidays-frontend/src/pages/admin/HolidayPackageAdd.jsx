@@ -163,11 +163,13 @@ const HolidayPackageAdd = () => {
   const [sightseeingMasters, setSightseeingMasters] = useState([]);
   const [mealMasters, setMealMasters] = useState([]);
   const [airlines, setAirlines] = useState([]);
+  const [driverMasters, setDriverMasters] = useState([]);
   const [vehicleBrands, setVehicleBrands] = useState([]);
   const [newHotelForm, setNewHotelForm] = useState({
     name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
   });
   const [roomTypes, setRoomTypes] = useState([]);
+  const [vehicleMasters, setVehicleMasters] = useState([]);
   const [vehicles, setVehicles] = useState([""]);
   // New Sightseeing panel state
   const [newSightseeingForm, setNewSightseeingForm] = useState({
@@ -290,6 +292,8 @@ const HolidayPackageAdd = () => {
     fetchAirlines();
     fetchVehicleBrands();
     fetchRoomTypes();
+    fetchVehicleMasters();
+    fetchDriverMasters();
   }, []);
 
   const fetchSuppliers = async () => {
@@ -391,6 +395,28 @@ const HolidayPackageAdd = () => {
       }
     } catch (err) {
       console.error("Error fetching meal masters:", err);
+    }
+  };
+
+  const fetchVehicleMasters = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/vehicle-masters/`);
+      if (Array.isArray(response.data)) {
+        setVehicleMasters(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching vehicle masters:", err);
+    }
+  };
+
+  const fetchDriverMasters = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/driver-masters/`);
+      if (Array.isArray(response.data)) {
+        setDriverMasters(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching driver masters:", err);
     }
   };
 
@@ -1156,7 +1182,7 @@ const HolidayPackageAdd = () => {
                           ]}
                           value={formData.starting_city}
                           onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
-                          placeholder="Where the trip starts..."
+                          placeholder="🔍 Where the trip starts..."
                           error={errors.starting_city}
                         />
                       </div>
@@ -1169,7 +1195,7 @@ const HolidayPackageAdd = () => {
                           ]}
                           value={formData.ending_city}
                           onChange={(val) => setFormData(prev => ({ ...prev, ending_city: val }))}
-                          placeholder="Where the trip ends..."
+                          placeholder="🔍 Where the trip ends..."
                         />
                       </div>
                     </div>
@@ -1362,7 +1388,7 @@ const HolidayPackageAdd = () => {
                                   copy[i].destination = val;
                                   setPackageDestinations(copy);
                                 }}
-                                placeholder="Select city..."
+                                placeholder="🔍 Select city..."
                                 error={errors[`dest_${i}`]}
                               />
                             </div>
@@ -1506,33 +1532,16 @@ const HolidayPackageAdd = () => {
                                   {/* Search day itinerary from masters */}
                                   <div>
                                     <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search day itinerary from the database</p>
-                                    <div className="relative">
-                                      <input
-                                        type="text"
-                                        value={dayMasterSearch}
-                                        onChange={e => updateDay({ _dayMasterSearch: e.target.value })}
-                                        placeholder="Type to look up for day itinerary in masters"
-                                        className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
-                                      />
-                                      <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                    </div>
-                                    {filteredDayMasters.length > 0 && (
-                                      <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                        {filteredDayMasters.map(m => (
-                                          <button
-                                            key={m.id}
-                                            type="button"
-                                            onClick={() => {
-                                              handleMasterTemplateChange(i, m.id.toString());
-                                              updateDay({ _dayMasterSearch: '' });
-                                            }}
-                                            className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                          >
-                                            <span className="font-medium text-gray-800">{m.name || m.title}</span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    )}
+                                    <SearchableSelect
+                                      options={availableMasters.map(m => ({
+                                        value: m.id.toString(),
+                                        label: m.name || m.title,
+                                        subtitle: m.destination_name || (destinations.find(d => d.id === m.destination)?.name)
+                                      }))}
+                                      value={row.master_template?.toString()}
+                                      onChange={(val) => handleMasterTemplateChange(i, val)}
+                                      placeholder="🔍 Search for day itinerary in masters..."
+                                    />
                                   </div>
 
                                   {/* Day description */}
@@ -1638,52 +1647,29 @@ const HolidayPackageAdd = () => {
                               )
                               : sightseeingMasters;
 
-                            const filteredSightseeings = sightseeingSearch
-                              ? allowedSightseeings.filter(sm =>
-                                sm.name?.toLowerCase().includes(sightseeingSearch.trim().toLowerCase()) ||
-                                sm.city?.toLowerCase().includes(sightseeingSearch.trim().toLowerCase())
-                              ) : [];
                             return (
                               <div className="flex gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
                                 {/* Main sightseeing panel */}
                                 <div className="flex-1 space-y-3">
                                   <div>
                                     <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search sightseeing from the database</p>
-                                    <div className="relative">
-                                      <input
-                                        type="text"
-                                        value={sightseeingSearch}
-                                        onChange={e => updateDay({ _sightseeingSearch: e.target.value })}
-                                        placeholder="Type to look up for sightseeing in masters"
-                                        className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
-                                      />
-                                      <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                      {sightseeingSearch && (
-                                        <button type="button" onClick={() => updateDay({ _sightseeingSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                          <X size={12} />
-                                        </button>
-                                      )}
-                                    </div>
-                                    {filteredSightseeings.length > 0 && (
-                                      <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                        {filteredSightseeings.map(sm => (
-                                          <button
-                                            key={sm.id}
-                                            type="button"
-                                            onClick={() => {
-                                              const copy = [...itineraryDays];
-                                              copy[i].details_json.sightseeing = [sm.name];
-                                              copy[i].details_json._sightseeingSearch = '';
-                                              setItineraryDays(copy);
-                                            }}
-                                            className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                          >
-                                            <span className="font-medium text-gray-800">{sm.name}</span>
-                                            {sm.city && <span className="text-gray-400 ml-1">· {sm.city}</span>}
-                                          </button>
-                                        ))}
-                                      </div>
-                                    )}
+                                    <SearchableSelect
+                                      options={allowedSightseeings.map(sm => ({
+                                        value: sm.name,
+                                        label: sm.name,
+                                        subtitle: sm.city
+                                      }))}
+                                      value=""
+                                      onChange={(val) => {
+                                        const copy = [...itineraryDays];
+                                        if (!copy[i].details_json.sightseeing) copy[i].details_json.sightseeing = [];
+                                        if (!copy[i].details_json.sightseeing.includes(val)) {
+                                          copy[i].details_json.sightseeing.push(val);
+                                        }
+                                        setItineraryDays(copy);
+                                      }}
+                                      placeholder="🔍 Search for sightseeing in masters..."
+                                    />
                                   </div>
 
                                   {/* Added sightseeings or empty state */}
@@ -1792,7 +1778,7 @@ const HolidayPackageAdd = () => {
                                         </div>
                                       </div>
                                       <div>
-                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Images <span className="text-gray-400 font-normal">(Add up to 5 images with max file size of 1 MB)</span></p>
+                                        <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Sightseeing Images</p>
                                         <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
                                           <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
                                             <span className="text-sm leading-none">+</span>
@@ -1815,16 +1801,31 @@ const HolidayPackageAdd = () => {
                                         onClick={async () => {
                                           if (!newSightseeingForm.name.trim()) { alert('Please enter the sightseeing name.'); return; }
                                           try {
+                                            // Find the destination object to get its ID
+                                            const destObj = destinations.find(d => d.name === newSightseeingForm.city);
+                                            if (!destObj) {
+                                              alert('Please select a valid city from the list.');
+                                              return;
+                                            }
+
                                             const fd = new FormData();
+                                            fd.append('destination', destObj.id);
                                             fd.append('name', newSightseeingForm.name);
                                             fd.append('description', newSightseeingForm.description);
                                             fd.append('address', newSightseeingForm.address);
                                             fd.append('city', newSightseeingForm.city);
                                             fd.append('duration', newSightseeingForm.duration);
-                                            fd.append('price', newSightseeingForm.price);
+                                            fd.append('price', newSightseeingForm.price || 0);
                                             fd.append('map_link', newSightseeingForm.map_link);
-                                            fd.append('latitude', newSightseeingForm.latitude);
-                                            fd.append('longitude', newSightseeingForm.longitude);
+
+                                            // Handle potentially large or invalid lat/long values
+                                            if (newSightseeingForm.latitude && !isNaN(newSightseeingForm.latitude)) {
+                                              fd.append('latitude', newSightseeingForm.latitude);
+                                            }
+                                            if (newSightseeingForm.longitude && !isNaN(newSightseeingForm.longitude)) {
+                                              fd.append('longitude', newSightseeingForm.longitude);
+                                            }
+
                                             if (newSightseeingForm.images && newSightseeingForm.images.length > 0) {
                                               fd.append('image', newSightseeingForm.images[0]);
                                               newSightseeingForm.images.forEach(img => {
@@ -1842,8 +1843,11 @@ const HolidayPackageAdd = () => {
                                             });
                                             setSightseeingPanelDayIndex(null);
                                           } catch (err) {
-                                            console.error('Error saving sightseeing:', err);
-                                            alert('Failed to save sightseeing.');
+                                            console.error('Error saving sightseeing:', err.response?.data || err);
+                                            const errorMsg = err.response?.data
+                                              ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
+                                              : err.message;
+                                            alert(`Failed to save sightseeing.\n${errorMsg}`);
                                           }
                                         }}
                                         className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
@@ -1974,50 +1978,29 @@ const HolidayPackageAdd = () => {
                                     {/* Search */}
                                     <div>
                                       <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search accommodation from the database</p>
-                                      <div className="relative">
-                                        <input
-                                          type="text"
-                                          value={searchQ}
-                                          onChange={e => updateDay({ _accSearch: e.target.value })}
-                                          placeholder="Type to look up for accommodation in masters"
-                                          className="w-full border border-gray-300 rounded-sm px-3 py-2 text-[11px] focus:outline-none focus:border-blue-400 pr-8"
-                                        />
-                                        <Search size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                        {searchQ && (
-                                          <button type="button" onClick={() => updateDay({ _accSearch: '' })} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                            <X size={12} />
-                                          </button>
-                                        )}
-                                      </div>
-                                      {/* Search results dropdown */}
-                                      {filteredHotels.length > 0 && (
-                                        <div className="border border-gray-200 rounded-sm bg-white shadow-sm mt-0.5 max-h-36 overflow-y-auto">
-                                          {filteredHotels.map(h => (
-                                            <button
-                                              key={h.id}
-                                              type="button"
-                                              onClick={() => {
-                                                const copy = [...itineraryDays];
-                                                const dest = getDestinationForDay(i);
-                                                // Apply stay to connected days based on nights
-                                                const n_pick = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
-                                                for (let k = i; k < i + n_pick && k < copy.length; k++) {
-                                                  if (getDestinationForDay(k) === dest) {
-                                                    if (!copy[k].details_json) copy[k].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
-                                                    copy[k].details_json.accommodations = [{ hotelId: h.id, hotelName: h.name, is_inherited: k > i }];
-                                                  } else break;
-                                                }
-                                                copy[i].details_json._accSearch = '';
-                                                setItineraryDays(copy);
-                                              }}
-                                              className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 border-b border-gray-100 last:border-0"
-                                            >
-                                              <span className="font-medium text-gray-800">{h.name}</span>
-                                              {h.city && <span className="text-gray-400 ml-1">· {h.city}</span>}
-                                            </button>
-                                          ))}
-                                        </div>
-                                      )}
+                                      <SearchableSelect
+                                        options={allowedHotels.map(h => ({
+                                          value: h.id.toString(),
+                                          label: h.name,
+                                          subtitle: h.city
+                                        }))}
+                                        value={accs?.[0]?.hotelId?.toString() || ""}
+                                        onChange={(val) => {
+                                          const h = hotelMasters.find(hm => hm.id === parseInt(val));
+                                          if (!h) return;
+                                          const copy = [...itineraryDays];
+                                          const dest = getDestinationForDay(i);
+                                          const n_pick = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
+                                          for (let k = i; k < i + n_pick && k < copy.length; k++) {
+                                            if (getDestinationForDay(k) === dest) {
+                                              if (!copy[k].details_json) copy[k].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
+                                              copy[k].details_json.accommodations = [{ hotelId: h.id, hotelName: h.name, is_inherited: k > i }];
+                                            } else break;
+                                          }
+                                          setItineraryDays(copy);
+                                        }}
+                                        placeholder="🔍 Search for accommodation in masters..."
+                                      />
                                     </div>
 
                                     {/* Added accommodations or empty state */}
@@ -2161,7 +2144,14 @@ const HolidayPackageAdd = () => {
                                           onClick={async () => {
                                             if (!newHotelForm.name.trim()) { alert('Please enter name'); return; }
                                             try {
+                                              const destObj = destinations.find(d => d.name === newHotelForm.city);
+                                              if (!destObj) {
+                                                alert('Please select a valid city from the list.');
+                                                return;
+                                              }
+
                                               const fd = new FormData();
+                                              fd.append('destination', destObj.id);
                                               fd.append('name', newHotelForm.name);
                                               fd.append('stars', newHotelForm.stars);
                                               fd.append('address', newHotelForm.address);
@@ -2189,8 +2179,11 @@ const HolidayPackageAdd = () => {
                                               setItineraryDays(copy);
                                               setNewHotelForm({ name: '', stars: '3', address: '', city: '', website: '', email: '', latitude: '', longitude: '', images: [] });
                                             } catch (err) {
-                                              console.error('Error saving hotel:', err);
-                                              alert('Failed to save accommodation.');
+                                              console.error('Error saving hotel:', err.response?.data || err);
+                                              const errorMsg = err.response?.data
+                                                ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
+                                                : err.message;
+                                              alert(`Failed to save accommodation.\n${errorMsg}`);
                                             }
                                           }}
                                           className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
@@ -2259,12 +2252,18 @@ const HolidayPackageAdd = () => {
                                 <div className="grid grid-cols-[1fr_160px] gap-3 mb-2">
                                   <div>
                                     <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Vehicle Type</p>
-                                    <input
-                                      type="text"
+                                    <SearchableSelect
+                                      options={vehicleMasters.map(v => ({
+                                        value: v.name,
+                                        label: v.name,
+                                        subtitle: `${v.brand_name} • ${v.seating_capacity} Seats`
+                                      }))}
                                       value={vd.vehicleType || ''}
-                                      onChange={e => updateVD({ vehicleType: e.target.value })}
-                                      placeholder="Enter vehicle type - eg. sedan/ suv/ coach etc."
-                                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
+                                      onChange={val => updateVD({
+                                        vehicleType: val,
+                                        _vehicleDetails: vehicleMasters.find(v => v.name === val)
+                                      })}
+                                      placeholder="🔍 Select vehicle model..."
                                     />
                                   </div>
                                   <div>
@@ -2359,6 +2358,28 @@ const HolidayPackageAdd = () => {
                                     />
                                   </div>
                                 </div>
+                                {/* Driver Selection */}
+                                {!isSelf && (
+                                  <div className="mt-3">
+                                    <p className="text-[10px] font-semibold text-gray-700 mb-1">Driver Name <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                    <SearchableSelect
+                                      options={driverMasters.map(d => ({
+                                        value: d.id.toString(),
+                                        label: d.name,
+                                        subtitle: d.mobile_number
+                                      }))}
+                                      value={vd.driverId || ''}
+                                      onChange={val => {
+                                        const d = driverMasters.find(dm => dm.id.toString() === val);
+                                        updateVD({
+                                          driverId: val,
+                                          driverName: d?.name || ''
+                                        });
+                                      }}
+                                      placeholder="🔍 Select driver from masters..."
+                                    />
+                                  </div>
+                                )}
                               </div>
                             );
                           })()}
@@ -2977,115 +2998,117 @@ const HolidayPackageAdd = () => {
       </div >
 
       {/* Add New Accommodation Modal */}
-      {showHotelModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all">
-          <div className="bg-white rounded-[1.5rem] w-full max-w-xl h-fit max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest leading-none">Add New Accommodation</h2>
-              <button onClick={() => setShowHotelModal(false)} className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all font-outfit">
-                <X size={14} />
-              </button>
-            </div>
+      {
+        showHotelModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all">
+            <div className="bg-white rounded-[1.5rem] w-full max-w-xl h-fit max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+              <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest leading-none">Add New Accommodation</h2>
+                <button onClick={() => setShowHotelModal(false)} className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all font-outfit">
+                  <X size={14} />
+                </button>
+              </div>
 
-            <div className="p-4 overflow-y-auto custom-scrollbar space-y-2.5 flex-1 min-h-0">
-              <div className="grid grid-cols-12 gap-2.5">
-                <div className="col-span-8">
-                  <FormLabel label="Name" required />
-                  <Input placeholder="Hotel name" value={newHotelForm.name} onChange={(e) => setNewHotelForm({ ...newHotelForm, name: e.target.value })} />
+              <div className="p-4 overflow-y-auto custom-scrollbar space-y-2.5 flex-1 min-h-0">
+                <div className="grid grid-cols-12 gap-2.5">
+                  <div className="col-span-8">
+                    <FormLabel label="Name" required />
+                    <Input placeholder="Hotel name" value={newHotelForm.name} onChange={(e) => setNewHotelForm({ ...newHotelForm, name: e.target.value })} />
+                  </div>
+                  <div className="col-span-4">
+                    <FormLabel label="Stars" required />
+                    <select className="w-full bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black outline-none focus:border-[#14532d] transition-all" value={newHotelForm.stars} onChange={(e) => setNewHotelForm({ ...newHotelForm, stars: e.target.value })}>
+                      {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Star</option>)}
+                    </select>
+                  </div>
                 </div>
-                <div className="col-span-4">
-                  <FormLabel label="Stars" required />
-                  <select className="w-full bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black outline-none focus:border-[#14532d] transition-all" value={newHotelForm.stars} onChange={(e) => setNewHotelForm({ ...newHotelForm, stars: e.target.value })}>
-                    {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Star</option>)}
-                  </select>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <FormLabel label="City" required />
+                    <SearchableSelect
+                      options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                      value={newHotelForm.city}
+                      onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
+                      placeholder="Select City"
+                    />
+                  </div>
+                  <div>
+                    <FormLabel label="Address" optional />
+                    <Input placeholder="Hotel address" value={newHotelForm.address} onChange={(e) => setNewHotelForm({ ...newHotelForm, address: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <FormLabel label="Phone" optional />
+                    <Input placeholder="Phone number" value={newHotelForm.phone} onChange={(e) => setNewHotelForm({ ...newHotelForm, phone: e.target.value })} />
+                  </div>
+                  <div>
+                    <FormLabel label="Website" optional />
+                    <Input placeholder="URL" value={newHotelForm.website} onChange={(e) => setNewHotelForm({ ...newHotelForm, website: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-12 gap-2.5">
+                  <div className="col-span-6">
+                    <FormLabel label="Email" optional />
+                    <Input placeholder="Email address" value={newHotelForm.email} onChange={(e) => setNewHotelForm({ ...newHotelForm, email: e.target.value })} />
+                  </div>
+                  <div className="col-span-3">
+                    <FormLabel label="Lat" optional />
+                    <Input placeholder="0.00" value={newHotelForm.latitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, latitude: e.target.value })} />
+                  </div>
+                  <div className="col-span-3">
+                    <FormLabel label="Long" optional />
+                    <Input placeholder="0.00" value={newHotelForm.longitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, longitude: e.target.value })} />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <FormLabel label="Images" optional />
+                  <div className="flex flex-wrap gap-2.5 min-h-[40px]">
+                    {newHotelForm.images && newHotelForm.images.map((img, idx) => (
+                      <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden group border-2 border-gray-100 shadow-sm animate-in zoom-in-50">
+                        <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" alt="Preview" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newImgs = [...newHotelForm.images];
+                            newImgs.splice(idx, 1);
+                            setNewHotelForm({ ...newHotelForm, images: newImgs });
+                          }}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} className="text-white" />
+                        </button>
+                        {idx === 0 && <div className="absolute top-0 left-0 bg-[#14532d] text-[5px] text-white font-black px-1 py-0.5 uppercase">Main</div>}
+                      </div>
+                    ))}
+                    <input type="file" id="hotel-image-upload-new" className="hidden" multiple onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      setNewHotelForm({ ...newHotelForm, images: [...(newHotelForm.images || []), ...files] });
+                    }} />
+                    <label htmlFor="hotel-image-upload-new" className="w-14 h-14 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center bg-gray-50/30 hover:bg-gray-50 transition-all cursor-pointer group">
+                      <Plus size={14} className="text-gray-300 group-hover:text-[#14532d] transition-colors" />
+                      <span className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Add</span>
+                    </label>
+                  </div>
+                  {newHotelForm.images?.length > 1 && (
+                    <p className="text-[7px] text-gray-400 font-bold italic uppercase tracking-wider">* Only the first image will be saved to masters</p>
+                  )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <FormLabel label="City" required />
-                  <SearchableSelect
-                    options={destinations.map(d => ({ value: d.name, label: d.name }))}
-                    value={newHotelForm.city}
-                    onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
-                    placeholder="Select City"
-                  />
-                </div>
-                <div>
-                  <FormLabel label="Address" optional />
-                  <Input placeholder="Hotel address" value={newHotelForm.address} onChange={(e) => setNewHotelForm({ ...newHotelForm, address: e.target.value })} />
-                </div>
+              <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <button type="button" onClick={() => setShowHotelModal(false)} className="px-5 py-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-600 transition-all font-outfit">Cancel</button>
+                <button type="button" onClick={handleSaveHotel} className="px-6 py-1.5 bg-[#14532d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-green-900/10 hover:scale-105 active:scale-95 transition-all font-outfit">Save Hotel</button>
               </div>
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <FormLabel label="Phone" optional />
-                  <Input placeholder="Phone number" value={newHotelForm.phone} onChange={(e) => setNewHotelForm({ ...newHotelForm, phone: e.target.value })} />
-                </div>
-                <div>
-                  <FormLabel label="Website" optional />
-                  <Input placeholder="URL" value={newHotelForm.website} onChange={(e) => setNewHotelForm({ ...newHotelForm, website: e.target.value })} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-12 gap-2.5">
-                <div className="col-span-6">
-                  <FormLabel label="Email" optional />
-                  <Input placeholder="Email address" value={newHotelForm.email} onChange={(e) => setNewHotelForm({ ...newHotelForm, email: e.target.value })} />
-                </div>
-                <div className="col-span-3">
-                  <FormLabel label="Lat" optional />
-                  <Input placeholder="0.00" value={newHotelForm.latitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, latitude: e.target.value })} />
-                </div>
-                <div className="col-span-3">
-                  <FormLabel label="Long" optional />
-                  <Input placeholder="0.00" value={newHotelForm.longitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, longitude: e.target.value })} />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <FormLabel label="Images" optional />
-                <div className="flex flex-wrap gap-2.5 min-h-[40px]">
-                  {newHotelForm.images && newHotelForm.images.map((img, idx) => (
-                    <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden group border-2 border-gray-100 shadow-sm animate-in zoom-in-50">
-                      <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" alt="Preview" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newImgs = [...newHotelForm.images];
-                          newImgs.splice(idx, 1);
-                          setNewHotelForm({ ...newHotelForm, images: newImgs });
-                        }}
-                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X size={12} className="text-white" />
-                      </button>
-                      {idx === 0 && <div className="absolute top-0 left-0 bg-[#14532d] text-[5px] text-white font-black px-1 py-0.5 uppercase">Main</div>}
-                    </div>
-                  ))}
-                  <input type="file" id="hotel-image-upload-new" className="hidden" multiple onChange={(e) => {
-                    const files = Array.from(e.target.files);
-                    setNewHotelForm({ ...newHotelForm, images: [...(newHotelForm.images || []), ...files] });
-                  }} />
-                  <label htmlFor="hotel-image-upload-new" className="w-14 h-14 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center bg-gray-50/30 hover:bg-gray-50 transition-all cursor-pointer group">
-                    <Plus size={14} className="text-gray-300 group-hover:text-[#14532d] transition-colors" />
-                    <span className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Add</span>
-                  </label>
-                </div>
-                {newHotelForm.images?.length > 1 && (
-                  <p className="text-[7px] text-gray-400 font-bold italic uppercase tracking-wider">* Only the first image will be saved to masters</p>
-                )}
-              </div>
-            </div>
-
-            <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-              <button type="button" onClick={() => setShowHotelModal(false)} className="px-5 py-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-600 transition-all font-outfit">Cancel</button>
-              <button type="button" onClick={handleSaveHotel} className="px-6 py-1.5 bg-[#14532d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-green-900/10 hover:scale-105 active:scale-95 transition-all font-outfit">Save Hotel</button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 
