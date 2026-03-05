@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Calendar, MapPin, Trash2, Globe, Info } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, MapPin } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -20,24 +20,54 @@ const Input = (props) => (
     />
 );
 
+const MAX_VEHICLES = 10;
+
+// Helper: detect how many vehicle columns exist in the routes (v1, v2, v3...)
+const detectVehicleCount = (routes) => {
+    if (!routes || routes.length === 0) return 4;
+    const route = routes[0];
+    let count = 0;
+    for (let i = 1; i <= MAX_VEHICLES; i++) {
+        if (`v${i}` in route) count = i;
+        else break;
+    }
+    return Math.max(1, count || 4); // minimum 1, default 4
+};
+
+// Helper: convert route with v1, v2 to array of vehicle rates
+const routeToVehiclesArray = (route, count) => {
+    const vehicles = [];
+    for (let i = 1; i <= count; i++) {
+        vehicles.push(route[`v${i}`] ?? ""); // handle 0 properly
+    }
+    return vehicles;
+};
+
 const VehicleRateCardEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [countries, setCountries] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
     const [pickupPoints, setPickupPoints] = useState([]);
+    const [startingCities, setStartingCities] = useState([]);
+    const [vehicleCount, setVehicleCount] = useState(4);
+    const [selectedCity, setSelectedCity] = useState("");
     const [rateCard, setRateCard] = useState({
         country: "",
+        supplier: "",
         name: "",
         validity_start: "",
         validity_end: "",
-        routes: [{ start_from: "", drop_to: "", v1: "", v2: "", v3: "", v4: "" }]
+        routes: [{ start_from: "", drop_to: "", vehicles: Array(4).fill("") }]
     });
 
     useEffect(() => {
         fetchCountries();
+        fetchSuppliers();
         fetchPickupPoints();
+        fetchStartingCities();
         fetchRateCard();
     }, [id]);
 
@@ -50,6 +80,19 @@ const VehicleRateCardEdit = () => {
         }
     };
 
+    const fetchSuppliers = async () => {
+        try {
+            const res = await axios.get("/api/suppliers/");
+            const allSuppliers = res.data || [];
+            const cabSuppliers = allSuppliers.filter(s =>
+                Array.isArray(s.services) && s.services.includes("Cab")
+            );
+            setSuppliers(cabSuppliers);
+        } catch (err) {
+            console.error("Error fetching suppliers:", err);
+        }
+    };
+
     const fetchPickupPoints = async () => {
         try {
             const res = await axios.get("/api/pickup-point-masters/");
@@ -59,11 +102,30 @@ const VehicleRateCardEdit = () => {
         }
     };
 
+    const fetchStartingCities = async () => {
+        try {
+            const res = await axios.get("/api/starting-cities/");
+            setStartingCities(res.data || []);
+        } catch (err) {
+            console.error("Error fetching starting cities:", err);
+        }
+    };
+
     const fetchRateCard = async () => {
         try {
             setFetching(true);
             const res = await axios.get(`/api/vehicle-rate-cards/${id}/`);
-            setRateCard(res.data);
+            const data = res.data;
+            // Detect vehicle count from existing data
+            const count = detectVehicleCount(data.routes);
+            setVehicleCount(count);
+            // Normalize routes — convert v1..vN to vehicles array
+            const normalizedRoutes = (data.routes || []).map(r => ({
+                start_from: r.start_from || "",
+                drop_to: r.drop_to || "",
+                vehicles: routeToVehiclesArray(r, count)
+            }));
+            setRateCard({ ...data, routes: normalizedRoutes });
         } catch (err) {
             console.error("Error fetching rate card:", err);
             alert("Failed to load rate card details.");
@@ -72,10 +134,30 @@ const VehicleRateCardEdit = () => {
         }
     };
 
+    const addVehicle = () => {
+        if (vehicleCount >= MAX_VEHICLES) return;
+        const newCount = vehicleCount + 1;
+        setVehicleCount(newCount);
+        setRateCard(prev => ({
+            ...prev,
+            routes: prev.routes.map(r => ({ ...r, vehicles: [...r.vehicles, ""] }))
+        }));
+    };
+
+    const removeVehicle = () => {
+        if (vehicleCount <= 1) return;
+        const newCount = vehicleCount - 1;
+        setVehicleCount(newCount);
+        setRateCard(prev => ({
+            ...prev,
+            routes: prev.routes.map(r => ({ ...r, vehicles: r.vehicles.slice(0, newCount) }))
+        }));
+    };
+
     const addRouteRow = () => {
         setRateCard(prev => ({
             ...prev,
-            routes: [...prev.routes, { start_from: "", drop_to: "", v1: "", v2: "", v3: "", v4: "" }]
+            routes: [...prev.routes, { start_from: "", drop_to: "", vehicles: Array(vehicleCount).fill("") }]
         }));
     };
 
@@ -87,9 +169,17 @@ const VehicleRateCardEdit = () => {
         }));
     };
 
-    const handleRouteParamChange = (index, field, value) => {
+    const handleRouteFieldChange = (rowIdx, field, value) => {
         const newRoutes = [...rateCard.routes];
-        newRoutes[index][field] = value;
+        newRoutes[rowIdx] = { ...newRoutes[rowIdx], [field]: value };
+        setRateCard(prev => ({ ...prev, routes: newRoutes }));
+    };
+
+    const handleVehicleRateChange = (rowIdx, vIdx, value) => {
+        const newRoutes = [...rateCard.routes];
+        const newVehicles = [...newRoutes[rowIdx].vehicles];
+        newVehicles[vIdx] = value;
+        newRoutes[rowIdx] = { ...newRoutes[rowIdx], vehicles: newVehicles };
         setRateCard(prev => ({ ...prev, routes: newRoutes }));
     };
 
@@ -102,7 +192,16 @@ const VehicleRateCardEdit = () => {
 
         setLoading(true);
         try {
-            await axios.put(`/api/vehicle-rate-cards/${id}/`, rateCard);
+            // Convert back to v1..vN array for payload
+            const payload = {
+                ...rateCard,
+                routes: rateCard.routes.map(r => {
+                    const route = { start_from: r.start_from, drop_to: r.drop_to };
+                    r.vehicles.forEach((v, i) => { route[`v${i + 1}`] = v; });
+                    return route;
+                })
+            };
+            await axios.put(`/api/vehicle-rate-cards/${id}/`, payload);
             alert("Rate Card updated successfully!");
             navigate("/admin/vehicle-rate-cards");
         } catch (err) {
@@ -126,6 +225,14 @@ const VehicleRateCardEdit = () => {
             </div>
         );
     }
+
+    const cityList = startingCities.length > 0
+        ? startingCities.map(c => c.name).sort()
+        : [...new Set(pickupPoints.map(p => p.city_name).filter(Boolean))].sort();
+    const filteredPoints = selectedCity
+        ? pickupPoints.filter(p => p.city_name === selectedCity)
+        : pickupPoints;
+    const ptOptions = filteredPoints.map(p => ({ value: p.name, label: p.name, subtitle: p.city_name }));
 
     return (
         <div className="flex bg-gray-50 h-screen overflow-hidden">
@@ -157,13 +264,14 @@ const VehicleRateCardEdit = () => {
                         </div>
 
                         <div className="space-y-6">
+                            {/* General Config */}
                             <section className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
                                 <div className="flex items-center gap-3 mb-8">
                                     <div className="w-1.5 h-6 bg-[#14532d] rounded-full"></div>
                                     <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">General Configuration</h2>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                                     <div>
                                         <FormLabel label="Target Country" required />
                                         <SearchableSelect
@@ -171,6 +279,16 @@ const VehicleRateCardEdit = () => {
                                             value={rateCard.country}
                                             onChange={(val) => setRateCard(prev => ({ ...prev, country: val }))}
                                             placeholder="Select Country..."
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <FormLabel label="Supplier" required />
+                                        <SearchableSelect
+                                            options={suppliers.map(s => ({ value: s.id, label: s.company_name, subtitle: s.city || "" }))}
+                                            value={rateCard.supplier}
+                                            onChange={(val) => setRateCard(prev => ({ ...prev, supplier: val }))}
+                                            placeholder="Select Supplier..."
                                         />
                                     </div>
 
@@ -212,71 +330,97 @@ const VehicleRateCardEdit = () => {
                             </section>
 
                             <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                                <div className="p-8 pb-0 flex items-center justify-between">
+                                <div className="p-6 pb-0 flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                                        <div className="w-1.5 h-6 bg-[#14532d] rounded-full"></div>
                                         <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">Route Matrix (Pricing)</h2>
                                     </div>
                                     <button
                                         onClick={addRouteRow}
                                         className="flex items-center gap-2 bg-[#14532d]/5 text-[#14532d] px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all"
                                     >
-                                        <Plus size={14} /> Add New Route
+                                        <Plus size={14} /> Add Route
                                     </button>
                                 </div>
 
                                 <div className="p-4 md:p-6 overflow-x-auto">
-                                    <table className="w-full border-collapse min-w-[800px]">
+                                    <table className="w-full border-collapse" style={{ minWidth: `${420 + vehicleCount * 130}px` }}>
                                         <thead>
                                             <tr>
-                                                <th className="text-left p-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">Starting From</th>
-                                                <th className="text-left p-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">Dropping To</th>
-                                                <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 1</th>
-                                                <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 2</th>
-                                                <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 3</th>
-                                                <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 4</th>
-                                                <th className="p-4 border-b border-gray-50"></th>
+                                                <th className="text-left p-4 border-b border-gray-50 w-64 align-top">
+                                                    <div className="flex flex-col gap-3">
+                                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Starting From</span>
+                                                        <SearchableSelect
+                                                            options={[
+                                                                { value: "", label: "All Cities" },
+                                                                ...cityList.map(city => ({ value: city, label: city }))
+                                                            ]}
+                                                            value={selectedCity}
+                                                            onChange={(val) => setSelectedCity(val)}
+                                                            placeholder="Search City..."
+                                                            className="text-[10px]"
+                                                        />
+                                                    </div>
+                                                </th>
+                                                <th className="text-left p-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 w-56 align-bottom">Dropping To</th>
+                                                {Array.from({ length: vehicleCount }, (_, i) => (
+                                                    <th key={i} className="text-center p-3 text-[9px] font-black text-gray-900 uppercase tracking-[0.15em] border-b border-gray-50 bg-gray-50/50 min-w-[140px]">
+                                                        <div className="flex items-center justify-center gap-1.5">
+                                                            <Car size={10} className="text-gray-400" />
+                                                            <span>Vehicle {i + 1}</span>
+                                                            {i === vehicleCount - 1 && (
+                                                                <div className="flex items-center gap-1 ml-1">
+                                                                    <button
+                                                                        onClick={removeVehicle}
+                                                                        disabled={vehicleCount <= 1}
+                                                                        className="w-5 h-5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                        title="Remove last vehicle column"
+                                                                    >
+                                                                        <Minus size={12} strokeWidth={3} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={addVehicle}
+                                                                        disabled={vehicleCount >= MAX_VEHICLES}
+                                                                        className="w-5 h-5 rounded hover:bg-green-100 text-gray-400 hover:text-[#14532d] flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                        title="Add vehicle column"
+                                                                    >
+                                                                        <Plus size={12} strokeWidth={3} />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </th>
+                                                ))}
+                                                <th className="p-3 border-b border-gray-50 w-10"></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {rateCard.routes.map((route, idx) => (
                                                 <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
                                                     <td className="p-2">
-                                                        <div className="relative">
-                                                            <SearchableSelect
-                                                                options={pickupPoints.map(p => ({
-                                                                    value: p.name,
-                                                                    label: p.name,
-                                                                    subtitle: p.city_name
-                                                                }))}
-                                                                value={route.start_from}
-                                                                onChange={val => handleRouteParamChange(idx, 'start_from', val)}
-                                                                placeholder="Pickup Point"
-                                                            />
-                                                        </div>
+                                                        <SearchableSelect
+                                                            options={ptOptions}
+                                                            value={route.start_from}
+                                                            onChange={val => handleRouteFieldChange(idx, 'start_from', val)}
+                                                            placeholder="Pickup Point"
+                                                        />
                                                     </td>
                                                     <td className="p-2">
-                                                        <div className="relative">
-                                                            <SearchableSelect
-                                                                options={pickupPoints.map(p => ({
-                                                                    value: p.name,
-                                                                    label: p.name,
-                                                                    subtitle: p.city_name
-                                                                }))}
-                                                                value={route.drop_to}
-                                                                onChange={val => handleRouteParamChange(idx, 'drop_to', val)}
-                                                                placeholder="Drop Destination"
-                                                            />
-                                                        </div>
+                                                        <SearchableSelect
+                                                            options={ptOptions}
+                                                            value={route.drop_to}
+                                                            onChange={val => handleRouteFieldChange(idx, 'drop_to', val)}
+                                                            placeholder="Drop Destination"
+                                                        />
                                                     </td>
-                                                    {[1, 2, 3, 4].map(vNum => (
-                                                        <td key={vNum} className="p-2 bg-gray-50/20">
+                                                    {(route.vehicles || []).map((rate, vIdx) => (
+                                                        <td key={vIdx} className="p-2 bg-gray-50/20">
                                                             <input
                                                                 type="number"
-                                                                className="w-full bg-white border border-gray-100 px-3 py-2 rounded-lg text-[11px] font-bold text-center focus:outline-none focus:border-[#14532d]"
+                                                                className="w-full bg-white border border-gray-100 px-3 py-2 rounded-lg text-[11px] font-bold text-center focus:outline-none focus:border-[#14532d] min-w-[90px]"
                                                                 placeholder="Rate"
-                                                                value={route[`v${vNum}`]}
-                                                                onChange={(e) => handleRouteParamChange(idx, `v${vNum}`, e.target.value)}
+                                                                value={rate}
+                                                                onChange={(e) => handleVehicleRateChange(idx, vIdx, e.target.value)}
                                                             />
                                                         </td>
                                                     ))}
@@ -293,11 +437,11 @@ const VehicleRateCardEdit = () => {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="p-8 bg-gray-50/50 border-t border-gray-100">
+                                <div className="p-6 bg-gray-50/50 border-t border-gray-100">
                                     <div className="flex gap-4">
                                         <Info className="text-[#14532d]/40 shrink-0" size={16} />
                                         <p className="text-[10px] text-gray-400 font-medium leading-relaxed uppercase tracking-wider">
-                                            Rates should be numeric values only. Vehicle columns represent different pricing tiers or vehicle categories (e.g. Sedan, SUV, etc).
+                                            Use <strong>+</strong> / <strong>−</strong> to add or remove vehicle columns (up to {MAX_VEHICLES}). Filter by city to narrow down pickup point options.
                                         </p>
                                     </div>
                                 </div>
@@ -305,8 +449,8 @@ const VehicleRateCardEdit = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

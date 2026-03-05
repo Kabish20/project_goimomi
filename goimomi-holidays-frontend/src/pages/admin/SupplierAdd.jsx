@@ -29,7 +29,7 @@ const SupplierAdd = () => {
 
     const API_BASE_URL = "/api";
 
-    const serviceOptions = ["HOLIDAYS", "Visa", "Flight", "Hotel", "Attestation"];
+    const serviceOptions = ["HOLIDAYS", "Visa", "Flight", "Hotel", "Attestation", "Cab", "Cruise"];
 
     useEffect(() => {
         fetchCountries();

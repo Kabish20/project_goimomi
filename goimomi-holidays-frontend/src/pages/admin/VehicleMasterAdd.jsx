@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2 } from "lucide-react";
+import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -25,9 +25,15 @@ const VehicleMasterAdd = () => {
     const [brands, setBrands] = useState([]);
     const [drivers, setDrivers] = useState([]);
     const [countries, setCountries] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
     const [pickupPoints, setPickupPoints] = useState([]);
+    const [startingCities, setStartingCities] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
+
+    const MAX_VEHICLES = 10;
+    const [vehicleCount, setVehicleCount] = useState(4);
+    const [selectedCity, setSelectedCity] = useState("");
 
     const [formData, setFormData] = useState({
         name: "",
@@ -42,10 +48,11 @@ const VehicleMasterAdd = () => {
 
     const [rateCard, setRateCard] = useState({
         country: "",
+        supplier: "",
         name: "",
         validity_start: "",
         validity_end: "",
-        routes: [{ start_from: "", drop_to: "", v1: "", v2: "", v3: "", v4: "" }]
+        routes: [{ start_from: "", drop_to: "", vehicles: Array(4).fill("") }]
     });
 
     const [preview, setPreview] = useState(null);
@@ -54,7 +61,9 @@ const VehicleMasterAdd = () => {
         fetchBrands();
         fetchDrivers();
         fetchCountries();
+        fetchSuppliers();
         fetchPickupPoints();
+        fetchStartingCities();
     }, []);
 
     const fetchCountries = async () => {
@@ -63,6 +72,19 @@ const VehicleMasterAdd = () => {
             setCountries(res.data || []);
         } catch (err) {
             console.error("Error fetching countries:", err);
+        }
+    };
+
+    const fetchSuppliers = async () => {
+        try {
+            const res = await axios.get("/api/suppliers/");
+            const allSuppliers = res.data || [];
+            const cabSuppliers = allSuppliers.filter(s =>
+                Array.isArray(s.services) && s.services.includes("Cab")
+            );
+            setSuppliers(cabSuppliers);
+        } catch (err) {
+            console.error("Error fetching suppliers:", err);
         }
     };
 
@@ -90,6 +112,15 @@ const VehicleMasterAdd = () => {
             setPickupPoints(res.data || []);
         } catch (err) {
             console.error("Error fetching pickup points:", err);
+        }
+    };
+
+    const fetchStartingCities = async () => {
+        try {
+            const res = await axios.get("/api/starting-cities/");
+            setStartingCities(res.data || []);
+        } catch (err) {
+            console.error("Error fetching starting cities:", err);
         }
     };
 
@@ -139,9 +170,21 @@ const VehicleMasterAdd = () => {
 
             // 2. Create Rate Card
             // Assuming we want to create it as a separate master based on the payload structure
-            await axios.post("/api/vehicle-rate-cards/", {
-                ...rateCard
+            const payload = { ...rateCard };
+            delete payload.routes;
+
+            payload.routes = rateCard.routes.map(route => {
+                const formattedRoute = {
+                    start_from: route.start_from,
+                    drop_to: route.drop_to
+                };
+                for (let i = 0; i < vehicleCount; i++) {
+                    formattedRoute[`v${i + 1}`] = route.vehicles[i] || "";
+                }
+                return formattedRoute;
             });
+
+            await axios.post("/api/vehicle-rate-cards/", payload);
 
             alert("Vehicle Master and Rate Card created successfully!");
             navigate("/admin/vehicle-masters");
@@ -153,10 +196,38 @@ const VehicleMasterAdd = () => {
         }
     };
 
+    // Add a vehicle column
+    const addVehicle = () => {
+        if (vehicleCount >= MAX_VEHICLES) return;
+        const newCount = vehicleCount + 1;
+        setVehicleCount(newCount);
+        setRateCard(prev => ({
+            ...prev,
+            routes: prev.routes.map(r => ({
+                ...r,
+                vehicles: [...r.vehicles, ""]
+            }))
+        }));
+    };
+
+    // Remove a vehicle column
+    const removeVehicle = () => {
+        if (vehicleCount <= 1) return;
+        const newCount = vehicleCount - 1;
+        setVehicleCount(newCount);
+        setRateCard(prev => ({
+            ...prev,
+            routes: prev.routes.map(r => ({
+                ...r,
+                vehicles: r.vehicles.slice(0, newCount)
+            }))
+        }));
+    };
+
     const addRouteRow = () => {
         setRateCard(prev => ({
             ...prev,
-            routes: [...prev.routes, { start_from: "", drop_to: "", v1: "", v2: "", v3: "", v4: "" }]
+            routes: [...prev.routes, { start_from: "", drop_to: "", vehicles: Array(vehicleCount).fill("") }]
         }));
     };
 
@@ -173,6 +244,19 @@ const VehicleMasterAdd = () => {
         newRoutes[index][field] = value;
         setRateCard(prev => ({ ...prev, routes: newRoutes }));
     };
+
+    const handleVehicleRateChange = (rowIndex, vIndex, value) => {
+        const newRoutes = [...rateCard.routes];
+        const newVehicles = [...newRoutes[rowIndex].vehicles];
+        newVehicles[vIndex] = value;
+        newRoutes[rowIndex].vehicles = newVehicles;
+        setRateCard(prev => ({ ...prev, routes: newRoutes }));
+    };
+
+    // Filter pickup points by selectedCity
+    const filteredPickupPoints = selectedCity
+        ? pickupPoints.filter(p => p.city_name === selectedCity)
+        : pickupPoints;
 
     return (
         <div className="flex bg-gray-50 h-full overflow-hidden">
@@ -365,7 +449,7 @@ const VehicleMasterAdd = () => {
                                         <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">Rate Card Configuration</h2>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                                         <div>
                                             <FormLabel label="Target Country" required />
                                             <SearchableSelect
@@ -373,6 +457,16 @@ const VehicleMasterAdd = () => {
                                                 value={rateCard.country}
                                                 onChange={(val) => setRateCard(prev => ({ ...prev, country: val }))}
                                                 placeholder="Select Country..."
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <FormLabel label="Supplier" required />
+                                            <SearchableSelect
+                                                options={suppliers.map(s => ({ value: s.id, label: s.company_name, subtitle: s.city || "" }))}
+                                                value={rateCard.supplier}
+                                                onChange={(val) => setRateCard(prev => ({ ...prev, supplier: val }))}
+                                                placeholder="Select Supplier..."
                                             />
                                         </div>
 
@@ -419,25 +513,67 @@ const VehicleMasterAdd = () => {
                                             <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
                                             <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">Route Matrix (Pricing)</h2>
                                         </div>
-                                        <button
-                                            onClick={addRouteRow}
-                                            className="flex items-center gap-2 bg-[#14532d]/5 text-[#14532d] px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all"
-                                        >
-                                            <Plus size={14} /> Add New Route
-                                        </button>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={addRouteRow}
+                                                className="flex items-center gap-2 bg-[#14532d]/5 text-[#14532d] px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all"
+                                            >
+                                                <Plus size={14} /> Add New Route
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="p-4 md:p-6 overflow-x-auto">
                                         <table className="w-full border-collapse min-w-[800px]">
                                             <thead>
                                                 <tr>
-                                                    <th className="text-left p-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">Starting From</th>
-                                                    <th className="text-left p-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">Dropping To</th>
-                                                    <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 1</th>
-                                                    <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 2</th>
-                                                    <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 3</th>
-                                                    <th className="text-center p-4 text-[9px] font-black text-gray-900 uppercase tracking-[0.2em] border-b border-gray-50 bg-gray-50/50">Vehicle 4</th>
-                                                    <th className="p-4 border-b border-gray-50"></th>
+                                                    <th className="text-left p-4 border-b border-gray-50 w-64 align-top">
+                                                        <div className="flex flex-col gap-3">
+                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Starting From</span>
+                                                            <SearchableSelect
+                                                                options={[
+                                                                    { value: "", label: "All Cities" },
+                                                                    ...(startingCities.length > 0
+                                                                        ? startingCities.map(c => ({ value: c.name, label: c.name }))
+                                                                        : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort().map(city => ({ value: city, label: city }))
+                                                                    )
+                                                                ]}
+                                                                value={selectedCity}
+                                                                onChange={(val) => setSelectedCity(val)}
+                                                                placeholder="Search City..."
+                                                                className="text-[10px]"
+                                                            />
+                                                        </div>
+                                                    </th>
+                                                    <th className="text-left p-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[200px] align-bottom">Dropping To</th>
+                                                    {Array.from({ length: vehicleCount }).map((_, i) => (
+                                                        <th key={i} className="text-center p-4 text-[9px] font-black text-[#14532d] uppercase tracking-[0.2em] border-b border-gray-50 bg-green-50/30">
+                                                            <div className="flex items-center justify-center gap-1.5">
+                                                                <span>Vehicle {i + 1}</span>
+                                                                {i === vehicleCount - 1 && (
+                                                                    <div className="flex items-center gap-1 ml-1">
+                                                                        <button
+                                                                            onClick={removeVehicle}
+                                                                            disabled={vehicleCount <= 1}
+                                                                            className="w-5 h-5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                            title="Remove Vehicle"
+                                                                        >
+                                                                            <Minus size={12} strokeWidth={3} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={addVehicle}
+                                                                            disabled={vehicleCount >= MAX_VEHICLES}
+                                                                            className="w-5 h-5 rounded hover:bg-green-100 text-gray-400 hover:text-[#14532d] flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                            title="Add Vehicle"
+                                                                        >
+                                                                            <Plus size={12} strokeWidth={3} />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </th>
+                                                    ))}
+                                                    <th className="p-4 border-b border-gray-50 w-16"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -446,7 +582,7 @@ const VehicleMasterAdd = () => {
                                                         <td className="p-2">
                                                             <div className="relative">
                                                                 <SearchableSelect
-                                                                    options={pickupPoints.map(p => ({
+                                                                    options={filteredPickupPoints.map(p => ({
                                                                         value: p.name,
                                                                         label: p.name,
                                                                         subtitle: p.city_name
@@ -460,7 +596,7 @@ const VehicleMasterAdd = () => {
                                                         <td className="p-2">
                                                             <div className="relative">
                                                                 <SearchableSelect
-                                                                    options={pickupPoints.map(p => ({
+                                                                    options={filteredPickupPoints.map(p => ({
                                                                         value: p.name,
                                                                         label: p.name,
                                                                         subtitle: p.city_name
@@ -471,14 +607,14 @@ const VehicleMasterAdd = () => {
                                                                 />
                                                             </div>
                                                         </td>
-                                                        {[1, 2, 3, 4].map(vNum => (
-                                                            <td key={vNum} className="p-2 bg-gray-50/20">
+                                                        {Array.from({ length: vehicleCount }).map((_, vIndex) => (
+                                                            <td key={vIndex} className="p-2 bg-gray-50/20">
                                                                 <input
                                                                     type="number"
-                                                                    className="w-full bg-white border border-gray-100 px-3 py-2 rounded-lg text-[11px] font-bold text-center focus:outline-none focus:border-[#14532d]"
+                                                                    className="w-full bg-white border border-gray-100 px-3 py-2 rounded-lg text-[11px] font-bold text-center focus:outline-none focus:border-[#14532d] shadow-sm"
                                                                     placeholder="Rate"
-                                                                    value={route[`v${vNum}`]}
-                                                                    onChange={(e) => handleRouteParamChange(idx, `v${vNum}`, e.target.value)}
+                                                                    value={route.vehicles[vIndex] ?? ""}
+                                                                    onChange={(e) => handleVehicleRateChange(idx, vIndex, e.target.value)}
                                                                 />
                                                             </td>
                                                         ))}

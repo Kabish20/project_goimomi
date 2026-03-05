@@ -30,7 +30,7 @@ const SupplierEdit = () => {
     const [errors, setErrors] = useState({});
 
     const API_BASE_URL = "/api";
-    const serviceOptions = ["HOLIDAYS", "Visa", "Flight", "Hotel", "Attestation"];
+    const serviceOptions = ["HOLIDAYS", "Visa", "Flight", "Hotel", "Attestation", "Cab", "Cruise"];
 
     useEffect(() => {
         const fetchData = async () => {
