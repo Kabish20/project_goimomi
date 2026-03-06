@@ -16,7 +16,8 @@ import {
   Flag,
   Sun,
   Calendar,
-  Car
+  Car,
+  ClipboardList
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -39,6 +40,7 @@ const menu = [
           { name: "Holiday Destinations", key: "Destinations" },
           { name: "Umrah Destinations" },
           { name: "Starting Cities" },
+          { name: "Nationalities" },
         ]
       },
       {
@@ -72,11 +74,18 @@ const menu = [
         children: [
           { name: "Manage Vehicles", key: "Vehicle Masters" },
           { name: "Driver Masters" },
-          { name: "Route Rate Cards" },
           { name: "Pickup Point Masters" },
         ]
       },
-      { name: "Nationalities", icon: <Flag size={18} /> },
+      {
+        name: "Booking",
+        icon: <ClipboardList size={18} />,
+        isDropdown: true,
+        children: [
+          { name: "Visa bookings" },
+          { name: "Route bookings" },
+        ]
+      },
 
       {
         name: "Visas",
@@ -84,7 +93,6 @@ const menu = [
         isDropdown: true,
         children: [
           { name: "Manage Visas", key: "Visas" },
-          { name: "Visa Applications" },
         ]
       },
       { name: "Suppliers", icon: <Truck size={18} /> },
@@ -179,7 +187,7 @@ const AdminSidebar = () => {
       case "Accommodations": return () => navigate("/admin/accommodations/add");
       case "Vehicle Masters": return handleAddVehicleMaster;
       case "Driver Masters": return handleAddDriverMaster;
-      case "Route Rate Cards": return handleAddRateCard;
+      case "Route bookings": return handleAddRateCard;
       case "Pickup Point Masters": return handleAddPickupPoint;
       default: return undefined;
     }
@@ -203,14 +211,14 @@ const AdminSidebar = () => {
       case "Cruise Enquiries": return handleChangeCruiseEnquiry;
       case "Hotel Enquiries": return handleChangeHotelEnquiry;
       case "Visas": return handleChangeVisa;
-      case "Visa Applications": return handleChangeVisaApplication;
+      case "Visa bookings": return handleChangeVisaApplication;
       case "Countries": return () => navigate("/admin/countries");
       case "Suppliers": return () => navigate("/admin/suppliers");
       case "Cruise Calendar": return () => navigate("/admin/cruise-calendar");
       case "Accommodations": return () => navigate("/admin/accommodations");
       case "Vehicle Masters": return handleChangeVehicleMaster;
       case "Driver Masters": return handleChangeDriverMaster;
-      case "Route Rate Cards": return handleChangeRateCard;
+      case "Route bookings": return handleChangeRateCard;
       case "Pickup Point Masters": return handleChangePickupPoint;
       default: return undefined;
     }

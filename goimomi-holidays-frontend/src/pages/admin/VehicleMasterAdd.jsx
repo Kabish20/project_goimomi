@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus } from "lucide-react";
+import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus, ArrowRight } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -22,6 +22,7 @@ const Input = (props) => (
 
 const VehicleMasterAdd = () => {
     const navigate = useNavigate();
+    const routeMatrixRef = React.useRef(null);
     const [brands, setBrands] = useState([]);
     const [drivers, setDrivers] = useState([]);
     const [countries, setCountries] = useState([]);
@@ -149,8 +150,12 @@ const VehicleMasterAdd = () => {
             return;
         }
 
-        if (!rateCard.name || !rateCard.country) {
-            alert("Please provide at least a Name and Country for the Rate Card.");
+        if (currentStep === 2) {
+            if (!rateCard.name || !rateCard.country || !rateCard.validity_start || !rateCard.validity_end) {
+                alert("Please provide Rate Card Name, Country, and Validity dates.");
+                return;
+            }
+            setCurrentStep(3);
             return;
         }
 
@@ -268,10 +273,10 @@ const VehicleMasterAdd = () => {
                     <div className="max-w-6xl mx-auto">
                         <div className="flex items-center justify-between mb-8">
                             <button
-                                onClick={() => currentStep === 1 ? navigate("/admin/vehicle-masters") : setCurrentStep(1)}
+                                onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
                                 className="flex items-center gap-2 text-gray-400 font-bold text-[9px] uppercase tracking-widest hover:text-[#14532d] transition-all group"
                             >
-                                <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> {currentStep === 1 ? "Back to Vehicles" : "Back to Basic Specs"}
+                                <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> {currentStep === 1 ? "Back to Vehicles" : currentStep === 2 ? "Back to Basic Specs" : "Back to Config"}
                             </button>
 
                             <div className="flex items-center gap-4 bg-white px-6 py-2 rounded-full border border-gray-100 shadow-sm">
@@ -282,7 +287,12 @@ const VehicleMasterAdd = () => {
                                 <div className="w-8 h-[2px] bg-gray-50"></div>
                                 <div className={`flex items-center gap-2 ${currentStep === 2 ? "text-[#14532d]" : "text-gray-300"}`}>
                                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${currentStep === 2 ? "bg-[#14532d] text-white" : "bg-gray-100"}`}>2</div>
-                                    <span className="text-[9px] font-black uppercase tracking-widest">Rate Card</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Configuration</span>
+                                </div>
+                                <div className="w-8 h-[2px] bg-gray-50"></div>
+                                <div className={`flex items-center gap-2 ${currentStep === 3 ? "text-[#14532d]" : "text-gray-300"}`}>
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${currentStep === 3 ? "bg-[#14532d] text-white" : "bg-gray-100"}`}>3</div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Pricing</span>
                                 </div>
                             </div>
                         </div>
@@ -290,10 +300,10 @@ const VehicleMasterAdd = () => {
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                             <div>
                                 <h1 className="text-2xl font-black text-gray-900 tracking-tight leading-none mb-2 uppercase">
-                                    {currentStep === 1 ? "Create New Vehicle" : "Vehicle Route Rate Card"}
+                                    {currentStep === 1 ? "Create New Vehicle" : currentStep === 2 ? "Rate Card Configuration" : "Vehicle Route Pricing"}
                                 </h1>
                                 <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-                                    {currentStep === 1 ? "Register a new vehicle in your fleet master" : "Set route-based pricing for different vehicle categories"}
+                                    {currentStep === 1 ? "Register a new vehicle in your fleet master" : currentStep === 2 ? "Set validity and supplier details" : "Define route-based pricing matrix"}
                                 </p>
                             </div>
                             <button
@@ -301,7 +311,7 @@ const VehicleMasterAdd = () => {
                                 disabled={loading}
                                 className="bg-[#14532d] text-white px-8 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-green-900/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
                             >
-                                {loading ? "Saving..." : (currentStep === 1 ? "Next page" : "Save Vehicle & Rate Card")}
+                                {loading ? "Saving..." : (currentStep < 3 ? "Create" : "Create Vehicle & Rate Card")}
                             </button>
                         </div>
 
@@ -441,7 +451,7 @@ const VehicleMasterAdd = () => {
                                     </section>
                                 </div>
                             </div>
-                        ) : (
+                        ) : currentStep === 2 ? (
                             <div className="space-y-6 max-w-5xl mx-auto pb-12">
                                 <section className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
                                     <div className="flex items-center gap-3 mb-8">
@@ -461,7 +471,7 @@ const VehicleMasterAdd = () => {
                                         </div>
 
                                         <div>
-                                            <FormLabel label="Supplier" required />
+                                            <FormLabel label="Supplier" optional />
                                             <SearchableSelect
                                                 options={suppliers.map(s => ({ value: s.id, label: s.company_name, subtitle: s.city || "" }))}
                                                 value={rateCard.supplier}
@@ -505,9 +515,12 @@ const VehicleMasterAdd = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </section>
 
-                                <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                                </section>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 max-w-5xl mx-auto pb-12">
+                                <section ref={routeMatrixRef} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                                     <div className="p-8 pb-0 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
