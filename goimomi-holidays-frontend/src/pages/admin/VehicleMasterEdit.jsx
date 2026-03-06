@@ -30,6 +30,7 @@ const VehicleMasterEdit = () => {
     const [suppliers, setSuppliers] = useState([]);
     const [pickupPoints, setPickupPoints] = useState([]);
     const [startingCities, setStartingCities] = useState([]);
+    const [destinations, setDestinations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [currentStep, setCurrentStep] = useState(1);
@@ -75,6 +76,7 @@ const VehicleMasterEdit = () => {
             fetchSuppliers(),
             fetchPickupPoints(),
             fetchStartingCities(),
+            fetchDestinations(),
             fetchVehicleMasters(),
             fetchVehicleAndRateCard()
         ]);
@@ -142,6 +144,15 @@ const VehicleMasterEdit = () => {
             setStartingCities(res.data || []);
         } catch (err) {
             console.error("Error fetching starting cities:", err);
+        }
+    };
+
+    const fetchDestinations = async () => {
+        try {
+            const res = await axios.get("/api/destinations/");
+            setDestinations(res.data || []);
+        } catch (err) {
+            console.error("Error fetching destinations:", err);
         }
     };
 
@@ -345,7 +356,7 @@ const VehicleMasterEdit = () => {
     };
 
     const filteredPickupPoints = (city) => city ? pickupPoints.filter(p => p.city_name === city) : pickupPoints;
-    const cityList = startingCities.length > 0 ? startingCities.map(c => c.name).sort() : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
+    const cityList = destinations.length > 0 ? destinations.map(d => d.name).sort() : startingCities.length > 0 ? startingCities.map(c => c.name).sort() : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
 
     if (fetching) return (
         <div className="flex h-screen items-center justify-center bg-gray-50">
@@ -645,7 +656,7 @@ const VehicleMasterEdit = () => {
                                                                         options={cityList.map(city => ({ value: city, label: city }))}
                                                                         value={route.start_city}
                                                                         onChange={val => handleRouteParamChange(idx, 'start_city', val)}
-                                                                        placeholder="City"
+                                                                        placeholder="Destination"
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -665,7 +676,7 @@ const VehicleMasterEdit = () => {
                                                                         options={cityList.map(city => ({ value: city, label: city }))}
                                                                         value={route.drop_city}
                                                                         onChange={val => handleRouteParamChange(idx, 'drop_city', val)}
-                                                                        placeholder="City"
+                                                                        placeholder="Destination"
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -673,7 +684,7 @@ const VehicleMasterEdit = () => {
                                                                         options={filteredPickupPoints(route.drop_city).map(p => ({ value: p.name, label: p.name, subtitle: p.city_name }))}
                                                                         value={route.drop_to}
                                                                         onChange={val => handleRouteParamChange(idx, 'drop_to', val)}
-                                                                        placeholder="Destination"
+                                                                        placeholder="Dropping Point"
                                                                     />
                                                                 </div>
                                                             </div>

@@ -29,6 +29,7 @@ const VehicleMasterAdd = () => {
     const [suppliers, setSuppliers] = useState([]);
     const [pickupPoints, setPickupPoints] = useState([]);
     const [startingCities, setStartingCities] = useState([]);
+    const [destinations, setDestinations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
 
@@ -65,6 +66,7 @@ const VehicleMasterAdd = () => {
         fetchSuppliers();
         fetchPickupPoints();
         fetchStartingCities();
+        fetchDestinations();
         fetchVehicleMasters();
     }, []);
 
@@ -132,6 +134,15 @@ const VehicleMasterAdd = () => {
             setStartingCities(res.data || []);
         } catch (err) {
             console.error("Error fetching starting cities:", err);
+        }
+    };
+
+    const fetchDestinations = async () => {
+        try {
+            const res = await axios.get("/api/destinations/");
+            setDestinations(res.data || []);
+        } catch (err) {
+            console.error("Error fetching destinations:", err);
         }
     };
 
@@ -281,9 +292,11 @@ const VehicleMasterAdd = () => {
     // Filter pickup points by selectedCity
     const filteredPickupPoints = (city) => city ? pickupPoints.filter(p => p.city_name === city) : pickupPoints;
 
-    const cityList = startingCities.length > 0
-        ? startingCities.map(c => c.name).sort()
-        : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
+    const cityList = destinations.length > 0
+        ? destinations.map(d => d.name).sort()
+        : startingCities.length > 0
+            ? startingCities.map(c => c.name).sort()
+            : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
 
     return (
         <div className="flex bg-gray-50 h-full overflow-hidden">
@@ -635,7 +648,7 @@ const VehicleMasterAdd = () => {
                                                                         options={cityList.map(city => ({ value: city, label: city }))}
                                                                         value={route.start_city}
                                                                         onChange={val => handleRouteParamChange(idx, 'start_city', val)}
-                                                                        placeholder="City"
+                                                                        placeholder="Destination"
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -659,7 +672,7 @@ const VehicleMasterAdd = () => {
                                                                         options={cityList.map(city => ({ value: city, label: city }))}
                                                                         value={route.drop_city}
                                                                         onChange={val => handleRouteParamChange(idx, 'drop_city', val)}
-                                                                        placeholder="City"
+                                                                        placeholder="Destination"
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -671,7 +684,7 @@ const VehicleMasterAdd = () => {
                                                                         }))}
                                                                         value={route.drop_to}
                                                                         onChange={val => handleRouteParamChange(idx, 'drop_to', val)}
-                                                                        placeholder="Destination"
+                                                                        placeholder="Dropping Point"
                                                                     />
                                                                 </div>
                                                             </div>

@@ -75,6 +75,7 @@ const menu = [
           { name: "Manage Vehicles", key: "Vehicle Masters" },
           { name: "Driver Masters" },
           { name: "Pickup Point Masters" },
+          { name: "Route rate card" },
         ]
       },
       {
@@ -83,7 +84,6 @@ const menu = [
         isDropdown: true,
         children: [
           { name: "Visa bookings" },
-          { name: "Route bookings" },
         ]
       },
 
@@ -187,7 +187,7 @@ const AdminSidebar = () => {
       case "Accommodations": return () => navigate("/admin/accommodations/add");
       case "Vehicle Masters": return handleAddVehicleMaster;
       case "Driver Masters": return handleAddDriverMaster;
-      case "Route bookings": return handleAddRateCard;
+      case "Route rate card": return handleAddRateCard;
       case "Pickup Point Masters": return handleAddPickupPoint;
       default: return undefined;
     }
@@ -218,7 +218,7 @@ const AdminSidebar = () => {
       case "Accommodations": return () => navigate("/admin/accommodations");
       case "Vehicle Masters": return handleChangeVehicleMaster;
       case "Driver Masters": return handleChangeDriverMaster;
-      case "Route bookings": return handleChangeRateCard;
+      case "Route rate card": return handleChangeRateCard;
       case "Pickup Point Masters": return handleChangePickupPoint;
       default: return undefined;
     }
