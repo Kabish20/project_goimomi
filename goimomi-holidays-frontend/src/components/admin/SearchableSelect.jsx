@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 
-const SearchableSelect = ({ options, value, onChange, placeholder = "Select...", disabled = false, allowCustom = false, error }) => {
+const SearchableSelect = ({ options, value, onChange, placeholder = "Select...", disabled = false, allowCustom = false, error, size = "default" }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [dropdownStyle, setDropdownStyle] = useState({});
@@ -141,28 +141,30 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
         </div>
     ) : null;
 
+    const isCompact = size === "compact";
+
     return (
         <div
             className={`relative w-full ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             ref={wrapperRef}
         >
             <div
-                className={`bg-white border-2 ${error ? 'border-red-200 ring-4 ring-red-50' : isOpen ? 'border-[#14532d] ring-4 ring-[#14532d]/5' : 'border-gray-200 hover:border-gray-300'} px-3 py-1.5 rounded-xl w-full text-black cursor-pointer flex justify-between items-center transition-all ${disabled ? 'pointer-events-none' : ''}`}
+                className={`bg-white border-2 ${error ? 'border-red-200 ring-4 ring-red-50' : isOpen ? 'border-[#14532d] ring-4 ring-[#14532d]/5' : 'border-gray-200 hover:border-gray-300'} ${isCompact ? 'px-2 py-1 rounded-lg' : 'px-3 py-1.5 rounded-xl'} w-full text-black cursor-pointer flex justify-between items-center transition-all ${disabled ? 'pointer-events-none' : ''}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
                 {selectedOption ? (
                     <span className="truncate flex items-center gap-2">
-                        <span className="text-xs font-black text-gray-900">{selectedOption.label}</span>
+                        <span className={`${isCompact ? 'text-[10px]' : 'text-xs'} font-black text-gray-900`}>{selectedOption.label}</span>
                         {selectedOption.subtitle && (
-                            <span className="text-[9px] text-[#14532d] font-black bg-green-50 px-1.5 py-0.5 rounded-md uppercase tracking-tighter">
+                            <span className={`${isCompact ? 'text-[8px] px-1 py-0' : 'text-[9px] px-1.5 py-0.5'} text-[#14532d] font-black bg-green-50 rounded-md uppercase tracking-tighter`}>
                                 {selectedOption.subtitle}
                             </span>
                         )}
                     </span>
                 ) : (
-                    <span className="truncate text-gray-400 text-xs font-medium">{placeholder}</span>
+                    <span className={`truncate text-gray-400 ${isCompact ? 'text-[10px]' : 'text-xs'} font-medium`}>{placeholder}</span>
                 )}
-                <span className={`text-gray-300 text-[10px] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+                <span className={`text-gray-300 ${isCompact ? 'text-[8px]' : 'text-[10px]'} transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
             </div>
 
             {error && (

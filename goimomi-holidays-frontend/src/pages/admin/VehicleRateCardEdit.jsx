@@ -388,64 +388,45 @@ const VehicleRateCardEdit = () => {
                         ) : (
                             <div className="space-y-6">
                                 <section ref={routeMatrixRef} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                                    <div className="p-6 pb-0 flex flex-wrap items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-1.5 h-6 bg-[#14532d] rounded-full"></div>
-                                            <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">Route Matrix (Pricing)</h2>
+                                    <div className="p-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1 h-4 bg-orange-500 rounded-full"></div>
+                                            <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Route Matrix (Pricing)</h2>
                                         </div>
-                                        <button
-                                            onClick={addRouteRow}
-                                            className="flex items-center gap-2 bg-[#14532d]/5 text-[#14532d] px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all"
-                                        >
-                                            <Plus size={14} /> Add Route
+                                        <button onClick={addRouteRow} className="flex items-center gap-1.5 bg-[#14532d]/5 text-[#14532d] px-3 py-1.5 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all">
+                                            <Plus size={12} /> Add New Route
                                         </button>
                                     </div>
 
-                                    <div className="p-4 md:p-6 overflow-x-auto">
-                                        <table className="w-full border-collapse" style={{ minWidth: `${420 + vehicleCount * 130}px` }}>
+                                    <div className="p-2 md:p-3 overflow-x-auto">
+                                        <table className="w-full border-collapse min-w-[700px]" style={{ minWidth: `${420 + vehicleCount * 130}px` }}>
                                             <thead>
                                                 <tr>
-                                                    <th className="text-left p-4 border-b border-gray-50 align-top min-w-[320px]">
-                                                        <div className="flex flex-col gap-3">
+                                                    <th className="text-left p-2 border-b border-gray-50 align-top min-w-[280px]">
+                                                        <div className="flex flex-col gap-1.5">
                                                             <div className="flex items-center justify-between">
-                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Starting From</span>
+                                                                <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">Starting From</span>
                                                             </div>
                                                         </div>
                                                     </th>
-                                                    <th className="text-left p-4 border-b border-gray-50 align-top min-w-[320px]">
-                                                        <div className="flex flex-col gap-3">
+                                                    <th className="text-left p-2 border-b border-gray-50 align-top min-w-[280px]">
+                                                        <div className="flex flex-col gap-1.5">
                                                             <div className="flex items-center justify-between">
-                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Dropping To</span>
+                                                                <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">Dropping To</span>
                                                             </div>
                                                         </div>
                                                     </th>
-                                                    {Array.from({ length: vehicleCount }, (_, i) => (
-                                                        <th key={i} className="text-center p-3 border-b border-gray-50 bg-gray-50/50 min-w-[170px] align-top">
-                                                            <div className="flex flex-col gap-2">
-                                                                <div className="flex items-center justify-center gap-1.5 pt-1">
-                                                                    <Car size={10} className="text-[#14532d]" />
-                                                                    <span className="text-[9px] font-black text-gray-900 uppercase tracking-[0.15em]">
-                                                                        {columnVehicles[i] ? `Vehicle${i + 1} - ${columnVehicles[i]}` : `Vehicle ${i + 1}`}
+                                                    {Array.from({ length: vehicleCount }).map((_, i) => (
+                                                        <th key={i} className="text-center p-2 border-b border-gray-50 bg-green-50/30 align-top">
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center justify-center gap-1 pt-0.5">
+                                                                    <Car size={8} className="text-[#14532d]" />
+                                                                    <span className="text-[8px] font-black text-[#14532d] uppercase tracking-[0.15em]">
+                                                                        {columnVehicles[i] ? `V${i + 1} - ${columnVehicles[i]}` : `V ${i + 1}`}
                                                                     </span>
-                                                                    <div className="flex items-center gap-1.5 ml-1 scale-90">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeVehicle(i); }}
-                                                                            disabled={vehicleCount <= 1}
-                                                                            className="w-5 h-5 rounded hover:bg-red-100 text-gray-500 hover:text-red-600 flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed bg-white shadow-sm border border-gray-100"
-                                                                            title="Remove this column"
-                                                                        >
-                                                                            <Minus size={12} strokeWidth={3} />
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addVehicle(); }}
-                                                                            disabled={vehicleCount >= MAX_VEHICLES}
-                                                                            className="w-5 h-5 rounded hover:bg-green-100 text-gray-500 hover:text-[#14532d] flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed bg-white shadow-sm border border-gray-100"
-                                                                            title="Add column"
-                                                                        >
-                                                                            <Plus size={12} strokeWidth={3} />
-                                                                        </button>
+                                                                    <div className="flex items-center gap-1 ml-1 scale-75">
+                                                                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeVehicle(i); }} disabled={vehicleCount <= 1} className="w-4 h-4 rounded hover:bg-red-100 text-gray-500 hover:text-red-600 flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed bg-white shadow-sm border border-gray-100"><Minus size={10} strokeWidth={3} /></button>
+                                                                        <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); addVehicle(); }} disabled={vehicleCount >= MAX_VEHICLES} className="w-4 h-4 rounded hover:bg-green-100 text-gray-500 hover:text-[#14532d] flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed bg-white shadow-sm border border-gray-100"><Plus size={10} strokeWidth={3} /></button>
                                                                     </div>
                                                                 </div>
                                                                 <SearchableSelect
@@ -456,26 +437,27 @@ const VehicleRateCardEdit = () => {
                                                                         newLabels[i] = val;
                                                                         setColumnVehicles(newLabels);
                                                                     }}
-                                                                    placeholder="Choose Vehicle..."
-                                                                    className="text-[10px]"
+                                                                    placeholder="Vehicle..."
+                                                                    size="compact"
                                                                 />
                                                             </div>
                                                         </th>
                                                     ))}
-                                                    <th className="p-3 border-b border-gray-50 w-10"></th>
+                                                    <th className="p-2 border-b border-gray-50 w-12"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {rateCard.routes.map((route, idx) => (
                                                     <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
-                                                        <td className="p-2">
-                                                            <div className="flex gap-2 min-w-[300px]">
+                                                        <td className="p-1.5">
+                                                            <div className="flex gap-1.5 min-w-[260px]">
                                                                 <div className="w-1/2">
                                                                     <SearchableSelect
                                                                         options={cityList.map(city => ({ value: city, label: city }))}
                                                                         value={route.start_city}
                                                                         onChange={val => handleRouteFieldChange(idx, 'start_city', val)}
                                                                         placeholder="Destination"
+                                                                        size="compact"
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -484,18 +466,20 @@ const VehicleRateCardEdit = () => {
                                                                         value={route.start_from}
                                                                         onChange={val => handleRouteFieldChange(idx, 'start_from', val)}
                                                                         placeholder="Pickup Point"
+                                                                        size="compact"
                                                                     />
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="p-2">
-                                                            <div className="flex gap-2 min-w-[300px]">
+                                                        <td className="p-1.5">
+                                                            <div className="flex gap-1.5 min-w-[260px]">
                                                                 <div className="w-1/2">
                                                                     <SearchableSelect
                                                                         options={cityList.map(city => ({ value: city, label: city }))}
                                                                         value={route.drop_city}
                                                                         onChange={val => handleRouteFieldChange(idx, 'drop_city', val)}
                                                                         placeholder="Destination"
+                                                                        size="compact"
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -504,15 +488,16 @@ const VehicleRateCardEdit = () => {
                                                                         value={route.drop_to}
                                                                         onChange={val => handleRouteFieldChange(idx, 'drop_to', val)}
                                                                         placeholder="Dropping Point"
+                                                                        size="compact"
                                                                     />
                                                                 </div>
                                                             </div>
                                                         </td>
                                                         {(route.vehicles || []).map((rate, vIdx) => (
-                                                            <td key={vIdx} className="p-2 bg-gray-50/20">
+                                                            <td key={vIdx} className="p-1.5 bg-gray-50/20">
                                                                 <input
                                                                     type="number"
-                                                                    className="w-full bg-white border border-gray-100 px-3 py-2 rounded-lg text-[11px] font-bold text-center focus:outline-none focus:border-[#14532d] min-w-[90px]"
+                                                                    className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d] min-w-[70px]"
                                                                     placeholder="Rate"
                                                                     value={rate}
                                                                     onChange={(e) => handleVehicleRateChange(idx, vIdx, e.target.value)}
