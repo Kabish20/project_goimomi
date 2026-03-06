@@ -33,14 +33,15 @@ const VehicleRateCardAdd = () => {
     const [startingCities, setStartingCities] = useState([]);
     // vehicleCount drives how many vehicle columns are shown
     const [vehicleCount, setVehicleCount] = useState(4);
-    const [selectedCity, setSelectedCity] = useState("");
+    const [vehicleMasters, setVehicleMasters] = useState([]);
+    const [columnVehicles, setColumnVehicles] = useState(Array(4).fill(""));
     const [rateCard, setRateCard] = useState({
         country: "",
         supplier: "",
         name: "",
         validity_start: "",
         validity_end: "",
-        routes: [{ start_from: "", drop_to: "", vehicles: Array(4).fill("") }]
+        routes: [{ start_city: "", start_from: "", drop_city: "", drop_to: "", vehicles: Array(4).fill("") }]
     });
 
     useEffect(() => {
@@ -48,7 +49,17 @@ const VehicleRateCardAdd = () => {
         fetchSuppliers();
         fetchPickupPoints();
         fetchStartingCities();
+        fetchVehicleMasters();
     }, []);
+
+    const fetchVehicleMasters = async () => {
+        try {
+            const res = await axios.get("/api/vehicle-masters/");
+            setVehicleMasters(res.data || []);
+        } catch (err) {
+            console.error("Error fetching vehicles:", err);
+        }
+    };
 
     const fetchCountries = async () => {
         try {
@@ -96,6 +107,7 @@ const VehicleRateCardAdd = () => {
         if (vehicleCount >= MAX_VEHICLES) return;
         const newCount = vehicleCount + 1;
         setVehicleCount(newCount);
+        setColumnVehicles(prev => [...prev, ""]);
         setRateCard(prev => ({
             ...prev,
             routes: prev.routes.map(r => ({
@@ -105,16 +117,16 @@ const VehicleRateCardAdd = () => {
         }));
     };
 
-    // Remove the last vehicle column
-    const removeVehicle = () => {
+    const removeVehicle = (index) => {
         if (vehicleCount <= 1) return;
         const newCount = vehicleCount - 1;
         setVehicleCount(newCount);
+        setColumnVehicles(prev => prev.filter((_, i) => i !== index));
         setRateCard(prev => ({
             ...prev,
             routes: prev.routes.map(r => ({
                 ...r,
-                vehicles: r.vehicles.slice(0, newCount)
+                vehicles: r.vehicles.filter((_, i) => i !== index)
             }))
         }));
     };
@@ -122,7 +134,7 @@ const VehicleRateCardAdd = () => {
     const addRouteRow = () => {
         setRateCard(prev => ({
             ...prev,
-            routes: [...prev.routes, { start_from: "", drop_to: "", vehicles: Array(vehicleCount).fill("") }]
+            routes: [...prev.routes, { start_city: "", start_from: "", drop_city: "", drop_to: "", vehicles: Array(vehicleCount).fill("") }]
         }));
     };
 
@@ -148,9 +160,7 @@ const VehicleRateCardAdd = () => {
         setRateCard(prev => ({ ...prev, routes: newRoutes }));
     };
 
-    const filteredPickupPoints = selectedCity
-        ? pickupPoints.filter(p => p.city_name === selectedCity)
-        : pickupPoints;
+    const filteredPickupPoints = (city) => city ? pickupPoints.filter(p => p.city_name === city) : pickupPoints;
 
     const cityList = startingCities.length > 0
         ? startingCities.map(c => c.name).sort()
@@ -174,7 +184,12 @@ const VehicleRateCardAdd = () => {
             const payload = {
                 ...rateCard,
                 routes: rateCard.routes.map(r => {
-                    const route = { start_from: r.start_from, drop_to: r.drop_to };
+                    const route = {
+                        start_city: r.start_city,
+                        start_from: r.start_from,
+                        drop_city: r.drop_city,
+                        drop_to: r.drop_to
+                    };
                     r.vehicles.forEach((v, i) => { route[`v${i + 1}`] = v; });
                     return route;
                 })
@@ -324,47 +339,60 @@ const VehicleRateCardAdd = () => {
                                         <table className="w-full border-collapse" style={{ minWidth: `${420 + vehicleCount * 130}px` }}>
                                             <thead>
                                                 <tr>
-                                                    <th className="text-left p-4 border-b border-gray-50 w-64 align-top">
+                                                    <th className="text-left p-4 border-b border-gray-50 align-top min-w-[320px]">
                                                         <div className="flex flex-col gap-3">
-                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Starting From</span>
-                                                            <SearchableSelect
-                                                                options={[
-                                                                    { value: "", label: "All Cities" },
-                                                                    ...cityList.map(city => ({ value: city, label: city }))
-                                                                ]}
-                                                                value={selectedCity}
-                                                                onChange={(val) => setSelectedCity(val)}
-                                                                placeholder="Search City..."
-                                                                className="text-[10px]"
-                                                            />
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Starting From</span>
+                                                            </div>
                                                         </div>
                                                     </th>
-                                                    <th className="text-left p-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 w-56 align-bottom">Dropping To</th>
+                                                    <th className="text-left p-4 border-b border-gray-50 align-top min-w-[320px]">
+                                                        <div className="flex flex-col gap-3">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Dropping To</span>
+                                                            </div>
+                                                        </div>
+                                                    </th>
                                                     {Array.from({ length: vehicleCount }, (_, i) => (
-                                                        <th key={i} className="text-center p-3 text-[9px] font-black text-gray-900 uppercase tracking-[0.15em] border-b border-gray-50 bg-gray-50/50 min-w-[140px]">
-                                                            <div className="flex items-center justify-center gap-1.5">
-                                                                <Car size={10} className="text-gray-400" />
-                                                                <span>Vehicle {i + 1}</span>
-                                                                {i === vehicleCount - 1 && (
-                                                                    <div className="flex items-center gap-1 ml-1">
+                                                        <th key={i} className="text-center p-3 border-b border-gray-50 bg-gray-50/50 min-w-[170px] align-top">
+                                                            <div className="flex flex-col gap-2">
+                                                                <div className="flex items-center justify-center gap-1.5 pt-1">
+                                                                    <Car size={10} className="text-[#14532d]" />
+                                                                    <span className="text-[9px] font-black text-gray-900 uppercase tracking-[0.15em]">
+                                                                        {columnVehicles[i] ? `Vehicle${i + 1} - ${columnVehicles[i]}` : `Vehicle ${i + 1}`}
+                                                                    </span>
+                                                                    <div className="flex items-center gap-1.5 ml-1 scale-90">
                                                                         <button
-                                                                            onClick={removeVehicle}
+                                                                            type="button"
+                                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeVehicle(i); }}
                                                                             disabled={vehicleCount <= 1}
-                                                                            className="w-5 h-5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                                                            title="Remove last vehicle column"
+                                                                            className="w-5 h-5 rounded hover:bg-red-100 text-gray-500 hover:text-red-600 flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed bg-white shadow-sm border border-gray-100"
+                                                                            title="Remove this column"
                                                                         >
                                                                             <Minus size={12} strokeWidth={3} />
                                                                         </button>
                                                                         <button
-                                                                            onClick={addVehicle}
+                                                                            type="button"
+                                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); addVehicle(); }}
                                                                             disabled={vehicleCount >= MAX_VEHICLES}
-                                                                            className="w-5 h-5 rounded hover:bg-green-100 text-gray-400 hover:text-[#14532d] flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                                                            title="Add vehicle column"
+                                                                            className="w-5 h-5 rounded hover:bg-green-100 text-gray-500 hover:text-[#14532d] flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed bg-white shadow-sm border border-gray-100"
+                                                                            title="Add column"
                                                                         >
                                                                             <Plus size={12} strokeWidth={3} />
                                                                         </button>
                                                                     </div>
-                                                                )}
+                                                                </div>
+                                                                <SearchableSelect
+                                                                    options={vehicleMasters.map(v => ({ value: v.name, label: v.name }))}
+                                                                    value={columnVehicles[i]}
+                                                                    onChange={(val) => {
+                                                                        const newLabels = [...columnVehicles];
+                                                                        newLabels[i] = val;
+                                                                        setColumnVehicles(newLabels);
+                                                                    }}
+                                                                    placeholder="Choose Vehicle..."
+                                                                    className="text-[10px]"
+                                                                />
                                                             </div>
                                                         </th>
                                                     ))}
@@ -375,20 +403,44 @@ const VehicleRateCardAdd = () => {
                                                 {rateCard.routes.map((route, idx) => (
                                                     <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
                                                         <td className="p-2">
-                                                            <SearchableSelect
-                                                                options={filteredPickupPoints.map(p => ({ value: p.name, label: p.name, subtitle: p.city_name }))}
-                                                                value={route.start_from}
-                                                                onChange={val => handleRouteFieldChange(idx, 'start_from', val)}
-                                                                placeholder="Pickup Point"
-                                                            />
+                                                            <div className="flex gap-2 min-w-[300px]">
+                                                                <div className="w-1/2">
+                                                                    <SearchableSelect
+                                                                        options={cityList.map(city => ({ value: city, label: city }))}
+                                                                        value={route.start_city}
+                                                                        onChange={val => handleRouteFieldChange(idx, 'start_city', val)}
+                                                                        placeholder="City"
+                                                                    />
+                                                                </div>
+                                                                <div className="w-1/2">
+                                                                    <SearchableSelect
+                                                                        options={filteredPickupPoints(route.start_city).map(p => ({ value: p.name, label: p.name, subtitle: p.city_name }))}
+                                                                        value={route.start_from}
+                                                                        onChange={val => handleRouteFieldChange(idx, 'start_from', val)}
+                                                                        placeholder="Pickup Point"
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                         </td>
                                                         <td className="p-2">
-                                                            <SearchableSelect
-                                                                options={filteredPickupPoints.map(p => ({ value: p.name, label: p.name, subtitle: p.city_name }))}
-                                                                value={route.drop_to}
-                                                                onChange={val => handleRouteFieldChange(idx, 'drop_to', val)}
-                                                                placeholder="Drop Destination"
-                                                            />
+                                                            <div className="flex gap-2 min-w-[300px]">
+                                                                <div className="w-1/2">
+                                                                    <SearchableSelect
+                                                                        options={cityList.map(city => ({ value: city, label: city }))}
+                                                                        value={route.drop_city}
+                                                                        onChange={val => handleRouteFieldChange(idx, 'drop_city', val)}
+                                                                        placeholder="City"
+                                                                    />
+                                                                </div>
+                                                                <div className="w-1/2">
+                                                                    <SearchableSelect
+                                                                        options={filteredPickupPoints(route.drop_city).map(p => ({ value: p.name, label: p.name, subtitle: p.city_name }))}
+                                                                        value={route.drop_to}
+                                                                        onChange={val => handleRouteFieldChange(idx, 'drop_to', val)}
+                                                                        placeholder="Destination"
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                         </td>
                                                         {route.vehicles.map((rate, vIdx) => (
                                                             <td key={vIdx} className="p-2 bg-gray-50/20">
