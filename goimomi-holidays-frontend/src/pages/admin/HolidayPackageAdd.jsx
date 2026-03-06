@@ -458,7 +458,15 @@ const HolidayPackageAdd = () => {
     }
 
     try {
+      // Find the destination object to get its ID
+      const destObj = destinations.find(d => d.name === newHotelForm.city);
+      if (!destObj) {
+        alert("Please select a valid city from the list.");
+        return;
+      }
+
       const formDataToSend = new FormData();
+      formDataToSend.append("destination", destObj.id);
       formDataToSend.append("name", newHotelForm.name);
       formDataToSend.append("stars", newHotelForm.stars);
       formDataToSend.append("address", newHotelForm.address);
@@ -471,9 +479,14 @@ const HolidayPackageAdd = () => {
 
       if (newHotelForm.images && newHotelForm.images.length > 0) {
         formDataToSend.append("image", newHotelForm.images[0]); // Using first image for now based on model
+        newHotelForm.images.forEach(img => {
+          formDataToSend.append('accommodation_images', img);
+        });
       }
 
-      const response = await axios.post(`${API_BASE_URL}/accommodations/`, formDataToSend);
+      const response = await axios.post(`${API_BASE_URL}/accommodations/`, formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       setHotelMasters(prev => [...prev, response.data]);
       setShowHotelModal(false);
       setNewHotelForm({
@@ -481,8 +494,11 @@ const HolidayPackageAdd = () => {
       });
       alert("Hotel added to masters successfully!");
     } catch (err) {
-      console.error("Error saving hotel master:", err);
-      alert("Failed to save hotel. Please check your inputs.");
+      console.error("Error saving hotel master:", err.response?.data || err);
+      const errorMsg = err.response?.data
+        ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
+        : err.message;
+      alert(`Failed to save hotel.\n${errorMsg}`);
     }
   };
 
@@ -2180,7 +2196,7 @@ const HolidayPackageAdd = () => {
                                               fd.append('longitude', newHotelForm.longitude);
                                               if (newHotelForm.images && newHotelForm.images.length > 0) {
                                                 fd.append('image', newHotelForm.images[0]);
-                                                newHotelForm.images.forEach(img => fd.append('gallery_images', img));
+                                                newHotelForm.images.forEach(img => fd.append('accommodation_images', img));
                                               }
                                               const res = await axios.post(`${API_BASE_URL}/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
                                               setHotelMasters(prev => [...prev, res.data]);
@@ -2357,7 +2373,7 @@ const HolidayPackageAdd = () => {
                                       options={vehicleBrands.map(b => ({ value: b.name, label: b.name }))}
                                       value={vd.vehicleBrand || ''}
                                       onChange={val => updateVD({ vehicleBrand: val })}
-                                      placeholder="Select Brand"
+                                      placeholder="🔍 Select Brand"
                                       className="w-full"
                                     />
                                   </div>
@@ -2749,7 +2765,7 @@ const HolidayPackageAdd = () => {
                                 ]}
                                 value={formData.arrival_city}
                                 onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
-                                placeholder="Select City"
+                                placeholder="🔍 Select City"
                                 className="!py-1"
                                 error={errors.arrival_city}
                               />
@@ -2776,7 +2792,7 @@ const HolidayPackageAdd = () => {
                                 options={airlines.map(a => ({ value: a.name, label: a.name }))}
                                 value={formData.arrival_airline}
                                 onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                placeholder="Select Airline"
+                                placeholder="🔍 Select Airline"
                                 className="!py-1"
                               />
                             </div>
@@ -2826,7 +2842,7 @@ const HolidayPackageAdd = () => {
                                 ]}
                                 value={formData.departure_city}
                                 onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                placeholder="Select City"
+                                placeholder="🔍 Select City"
                                 className="!py-1"
                                 error={errors.departure_city}
                               />
@@ -2849,7 +2865,7 @@ const HolidayPackageAdd = () => {
                                 options={airlines.map(a => ({ value: a.name, label: a.name }))}
                                 value={formData.departure_airline}
                                 onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                placeholder="Select Airline"
+                                placeholder="🔍 Select Airline"
                                 className="!py-1"
                               />
                             </div>
@@ -2923,7 +2939,7 @@ const HolidayPackageAdd = () => {
                                       </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 mb-2">
-                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.arrival_airline} onChange={(val) => updateLg({ arrival_airline: val })} placeholder="Select" className="!py-1 !text-[10px]" /></div>
+                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.arrival_airline} onChange={(val) => updateLg({ arrival_airline: val })} placeholder="🔍 Select" className="!py-1 !text-[10px]" /></div>
                                       <div><FormLabel label="Flight No." optional /><Input value={lg.arrival_flight_no} onChange={(e) => updateLg({ arrival_flight_no: e.target.value })} placeholder="No." className="!py-1 !text-[10px]" /></div>
                                     </div>
                                     <div><FormLabel label="Airport" optional /><Input value={lg.arrival_airport} onChange={(e) => updateLg({ arrival_airport: e.target.value })} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
@@ -2952,7 +2968,7 @@ const HolidayPackageAdd = () => {
                                       </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 mb-2">
-                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.departure_airline} onChange={(val) => updateLg({ departure_airline: val })} placeholder="Select" className="!py-1 !text-[10px]" /></div>
+                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.departure_airline} onChange={(val) => updateLg({ departure_airline: val })} placeholder="🔍 Select" className="!py-1 !text-[10px]" /></div>
                                       <div><FormLabel label="Flight No." optional /><Input value={lg.departure_flight_no} onChange={(e) => updateLg({ departure_flight_no: e.target.value })} placeholder="No." className="!py-1 !text-[10px]" /></div>
                                     </div>
                                     <div><FormLabel label="Airport" optional /><Input value={lg.departure_airport} onChange={(e) => updateLg({ departure_airport: e.target.value })} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
@@ -3071,7 +3087,7 @@ const HolidayPackageAdd = () => {
                       options={destinations.map(d => ({ value: d.name, label: d.name }))}
                       value={newHotelForm.city}
                       onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
-                      placeholder="Select City"
+                      placeholder="🔍 Select City"
                     />
                   </div>
                   <div>

@@ -481,6 +481,7 @@ class HotelMaster(models.Model):
         return self.name
 
 class Accommodation(models.Model):
+    destination = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name="accommodation_templates", null=True, blank=True)
     name = models.CharField(max_length=255)
     star_category = models.CharField(max_length=20, default="3 Star")
     address = models.TextField(blank=True, null=True)

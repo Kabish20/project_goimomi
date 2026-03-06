@@ -560,7 +560,15 @@ const HolidayPackageEdit = () => {
         }
 
         try {
+            // Find the destination object to get its ID
+            const destObj = destinations.find(d => d.name === newHotelForm.city);
+            if (!destObj) {
+                alert("Please select a valid city from the list.");
+                return;
+            }
+
             const formDataToSend = new FormData();
+            formDataToSend.append("destination", destObj.id);
             formDataToSend.append("name", newHotelForm.name);
             formDataToSend.append("stars", newHotelForm.stars);
             formDataToSend.append("address", newHotelForm.address);
@@ -572,10 +580,15 @@ const HolidayPackageEdit = () => {
             formDataToSend.append("longitude", newHotelForm.longitude);
 
             if (newHotelForm.images && newHotelForm.images.length > 0) {
-                formDataToSend.append("image", newHotelForm.images[0]);
+                formDataToSend.append("image", newHotelForm.images[0]); // Using first image for now based on model
+                newHotelForm.images.forEach(img => {
+                    formDataToSend.append('accommodation_images', img);
+                });
             }
 
-            const response = await axios.post(`${API_BASE_URL}/accommodations/`, formDataToSend);
+            const response = await axios.post(`${API_BASE_URL}/accommodations/`, formDataToSend, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             setHotelMasters(prev => [...prev, response.data]);
             setShowHotelModal(false);
             setNewHotelForm({
@@ -583,8 +596,11 @@ const HolidayPackageEdit = () => {
             });
             alert("Hotel added to masters successfully!");
         } catch (err) {
-            console.error("Error saving hotel master:", err);
-            alert("Failed to save hotel. Please check your inputs.");
+            console.error("Error saving hotel master:", err.response?.data || err);
+            const errorMsg = err.response?.data
+                ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
+                : err.message;
+            alert(`Failed to save hotel.\n${errorMsg}`);
         }
     };
 
@@ -801,7 +817,7 @@ const HolidayPackageEdit = () => {
             if (newHotelForm.images && newHotelForm.images.length > 0) {
                 fd.append('image', newHotelForm.images[0]);
                 newHotelForm.images.forEach(img => {
-                    fd.append('gallery_images', img);
+                    fd.append('accommodation_images', img);
                 });
             }
 
@@ -2911,7 +2927,7 @@ const HolidayPackageEdit = () => {
                                                                                     options={vehicleBrands.map(b => ({ value: b.name, label: b.name }))}
                                                                                     value={vd.vehicleBrand || ''}
                                                                                     onChange={val => updateVD({ vehicleBrand: val })}
-                                                                                    placeholder="Select Brand"
+                                                                                    placeholder="🔍 Select Brand"
                                                                                     className="w-full"
                                                                                 />
                                                                             </div>
@@ -3039,7 +3055,7 @@ const HolidayPackageEdit = () => {
                                                                     ]}
                                                                     value={formData.arrival_city}
                                                                     onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
-                                                                    placeholder="Select City"
+                                                                    placeholder="🔍 Select City"
                                                                     className="!py-1"
                                                                     error={errors.arrival_city}
                                                                 />
@@ -3066,7 +3082,7 @@ const HolidayPackageEdit = () => {
                                                                     options={airlines.map(a => ({ value: a.name, label: a.name }))}
                                                                     value={formData.arrival_airline}
                                                                     onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                                                    placeholder="Select Airline"
+                                                                    placeholder="🔍 Select Airline"
                                                                     className="!py-1"
                                                                 />
                                                             </div>
@@ -3116,7 +3132,7 @@ const HolidayPackageEdit = () => {
                                                                     ]}
                                                                     value={formData.departure_city}
                                                                     onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                                                    placeholder="Select City"
+                                                                    placeholder="🔍 Select City"
                                                                     className="!py-1"
                                                                     error={errors.departure_city}
                                                                 />
@@ -3139,7 +3155,7 @@ const HolidayPackageEdit = () => {
                                                                     options={airlines.map(a => ({ value: a.name, label: a.name }))}
                                                                     value={formData.departure_airline}
                                                                     onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                                                    placeholder="Select Airline"
+                                                                    placeholder="🔍 Select Airline"
                                                                     className="!py-1"
                                                                 />
                                                             </div>
@@ -3284,7 +3300,7 @@ const HolidayPackageEdit = () => {
                                                 options={destinations.map(d => ({ value: d.name, label: d.name }))}
                                                 value={newHotelForm.city}
                                                 onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
-                                                placeholder="Select City"
+                                                placeholder="🔍 Select City"
                                             />
                                         </div>
                                         <div>
