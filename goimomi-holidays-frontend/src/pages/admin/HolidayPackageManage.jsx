@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, Package, Image as ImageIcon } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -23,7 +23,7 @@ const HolidayPackageManage = () => {
   const fetchPackages = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/packages/?all=true`);
+      const response = await api.get(`${API_BASE_URL}/packages/?all=true`);
       setPackages(response.data);
       setFilteredPackages(response.data);
       setError("");
@@ -52,7 +52,7 @@ const HolidayPackageManage = () => {
     if (window.confirm("Are you sure you want to delete this package?")) {
       try {
         setLoading(true);
-        await axios.delete(`${API_BASE_URL}/packages/${id}/`);
+        await api.delete(`${API_BASE_URL}/packages/${id}/`);
         setMessage("Package deleted successfully!");
         fetchPackages();
       } catch (err) {
@@ -68,7 +68,7 @@ const HolidayPackageManage = () => {
     try {
       setLoading(true);
       // Use PATCH to only update is_active without needing full package data
-      await axios.patch(`${API_BASE_URL}/packages/${pkg.id}/`, { is_active: !pkg.is_active });
+      await api.patch(`${API_BASE_URL}/packages/${pkg.id}/`, { is_active: !pkg.is_active });
       setMessage(`Package ${!pkg.is_active ? "activated" : "deactivated"} successfully!`);
       fetchPackages();
     } catch (err) {

@@ -10,6 +10,7 @@ import {
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import AdminCard from "../../components/admin/AdminCard";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
@@ -48,33 +49,19 @@ const AdminDashboard = () => {
       setLoading(true);
       console.log("Fetching dashboard data from Django API...");
 
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        // If no token, you might want to redirect or handle it, 
-        // though ProtectedRoute usually handles this.
-        // navigate("/admin-login");
-        // return;
-      }
-
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      };
-
       // Fetch all data in parallel with error handling for each endpoint
       const fetchPromises = [
-        axios.get(`${API_BASE_URL}/destinations/`, config).catch(err => ({ error: err, endpoint: 'destinations' })),
-        axios.get(`${API_BASE_URL}/packages/`, config).catch(err => ({ error: err, endpoint: 'packages' })),
-        axios.get(`${API_BASE_URL}/enquiry-form/`, config).catch(err => ({ error: err, endpoint: 'enquiries' })),
-        axios.get(`${API_BASE_URL}/holiday-form/`, config).catch(err => ({ error: err, endpoint: 'holiday-enquiries' })),
-        axios.get(`${API_BASE_URL}/umrah-form/`, config).catch(err => ({ error: err, endpoint: 'umrah-enquiries' })),
-        axios.get(`${API_BASE_URL}/starting-cities/`, config).catch(err => ({ error: err, endpoint: 'starting-cities' })),
-        axios.get(`${API_BASE_URL}/itinerary-masters/`, config).catch(err => ({ error: err, endpoint: 'itinerary-masters' })),
-        axios.get(`${API_BASE_URL}/nationalities/`, config).catch(err => ({ error: err, endpoint: 'nationalities' })),
-        axios.get(`${API_BASE_URL}/umrah-destinations/`, config).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
-        axios.get(`${API_BASE_URL}/visas/`, config).catch(err => ({ error: err, endpoint: 'visas' })),
-        axios.get(`${API_BASE_URL}/visa-applications/`, config).catch(err => ({ error: err, endpoint: 'visa-applications' })),
+        api.get(`${API_BASE_URL}/destinations/`).catch(err => ({ error: err, endpoint: 'destinations' })),
+        api.get(`${API_BASE_URL}/packages/`).catch(err => ({ error: err, endpoint: 'packages' })),
+        api.get(`${API_BASE_URL}/enquiry-form/`).catch(err => ({ error: err, endpoint: 'enquiries' })),
+        api.get(`${API_BASE_URL}/holiday-form/`).catch(err => ({ error: err, endpoint: 'holiday-enquiries' })),
+        api.get(`${API_BASE_URL}/umrah-form/`).catch(err => ({ error: err, endpoint: 'umrah-enquiries' })),
+        api.get(`${API_BASE_URL}/starting-cities/`).catch(err => ({ error: err, endpoint: 'starting-cities' })),
+        api.get(`${API_BASE_URL}/itinerary-masters/`).catch(err => ({ error: err, endpoint: 'itinerary-masters' })),
+        api.get(`${API_BASE_URL}/nationalities/`).catch(err => ({ error: err, endpoint: 'nationalities' })),
+        api.get(`${API_BASE_URL}/umrah-destinations/`).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
+        api.get(`${API_BASE_URL}/visas/`).catch(err => ({ error: err, endpoint: 'visas' })),
+        api.get(`${API_BASE_URL}/visa-applications/`).catch(err => ({ error: err, endpoint: 'visa-applications' })),
       ];
 
       const responses = await Promise.all(fetchPromises);

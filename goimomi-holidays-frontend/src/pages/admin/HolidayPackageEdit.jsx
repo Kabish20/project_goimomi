@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo, useRef } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -316,20 +316,20 @@ const HolidayPackageEdit = () => {
                 setLoading(true);
                 // Fetch dependencies in parallel
                 const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pickupPointsRes, pkgRes] = await Promise.all([
-                    axios.get(`${API_BASE_URL}/starting-cities/`),
-                    axios.get(`${API_BASE_URL}/destinations/`),
-                    axios.get(`${API_BASE_URL}/suppliers/`),
-                    axios.get(`${API_BASE_URL}/itinerary-masters/`),
-                    axios.get(`${API_BASE_URL}/accommodations/`),
-                    axios.get(`${API_BASE_URL}/sightseeing-masters/`),
-                    axios.get(`${API_BASE_URL}/meal-masters/`),
-                    axios.get(`${API_BASE_URL}/airlines/`),
-                    axios.get(`${API_BASE_URL}/vehicle-brands/`),
-                    axios.get(`${API_BASE_URL}/vehicle-masters/`),
-                    axios.get(`${API_BASE_URL}/driver-masters/`),
-                    axios.get(`${API_BASE_URL}/room-types/`),
-                    axios.get(`${API_BASE_URL}/pickup-point-masters/`),
-                    axios.get(`${API_BASE_URL}/packages/${id}/?all=true`),
+                    api.get(`${API_BASE_URL}/starting-cities/`),
+                    api.get(`${API_BASE_URL}/destinations/`),
+                    api.get(`${API_BASE_URL}/suppliers/`),
+                    api.get(`${API_BASE_URL}/itinerary-masters/`),
+                    api.get(`${API_BASE_URL}/accommodations/`),
+                    api.get(`${API_BASE_URL}/sightseeing-masters/`),
+                    api.get(`${API_BASE_URL}/meal-masters/`),
+                    api.get(`${API_BASE_URL}/airlines/`),
+                    api.get(`${API_BASE_URL}/vehicle-brands/`),
+                    api.get(`${API_BASE_URL}/vehicle-masters/`),
+                    api.get(`${API_BASE_URL}/driver-masters/`),
+                    api.get(`${API_BASE_URL}/room-types/`),
+                    api.get(`${API_BASE_URL}/pickup-point-masters/`),
+                    api.get(`${API_BASE_URL}/packages/${id}/?all=true`),
                 ]);
 
                 if (Array.isArray(citiesRes.data)) setStartingCities(citiesRes.data);
@@ -586,7 +586,7 @@ const HolidayPackageEdit = () => {
                 });
             }
 
-            const response = await axios.post(`${API_BASE_URL}/accommodations/`, formDataToSend, {
+            const response = await api.post(`${API_BASE_URL}/accommodations/`, formDataToSend, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setHotelMasters(prev => [...prev, response.data]);

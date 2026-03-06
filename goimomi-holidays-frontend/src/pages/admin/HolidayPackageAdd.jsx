@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../api";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -307,7 +307,7 @@ const HolidayPackageAdd = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/suppliers/`);
+      const response = await api.get(`${API_BASE_URL}/suppliers/`);
       if (Array.isArray(response.data)) {
         const filteredSuppliers = response.data.filter(supplier =>
           supplier.services && supplier.services.some(service => service.toLowerCase() === 'holidays')
@@ -321,7 +321,7 @@ const HolidayPackageAdd = () => {
 
   const fetchStartingCities = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/starting-cities/`);
+      const response = await api.get(`${API_BASE_URL}/starting-cities/`);
       if (Array.isArray(response.data)) {
         setStartingCities(response.data);
       }
@@ -332,7 +332,7 @@ const HolidayPackageAdd = () => {
 
   const fetchRoomTypes = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/room-types/`);
+      const response = await api.get(`${API_BASE_URL}/room-types/`);
       if (Array.isArray(response.data)) {
         setRoomTypes(response.data);
       }
@@ -343,7 +343,7 @@ const HolidayPackageAdd = () => {
 
   const fetchPickupPoints = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/pickup-point-masters/`);
+      const response = await api.get(`${API_BASE_URL}/pickup-point-masters/`);
       if (Array.isArray(response.data)) {
         setPickupPoints(response.data);
       }
@@ -354,7 +354,7 @@ const HolidayPackageAdd = () => {
 
   const fetchDestinations = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/destinations/`);
+      const response = await api.get(`${API_BASE_URL}/destinations/`);
       if (Array.isArray(response.data)) {
         setDestinations(response.data);
       }
@@ -365,7 +365,7 @@ const HolidayPackageAdd = () => {
 
   const fetchHotelMasters = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/accommodations/`);
+      const response = await api.get(`${API_BASE_URL}/accommodations/`);
       if (Array.isArray(response.data)) {
         setHotelMasters(response.data);
       }
@@ -376,7 +376,7 @@ const HolidayPackageAdd = () => {
 
   const fetchItineraryMasters = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/itinerary-masters/`);
+      const response = await api.get(`${API_BASE_URL}/itinerary-masters/`);
       if (Array.isArray(response.data)) {
         setItineraryMasters(response.data);
       }
@@ -387,7 +387,7 @@ const HolidayPackageAdd = () => {
 
   const fetchSightseeingMasters = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/sightseeing-masters/`);
+      const response = await api.get(`${API_BASE_URL}/sightseeing-masters/`);
       if (Array.isArray(response.data)) {
         setSightseeingMasters(response.data);
       }
@@ -398,7 +398,7 @@ const HolidayPackageAdd = () => {
 
   const fetchAirlines = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/airlines/`);
+      const response = await api.get(`${API_BASE_URL}/airlines/`);
       if (Array.isArray(response.data)) {
         setAirlines(response.data);
       }
@@ -409,7 +409,7 @@ const HolidayPackageAdd = () => {
 
   const fetchMealMasters = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/meal-masters/`);
+      const response = await api.get(`${API_BASE_URL}/meal-masters/`);
       if (Array.isArray(response.data)) {
         setMealMasters(response.data);
       }
@@ -420,7 +420,7 @@ const HolidayPackageAdd = () => {
 
   const fetchVehicleMasters = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/vehicle-masters/`);
+      const response = await api.get(`${API_BASE_URL}/vehicle-masters/`);
       if (Array.isArray(response.data)) {
         setVehicleMasters(response.data);
       }
@@ -431,7 +431,7 @@ const HolidayPackageAdd = () => {
 
   const fetchDriverMasters = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/driver-masters/`);
+      const response = await api.get(`${API_BASE_URL}/driver-masters/`);
       if (Array.isArray(response.data)) {
         setDriverMasters(response.data);
       }
@@ -442,7 +442,7 @@ const HolidayPackageAdd = () => {
 
   const fetchVehicleBrands = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/vehicle-brands/`);
+      const response = await api.get(`${API_BASE_URL}/vehicle-brands/`);
       if (Array.isArray(response.data)) {
         setVehicleBrands(response.data);
       }
@@ -484,7 +484,7 @@ const HolidayPackageAdd = () => {
         });
       }
 
-      const response = await axios.post(`${API_BASE_URL}/accommodations/`, formDataToSend, {
+      const response = await api.post(`${API_BASE_URL}/accommodations/`, formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setHotelMasters(prev => [...prev, response.data]);
