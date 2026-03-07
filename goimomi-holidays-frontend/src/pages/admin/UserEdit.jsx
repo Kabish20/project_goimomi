@@ -65,6 +65,11 @@ const UserEdit = () => {
             alert("User updated successfully!");
             if (redirectType === 'save') {
                 navigate("/admin/users");
+            } else if (redirectType === 'save_add_another') {
+                navigate("/admin/users/add");
+            } else if (redirectType === 'save_continue') {
+                // Keep the current view but refresh the user data
+                fetchUser();
             }
         } catch (err) {
             console.error(err);
@@ -276,10 +281,16 @@ const UserEdit = () => {
                                 >
                                     Save
                                 </button>
-                                <button className="flex-1 md:flex-none bg-[#457b9d] hover:bg-[#345d7a] text-white px-4 py-2.5 rounded text-xs font-bold uppercase tracking-widest shadow-sm transition-all">
+                                <button
+                                    onClick={() => handleSave('save_add_another')}
+                                    className="flex-1 md:flex-none bg-[#457b9d] hover:bg-[#345d7a] text-white px-4 py-2.5 rounded text-xs font-bold uppercase tracking-widest shadow-sm transition-all"
+                                >
                                     Save and add another
                                 </button>
-                                <button className="flex-1 md:flex-none bg-[#457b9d] hover:bg-[#345d7a] text-white px-4 py-2.5 rounded text-xs font-bold uppercase tracking-widest shadow-sm transition-all">
+                                <button
+                                    onClick={() => handleSave('save_continue')}
+                                    className="flex-1 md:flex-none bg-[#457b9d] hover:bg-[#345d7a] text-white px-4 py-2.5 rounded text-xs font-bold uppercase tracking-widest shadow-sm transition-all"
+                                >
                                     Save and continue editing
                                 </button>
                             </div>
