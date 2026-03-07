@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Trash2, Edit2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -19,8 +19,8 @@ const UmrahDestinationManage = () => {
 
     const fetchDestinations = async () => {
         try {
-            const response = await axios.get("/api/umrah-destinations/");
-            setDestinations(response.data);
+            const response = await api.get("/api/umrah-destinations/");
+            setDestinations(Array.isArray(response.data) ? response.data : (response.data?.results || []));
             setLoading(false);
         } catch (error) {
             console.error("Error fetching Umrah destinations:", error);
@@ -32,7 +32,7 @@ const UmrahDestinationManage = () => {
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this Umrah destination?")) {
             try {
-                await axios.delete(`/api/umrah-destinations/${id}/`);
+                await api.delete(`/api/umrah-destinations/${id}/`);
                 setDestinations(destinations.filter((d) => d.id !== id));
                 setStatusMessage({ text: "Umrah destination deleted successfully", type: "success" });
             } catch (error) {

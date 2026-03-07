@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { CheckCircle, XCircle, Plus, Search, Edit, Trash2 } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 
 const UsersList = () => {
@@ -19,8 +19,8 @@ const UsersList = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/users/`);
-            setUsers(response.data);
+            const response = await api.get(`${API_BASE_URL}/users/`);
+            setUsers(Array.isArray(response.data) ? response.data : (response.data?.results || []));
         } catch (err) {
             console.error("Error fetching users:", err);
         }
@@ -35,7 +35,7 @@ const UsersList = () => {
         if (window.confirm(`Are you sure you want to delete ${selectedUsers.length} user(s)?`)) {
             try {
                 await Promise.all(
-                    selectedUsers.map(id => axios.delete(`${API_BASE_URL}/users/${id}/`))
+                    selectedUsers.map(id => api.delete(`${API_BASE_URL}/users/${id}/`))
                 );
                 setSelectedUsers([]);
                 fetchUsers();
@@ -50,7 +50,7 @@ const UsersList = () => {
     const handleSingleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this user?")) {
             try {
-                await axios.delete(`${API_BASE_URL}/users/${id}/`);
+                await api.delete(`${API_BASE_URL}/users/${id}/`);
                 fetchUsers();
                 alert("User deleted successfully.");
             } catch (err) {

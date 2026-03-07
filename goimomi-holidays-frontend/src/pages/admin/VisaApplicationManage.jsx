@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Eye, Download, X, Calendar, User, Edit, Trash2, Upload, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -53,11 +53,12 @@ const VisaApplicationManage = () => {
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/visa-applications/`);
-      setApplications(response.data);
-      setFilteredApplications(response.data);
+      const response = await api.get(`${API_BASE_URL}/visa-applications/`);
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setApplications(data);
+      setFilteredApplications(data);
       setError("");
-      return response.data;
+      return data;
     } catch (err) {
       console.error("Error fetching visa applications:", err);
       setError(`Failed to load applications: ${err.message}`);
@@ -100,7 +101,7 @@ const VisaApplicationManage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this application? This action cannot be undone.")) {
       try {
-        await axios.delete(`${API_BASE_URL}/visa-applications/${id}/`);
+        await api.delete(`${API_BASE_URL}/visa-applications/${id}/`);
         setApplications(applications.filter(app => app.id !== id));
       } catch (err) {
         console.error("Error deleting application:", err);
@@ -115,7 +116,7 @@ const VisaApplicationManage = () => {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('passport_front', file);
-      await axios.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, formData, {
+      await api.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const data = await fetchApplications();
@@ -136,7 +137,7 @@ const VisaApplicationManage = () => {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('photo', file);
-      await axios.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, formData, {
+      await api.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const data = await fetchApplications();
@@ -159,7 +160,7 @@ const VisaApplicationManage = () => {
       formData.append('file', file);
       formData.append('document_name', documentName || file.name);
       formData.append('applicant', applicantId);
-      await axios.post(`${API_BASE_URL}/additional-documents/`, formData, {
+      await api.post(`${API_BASE_URL}/additional-documents/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const data = await fetchApplications();
@@ -179,7 +180,7 @@ const VisaApplicationManage = () => {
     if (!window.confirm('Are you sure you want to delete this passport?')) return;
     try {
       setIsUploading(true);
-      await axios.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, { passport_front: '' });
+      await api.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, { passport_front: '' });
       const data = await fetchApplications();
       if (data) {
         const updatedApp = data.find(a => a.id === selectedApplication.id);
@@ -197,7 +198,7 @@ const VisaApplicationManage = () => {
     if (!window.confirm('Are you sure you want to delete this photo?')) return;
     try {
       setIsUploading(true);
-      await axios.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, { photo: '' });
+      await api.patch(`${API_BASE_URL}/visa-applicants/${applicantId}/`, { photo: '' });
       const data = await fetchApplications();
       if (data) {
         const updatedApp = data.find(a => a.id === selectedApplication.id);
@@ -215,7 +216,7 @@ const VisaApplicationManage = () => {
     if (!window.confirm('Are you sure you want to delete this document?')) return;
     try {
       setIsUploading(true);
-      await axios.delete(`${API_BASE_URL}/additional-documents/${docId}/`);
+      await api.delete(`${API_BASE_URL}/additional-documents/${docId}/`);
       const data = await fetchApplications();
       if (data) {
         const updatedApp = data.find(a => a.id === selectedApplication.id);
@@ -257,7 +258,7 @@ const VisaApplicationManage = () => {
         }
       });
 
-      await axios.patch(`${API_BASE_URL}/visa-applicants/${editingApplicantId}/`, dataToSend);
+      await api.patch(`${API_BASE_URL}/visa-applicants/${editingApplicantId}/`, dataToSend);
 
       const data = await fetchApplications();
       if (data) {

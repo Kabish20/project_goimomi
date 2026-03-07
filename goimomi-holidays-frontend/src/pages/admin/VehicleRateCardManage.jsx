@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, Map, Calendar, Globe } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -23,9 +23,10 @@ const VehicleRateCardManage = () => {
     const fetchRateCards = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/vehicle-rate-cards/`);
-            setRateCards(response.data);
-            setFilteredCards(response.data);
+            const response = await api.get(`${API_BASE_URL}/vehicle-rate-cards/`);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            setRateCards(data);
+            setFilteredCards(data);
             setError("");
         } catch (err) {
             console.error("Error fetching rate cards:", err);
@@ -52,7 +53,7 @@ const VehicleRateCardManage = () => {
         if (window.confirm("Are you sure you want to delete this rate card?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/vehicle-rate-cards/${id}/`);
+                await api.delete(`${API_BASE_URL}/vehicle-rate-cards/${id}/`);
                 setMessage("Rate card deleted successfully!");
                 fetchRateCards();
             } catch (err) {

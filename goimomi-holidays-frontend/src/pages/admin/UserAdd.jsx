@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 
 const UserAdd = () => {
@@ -37,7 +37,7 @@ const UserAdd = () => {
         }
 
         try {
-            await axios.post(`${API_BASE_URL}/users/`, {
+            await api.post(`${API_BASE_URL}/users/`, {
                 username: form.username,
                 password: form.password
             });

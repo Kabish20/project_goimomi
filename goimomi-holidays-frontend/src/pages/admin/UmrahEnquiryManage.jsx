@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Eye, Trash2, Mail, Phone, Calendar, MapPin } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -23,9 +23,10 @@ const UmrahEnquiryManage = () => {
   const fetchEnquiries = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/umrah-form/`);
-      setEnquiries(response.data);
-      setFilteredEnquiries(response.data);
+      const response = await api.get(`${API_BASE_URL}/umrah-form/`);
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setEnquiries(data);
+      setFilteredEnquiries(data);
       setError("");
     } catch (err) {
       console.error("Error fetching umrah enquiries:", err);
@@ -49,7 +50,7 @@ const UmrahEnquiryManage = () => {
     if (window.confirm("Are you sure you want to delete this umrah enquiry?")) {
       try {
         setLoading(true);
-        await axios.delete(`${API_BASE_URL}/umrah-form/${id}/`);
+        await api.delete(`${API_BASE_URL}/umrah-form/${id}/`);
         fetchEnquiries();
       } catch (err) {
         console.error("Error deleting umrah enquiry:", err);

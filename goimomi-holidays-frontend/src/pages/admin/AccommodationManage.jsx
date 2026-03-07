@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, MapPin, Star, Phone, Mail, Globe, Image as ImageIcon, X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -23,9 +23,10 @@ const AccommodationManage = () => {
     const fetchAccommodations = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/accommodations/`);
-            setAccommodations(response.data);
-            setFilteredAccommodations(response.data);
+            const response = await api.get(`${API_BASE_URL}/accommodations/`);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            setAccommodations(data);
+            setFilteredAccommodations(data);
             setError("");
         } catch (err) {
             console.error("Error fetching accommodations:", err);
@@ -55,7 +56,7 @@ const AccommodationManage = () => {
         if (window.confirm("Are you sure you want to delete this accommodation?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/accommodations/${id}/`);
+                await api.delete(`${API_BASE_URL}/accommodations/${id}/`);
                 setMessage("Accommodation deleted successfully!");
                 fetchAccommodations();
             } catch (err) {

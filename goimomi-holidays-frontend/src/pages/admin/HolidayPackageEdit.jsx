@@ -821,7 +821,7 @@ const HolidayPackageEdit = () => {
                 });
             }
 
-            const res = await axios.post(`/api/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+            const res = await api.post(`/api/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
             const savedHotel = res.data;
             setHotelMasters(prev => [...prev, savedHotel]);
 
@@ -1073,7 +1073,7 @@ const HolidayPackageEdit = () => {
             formDataToSend.append("vehicles_raw", JSON.stringify(vehicles.filter(v => v && v.trim() !== "")));
 
             // Use PUT to update
-            const response = await axios.put(`${API_BASE_URL}/packages/${id}/`, formDataToSend, {
+            const response = await api.put(`${API_BASE_URL}/packages/${id}/`, formDataToSend, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -1113,7 +1113,7 @@ const HolidayPackageEdit = () => {
 
                                 // User wants "another" in the path (a new master entry)
                                 // We always POST to create a fresh master from current edits
-                                const masterRes = await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
+                                const masterRes = await api.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
                                     headers: { "Content-Type": "multipart/form-data" }
                                 });
 
@@ -2461,7 +2461,7 @@ const HolidayPackageEdit = () => {
                                                                                                         fd.append('gallery_images', img);
                                                                                                     });
                                                                                                 }
-                                                                                                const res = await axios.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                                                                const res = await api.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
                                                                                                 setSightseeingMasters(prev => [...prev, res.data]);
                                                                                                 const copy = [...itineraryDays];
                                                                                                 copy[i].details_json.sightseeing = [res.data.name];

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, User, Phone, MessageSquare, CreditCard, FileText } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -23,9 +23,10 @@ const DriverMasterManage = () => {
     const fetchDrivers = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/driver-masters/`);
-            setDrivers(response.data);
-            setFilteredDrivers(response.data);
+            const response = await api.get(`${API_BASE_URL}/driver-masters/`);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            setDrivers(data);
+            setFilteredDrivers(data);
             setError("");
         } catch (err) {
             console.error("Error fetching drivers:", err);
@@ -53,7 +54,7 @@ const DriverMasterManage = () => {
         if (window.confirm("Are you sure you want to delete this driver?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/driver-masters/${id}/`);
+                await api.delete(`${API_BASE_URL}/driver-masters/${id}/`);
                 setMessage("Driver deleted successfully!");
                 fetchDrivers();
             } catch (err) {

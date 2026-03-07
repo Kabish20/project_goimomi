@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, Calendar } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -23,9 +23,10 @@ const CruiseCalendarManage = () => {
     const fetchCalendars = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/cruise-calendar/`);
-            setCalendars(response.data);
-            setFilteredCalendars(response.data);
+            const response = await api.get(`${API_BASE_URL}/cruise-calendar/`);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            setCalendars(data);
+            setFilteredCalendars(data);
             setError("");
         } catch (err) {
             console.error("Error fetching calendars:", err);
@@ -51,7 +52,7 @@ const CruiseCalendarManage = () => {
         if (window.confirm("Are you sure you want to delete this calendar entry?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/cruise-calendar/${id}/`);
+                await api.delete(`${API_BASE_URL}/cruise-calendar/${id}/`);
                 setMessage("Calendar entry deleted successfully!");
                 fetchCalendars();
             } catch (err) {

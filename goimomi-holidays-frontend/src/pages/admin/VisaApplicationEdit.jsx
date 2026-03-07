@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../../api";
 import { ArrowLeft, Save, Calendar, DollarSign, FileText, Eye, Download, User, Edit, Trash2, Upload, Plus, X as LucideX } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -42,7 +42,7 @@ const VisaApplicationEdit = () => {
   const fetchApplication = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/visa-applications/${id}/`);
+      const response = await api.get(`/api/visa-applications/${id}/`);
       const data = response.data;
       setFormData({
         status: data.status,
@@ -111,7 +111,7 @@ const VisaApplicationEdit = () => {
         }
       });
 
-      await axios.patch(`/api/visa-applicants/${editingApplicantId}/`, dataToSend);
+      await api.patch(`/api/visa-applicants/${editingApplicantId}/`, dataToSend);
 
       // Update local state
       setVisaDetails(prev => ({
@@ -137,7 +137,7 @@ const VisaApplicationEdit = () => {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('passport_front', file);
-      await axios.patch(`/api/visa-applicants/${applicantId}/`, formData, {
+      await api.patch(`/api/visa-applicants/${applicantId}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       await fetchApplication();
@@ -154,7 +154,7 @@ const VisaApplicationEdit = () => {
       setIsUploading(true);
       const formData = new FormData();
       formData.append('photo', file);
-      await axios.patch(`/api/visa-applicants/${applicantId}/`, formData, {
+      await api.patch(`/api/visa-applicants/${applicantId}/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       await fetchApplication();
@@ -173,7 +173,7 @@ const VisaApplicationEdit = () => {
       formData.append('file', file);
       formData.append('document_name', documentName || file.name);
       formData.append('applicant', applicantId);
-      await axios.post(`/api/additional-documents/`, formData, {
+      await api.post(`/api/additional-documents/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       await fetchApplication();
@@ -189,7 +189,7 @@ const VisaApplicationEdit = () => {
     if (!window.confirm('Are you sure you want to delete this passport?')) return;
     try {
       setIsUploading(true);
-      await axios.patch(`/api/visa-applicants/${applicantId}/`, { passport_front: '' });
+      await api.patch(`/api/visa-applicants/${applicantId}/`, { passport_front: '' });
       await fetchApplication();
       alert('Passport deleted successfully!');
     } catch (err) {
@@ -203,7 +203,7 @@ const VisaApplicationEdit = () => {
     if (!window.confirm('Are you sure you want to delete this photo?')) return;
     try {
       setIsUploading(true);
-      await axios.patch(`/api/visa-applicants/${applicantId}/`, { photo: '' });
+      await api.patch(`/api/visa-applicants/${applicantId}/`, { photo: '' });
       await fetchApplication();
       alert('Photo deleted successfully!');
     } catch (err) {
@@ -217,7 +217,7 @@ const VisaApplicationEdit = () => {
     if (!window.confirm('Are you sure you want to delete this document?')) return;
     try {
       setIsUploading(true);
-      await axios.delete(`/api/additional-documents/${docId}/`);
+      await api.delete(`/api/additional-documents/${docId}/`);
       await fetchApplication();
       alert('Document deleted successfully!');
     } catch (err) {
@@ -241,7 +241,7 @@ const VisaApplicationEdit = () => {
     setStatusMessage({ text: "", type: "" });
 
     try {
-      await axios.patch(`/api/visa-applications/${id}/`, formData);
+      await api.patch(`/api/visa-applications/${id}/`, formData);
       setStatusMessage({ text: "Application updated successfully!", type: "success" });
       setTimeout(() => {
         navigate("/admin/visa-applications");

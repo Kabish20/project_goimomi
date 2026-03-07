@@ -887,7 +887,7 @@ const HolidayPackageAdd = () => {
       formDataToSend.append("accommodations_raw", JSON.stringify(sanitizedAccommodations));
       formDataToSend.append("vehicles_raw", JSON.stringify(vehicles.filter(v => v.trim() !== "")));
 
-      const response = await axios.post(`${API_BASE_URL}/packages/`, formDataToSend, {
+      const response = await api.post(`${API_BASE_URL}/packages/`, formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -926,7 +926,7 @@ const HolidayPackageAdd = () => {
                 }
 
                 // Always create a NEW master entry as "Another" entry
-                await axios.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
+                await api.post(`${API_BASE_URL}/itinerary-masters/`, masterData, {
                   headers: { "Content-Type": "multipart/form-data" }
                 });
 
@@ -1868,7 +1868,7 @@ const HolidayPackageAdd = () => {
                                                 fd.append('gallery_images', img);
                                               });
                                             }
-                                            const res = await axios.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                            const res = await api.post('/api/sightseeing-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
                                             setSightseeingMasters(prev => [...prev, res.data]);
                                             const copy = [...itineraryDays];
                                             copy[i].details_json.sightseeing = [res.data.name];
@@ -2198,7 +2198,7 @@ const HolidayPackageAdd = () => {
                                                 fd.append('image', newHotelForm.images[0]);
                                                 newHotelForm.images.forEach(img => fd.append('accommodation_images', img));
                                               }
-                                              const res = await axios.post(`${API_BASE_URL}/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                              const res = await api.post(`${API_BASE_URL}/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
                                               setHotelMasters(prev => [...prev, res.data]);
                                               const copy = [...itineraryDays];
                                               const dest = getDestinationForDay(i);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, Car, Users, Briefcase, Settings } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -15,7 +15,6 @@ const VehicleMasterManage = () => {
     const [brands, setBrands] = useState([]);
 
     const navigate = useNavigate();
-    const API_BASE_URL = "/api";
 
     useEffect(() => {
         fetchVehicles();
@@ -24,8 +23,8 @@ const VehicleMasterManage = () => {
 
     const fetchBrands = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/vehicle-brands/`);
-            setBrands(response.data);
+            const response = await api.get("/api/vehicle-brands/");
+            setBrands(Array.isArray(response.data) ? response.data : (response.data?.results || []));
         } catch (err) {
             console.error("Error fetching brands:", err);
         }
@@ -34,9 +33,10 @@ const VehicleMasterManage = () => {
     const fetchVehicles = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/vehicle-masters/`);
-            setVehicles(response.data);
-            setFilteredVehicles(response.data);
+            const response = await api.get("/api/vehicle-masters/");
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            setVehicles(data);
+            setFilteredVehicles(data);
             setError("");
         } catch (err) {
             console.error("Error fetching vehicles:", err);
@@ -64,7 +64,7 @@ const VehicleMasterManage = () => {
         if (window.confirm("Are you sure you want to delete this vehicle?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/vehicle-masters/${id}/`);
+                await api.delete(`/api/vehicle-masters/${id}/`);
                 setMessage("Vehicle deleted successfully!");
                 fetchVehicles();
             } catch (err) {

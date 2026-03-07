@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Trash2, Edit2, Plus, Globe, Flag, Map } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -18,8 +18,8 @@ const NationalityManage = () => {
 
     const fetchNationalities = async () => {
         try {
-            const response = await axios.get("/api/nationalities/");
-            setNationalities(response.data);
+            const response = await api.get("/api/nationalities/");
+            setNationalities(Array.isArray(response.data) ? response.data : (response.data?.results || []));
             setLoading(false);
         } catch (error) {
             console.error("Error fetching nationalities:", error);
@@ -31,7 +31,7 @@ const NationalityManage = () => {
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this nationality?")) {
             try {
-                await axios.delete(`/api/nationalities/${id}/`);
+                await api.delete(`/api/nationalities/${id}/`);
                 setNationalities(nationalities.filter((n) => n.id !== id));
                 setStatusMessage({ text: "Nationality deleted successfully", type: "success" });
             } catch (error) {

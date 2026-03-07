@@ -38,7 +38,7 @@ const SupplierAdd = () => {
     const fetchCountries = async () => {
         try {
             setFetchingCountries(true);
-            const response = await axios.get(`${API_BASE_URL}/countries/`);
+            const response = await api.get(`${API_BASE_URL}/countries/`);
             // Map countries for SearchableSelect
             const countryOptions = response.data.map(c => ({
                 label: c.name,
@@ -111,7 +111,7 @@ const SupplierAdd = () => {
         delete submitData.country_code;
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/suppliers/`, submitData);
+            const response = await api.post(`${API_BASE_URL}/suppliers/`, submitData);
 
             if (response.status === 201) {
                 setMessage("Supplier added successfully!");

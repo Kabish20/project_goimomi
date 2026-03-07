@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus, ArrowRight, Loader } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -85,8 +85,8 @@ const VehicleMasterEdit = () => {
 
     const fetchVehicleMasters = async () => {
         try {
-            const res = await axios.get("/api/vehicle-masters/");
-            setVehicleMasters(res.data || []);
+            const res = await api.get("/api/vehicle-masters/");
+            setVehicleMasters(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching vehicles:", err);
         }
@@ -94,8 +94,8 @@ const VehicleMasterEdit = () => {
 
     const fetchCountries = async () => {
         try {
-            const res = await axios.get("/api/countries/");
-            setCountries(res.data || []);
+            const res = await api.get("/api/countries/");
+            setCountries(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching countries:", err);
         }
@@ -103,9 +103,9 @@ const VehicleMasterEdit = () => {
 
     const fetchSuppliers = async () => {
         try {
-            const res = await axios.get("/api/suppliers/");
-            const allSuppliers = res.data || [];
-            setSuppliers(allSuppliers.filter(s => Array.isArray(s.services) && s.services.includes("Cab")));
+            const res = await api.get("/api/suppliers/");
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setSuppliers(data.filter(s => Array.isArray(s.services) && s.services.includes("Cab")));
         } catch (err) {
             console.error("Error fetching suppliers:", err);
         }
@@ -113,8 +113,8 @@ const VehicleMasterEdit = () => {
 
     const fetchDrivers = async () => {
         try {
-            const res = await axios.get("/api/driver-masters/");
-            setDrivers(res.data || []);
+            const res = await api.get("/api/driver-masters/");
+            setDrivers(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching drivers:", err);
         }
@@ -122,8 +122,8 @@ const VehicleMasterEdit = () => {
 
     const fetchBrands = async () => {
         try {
-            const res = await axios.get("/api/vehicle-brands/");
-            setBrands(res.data || []);
+            const res = await api.get("/api/vehicle-brands/");
+            setBrands(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching brands:", err);
         }
@@ -131,8 +131,8 @@ const VehicleMasterEdit = () => {
 
     const fetchPickupPoints = async () => {
         try {
-            const res = await axios.get("/api/pickup-point-masters/");
-            setPickupPoints(res.data || []);
+            const res = await api.get("/api/pickup-point-masters/");
+            setPickupPoints(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching pickup points:", err);
         }
@@ -140,8 +140,8 @@ const VehicleMasterEdit = () => {
 
     const fetchStartingCities = async () => {
         try {
-            const res = await axios.get("/api/starting-cities/");
-            setStartingCities(res.data || []);
+            const res = await api.get("/api/starting-cities/");
+            setStartingCities(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching starting cities:", err);
         }
@@ -149,8 +149,8 @@ const VehicleMasterEdit = () => {
 
     const fetchDestinations = async () => {
         try {
-            const res = await axios.get("/api/destinations/");
-            setDestinations(res.data || []);
+            const res = await api.get("/api/destinations/");
+            setDestinations(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching destinations:", err);
         }
@@ -158,7 +158,7 @@ const VehicleMasterEdit = () => {
 
     const fetchVehicleAndRateCard = async () => {
         try {
-            const vRes = await axios.get(`/api/vehicle-masters/${id}/`);
+            const vRes = await api.get(`/api/vehicle-masters/${id}/`);
             const vData = vRes.data;
             setFormData({
                 name: vData.name || "",
@@ -172,9 +172,10 @@ const VehicleMasterEdit = () => {
             });
             if (vData.photo) setPreview(vData.photo);
 
-            const rRes = await axios.get(`/api/vehicle-rate-cards/?name=${encodeURIComponent(vData.name)}`);
-            if (rRes.data && rRes.data.length > 0) {
-                const rc = rRes.data[0];
+            const rRes = await api.get(`/api/vehicle-rate-cards/?name=${encodeURIComponent(vData.name)}`);
+            const rData = Array.isArray(rRes.data) ? rRes.data : (rRes.data?.results || []);
+            if (rData && rData.length > 0) {
+                const rc = rData[0];
                 const count = detectVehicleCount(rc.routes);
                 setVehicleCount(count);
                 setRateCard({
@@ -260,7 +261,7 @@ const VehicleMasterEdit = () => {
                 fd.append(key, formData[key]);
             });
 
-            await axios.put(`/api/vehicle-masters/${id}/`, fd, {
+            await api.put(`/api/vehicle-masters/${id}/`, fd, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
@@ -283,9 +284,9 @@ const VehicleMasterEdit = () => {
             };
 
             if (rateCard.id) {
-                await axios.put(`/api/vehicle-rate-cards/${rateCard.id}/`, payload);
+                await api.put(`/api/vehicle-rate-cards/${rateCard.id}/`, payload);
             } else {
-                await axios.post("/api/vehicle-rate-cards/", payload);
+                await api.post("/api/vehicle-rate-cards/", payload);
             }
 
             alert("Vehicle Master and Rate Card updated successfully!");

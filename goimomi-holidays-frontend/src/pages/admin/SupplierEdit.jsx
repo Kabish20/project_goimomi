@@ -37,8 +37,8 @@ const SupplierEdit = () => {
             try {
                 setLoading(true);
                 const [supplierRes, countriesRes] = await Promise.all([
-                    axios.get(`${API_BASE_URL}/suppliers/${id}/`),
-                    axios.get(`${API_BASE_URL}/countries/`)
+                    api.get(`${API_BASE_URL}/suppliers/${id}/`),
+                    api.get(`${API_BASE_URL}/countries/`)
                 ]);
 
                 const supplierData = supplierRes.data;
@@ -143,7 +143,7 @@ const SupplierEdit = () => {
         delete submitData.country_code;
 
         try {
-            const response = await axios.put(`${API_BASE_URL}/suppliers/${id}/`, submitData);
+            const response = await api.put(`${API_BASE_URL}/suppliers/${id}/`, submitData);
 
             if (response.status === 200) {
                 setMessage("Supplier updated successfully!");

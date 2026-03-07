@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, MapPin, ArrowRight } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -79,8 +79,8 @@ const VehicleRateCardEdit = () => {
 
     const fetchVehicleMasters = async () => {
         try {
-            const res = await axios.get("/api/vehicle-masters/");
-            setVehicleMasters(res.data || []);
+            const res = await api.get("/api/vehicle-masters/");
+            setVehicleMasters(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching vehicles:", err);
         }
@@ -88,8 +88,8 @@ const VehicleRateCardEdit = () => {
 
     const fetchCountries = async () => {
         try {
-            const res = await axios.get("/api/countries/");
-            setCountries(res.data || []);
+            const res = await api.get("/api/countries/");
+            setCountries(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching countries:", err);
         }
@@ -97,9 +97,9 @@ const VehicleRateCardEdit = () => {
 
     const fetchSuppliers = async () => {
         try {
-            const res = await axios.get("/api/suppliers/");
-            const allSuppliers = res.data || [];
-            const cabSuppliers = allSuppliers.filter(s =>
+            const res = await api.get("/api/suppliers/");
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            const cabSuppliers = data.filter(s =>
                 Array.isArray(s.services) && s.services.includes("Cab")
             );
             setSuppliers(cabSuppliers);
@@ -110,8 +110,8 @@ const VehicleRateCardEdit = () => {
 
     const fetchPickupPoints = async () => {
         try {
-            const res = await axios.get("/api/pickup-point-masters/");
-            setPickupPoints(res.data || []);
+            const res = await api.get("/api/pickup-point-masters/");
+            setPickupPoints(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching pickup points:", err);
         }
@@ -119,8 +119,8 @@ const VehicleRateCardEdit = () => {
 
     const fetchStartingCities = async () => {
         try {
-            const res = await axios.get("/api/starting-cities/");
-            setStartingCities(res.data || []);
+            const res = await api.get("/api/starting-cities/");
+            setStartingCities(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching starting cities:", err);
         }
@@ -128,8 +128,8 @@ const VehicleRateCardEdit = () => {
 
     const fetchDestinations = async () => {
         try {
-            const res = await axios.get("/api/destinations/");
-            setDestinations(res.data || []);
+            const res = await api.get("/api/destinations/");
+            setDestinations(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching destinations:", err);
         }
@@ -138,7 +138,7 @@ const VehicleRateCardEdit = () => {
     const fetchRateCard = async () => {
         try {
             setFetching(true);
-            const res = await axios.get(`/api/vehicle-rate-cards/${id}/`);
+            const res = await api.get(`/api/vehicle-rate-cards/${id}/`);
             const data = res.data;
             // Detect vehicle count from existing data
             const count = detectVehicleCount(data.routes);
@@ -247,7 +247,7 @@ const VehicleRateCardEdit = () => {
                     return route;
                 })
             };
-            await axios.put(`/api/vehicle-rate-cards/${id}/`, payload, {
+            await api.put(`/api/vehicle-rate-cards/${id}/`, payload, {
                 headers: { "Content-Type": "application/json" }
             });
             alert("Rate Card updated successfully!");

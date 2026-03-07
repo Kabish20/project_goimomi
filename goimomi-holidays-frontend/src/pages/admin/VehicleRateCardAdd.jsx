@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, MapPin, ArrowRight } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -56,8 +56,8 @@ const VehicleRateCardAdd = () => {
 
     const fetchVehicleMasters = async () => {
         try {
-            const res = await axios.get("/api/vehicle-masters/");
-            setVehicleMasters(res.data || []);
+            const res = await api.get("/api/vehicle-masters/");
+            setVehicleMasters(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching vehicles:", err);
         }
@@ -65,8 +65,8 @@ const VehicleRateCardAdd = () => {
 
     const fetchCountries = async () => {
         try {
-            const res = await axios.get("/api/countries/");
-            setCountries(res.data || []);
+            const res = await api.get("/api/countries/");
+            setCountries(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching countries:", err);
         }
@@ -74,10 +74,10 @@ const VehicleRateCardAdd = () => {
 
     const fetchSuppliers = async () => {
         try {
-            const res = await axios.get("/api/suppliers/");
-            const allSuppliers = res.data || [];
+            const res = await api.get("/api/suppliers/");
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
             // Filter to only include suppliers offering "Cab" service
-            const cabSuppliers = allSuppliers.filter(s =>
+            const cabSuppliers = data.filter(s =>
                 Array.isArray(s.services) && s.services.includes("Cab")
             );
             setSuppliers(cabSuppliers);
@@ -88,8 +88,8 @@ const VehicleRateCardAdd = () => {
 
     const fetchPickupPoints = async () => {
         try {
-            const res = await axios.get("/api/pickup-point-masters/");
-            setPickupPoints(res.data || []);
+            const res = await api.get("/api/pickup-point-masters/");
+            setPickupPoints(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching pickup points:", err);
         }
@@ -97,8 +97,8 @@ const VehicleRateCardAdd = () => {
 
     const fetchStartingCities = async () => {
         try {
-            const res = await axios.get("/api/starting-cities/");
-            setStartingCities(res.data || []);
+            const res = await api.get("/api/starting-cities/");
+            setStartingCities(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching starting cities:", err);
         }
@@ -106,8 +106,8 @@ const VehicleRateCardAdd = () => {
 
     const fetchDestinations = async () => {
         try {
-            const res = await axios.get("/api/destinations/");
-            setDestinations(res.data || []);
+            const res = await api.get("/api/destinations/");
+            setDestinations(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
             console.error("Error fetching destinations:", err);
         }
@@ -207,7 +207,7 @@ const VehicleRateCardAdd = () => {
                     return route;
                 })
             };
-            await axios.post("/api/vehicle-rate-cards/", payload, {
+            await api.post("/api/vehicle-rate-cards/", payload, {
                 headers: { "Content-Type": "application/json" }
             });
             alert("Rate Card created successfully!");

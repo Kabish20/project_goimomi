@@ -24,8 +24,9 @@ const HolidayPackageManage = () => {
     try {
       setLoading(true);
       const response = await api.get(`${API_BASE_URL}/packages/?all=true`);
-      setPackages(response.data);
-      setFilteredPackages(response.data);
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setPackages(data);
+      setFilteredPackages(data);
       setError("");
     } catch (err) {
       console.error("Error fetching packages:", err);

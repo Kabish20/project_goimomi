@@ -1,181 +1,291 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { Search, MapPin, Calendar, Clock, Users, ArrowLeftRight } from "lucide-react";
+import api from "../api";
+import SearchableSelect from "../components/admin/SearchableSelect";
 import CabCruiseForm from "../components/CabCruiseForm";
+import cabSearchBg from "../assets/Hero/cab_search_bg_v4.jpg";
 
 const Cab = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState("");
+  const [tripType, setTripType] = useState("one-way");
+  const [destinations, setDestinations] = useState([]);
+  const [isGuestsOpen, setIsGuestsOpen] = useState(false);
+  const guestPopoverRef = useRef(null);
 
-  const handleBookCar = (carName) => {
-    setSelectedCar(`Interested in: ${carName}`);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isGuestsOpen && !event.target.closest('.guest-selector')) {
+        setIsGuestsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isGuestsOpen]);
+
+  const [searchParams, setSearchParams] = useState({
+    fromId: "",
+    toId: "",
+    fromName: "",
+    toName: "",
+    pickupDate: "2026-03-08T14:30",
+    returnDate: "2026-03-09T14:30",
+    guests: 1
+  });
+
+  useEffect(() => {
+    fetchDestinations();
+  }, []);
+
+  const fetchDestinations = async () => {
+    try {
+      const response = await api.get("/api/destinations/");
+      if (Array.isArray(response.data)) {
+        const options = response.data.map(d => ({
+          label: d.name,
+          value: d.id.toString(),
+          subtitle: d.country || ""
+        }));
+        setDestinations(options);
+      }
+    } catch (err) {
+      console.error("Error fetching destinations:", err);
+    }
+  };
+
+  const handleSwap = () => {
+    setSearchParams(prev => ({
+      ...prev,
+      fromId: prev.toId,
+      toId: prev.fromId,
+      fromName: prev.toName,
+      toName: prev.fromName
+    }));
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const fromLabel = searchParams.fromName || "---";
+    const toLabel = searchParams.toName || "---";
+
+    const details = tripType === "return"
+      ? `Return Transfer Enquiry: From ${fromLabel} to ${toLabel}. Pickup: ${searchParams.pickupDate}, Return: ${searchParams.returnDate} for ${searchParams.guests} guests.`
+      : `One-way Transfer Enquiry: From ${fromLabel} to ${toLabel} on ${searchParams.pickupDate} for ${searchParams.guests} guests.`;
+
+    setSelectedCar(details);
     setIsFormOpen(true);
   };
 
-  const fleet = [
-    {
-      name: "Sedan (Toyota Camry / Hyundai Sonata)",
-      pax: "2-3 Pax",
-      category: "Executive Sedan"
-    },
-    {
-      name: "Ford Taurus",
-      pax: "2-3 Pax",
-      category: "Premium Sedan"
-    },
-    {
-      name: "Hyundai H1 (Staria/Starex)",
-      pax: "3-5 Pax",
-      category: "Luxury Van"
-    },
-    {
-      name: "GMC Yukon XL (22-24)",
-      pax: "6-7 Pax",
-      category: "Full-Size SUV"
-    },
-    {
-      name: "NEW GMC Yukon XL 2025",
-      pax: "6-7 Pax",
-      category: "Luxury SUV"
-    },
-    {
-      name: "Hiace High Roof",
-      pax: "7-9 Pax",
-      category: "Family Van"
-    },
-    {
-      name: "Toyota Coaster (with Driver)",
-      pax: "10-13 Pax",
-      category: "Mini Bus"
-    }
-  ];
-
   return (
-    <div className="bg-gray-50">
-
-      {/* Hero Section */}
-      <div className="relative h-[60vh] flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-[20000ms] hover:scale-110"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1554672408-730436b60dde?q=80&w=2000&auto=format&fit=crop')",
-            filter: "brightness(0.6)"
-          }}
-        />
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight drop-shadow-lg">
-            Premium Cab Services <br />
-            <span
-              className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-600"
-              style={{
-                display: "inline-block",
-                padding: "0.1em 0"
-              }}
-            >
-              For Your Comfort
-            </span>
-          </h1>
-          <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto leading-relaxed drop-shadow-md">
-            Experience hassle-free travel with our professional drivers and well-maintained fleet.
-            From airport transfers to local sightseeing, we've got you covered.
-          </p>
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="bg-[#14532d] hover:bg-[#0f4a24] text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl transition-all transform hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto"
-          >
-            <span>Book Your Cab Now</span>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Fleet Section */}
-      <div className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4">Our Premium Fleet</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">Choose from our wide range of vehicles designed for every need and group size.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {fleet.map((car, index) => (
-            <div
-              key={index}
-              className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-100 flex flex-col"
-            >
-              <div className="p-5 flex-grow">
-                <div className="mb-3 flex flex-col gap-2">
-                  <span className="w-fit bg-green-50 text-green-700 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border border-green-100">
-                    {car.category}
-                  </span>
-                  <h3 className="text-lg font-bold text-gray-800 group-hover:text-green-700 transition-colors duration-300 leading-snug">
-                    {car.name}
-                  </h3>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 py-3 border-t border-gray-100">
-                  <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-lg text-xs">
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                    </svg>
-                    <span className="font-bold">{car.pax}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-xs">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="font-bold italic">24/7 AVAIL</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="px-5 pb-5">
-                <button
-                  onClick={() => handleBookCar(car.name)}
-                  className="w-full py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all duration-300 transform active:scale-95 flex justify-center items-center gap-2"
-                >
-                  Book Now
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-              </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      {/* Hero Section with Search */}
+      <div
+        className="relative h-[45vh] md:h-[50vh] flex flex-col items-center justify-center px-4 overflow-hidden"
+        style={{
+          backgroundImage: `linear-gradient(rgba(20, 83, 45, 0.35), rgba(20, 83, 45, 0.35)), url(${cabSearchBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
+        <div className="w-full max-w-6xl z-10 -mt-8">
+          {/* Tab Navigation - Only Transfers */}
+          <div className="flex mb-[-1px] relative z-20">
+            <div className="bg-white px-6 py-2.5 rounded-t-xl font-bold text-[#14532d] flex items-center gap-2 shadow-sm border-b-2 border-white text-sm">
+              Transfers
             </div>
-          ))}
+          </div>
+
+          {/* Search Card */}
+          <div className="bg-white rounded-r-xl rounded-bl-xl shadow-xl p-3 md:p-4">
+            <form onSubmit={handleSearch}>
+              {/* Trip Type Selector */}
+              <div className="flex gap-6 mb-4 ml-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="radio"
+                      name="tripType"
+                      checked={tripType === "one-way"}
+                      onChange={() => setTripType("one-way")}
+                      className="peer h-3.5 w-3.5 cursor-pointer appearance-none rounded-full border border-gray-300 checked:border-[#ff4d1a] transition-all"
+                    />
+                    <div className="absolute h-1.5 w-1.5 rounded-full bg-[#ff4d1a] opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-700 group-hover:text-gray-900 transition-colors uppercase tracking-tight">One-way</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="radio"
+                      name="tripType"
+                      checked={tripType === "return"}
+                      onChange={() => setTripType("return")}
+                      className="peer h-3.5 w-3.5 cursor-pointer appearance-none rounded-full border border-gray-300 checked:border-[#ff4d1a] transition-all"
+                    />
+                    <div className="absolute h-1.5 w-1.5 rounded-full bg-[#ff4d1a] opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-700 group-hover:text-gray-900 transition-colors uppercase tracking-tight">Return</span>
+                </label>
+              </div>
+
+              {/* Input Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                {/* From & To with Swap */}
+                <div className={`${tripType === 'return' ? 'md:col-span-4' : 'md:col-span-5'} grid grid-cols-1 md:grid-cols-2 gap-1.5 relative`}>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#ff4d1a] z-10 pointer-events-none">
+                      <MapPin size={16} />
+                    </div>
+                    <SearchableSelect
+                      options={destinations}
+                      value={searchParams.fromId}
+                      onChange={(val) => {
+                        const opt = destinations.find(d => d.value === val);
+                        setSearchParams(prev => ({ ...prev, fromId: val, fromName: opt?.label || "" }));
+                      }}
+                      placeholder="From city"
+                      size="compact"
+                      className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                    />
+                  </div>
+
+                  {/* Swap Icon */}
+                  <div
+                    onClick={handleSwap}
+                    className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-white p-0.5 rounded-md border border-gray-100 shadow-sm text-gray-400 hover:text-[#ff4d1a] cursor-pointer transition-colors active:scale-90"
+                  >
+                    <ArrowLeftRight size={12} />
+                  </div>
+
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#ff4d1a] z-10 pointer-events-none">
+                      <MapPin size={16} />
+                    </div>
+                    <SearchableSelect
+                      options={destinations}
+                      value={searchParams.toId}
+                      onChange={(val) => {
+                        const opt = destinations.find(d => d.value === val);
+                        setSearchParams(prev => ({ ...prev, toId: val, toName: opt?.label || "" }));
+                      }}
+                      placeholder="To city"
+                      size="compact"
+                      className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Pickup Date & Time */}
+                <div className={`${tripType === 'return' ? 'md:col-span-4 grid grid-cols-2 gap-2' : 'md:col-span-3'}`}>
+                  <div className="relative group">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#ff4d1a] transition-colors pointer-events-none">
+                      <Calendar size={16} />
+                    </div>
+                    <input
+                      type="datetime-local"
+                      value={searchParams.pickupDate}
+                      onChange={(e) => setSearchParams({ ...searchParams, pickupDate: e.target.value })}
+                      className="w-full pl-9 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] transition-all text-xs font-bold text-gray-900"
+                    />
+                  </div>
+
+                  {tripType === "return" && (
+                    <div className="relative group">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#ff4d1a] transition-colors pointer-events-none">
+                        <Calendar size={16} />
+                      </div>
+                      <input
+                        type="datetime-local"
+                        value={searchParams.returnDate}
+                        onChange={(e) => setSearchParams({ ...searchParams, returnDate: e.target.value })}
+                        className="w-full pl-9 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] transition-all text-xs font-bold text-gray-900"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Guests */}
+                <div className="md:col-span-2 relative group guest-selector">
+                  <div
+                    onClick={() => setIsGuestsOpen(!isGuestsOpen)}
+                    className="flex items-center gap-3 w-full pl-9 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#ff4d1a] transition-all"
+                  >
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                      <Users size={16} />
+                    </div>
+                    <span className="text-xs font-bold text-gray-900">{searchParams.guests} guests</span>
+                  </div>
+
+                  {isGuestsOpen && (
+                    <div
+                      ref={guestPopoverRef}
+                      className="absolute top-full left-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] p-4 z-50 min-w-[220px] animate-in fade-in slide-in-from-top-2 duration-200"
+                    >
+                      <div className="flex items-center justify-between gap-6">
+                        <span className="text-sm font-bold text-gray-500">Guests</span>
+                        <div className="flex items-center gap-4">
+                          <button
+                            type="button"
+                            onClick={() => setSearchParams(prev => ({ ...prev, guests: Math.max(1, prev.guests - 1) }))}
+                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+                          >
+                            <span className="text-xl font-light">−</span>
+                          </button>
+                          <span className="text-sm font-bold text-gray-900 min-w-[12px] text-center">{searchParams.guests}</span>
+                          <button
+                            type="button"
+                            onClick={() => setSearchParams(prev => ({ ...prev, guests: prev.guests + 1 }))}
+                            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+                          >
+                            <span className="text-xl font-light">+</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Search Button */}
+                <div className="md:col-span-2 self-end">
+                  <button
+                    type="submit"
+                    className="w-full h-[42px] bg-gradient-to-r from-[#ff4d1a] to-[#ff8c1a] text-white rounded-lg font-bold uppercase tracking-wider shadow-md hover:shadow-[#ff4d1a]/20 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
+                  >
+                    <Search size={16} />
+                    Search
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+
+
         </div>
       </div>
 
-      {/* Detailed Services Section */}
-      <div className="bg-white py-24">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              {
-                title: "Airport Transfers",
-                desc: "Reliable and punctual pickups and drop-offs to ensure you never miss a flight.",
-                icon: "✈️"
-              },
-              {
-                title: "Business Travel",
-                desc: "Arrive in style and comfort for your meetings with our premium sedan fleet.",
-                icon: "💼"
-              },
-              {
-                title: "Family Outings",
-                desc: "Spacious vans and SUVs to accommodate your entire family and luggage comfortably.",
-                icon: "👨‍👩‍👧‍👦"
-              }
-            ].map((service, i) => (
-              <div key={i} className="flex flex-col items-center text-center p-6">
-                <div className="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-inner">
-                  {service.icon}
-                </div>
-                <h3 className="text-2xl font-bold mb-4 text-gray-800">{service.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{service.desc}</p>
-              </div>
-            ))}
+      {/* Benefits Content - Also minimized */}
+      <div className="bg-white py-12 px-4">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-3 text-2xl shadow-inner">✈️</div>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Airport Transfers</h3>
+            <p className="text-gray-500 text-xs">Punctual pickups to and from all major airports.</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-3 text-2xl shadow-inner">💼</div>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Business Travel</h3>
+            <p className="text-gray-500 text-xs">Arrive in comfort with our premium fleet and drivers.</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-3 text-2xl shadow-inner">🏙️</div>
+            <h3 className="text-base font-bold text-gray-800 mb-1">City Tours</h3>
+            <p className="text-gray-500 text-xs">Explore with our experienced local drivers.</p>
           </div>
         </div>
       </div>
+
 
       <CabCruiseForm
         isOpen={isFormOpen}
@@ -186,9 +296,9 @@ const Cab = () => {
         type="Cab"
         initialDescription={selectedCar}
       />
-
     </div>
   );
 };
 
 export default Cab;
+

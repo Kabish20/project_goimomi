@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Users, MapPin, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -36,13 +36,13 @@ const HolidayEnquiryAdd = () => {
         const fetchData = async () => {
             try {
                 const [scRes, natRes, destRes] = await Promise.all([
-                    axios.get(`${API_BASE_URL}/starting-cities/`),
-                    axios.get(`${API_BASE_URL}/nationalities/`),
-                    axios.get(`${API_BASE_URL}/destinations/`)
+                    api.get(`${API_BASE_URL}/starting-cities/`),
+                    api.get(`${API_BASE_URL}/nationalities/`),
+                    api.get(`${API_BASE_URL}/destinations/`)
                 ]);
-                setStartingCities(scRes.data);
-                setNationalities(natRes.data);
-                setUmrahDestinations(destRes.data);
+                setStartingCities(Array.isArray(scRes.data) ? scRes.data : (scRes.data?.results || []));
+                setNationalities(Array.isArray(natRes.data) ? natRes.data : (natRes.data?.results || []));
+                setUmrahDestinations(Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []));
             } catch (err) {
                 console.error("Error fetching form data:", err);
             }
@@ -114,7 +114,7 @@ const HolidayEnquiryAdd = () => {
                 room_details: form.rooms
             };
 
-            await axios.post(`${API_BASE_URL}/holiday-form/`, payload);
+            await api.post(`${API_BASE_URL}/holiday-form/`, payload);
             navigate("/admin/holiday-enquiries");
         } catch (err) {
             console.error(err);
