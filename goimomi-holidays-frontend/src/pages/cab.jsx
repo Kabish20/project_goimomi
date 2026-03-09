@@ -868,53 +868,54 @@ const Cab = () => {
                   </div>
                 ) : vehicles.length > 0 ? (
                   vehicles.map((car) => (
-                    <div key={car.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                      <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                    <div key={car.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow max-w-4xl mx-auto">
+                      <div className="flex flex-col md:flex-row divide-y md:divide-y-0 divide-gray-100 h-auto md:h-36">
                         {/* Image */}
-                        <div className="md:w-[28%] p-4 flex items-center justify-center bg-gray-50/50">
+                        <div className="md:w-[28%] relative overflow-hidden bg-white flex items-center justify-center h-48 md:h-full">
                           <img
                             src={car.image}
                             alt={car.name}
-                            className="w-full h-auto object-contain mix-blend-multiply scale-110"
+                            className="w-full h-full object-cover"
                           />
                         </div>
 
                         {/* Details */}
-                        <div className="flex-1 p-5 flex flex-col md:flex-row justify-between gap-5">
-                          <div className="space-y-3">
+                        <div className="flex-1 p-3 md:px-5 md:py-3 flex flex-col md:flex-row justify-between gap-2">
+                          <div className="flex flex-col justify-center space-y-1.5">
                             <div>
-                              <h3 className="text-lg font-black text-gray-900 leading-tight uppercase tracking-tight">{car.name}</h3>
-                              <p className="text-xs text-gray-400 font-bold mt-0.5">{car.category}</p>
+                              <h3 className="text-base font-black text-gray-900 leading-tight uppercase tracking-tight">{car.name}</h3>
+                              <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{car.category}</p>
                             </div>
 
-                            <div className="flex flex-wrap gap-3">
-                              <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                <Users size={12} className="text-gray-400" />
+                            <div className="flex flex-wrap gap-3 items-center">
+                              <div className="flex items-center gap-1 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                <Users size={11} className="text-gray-300" />
                                 {car.passengers} Pax
                               </div>
-                              <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                <span className="text-base leading-none">🧳</span>
+                              <div className="flex items-center gap-1 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                <span className="text-sm leading-none grayscale opacity-70">🧳</span>
                                 {car.bags} Bags
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2 text-[9px] font-black text-green-600 bg-green-50/80 px-4 py-1.5 rounded-full w-max border border-green-100 uppercase tracking-wider">
-                              <div className="w-3.5 h-3.5 rounded-full bg-green-500 text-white flex items-center justify-center text-[7px] font-black shadow-sm">✓</div>
+                            <div className="flex items-center gap-1.5 text-[8px] font-black text-green-600 bg-green-50/50 px-2.5 py-1 rounded-full w-max border border-green-100 uppercase tracking-widest leading-none">
+                              <div className="w-2.5 h-2.5 rounded-full bg-green-500 text-white flex items-center justify-center text-[5px] font-black">✓</div>
                               Free cancellation till {new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                             </div>
                           </div>
+
                           {/* Price & Book */}
-                          <div className="flex flex-col justify-between items-end gap-3 min-w-[140px]">
+                          <div className="flex flex-col justify-center items-end gap-2 min-w-[110px]">
                             <div className="text-right">
-                              <span className="text-[11px] font-black text-[#14532d] uppercase tracking-[0.2em] block mb-0.5 opacity-60">Starting from</span>
-                              <div className="flex items-baseline gap-1 text-[#14532d]">
-                                <span className="text-xl font-black">$</span>
-                                <span className="text-3xl font-black">{car.price}</span>
+                              <span className="text-[8px] font-bold text-gray-300 uppercase tracking-widest block mb-0.5">Starting from</span>
+                              <div className="flex items-baseline gap-0.5 text-[#14532d]">
+                                <span className="text-base font-black">$</span>
+                                <span className="text-3xl font-black tracking-tighter">{car.price}</span>
                               </div>
                             </div>
                             <button
                               onClick={() => handleBookNow(car)}
-                              className="w-full bg-[#14532d] text-white py-2.5 px-6 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-[#0f4022] transition-all shadow-xl shadow-green-900/10 active:scale-95"
+                              className="w-full bg-[#14532d] text-white py-1.5 px-3 rounded-lg font-black text-[8px] uppercase tracking-[0.2em] hover:bg-[#0f4022] transition-all shadow-sm active:scale-95 whitespace-nowrap"
                             >
                               Book Now
                             </button>

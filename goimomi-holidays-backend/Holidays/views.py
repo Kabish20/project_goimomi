@@ -497,13 +497,20 @@ class CabSearchAPI(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from_city = request.query_params.get('from_city')
-        to_city = request.query_params.get('to_city')
+        # Extract and clean parameters
+        from_city = request.query_params.get('from_city', '').split('(')[0].split(',')[0].strip().lower()
+        if not from_city:
+            from_city = request.query_params.get('from_city', '').strip().lower()
+            
+        to_city = request.query_params.get('to_city', '').split('(')[0].split(',')[0].strip().lower()
+        if not to_city:
+            to_city = request.query_params.get('to_city', '').strip().lower()
+            
         pickup_date = request.query_params.get('pickup_date')
 
         if not from_city or not to_city or not pickup_date:
             return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             from django.utils import timezone
             p_date = timezone.datetime.strptime(pickup_date, '%Y-%m-%d').date()
@@ -518,23 +525,35 @@ class CabSearchAPI(APIView):
 
         available_options = []
         for rc in rate_cards:
+            column_vehicles = [v.strip() if v else "" for v in (rc.column_vehicles or [])]
+            
             for route in rc.routes:
-                # Case-insensitive city matching
+                # Case-insensitive city matching with stripping
                 rc_from = str(route.get('start_city', '')).strip().lower()
                 rc_to = str(route.get('drop_city', '')).strip().lower()
-                req_from = str(from_city).strip().lower()
-                req_to = str(to_city).strip().lower()
 
-                if rc_from == req_from and rc_to == req_to:
+                # Robust matching: match if both cities are found (exact or partial)
+                from_matched = (rc_from == from_city) or (rc_from in from_city) or (from_city in rc_from)
+                to_matched = (rc_to == to_city) or (rc_to in to_city) or (to_city in rc_to)
+                
+                if from_matched and to_matched:
                     # Found a match!
-                    column_vehicles = rc.column_vehicles or []
                     for i, v_name in enumerate(column_vehicles):
                         if not v_name: continue
                         
                         price = route.get(f'v{i+1}')
-                        if price and str(price).strip() != "":
-                            # Find the vehicle master for details - case insensitive lookup
+                        if price and str(price).strip() != "" and str(price).strip() != "0":
+                            # Try exact model match first, then full name match
                             vehicle = VehicleMaster.objects.filter(name__iexact=v_name).first()
+                            if not vehicle:
+                                # Try matching against brand + name
+                                all_v = VehicleMaster.objects.all()
+                                for v in all_v:
+                                    full_name = f"{v.brand.name} {v.name}" if v.brand else v.name
+                                    if full_name.lower() == v_name.lower():
+                                        vehicle = v
+                                        break
+                            
                             if vehicle:
                                 available_options.append({
                                     "id": vehicle.id,
