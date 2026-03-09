@@ -214,7 +214,10 @@ const VehicleRateCardEdit = () => {
     const filteredPickupPoints = (city) => city ? pickupPoints.filter(p => p.city_name === city) : pickupPoints;
 
     const cityList = destinations.length > 0
-        ? destinations.map(d => d.name).sort()
+        ? destinations
+            .filter(d => !rateCard.country || d.country === rateCard.country)
+            .map(d => d.name)
+            .sort()
         : startingCities.length > 0
             ? startingCities.map(c => c.name).sort()
             : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
@@ -497,10 +500,11 @@ const VehicleRateCardEdit = () => {
                                                             <td key={vIdx} className="p-1.5 bg-gray-50/20">
                                                                 <input
                                                                     type="number"
-                                                                    className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d] min-w-[70px]"
+                                                                    className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d] min-w-[70px] disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                                     placeholder="Rate"
                                                                     value={rate}
                                                                     onChange={(e) => handleVehicleRateChange(idx, vIdx, e.target.value)}
+                                                                    disabled={!columnVehicles[vIdx]}
                                                                 />
                                                             </td>
                                                         ))}

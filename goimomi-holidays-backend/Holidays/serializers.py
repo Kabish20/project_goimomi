@@ -606,3 +606,8 @@ class PickupPointMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = PickupPointMaster
         fields = "__all__"
+
+class CabBookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.CabBooking
+        fields = "__all__"

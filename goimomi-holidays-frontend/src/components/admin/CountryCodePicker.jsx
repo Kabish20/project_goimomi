@@ -3,8 +3,45 @@ import { countries } from "../../utils/countriesData";
 
 const CountryCodePicker = ({ value, onChange, disabled = false }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
     const [searchTerm, setSearchTerm] = useState("");
     const wrapperRef = useRef(null);
+    const optionsRef = useRef([]);
+
+    useEffect(() => {
+        setActiveIndex(-1);
+    }, [searchTerm, isOpen]);
+
+    const handleKeyDown = (e) => {
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIndex(prev => (prev < filteredCountries.length - 1 ? prev + 1 : prev));
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIndex(prev => (prev > 0 ? prev - 1 : prev === 0 ? -1 : prev));
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (activeCountry) {
+                onChange(activeCountry.dial_code);
+                setIsOpen(false);
+                setSearchTerm("");
+            }
+        } else if (e.key === "Escape") {
+            setIsOpen(false);
+            setSearchTerm("");
+        }
+    };
+
+    const activeCountry = activeIndex >= 0 ? filteredCountries[activeIndex] : null;
+
+    useEffect(() => {
+        if (activeIndex >= 0 && optionsRef.current[activeIndex]) {
+            optionsRef.current[activeIndex].scrollIntoView({
+                block: "nearest",
+                behavior: "smooth"
+            });
+        }
+    }, [activeIndex]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -43,16 +80,21 @@ const CountryCodePicker = ({ value, onChange, disabled = false }) => {
                             placeholder="Search country or code..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             onClick={(e) => e.stopPropagation()}
                             autoFocus
                         />
                     </div>
                     <div className="max-h-64 overflow-y-auto custom-scrollbar">
                         {filteredCountries.length > 0 ? (
-                            filteredCountries.map((country) => (
+                            filteredCountries.map((country, index) => (
                                 <div
                                     key={`${country.code}-${country.dial_code}`}
-                                    className={`px-4 py-3 text-sm cursor-pointer hover:bg-green-50 flex items-center gap-3 transition-colors ${value === country.dial_code ? "bg-green-50 text-[#14532d]" : "text-gray-700"}`}
+                                    ref={el => optionsRef.current[index] = el}
+                                    className={`px-4 py-3 text-sm cursor-pointer flex items-center gap-3 transition-colors 
+                                      ${value === country.dial_code ? "bg-green-50 text-[#14532d]" : (index === activeIndex ? "bg-gray-100 text-black border-l-4 border-green-600" : "text-gray-700 hover:bg-green-50")}
+                                    `}
+                                    onMouseEnter={() => setActiveIndex(index)}
                                     onClick={() => {
                                         onChange(country.dial_code);
                                         setIsOpen(false);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Search, Eye, Trash2, Mail, Phone, MapPin } from "lucide-react";
+import { Search, Eye, Trash2, Mail, Phone, MapPin, Pencil, X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 
@@ -10,7 +10,9 @@ const CabEnquiryManage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+    const [editingEnquiry, setEditingEnquiry] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     const API_BASE_URL = "/api";
 
@@ -63,6 +65,27 @@ const CabEnquiryManage = () => {
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         return new Date(dateString).toLocaleString();
+    };
+
+    const handleEditSave = async (e) => {
+        e.preventDefault();
+        try {
+            setIsSaving(true);
+            await axios.put(`${API_BASE_URL}/enquiry-form/${editingEnquiry.id}/`, editingEnquiry);
+            setEditingEnquiry(null);
+            fetchEnquiries();
+            alert("Enquiry updated successfully!");
+        } catch (err) {
+            console.error("Error updating enquiry:", err);
+            setError("Failed to update enquiry. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditingEnquiry(prev => ({ ...prev, [name]: value }));
     };
 
     return (
@@ -178,6 +201,13 @@ const CabEnquiryManage = () => {
                                                                 <Eye size={18} />
                                                             </button>
                                                             <button
+                                                                onClick={() => setEditingEnquiry({ ...enquiry })}
+                                                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                                title="Edit Enquiry"
+                                                            >
+                                                                <Pencil size={18} />
+                                                            </button>
+                                                            <button
                                                                 onClick={() => handleDelete(enquiry.id)}
                                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                                 title="Delete"
@@ -268,6 +298,100 @@ const CabEnquiryManage = () => {
                                 Call Customer
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Enquiry Modal */}
+            {editingEnquiry && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-[#14532d] text-white">
+                            <h2 className="text-lg font-black uppercase tracking-tight">Edit Cab Enquiry</h2>
+                            <button
+                                onClick={() => setEditingEnquiry(null)}
+                                className="text-white/60 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-full"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleEditSave} className="p-6 space-y-5">
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={editingEnquiry.name || ""}
+                                    onChange={handleEditChange}
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none font-bold text-gray-700"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Phone</label>
+                                    <input
+                                        type="text"
+                                        name="phone"
+                                        value={editingEnquiry.phone || ""}
+                                        onChange={handleEditChange}
+                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Email</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={editingEnquiry.email || ""}
+                                        onChange={handleEditChange}
+                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Destination</label>
+                                <input
+                                    type="text"
+                                    name="destination"
+                                    value={editingEnquiry.destination || ""}
+                                    onChange={handleEditChange}
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 block">Purpose / Requirements</label>
+                                <textarea
+                                    name="purpose"
+                                    value={editingEnquiry.purpose || ""}
+                                    onChange={handleEditChange}
+                                    rows="4"
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none resize-none"
+                                ></textarea>
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingEnquiry(null)}
+                                    className="flex-1 py-3 border border-gray-200 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="flex-1 py-3 bg-[#14532d] text-white rounded-xl font-bold text-sm hover:bg-[#0d2f1f] transition-all disabled:opacity-50 shadow-lg shadow-green-900/20"
+                                >
+                                    {isSaving ? "Saving..." : "Update Enquiry"}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

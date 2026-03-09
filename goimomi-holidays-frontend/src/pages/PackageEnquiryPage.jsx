@@ -11,9 +11,15 @@ const PackageEnquiryPage = () => {
     const navigate = useNavigate();
     const packageData = location.state?.pkg;
 
+    const getTomorrowDate = () => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
+    };
+
     const [formData, setFormData] = useState({
         destination: "",
-        travel_date: "",
+        travel_date: getTomorrowDate(),
         nights: 1,
         rooms: 1,
         adults: 2,

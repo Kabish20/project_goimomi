@@ -15,7 +15,13 @@ const VisaApplication = () => {
     const navigate = useNavigate();
 
     const visa = location.state?.visa;
-    const [appDepartureDate, setAppDepartureDate] = useState(location.state?.departureDate || "");
+    const getTomorrowDate = (days = 1) => {
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split('T')[0];
+    };
+
+    const [appDepartureDate, setAppDepartureDate] = useState(location.state?.departureDate || getTomorrowDate(1));
     const [appReturnDate, setAppReturnDate] = useState(location.state?.returnDate || "");
     const citizenOf = location.state?.citizenOf || "India";
 

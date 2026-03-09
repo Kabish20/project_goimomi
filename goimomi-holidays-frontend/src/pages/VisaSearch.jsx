@@ -9,7 +9,14 @@ const VisaSearch = () => {
     const navigate = useNavigate();
     const [citizenOf, setCitizenOf] = useState("India");
     const [goingTo, setGoingTo] = useState("");
-    const [travelDate, setTravelDate] = useState("");
+
+    const getTomorrowDate = () => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
+    };
+
+    const [travelDate, setTravelDate] = useState(getTomorrowDate());
     const [returnDate, setReturnDate] = useState("");
 
     // Country Data State

@@ -45,7 +45,6 @@ const VehicleMasterEdit = () => {
         brand: "",
         seating_capacity: "4",
         luggage_capacity: "2",
-        drive: "Manual",
         driver: "",
         description: "",
         photo: null
@@ -165,7 +164,6 @@ const VehicleMasterEdit = () => {
                 brand: vData.brand || "",
                 seating_capacity: String(vData.seating_capacity || "4"),
                 luggage_capacity: String(vData.luggage_capacity || "2"),
-                drive: vData.drive || "Manual",
                 driver: vData.driver || "",
                 description: vData.description || "",
                 photo: null
@@ -193,7 +191,7 @@ const VehicleMasterEdit = () => {
                         vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] || "")
                     }))
                 });
-                setColumnVehicles(Array(count).fill(""));
+                setColumnVehicles(rc.column_vehicles || Array(count).fill(""));
             }
         } catch (err) {
             console.error("Error fetching data:", err);
@@ -280,7 +278,8 @@ const VehicleMasterEdit = () => {
                     };
                     r.vehicles.forEach((v, i) => { route[`v${i + 1}`] = v; });
                     return route;
-                })
+                }),
+                column_vehicles: columnVehicles
             };
 
             if (rateCard.id) {
@@ -357,7 +356,14 @@ const VehicleMasterEdit = () => {
     };
 
     const filteredPickupPoints = (city) => city ? pickupPoints.filter(p => p.city_name === city) : pickupPoints;
-    const cityList = destinations.length > 0 ? destinations.map(d => d.name).sort() : startingCities.length > 0 ? startingCities.map(c => c.name).sort() : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
+    const cityList = destinations.length > 0
+        ? destinations
+            .filter(d => !rateCard.country || d.country === rateCard.country)
+            .map(d => d.name)
+            .sort()
+        : startingCities.length > 0
+            ? startingCities.map(c => c.name).sort()
+            : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
 
     if (fetching) return (
         <div className="flex h-screen items-center justify-center bg-gray-50">
@@ -466,21 +472,7 @@ const VehicleMasterEdit = () => {
                                                     />
                                                 </div>
                                             </div>
-                                            <div>
-                                                <FormLabel label="Transmission / Drive" required />
-                                                <div className="relative">
-                                                    <Settings size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
-                                                    <select
-                                                        name="drive"
-                                                        value={formData.drive}
-                                                        onChange={handleInputChange}
-                                                        className="bg-white border-2 border-gray-100 pl-10 pr-4 py-2 rounded-xl w-full text-gray-900 text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] transition-all appearance-none"
-                                                    >
-                                                        <option value="Manual">Manual</option>
-                                                        <option value="Automatic">Automatic</option>
-                                                    </select>
-                                                </div>
-                                            </div>
+
                                             <div>
                                                 <FormLabel label="Driver Name" optional />
                                                 <SearchableSelect
@@ -698,10 +690,11 @@ const VehicleMasterEdit = () => {
                                                             <td key={vIndex} className="p-1.5 bg-gray-50/20">
                                                                 <input
                                                                     type="number"
-                                                                    className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d]"
+                                                                    className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d] disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                                     placeholder="0"
                                                                     value={route.vehicles[vIndex] ?? ""}
                                                                     onChange={(e) => handleVehicleRateChange(idx, vIndex, e.target.value)}
+                                                                    disabled={!columnVehicles[vIndex]}
                                                                 />
                                                             </td>
                                                         ))}

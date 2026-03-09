@@ -586,7 +586,6 @@ class VehicleMaster(models.Model):
     brand = models.ForeignKey(VehicleBrand, on_delete=models.SET_NULL, null=True, blank=True, related_name='vehicles')
     seating_capacity = models.PositiveIntegerField(null=True, blank=True)
     luggage_capacity = models.PositiveIntegerField(null=True, blank=True)
-    drive = models.CharField(max_length=100, choices=[('Manual', 'Manual'), ('Automatic', 'Automatic')], default='Manual', null=True, blank=True)
     driver = models.ForeignKey("DriverMaster", on_delete=models.SET_NULL, null=True, blank=True, related_name='vehicles')
     photo = models.ImageField(upload_to="vehicles/", blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -616,6 +615,7 @@ class VehicleRateCard(models.Model):
     # Storing the tabular data as JSON
     # Structure: [{ "start_from": "...", "drop_to": "...", "v1": "", "v2": "", "v3": "", "v4": "" }]
     routes = models.JSONField(default=list)
+    column_vehicles = models.JSONField(default=list, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -627,3 +627,46 @@ class PickupPointMaster(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.city.name})"
+
+class CabBooking(models.Model):
+    vehicle_name = models.CharField(max_length=255)
+    vehicle_category = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    from_city = models.CharField(max_length=255)
+    to_city = models.CharField(max_length=255)
+    pickup_date = models.DateField()
+    guests = models.PositiveIntegerField()
+    title = models.CharField(max_length=10)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=25)
+    email = models.EmailField(blank=True, null=True)
+    luggage_count = models.CharField(max_length=50, blank=True, null=True)
+    transfer_type = models.CharField(max_length=50) # 'airport' or 'intercity'
+    
+    # Airport Specific
+    flight_number = models.CharField(max_length=50, blank=True, null=True)
+    terminal = models.CharField(max_length=50, blank=True, null=True)
+    arrival_time = models.CharField(max_length=50, blank=True, null=True)
+    departure_time = models.CharField(max_length=50, blank=True, null=True)
+    
+    # Inter-city Specific
+    pickup_location_details = models.TextField(blank=True, null=True)
+    pickup_time = models.CharField(max_length=50, blank=True, null=True)
+    
+    special_requirements = models.TextField(blank=True, null=True)
+    status = models.CharField(
+        max_length=50, 
+        choices=[
+            ('Booking requested', 'Booking requested'),
+            ('Payment Pending', 'Payment Pending'),
+            ('Confirmed', 'Confirmed'),
+            ('Canceled', 'Canceled')
+        ], 
+        default='Booking requested'
+    )
+    driver = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Booking for {self.first_name} {self.last_name} - {self.vehicle_name}"

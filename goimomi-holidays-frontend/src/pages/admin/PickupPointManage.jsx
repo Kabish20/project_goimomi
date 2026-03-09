@@ -113,36 +113,64 @@ const PickupPointManage = () => {
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Loading Master Inventory...</p>
                             </div>
                         ) : filteredPoints.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
-                                {filteredPoints.map((point) => (
-                                    <div key={point.id} className="group bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="w-10 h-10 bg-green-50 rounded-2xl flex items-center justify-center text-[#14532d] group-hover:bg-[#14532d] group-hover:text-white transition-colors duration-300">
-                                                <MapPin size={20} />
-                                            </div>
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => navigate(`/admin/pickup-point-masters/edit/${point.id}`)}
-                                                    className="p-2 hover:bg-amber-50 text-amber-500 rounded-lg transition-colors"
-                                                >
-                                                    <Edit3 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(point.id)}
-                                                    className="p-2 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <h3 className="text-[12px] font-black text-gray-900 uppercase tracking-widest group-hover:text-[#14532d] transition-colors">{point.name}</h3>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-black text-[#14532d] bg-green-50 px-2 py-0.5 rounded-md uppercase">{point.city_name}</span>
-                                            <ChevronRight size={10} className="text-gray-300" />
-                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Inventory Managed</span>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="bg-white rounded-[2rem] shadow-xl border border-gray-100 overflow-hidden">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-gray-50/50">
+                                            <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Point Info</th>
+                                            <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Location</th>
+                                            <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-center">Status</th>
+                                            <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {filteredPoints.map((point) => (
+                                            <tr key={point.id} className="group hover:bg-green-50/30 transition-all border-b border-gray-50 last:border-0">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-green-50 rounded-2xl flex items-center justify-center text-[#14532d] group-hover:bg-[#14532d] group-hover:text-white transition-all duration-300 shadow-sm">
+                                                            <MapPin size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-black text-gray-900 group-hover:text-[#14532d] transition-colors uppercase tracking-tight">{point.name}</span>
+                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">#{point.id}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="px-2.5 py-1 bg-green-50 text-[#14532d] text-[9px] font-black rounded-lg border border-green-100 uppercase tracking-wider">
+                                                            {point.city_name}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                                                        Inventory Managed
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => navigate(`/admin/pickup-point-masters/edit/${point.id}`)}
+                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm active:scale-95"
+                                                            title="Edit"
+                                                        >
+                                                            <Edit3 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(point.id)}
+                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) : (
                             <div className="bg-white rounded-[40px] p-20 border border-dashed border-gray-200 text-center">

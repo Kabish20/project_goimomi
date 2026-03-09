@@ -84,6 +84,7 @@ const menu = [
         isDropdown: true,
         children: [
           { name: "Visa bookings" },
+          { name: "Cab Bookings" },
         ]
       },
 
@@ -150,6 +151,7 @@ const AdminSidebar = () => {
   const handleChangeUsers = () => navigate("/admin/users");
   const handleChangeUmrahDestinations = () => navigate("/admin/umrah-destinations");
   const handleChangeCabEnquiry = () => navigate("/admin/cab-enquiries");
+  const handleChangeCabBooking = () => navigate("/admin/cab-bookings");
   const handleChangeCruiseEnquiry = () => navigate("/admin/cruise-enquiries");
   const handleChangeHotelEnquiry = () => navigate("/admin/hotel-enquiries");
   const handleAddUmrahDestinations = () => navigate("/admin/umrah-destinations/add");
@@ -212,6 +214,7 @@ const AdminSidebar = () => {
       case "Hotel Enquiries": return handleChangeHotelEnquiry;
       case "Visas": return handleChangeVisa;
       case "Visa bookings": return handleChangeVisaApplication;
+      case "Cab Bookings": return handleChangeCabBooking;
       case "Countries": return () => navigate("/admin/countries");
       case "Suppliers": return () => navigate("/admin/suppliers");
       case "Cruise Calendar": return () => navigate("/admin/cruise-calendar");

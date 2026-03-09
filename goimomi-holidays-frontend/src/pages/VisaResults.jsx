@@ -20,10 +20,16 @@ const VisaResults = () => {
     const [_isBulkSharing, setIsBulkSharing] = useState(false);
     const [viewBulkData, setViewBulkData] = useState(null);
 
+    const getTomorrowDate = (days = 1) => {
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split('T')[0];
+    };
+
     // Search state managed locally for interactivity
     const [citizenOf, setCitizenOf] = useState(searchParams.get("citizenOf") || "India");
     const [goingTo, setGoingTo] = useState(searchParams.get("goingTo") || "");
-    const [departureDate, setDepartureDate] = useState(searchParams.get("departureDate") || "");
+    const [departureDate, setDepartureDate] = useState(searchParams.get("departureDate") || getTomorrowDate(1));
     const [returnDate, setReturnDate] = useState(searchParams.get("returnDate") || "");
 
     // Dropdown and Search Logic

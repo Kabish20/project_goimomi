@@ -137,7 +137,7 @@ const VehicleMasterManage = () => {
                                 <thead>
                                     <tr className="bg-gray-50/50">
                                         <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Vehicle Info</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Capacity & Drive</th>
+                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Capacity</th>
                                         <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Description</th>
                                         <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Actions</th>
                                     </tr>
@@ -192,10 +192,7 @@ const VehicleMasterManage = () => {
                                                                 <span>{v.luggage_capacity} Bags</span>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 text-[9px] font-black text-[#14532d] uppercase tracking-widest bg-green-50/50 px-2 py-0.5 rounded-full w-fit border border-green-100/30">
-                                                            <Settings size={10} />
-                                                            <span>{v.drive}</span>
-                                                        </div>
+
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 max-w-xs">

@@ -31,9 +31,11 @@ router.register("vehicle-masters", VehicleMasterViewSet)
 router.register("driver-masters", DriverMasterViewSet)
 router.register("vehicle-rate-cards", VehicleRateCardViewSet)
 router.register("pickup-point-masters", PickupPointMasterViewSet)
+router.register("cab-bookings", CabBookingViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
     path('admin-login/', AdminLoginView.as_view(), name='admin-login'),
     path('send-visa-details/', SendVisaDetailsAPI.as_view(), name='send-visa-details'),
+    path('cab-search/', CabSearchAPI.as_view(), name='cab-search'),
 ]

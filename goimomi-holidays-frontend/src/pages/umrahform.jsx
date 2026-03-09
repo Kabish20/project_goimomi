@@ -13,7 +13,13 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
     { cityName: "Madinah", nights: 2 }
   ]);
   const [startCity, setStartCity] = useState("");
-  const [travelDate, setTravelDate] = useState("");
+  const getTomorrowDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  };
+
+  const [travelDate, setTravelDate] = useState(getTomorrowDate());
   const [nationality, setNationality] = useState("Indian");
 
   const [rooms, setRooms] = useState(1);

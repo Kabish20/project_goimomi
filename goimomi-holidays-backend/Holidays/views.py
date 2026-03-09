@@ -474,3 +474,66 @@ class PickupPointMasterViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = PickupPointMaster.objects.all()
     serializer_class = PickupPointMasterSerializer
+
+class CabBookingViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = CabBooking.objects.all().order_by('-created_at')
+    serializer_class = CabBookingSerializer
+    pagination_class = None
+
+class CabSearchAPI(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from_city = request.query_params.get('from_city')
+        to_city = request.query_params.get('to_city')
+        pickup_date = request.query_params.get('pickup_date')
+
+        if not from_city or not to_city or not pickup_date:
+            return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            from django.utils import timezone
+            p_date = timezone.datetime.strptime(pickup_date, '%Y-%m-%d').date()
+        except:
+            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Find rate cards valid for the date
+        rate_cards = VehicleRateCard.objects.filter(
+            validity_start__lte=p_date,
+            validity_end__gte=p_date
+        )
+
+        available_options = []
+        for rc in rate_cards:
+            for route in rc.routes:
+                if route.get('start_city') == from_city and route.get('drop_city') == to_city:
+                    # Found a match!
+                    column_vehicles = rc.column_vehicles or []
+                    for i, v_name in enumerate(column_vehicles):
+                        price = route.get(f'v{i+1}')
+                        if price and str(price).strip() != "":
+                            # Find the vehicle master for details
+                            vehicle = VehicleMaster.objects.filter(name=v_name).first()
+                            if vehicle:
+                                available_options.append({
+                                    "id": vehicle.id,
+                                    "name": vehicle.name,
+                                    "category": vehicle.brand.name if vehicle.brand else "Standard",
+                                    "passengers": vehicle.seating_capacity,
+                                    "bags": vehicle.luggage_capacity,
+                                    "price": price,
+                                    "image": vehicle.photo.url if vehicle.photo else None,
+                                    "description": vehicle.description
+                                })
+        
+        # Deduplicate by name and pick lowest price if multiple exist
+        unique_options = {}
+        for opt in available_options:
+            name = opt['name']
+            if name not in unique_options or float(opt['price']) < float(unique_options[name]['price']):
+                unique_options[name] = opt
+
+        return Response(list(unique_options.values()))

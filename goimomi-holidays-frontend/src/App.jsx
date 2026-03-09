@@ -69,6 +69,7 @@ import CountryEdit from "./pages/admin/CountryEdit.jsx";
 import VisaApplicationManage from "./pages/admin/VisaApplicationManage.jsx";
 import VisaApplicationEdit from "./pages/admin/VisaApplicationEdit.jsx";
 import CabEnquiryManage from "./pages/admin/CabEnquiryManage.jsx";
+import CabBookingManage from "./pages/admin/CabBookingManage.jsx";
 import CruiseEnquiryManage from "./pages/admin/CruiseEnquiryManage.jsx";
 import HotelEnquiryManage from "./pages/admin/HotelEnquiryManage.jsx";
 import GeneralEnquiryManage from "./pages/admin/GeneralEnquiryManage.jsx";
@@ -202,6 +203,7 @@ const App = () => {
             <Route path="/admin/visa-applications" element={<VisaApplicationManage />} />
             <Route path="/admin/visa-applications/edit/:id" element={<VisaApplicationEdit />} />
             <Route path="/admin/cab-enquiries" element={<CabEnquiryManage />} />
+            <Route path="/admin/cab-bookings" element={<CabBookingManage />} />
             <Route path="/admin/cruise-enquiries" element={<CruiseEnquiryManage />} />
             <Route path="/admin/hotel-enquiries" element={<HotelEnquiryManage />} />
             <Route path="/admin/general-enquiries" element={<GeneralEnquiryManage />} />

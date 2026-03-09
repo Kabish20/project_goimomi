@@ -6,9 +6,15 @@ import "react-phone-input-2/lib/style.css";
 import SuccessModal from "./SuccessModal";
 
 const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
+    const getTomorrowDate = () => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().split('T')[0];
+    };
+
     const [formData, setFormData] = useState({
         destination: "",
-        travel_date: "",
+        travel_date: getTomorrowDate(),
         nights: 1,
         rooms: 1,
         adults: 2,

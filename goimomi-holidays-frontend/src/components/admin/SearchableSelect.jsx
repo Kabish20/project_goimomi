@@ -3,11 +3,57 @@ import { createPortal } from "react-dom";
 
 const SearchableSelect = ({ options, value, onChange, placeholder = "Select...", disabled = false, allowCustom = false, error, size = "default", className = "" }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
     const [searchTerm, setSearchTerm] = useState("");
     const [dropdownStyle, setDropdownStyle] = useState({});
     const wrapperRef = useRef(null);
     const dropdownRef = useRef(null);
     const searchInputRef = useRef(null);
+    const optionsRef = useRef([]);
+
+    const filteredOptions = options.filter(option =>
+        (option.label || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (option.subtitle || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    useEffect(() => {
+        setActiveIndex(-1);
+    }, [searchTerm, isOpen]);
+
+    const handleKeyDown = (e) => {
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIndex(prev => (prev < filteredOptions.length - 1 ? prev + 1 : prev));
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIndex(prev => (prev > 0 ? prev - 1 : prev === 0 ? -1 : prev));
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (activeOption) {
+                onChange(activeOption.value);
+                setIsOpen(false);
+                setSearchTerm("");
+            } else if (allowCustom && searchTerm) {
+                onChange(searchTerm);
+                setIsOpen(false);
+                setSearchTerm("");
+            }
+        } else if (e.key === "Escape") {
+            setIsOpen(false);
+            setSearchTerm("");
+        }
+    };
+
+    const activeOption = activeIndex >= 0 ? filteredOptions[activeIndex] : null;
+
+    useEffect(() => {
+        if (activeIndex >= 0 && optionsRef.current[activeIndex]) {
+            optionsRef.current[activeIndex].scrollIntoView({
+                block: "nearest",
+                behavior: "smooth"
+            });
+        }
+    }, [activeIndex]);
 
     const updateDropdownPosition = useCallback(() => {
         if (!wrapperRef.current) return;
@@ -71,10 +117,7 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
         };
     }, [isOpen, updateDropdownPosition]);
 
-    const filteredOptions = options.filter(option =>
-        (option.label || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (option.subtitle || "").toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
 
     const selectedOption = options.find(o => o.value === value);
 
@@ -92,15 +135,20 @@ const SearchableSelect = ({ options, value, onChange, placeholder = "Select...",
                     placeholder="Search options..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     onClick={(e) => e.stopPropagation()}
                 />
             </div>
             <div className="overflow-y-auto flex-1 custom-scrollbar">
                 {filteredOptions.length > 0 ? (
-                    filteredOptions.map((option) => (
+                    filteredOptions.map((option, index) => (
                         <div
                             key={option.value}
-                            className={`px-3 py-1 text-[11px] cursor-pointer transition-all flex flex-col gap-0 ${option.value === value ? "bg-green-50 text-[#14532d]" : "text-gray-900 hover:bg-gray-50 hover:text-black"}`}
+                            ref={el => optionsRef.current[index] = el}
+                            className={`px-3 py-1 text-[11px] cursor-pointer transition-all flex flex-col gap-0 
+                              ${option.value === value ? "bg-green-50 text-[#14532d]" : (index === activeIndex ? "bg-gray-100 text-black border-l-4 border-[#14532d]" : "text-gray-900 hover:bg-gray-50 hover:text-black")}
+                            `}
+                            onMouseEnter={() => setActiveIndex(index)}
                             onMouseDown={(e) => {
                                 e.preventDefault();
                                 onChange(option.value);
