@@ -152,6 +152,7 @@ const VehicleRateCardEdit = () => {
                 vehicles: routeToVehiclesArray(r, count)
             }));
             setRateCard({ ...data, routes: normalizedRoutes });
+            setColumnVehicles(data.column_vehicles || Array(count).fill(""));
         } catch (err) {
             console.error("Error fetching rate card:", err);
             alert("Failed to load rate card details.");
@@ -236,9 +237,15 @@ const VehicleRateCardEdit = () => {
 
         setLoading(true);
         try {
-            // Convert back to v1..vN array for payload
+            // Construct a clean payload
             const payload = {
-                ...rateCard,
+                name: rateCard.name,
+                country: rateCard.country,
+                supplier: typeof rateCard.supplier === 'object' ? rateCard.supplier?.id : rateCard.supplier,
+                vehicle: typeof rateCard.vehicle === 'object' ? rateCard.vehicle?.id : rateCard.vehicle,
+                validity_start: rateCard.validity_start,
+                validity_end: rateCard.validity_end,
+                column_vehicles: columnVehicles,
                 routes: rateCard.routes.map(r => {
                     const route = {
                         start_city: r.start_city,
@@ -250,9 +257,7 @@ const VehicleRateCardEdit = () => {
                     return route;
                 })
             };
-            await api.put(`/api/vehicle-rate-cards/${id}/`, payload, {
-                headers: { "Content-Type": "application/json" }
-            });
+            await api.put(`/api/vehicle-rate-cards/${id}/`, payload);
             alert("Rate Card updated successfully!");
             navigate("/admin/vehicle-rate-cards");
         } catch (err) {

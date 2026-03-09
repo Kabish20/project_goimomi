@@ -610,6 +610,8 @@ class DriverMaster(models.Model):
 class VehicleRateCard(models.Model):
     name = models.CharField(max_length=255)
     country = models.CharField(max_length=100)
+    supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='rate_cards')
+    vehicle = models.ForeignKey('VehicleMaster', on_delete=models.CASCADE, null=True, blank=True, related_name='rate_cards')
     validity_start = models.DateField()
     validity_end = models.DateField()
     # Storing the tabular data as JSON

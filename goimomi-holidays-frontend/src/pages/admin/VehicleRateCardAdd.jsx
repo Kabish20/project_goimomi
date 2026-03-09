@@ -208,7 +208,8 @@ const VehicleRateCardAdd = () => {
                     };
                     r.vehicles.forEach((v, i) => { route[`v${i + 1}`] = v; });
                     return route;
-                })
+                }),
+                column_vehicles: columnVehicles
             };
             await api.post("/api/vehicle-rate-cards/", payload, {
                 headers: { "Content-Type": "application/json" }

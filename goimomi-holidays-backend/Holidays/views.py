@@ -469,6 +469,16 @@ class VehicleRateCardViewSet(ModelViewSet):
     queryset = VehicleRateCard.objects.all().order_by('-created_at')
     serializer_class = VehicleRateCardSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        name = self.request.query_params.get('name')
+        vehicle_id = self.request.query_params.get('vehicle')
+        if name:
+            queryset = queryset.filter(name=name)
+        if vehicle_id:
+            queryset = queryset.filter(vehicle_id=vehicle_id)
+        return queryset
 class PickupPointMasterViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -509,14 +519,22 @@ class CabSearchAPI(APIView):
         available_options = []
         for rc in rate_cards:
             for route in rc.routes:
-                if route.get('start_city') == from_city and route.get('drop_city') == to_city:
+                # Case-insensitive city matching
+                rc_from = str(route.get('start_city', '')).strip().lower()
+                rc_to = str(route.get('drop_city', '')).strip().lower()
+                req_from = str(from_city).strip().lower()
+                req_to = str(to_city).strip().lower()
+
+                if rc_from == req_from and rc_to == req_to:
                     # Found a match!
                     column_vehicles = rc.column_vehicles or []
                     for i, v_name in enumerate(column_vehicles):
+                        if not v_name: continue
+                        
                         price = route.get(f'v{i+1}')
                         if price and str(price).strip() != "":
-                            # Find the vehicle master for details
-                            vehicle = VehicleMaster.objects.filter(name=v_name).first()
+                            # Find the vehicle master for details - case insensitive lookup
+                            vehicle = VehicleMaster.objects.filter(name__iexact=v_name).first()
                             if vehicle:
                                 available_options.append({
                                     "id": vehicle.id,
@@ -533,7 +551,13 @@ class CabSearchAPI(APIView):
         unique_options = {}
         for opt in available_options:
             name = opt['name']
-            if name not in unique_options or float(opt['price']) < float(unique_options[name]['price']):
-                unique_options[name] = opt
+            try:
+                price_val = float(opt['price'])
+                if name not in unique_options or price_val < float(unique_options[name]['price']):
+                    unique_options[name] = opt
+            except (ValueError, TypeError):
+                if name not in unique_options:
+                    unique_options[name] = opt
 
         return Response(list(unique_options.values()))
+

@@ -37,6 +37,7 @@ const VehicleMasterAdd = () => {
     const [vehicleCount, setVehicleCount] = useState(4);
     const [vehicleMasters, setVehicleMasters] = useState([]);
     const [columnVehicles, setColumnVehicles] = useState(Array(4).fill(""));
+    const [prevName, setPrevName] = useState("");
     const [formData, setFormData] = useState({
         name: "",
         brand: "",
@@ -148,6 +149,9 @@ const VehicleMasterAdd = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === "name") {
+            setRateCard(prev => ({ ...prev, name: value }));
+        }
     };
 
     const handlePhotoChange = (e) => {
@@ -171,11 +175,12 @@ const VehicleMasterAdd = () => {
         }
 
         if (currentStep === 2) {
-            // Pre-fill first vehicle column name with current vehicle name
-            if (formData.name && !columnVehicles[0]) {
+            // Update first vehicle column if it was empty or matched the previous name of this vehicle
+            if (formData.name && (columnVehicles[0] === "" || columnVehicles[0] === prevName)) {
                 const newCols = [...columnVehicles];
                 newCols[0] = formData.name;
                 setColumnVehicles(newCols);
+                setPrevName(formData.name);
             }
             if (!rateCard.name || !rateCard.country || !rateCard.validity_start || !rateCard.validity_end) {
                 alert("Please provide Rate Card Name, Country, and Validity dates.");
@@ -204,6 +209,7 @@ const VehicleMasterAdd = () => {
             const payload = { ...rateCard };
             delete payload.routes;
 
+            payload.vehicle = vehicleRes.data.id;
             payload.routes = rateCard.routes.map(route => {
                 const formattedRoute = {
                     start_city: route.start_city,
@@ -212,7 +218,7 @@ const VehicleMasterAdd = () => {
                     drop_to: route.drop_to
                 };
                 for (let i = 0; i < vehicleCount; i++) {
-                    formattedRoute[`v${i + 1}`] = route.vehicles[i] || "";
+                    formattedRoute[`v${i + 1}`] = route.vehicles[i] ?? "";
                 }
                 return formattedRoute;
             });

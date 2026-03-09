@@ -40,6 +40,7 @@ const VehicleMasterEdit = () => {
     const [vehicleMasters, setVehicleMasters] = useState([]);
     const [columnVehicles, setColumnVehicles] = useState(Array(4).fill(""));
 
+    const [prevName, setPrevName] = useState("");
     const [formData, setFormData] = useState({
         name: "",
         brand: "",
@@ -168,9 +169,10 @@ const VehicleMasterEdit = () => {
                 description: vData.description || "",
                 photo: null
             });
+            setPrevName(vData.name || "");
             if (vData.photo) setPreview(vData.photo);
 
-            const rRes = await api.get(`/api/vehicle-rate-cards/?name=${encodeURIComponent(vData.name)}`);
+            const rRes = await api.get(`/api/vehicle-rate-cards/?vehicle=${id}`);
             const rData = Array.isArray(rRes.data) ? rRes.data : (rRes.data?.results || []);
             if (rData && rData.length > 0) {
                 const rc = rData[0];
@@ -180,6 +182,7 @@ const VehicleMasterEdit = () => {
                     id: rc.id,
                     country: rc.country || "",
                     supplier: rc.supplier || "",
+                    vehicle: rc.vehicle || id,
                     name: rc.name || "",
                     validity_start: rc.validity_start || "",
                     validity_end: rc.validity_end || "",
@@ -188,10 +191,36 @@ const VehicleMasterEdit = () => {
                         start_from: r.start_from,
                         drop_city: r.drop_city || "",
                         drop_to: r.drop_to,
-                        vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] || "")
+                        vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] ?? "")
                     }))
                 });
                 setColumnVehicles(rc.column_vehicles || Array(count).fill(""));
+            } else {
+                // Fallback: try searching by name for legacy cards
+                const nameRes = await api.get(`/api/vehicle-rate-cards/?name=${encodeURIComponent(vData.name)}`);
+                const nameData = Array.isArray(nameRes.data) ? nameRes.data : (nameRes.data?.results || []);
+                if (nameData.length > 0) {
+                    const rc = nameData[0];
+                    const count = detectVehicleCount(rc.routes);
+                    setVehicleCount(count);
+                    setRateCard({
+                        id: rc.id,
+                        country: rc.country || "",
+                        supplier: rc.supplier || "",
+                        vehicle: rc.vehicle || id,
+                        name: rc.name || "",
+                        validity_start: rc.validity_start || "",
+                        validity_end: rc.validity_end || "",
+                        routes: rc.routes.map(r => ({
+                            start_city: r.start_city || "",
+                            start_from: r.start_from,
+                            drop_city: r.drop_city || "",
+                            drop_to: r.drop_to,
+                            vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] ?? "")
+                        }))
+                    });
+                    setColumnVehicles(rc.column_vehicles || Array(count).fill(""));
+                }
             }
         } catch (err) {
             console.error("Error fetching data:", err);
@@ -238,10 +267,12 @@ const VehicleMasterEdit = () => {
         }
 
         if (currentStep === 2) {
-            if (formData.name && !columnVehicles[0]) {
+            // Update first vehicle column if it was empty or matched the previous name of this vehicle
+            if (formData.name && (columnVehicles[0] === "" || columnVehicles[0] === prevName)) {
                 const newCols = [...columnVehicles];
                 newCols[0] = formData.name;
                 setColumnVehicles(newCols);
+                setPrevName(formData.name);
             }
             if (!rateCard.name || !rateCard.country || !rateCard.validity_start || !rateCard.validity_end) {
                 alert("Please provide Rate Card Name, Country, and Validity dates.");
@@ -265,7 +296,8 @@ const VehicleMasterEdit = () => {
 
             const payload = {
                 country: rateCard.country,
-                supplier: rateCard.supplier,
+                supplier: typeof rateCard.supplier === 'object' ? rateCard.supplier?.id : rateCard.supplier,
+                vehicle: id,
                 name: rateCard.name,
                 validity_start: rateCard.validity_start,
                 validity_end: rateCard.validity_end,
