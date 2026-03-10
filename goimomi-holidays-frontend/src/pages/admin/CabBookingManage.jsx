@@ -109,8 +109,8 @@ const CabBookingManage = () => {
             <AdminSidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="flex-1 overflow-y-auto p-6">
-                    <div className="flex justify-between items-center mb-6">
+                <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-3">
                             <div className="bg-[#14532d] p-2 rounded-lg text-white">
                                 <MapPin size={24} />
@@ -129,7 +129,7 @@ const CabBookingManage = () => {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="mb-6">
+                    <div className="mb-4">
                         <div className="relative max-w-md">
                             <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
                             <input
@@ -161,12 +161,12 @@ const CabBookingManage = () => {
                                 <table className="w-full">
                                     <thead className="bg-[#14532d] text-white">
                                         <tr>
-                                            <th className="text-left py-4 px-6 font-semibold uppercase text-xs tracking-wider">Guest</th>
-                                            <th className="text-left py-4 px-6 font-semibold uppercase text-xs tracking-wider">Route & Vehicle</th>
-                                            <th className="text-left py-4 px-6 font-semibold uppercase text-xs tracking-wider">Type & Time</th>
-                                            <th className="text-left py-4 px-6 font-semibold uppercase text-xs tracking-wider">Pickup Date</th>
-                                            <th className="text-center py-4 px-6 font-semibold uppercase text-xs tracking-wider">Status</th>
-                                            <th className="text-center py-4 px-6 font-semibold uppercase text-xs tracking-wider">Actions</th>
+                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Guest</th>
+                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Route & Vehicle</th>
+                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Type & Time</th>
+                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Pickup Date</th>
+                                            <th className="text-center py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Status</th>
+                                            <th className="text-center py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -182,7 +182,7 @@ const CabBookingManage = () => {
                                         ) : (
                                             filteredBookings.map((booking) => (
                                                 <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
-                                                    <td className="py-4 px-6">
+                                                    <td className="py-2.5 px-4">
                                                         <div className="font-semibold text-gray-900">{booking.title} {booking.first_name} {booking.last_name}</div>
                                                         <div className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-2">
                                                             <span className="flex items-center gap-1 whitespace-nowrap"><Phone size={10} /> {booking.phone}</span>
@@ -191,7 +191,7 @@ const CabBookingManage = () => {
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="py-4 px-6">
+                                                    <td className="py-2.5 px-4">
                                                         <div className="text-sm font-medium text-gray-700">
                                                             {booking.from_city} → {booking.to_city}
                                                         </div>
@@ -199,7 +199,7 @@ const CabBookingManage = () => {
                                                             {booking.vehicle_name}
                                                         </div>
                                                     </td>
-                                                    <td className="py-4 px-6">
+                                                    <td className="py-2.5 px-4">
                                                         <div className={`text-[10px] font-black uppercase tracking-widest inline-block px-2 py-0.5 rounded-full ${booking.transfer_type === 'airport' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
                                                             }`}>
                                                             {booking.transfer_type}
@@ -214,10 +214,10 @@ const CabBookingManage = () => {
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="py-4 px-6 text-sm text-gray-500 whitespace-nowrap">
+                                                    <td className="py-2.5 px-4 text-sm text-gray-500 whitespace-nowrap">
                                                         {formatDate(booking.pickup_date)}
                                                     </td>
-                                                    <td className="py-4 px-6 text-center">
+                                                    <td className="py-2.5 px-4 text-center">
                                                         <div className={`text-[10px] font-black uppercase tracking-widest inline-block px-2 py-1 rounded-full ${booking.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
                                                             booking.status === 'Payment Pending' ? 'bg-yellow-100 text-yellow-700' :
                                                                 booking.status === 'Canceled' ? 'bg-red-100 text-red-700' :
@@ -226,7 +226,7 @@ const CabBookingManage = () => {
                                                             {booking.status || 'Booking requested'}
                                                         </div>
                                                     </td>
-                                                    <td className="py-4 px-6">
+                                                    <td className="py-2.5 px-4">
                                                         <div className="flex justify-center gap-2">
                                                             <button
                                                                 onClick={() => setSelectedBooking(booking)}
@@ -266,8 +266,8 @@ const CabBookingManage = () => {
             {
                 selectedBooking && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-                            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-[#14532d] text-white sticky top-0 z-10">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-[#14532d] text-white sticky top-0 z-10">
                                 <div>
                                     <h2 className="text-lg font-black leading-tight">{selectedBooking.title} {selectedBooking.first_name} {selectedBooking.last_name}</h2>
                                     <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mt-0.5">Booking Ref: #{selectedBooking.id}</p>
@@ -280,8 +280,8 @@ const CabBookingManage = () => {
                                 </button>
                             </div>
 
-                            <div className="overflow-y-auto max-h-[80vh]">
-                                <div className="p-6 space-y-6">
+                            <div className="overflow-y-auto max-h-[70vh]">
+                                <div className="p-4 space-y-4">
                                     {/* Route & Vehicle */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
@@ -301,7 +301,7 @@ const CabBookingManage = () => {
                                     </div>
 
                                     {/* Assignment & Status */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assignment & Status</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
@@ -322,7 +322,7 @@ const CabBookingManage = () => {
                                     </div>
 
                                     {/* Guest Details */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Guest & Contact</p>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
@@ -344,7 +344,7 @@ const CabBookingManage = () => {
                                     </div>
 
                                     {/* Transfer Specific Info */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Transfer Details ({selectedBooking.transfer_type})</p>
                                         <div className="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
                                             {selectedBooking.transfer_type === 'airport' ? (
@@ -384,7 +384,7 @@ const CabBookingManage = () => {
                                     </div>
 
                                     {/* Special Requirements */}
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Special Requirements</p>
                                         <div className="bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 text-[13px] text-gray-700 italic flex gap-3">
                                             <MessageSquare size={16} className="text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -394,10 +394,10 @@ const CabBookingManage = () => {
                                 </div>
                             </div>
 
-                            <div className="p-5 bg-gray-50 border-t border-gray-100 flex gap-3">
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-3">
                                 <button
                                     onClick={() => setSelectedBooking(null)}
-                                    className="flex-1 bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors shadow-sm"
+                                    className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors shadow-sm"
                                 >
                                     Close
                                 </button>
@@ -405,7 +405,7 @@ const CabBookingManage = () => {
                                     onClick={() => {
                                         window.open(`tel:${selectedBooking.phone}`);
                                     }}
-                                    className="flex-1 bg-[#14532d] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#0d2f1f] transition-all active:scale-95 shadow-lg shadow-[#14532d]/20"
+                                    className="flex-1 bg-[#14532d] text-white py-2.5 rounded-xl font-bold text-sm hover:bg-[#0d2f1f] transition-all active:scale-95 shadow-lg shadow-[#14532d]/20"
                                 >
                                     Contact Guest
                                 </button>
@@ -419,7 +419,7 @@ const CabBookingManage = () => {
             {
                 editingBooking && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
                             <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-[#14532d] text-white">
                                 <h2 className="text-sm font-black uppercase tracking-tight">Edit Cab Booking</h2>
                                 <button
@@ -430,7 +430,7 @@ const CabBookingManage = () => {
                                 </button>
                             </div>
 
-                            <form onSubmit={handleEditSave} className="overflow-y-auto max-h-[85vh] p-4 space-y-4">
+                            <form onSubmit={handleEditSave} className="overflow-y-auto max-h-[70vh] p-3 space-y-3">
                                 {/* Guest Info */}
                                 <div className="space-y-2">
                                     <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest border-b border-green-100 pb-0.5">Guest Information</p>
@@ -719,14 +719,14 @@ const CabBookingManage = () => {
                                     <button
                                         type="button"
                                         onClick={() => setEditingBooking(null)}
-                                        className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-gray-600 font-bold text-xs hover:bg-gray-50 transition-colors"
+                                        className="flex-1 px-4 py-1.5 border border-gray-200 rounded-xl text-gray-600 font-bold text-xs hover:bg-gray-50 transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSaving}
-                                        className="flex-1 px-4 py-2 bg-[#14532d] text-white rounded-xl font-bold text-xs hover:bg-[#0d2f1f] transition-all shadow-lg shadow-green-900/20 disabled:opacity-50"
+                                        className="flex-1 px-4 py-1.5 bg-[#14532d] text-white rounded-xl font-bold text-xs hover:bg-[#0d2f1f] transition-all shadow-lg shadow-green-900/20 disabled:opacity-50"
                                     >
                                         {isSaving ? "Saving..." : "Save Changes"}
                                     </button>
