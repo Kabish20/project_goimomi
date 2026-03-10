@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Plus, Minus, Info, Loader, Save, Search } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -95,7 +95,7 @@ const PickupPointAdd = () => {
 
     const fetchCities = async () => {
         try {
-            const res = await axios.get("/api/destinations/");
+            const res = await api.get("/api/destinations/");
             setCities(res.data);
             setFetching(false);
         } catch (err) {
@@ -135,7 +135,7 @@ const PickupPointAdd = () => {
         try {
             // Send each point as a separate request
             const promises = validPoints.map(p =>
-                axios.post("/api/pickup-point-masters/", {
+                api.post("/api/pickup-point-masters/", {
                     city: selectedCity,
                     name: p
                 })

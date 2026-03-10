@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, Globe, Flag } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -23,7 +23,7 @@ const CountryEdit = () => {
     const fetchCountry = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`/api/countries/${id}/`);
+            const response = await api.get(`/api/countries/${id}/`);
             setForm({
                 name: response.data.name || "",
                 code: response.data.code || "",
@@ -52,7 +52,7 @@ const CountryEdit = () => {
 
         try {
             setSaving(true);
-            await axios.put(`/api/countries/${id}/`, form);
+            await api.put(`/api/countries/${id}/`, form);
             navigate("/admin/countries");
         } catch (err) {
             console.error("Error updating country:", err);

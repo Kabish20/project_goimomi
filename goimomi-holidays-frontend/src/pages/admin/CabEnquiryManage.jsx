@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Eye, Trash2, Mail, Phone, MapPin, Pencil, X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -23,7 +23,7 @@ const CabEnquiryManage = () => {
     const fetchEnquiries = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/enquiry-form/`);
+            const response = await api.get(`${API_BASE_URL}/enquiry-form/`);
             // Filter for Cab enquiries
             const cabEnquiries = response.data.filter(e => e.enquiry_type === "Cab");
             setEnquiries(cabEnquiries);
@@ -51,7 +51,7 @@ const CabEnquiryManage = () => {
         if (window.confirm("Are you sure you want to delete this enquiry?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/enquiry-form/${id}/`);
+                await api.delete(`${API_BASE_URL}/enquiry-form/${id}/`);
                 fetchEnquiries();
             } catch (err) {
                 console.error("Error deleting enquiry:", err);
@@ -71,7 +71,7 @@ const CabEnquiryManage = () => {
         e.preventDefault();
         try {
             setIsSaving(true);
-            await axios.put(`${API_BASE_URL}/enquiry-form/${editingEnquiry.id}/`, editingEnquiry);
+            await api.put(`${API_BASE_URL}/enquiry-form/${editingEnquiry.id}/`, editingEnquiry);
             setEditingEnquiry(null);
             fetchEnquiries();
             alert("Enquiry updated successfully!");

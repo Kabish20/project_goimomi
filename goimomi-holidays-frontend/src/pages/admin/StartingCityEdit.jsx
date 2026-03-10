@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -20,7 +20,7 @@ const StartingCityEdit = () => {
     const fetchStartingCity = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/starting-cities/${id}/`);
+            const response = await api.get(`${API_BASE_URL}/starting-cities/${id}/`);
             setForm({
                 name: response.data.name || "",
                 region: response.data.region || "",
@@ -50,7 +50,7 @@ const StartingCityEdit = () => {
         setError("");
 
         try {
-            const response = await axios.put(`${API_BASE_URL}/starting-cities/${id}/`, form);
+            const response = await api.put(`${API_BASE_URL}/starting-cities/${id}/`, form);
 
             if (response.status === 200) {
                 setMessage("Starting city updated successfully!");

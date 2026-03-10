@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import SuccessModal from "../components/SuccessModal";
@@ -57,15 +57,15 @@ const HolidaysForm = ({ isOpen, onClose, packageType }) => {
   // Fetch Data
   React.useEffect(() => {
     if (isOpen) {
-      axios.get("/api/destinations/")
+      api.get("/api/destinations/")
         .then(res => setDestinationsList(res.data))
         .catch(err => console.error("Error fetching destinations:", err));
 
-      axios.get("/api/starting-cities/")
+      api.get("/api/starting-cities/")
         .then(res => setStartingCitiesList(res.data))
         .catch(err => console.error("Error fetching starting cities:", err));
 
-      axios.get("/api/nationalities/")
+      api.get("/api/nationalities/")
         .then(res => setNationalitiesList(res.data))
         .catch(err => console.error("Error fetching nationalities:", err));
     }
@@ -252,7 +252,7 @@ const HolidaysForm = ({ isOpen, onClose, packageType }) => {
     };
 
     try {
-      const response = await axios.post(
+      const response = await api.post(
         '/api/holiday-form/',
         payload,
         {

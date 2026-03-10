@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../../api";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -18,7 +18,7 @@ const UmrahDestinationEdit = () => {
 
     const fetchDestination = useCallback(async () => {
         try {
-            const response = await axios.get(`/api/umrah-destinations/${id}/`);
+            const response = await api.get(`/api/umrah-destinations/${id}/`);
             setFormData({
                 name: response.data.name,
                 country: response.data.country,
@@ -52,7 +52,7 @@ const UmrahDestinationEdit = () => {
         setStatusMessage({ text: "", type: "" });
 
         try {
-            await axios.put(`/api/umrah-destinations/${id}/`, formData);
+            await api.put(`/api/umrah-destinations/${id}/`, formData);
 
             if (action === "continue") {
                 setStatusMessage({ text: "Changes saved successfully!", type: "success" });
@@ -70,7 +70,7 @@ const UmrahDestinationEdit = () => {
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to delete this Umrah destination?")) {
             try {
-                await axios.delete(`/api/umrah-destinations/${id}/`);
+                await api.delete(`/api/umrah-destinations/${id}/`);
                 navigate("/admin/umrah-destinations");
             } catch (error) {
                 console.error("Error deleting destination:", error);

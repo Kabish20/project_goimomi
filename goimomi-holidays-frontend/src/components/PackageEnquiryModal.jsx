@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import { FaTimes, FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -87,7 +87,7 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
         };
 
         try {
-            await axios.post("/api/holiday-form/", payload);
+            await api.post("/api/holiday-form/", payload);
             setShowSuccess(true);
             setTimeout(() => {
                 setShowSuccess(false);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../../api";
 import { ArrowLeft, Save, Plus, ChevronDown, Search, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -49,7 +49,7 @@ const AdminVisaEdit = () => {
 
     const fetchCountries = useCallback(async () => {
         try {
-            const response = await axios.get("/api/countries/");
+            const response = await api.get("/api/countries/");
             setCountries(response.data);
         } catch (error) {
             console.error("Error fetching countries:", error);
@@ -58,7 +58,7 @@ const AdminVisaEdit = () => {
 
     const fetchSuppliers = useCallback(async () => {
         try {
-            const response = await axios.get("/api/suppliers/");
+            const response = await api.get("/api/suppliers/");
             const visaSuppliers = response.data.filter(supplier =>
                 supplier.services && supplier.services.includes("Visa")
             );
@@ -89,7 +89,7 @@ const AdminVisaEdit = () => {
 
     const fetchVisa = useCallback(async () => {
         try {
-            const response = await axios.get(`/api/visas/${id}/`);
+            const response = await api.get(`/api/visas/${id}/`);
             const data = response.data;
             setFormData({
                 country: data.country || "",
@@ -186,7 +186,7 @@ const AdminVisaEdit = () => {
             data.append("documents_required", documentsString);
             data.append("photography_required", photosString);
 
-            const response = await axios.patch(`/api/visas/${id}/`, data, {
+            const response = await api.patch(`/api/visas/${id}/`, data, {
                 headers: {
                     "Content-Type": "multipart/form-data"
                 }
@@ -194,7 +194,7 @@ const AdminVisaEdit = () => {
 
             if (action === "continue") {
                 setStatusMessage({ text: "Visa updated successfully!", type: "success" });
-                const fresh = await axios.get(`/api/visas/${id}/`);
+                const fresh = await api.get(`/api/visas/${id}/`);
                 setFormData({
                     country: fresh.data.country || "",
                     title: fresh.data.title || "",

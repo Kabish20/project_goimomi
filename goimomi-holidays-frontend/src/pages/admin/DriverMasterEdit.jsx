@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, User, Camera, CreditCard, Phone, MessageSquare, Info, FileText, Loader } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -64,7 +64,7 @@ const DriverMasterEdit = () => {
     const fetchDriverDetails = async () => {
         try {
             setFetching(true);
-            const res = await axios.get(`/api/driver-masters/${id}/`);
+            const res = await api.get(`/api/driver-masters/${id}/`);
             const data = res.data;
 
             const mobileparts = (data.mobile_number || "").split(' ');
@@ -135,7 +135,7 @@ const DriverMasterEdit = () => {
                 fd.append(key, finalData[key]);
             });
 
-            await axios.put(`/api/driver-masters/${id}/`, fd, {
+            await api.put(`/api/driver-masters/${id}/`, fd, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 

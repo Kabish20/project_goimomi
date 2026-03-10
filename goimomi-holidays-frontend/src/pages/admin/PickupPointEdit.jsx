@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, MapPin, Info, Loader, Save, Search } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -99,8 +99,8 @@ const PickupPointEdit = () => {
         try {
             setFetching(true);
             const [pointRes, citiesRes] = await Promise.all([
-                axios.get(`/api/pickup-point-masters/${id}/`),
-                axios.get("/api/destinations/")
+                api.get(`/api/pickup-point-masters/${id}/`),
+                api.get("/api/destinations/")
             ]);
             setFormData({
                 city: pointRes.data.city,
@@ -125,7 +125,7 @@ const PickupPointEdit = () => {
 
         setLoading(true);
         try {
-            await axios.put(`/api/pickup-point-masters/${id}/`, formData);
+            await api.put(`/api/pickup-point-masters/${id}/`, formData);
             alert("Pickup Point updated successfully!");
             navigate("/admin/pickup-point-masters");
         } catch (err) {

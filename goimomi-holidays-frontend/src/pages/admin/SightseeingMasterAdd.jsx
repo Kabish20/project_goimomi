@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Image as ImageIcon, Plus, X, ArrowLeft, Camera, Clock, IndianRupee, Link as LinkIcon, Info } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -49,7 +49,7 @@ const SightseeingMasterAdd = () => {
 
     const fetchDestinations = async () => {
         try {
-            const res = await axios.get("/api/destinations/");
+            const res = await api.get("/api/destinations/");
             setDestinations(res.data);
         } catch (err) {
             console.error("Error fetching destinations:", err);
@@ -101,7 +101,7 @@ const SightseeingMasterAdd = () => {
                 fd.append("gallery_images", img);
             });
 
-            await axios.post("/api/sightseeing-masters/", fd, {
+            await api.post("/api/sightseeing-masters/", fd, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 

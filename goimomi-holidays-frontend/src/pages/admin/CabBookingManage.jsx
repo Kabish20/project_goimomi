@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, Pencil, X, Mail, Plus } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -28,7 +28,7 @@ const CabBookingManage = () => {
     const fetchBookings = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/cab-bookings/`);
+            const response = await api.get(`${API_BASE_URL}/cab-bookings/`);
             setBookings(response.data);
             setFilteredBookings(response.data);
             setError("");
@@ -42,7 +42,7 @@ const CabBookingManage = () => {
 
     const fetchDrivers = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/driver-masters/`);
+            const response = await api.get(`${API_BASE_URL}/driver-masters/`);
             const driverOptions = response.data.map(d => ({
                 value: d.name,
                 label: d.name
@@ -69,7 +69,7 @@ const CabBookingManage = () => {
         if (window.confirm("Are you sure you want to delete this booking?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/cab-bookings/${id}/`);
+                await api.delete(`${API_BASE_URL}/cab-bookings/${id}/`);
                 fetchBookings();
             } catch (err) {
                 console.error("Error deleting booking:", err);
@@ -119,7 +119,7 @@ const CabBookingManage = () => {
                 formData.append('remove_doc_ids', JSON.stringify(docsToRemove));
             }
 
-            await axios.put(`${API_BASE_URL}/cab-bookings/${editingBooking.id}/`, formData, {
+            await api.put(`${API_BASE_URL}/cab-bookings/${editingBooking.id}/`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import SuccessModal from "./SuccessModal";
@@ -38,7 +38,7 @@ const EnquiryForm = ({ isOpen, onClose }) => {
     };
 
     try {
-      const response = await axios.post(
+      const response = await api.post(
         '/api/enquiry-form/',
         payload,
         {

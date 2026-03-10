@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import CabCruiseForm from "../components/CabCruiseForm";
 import cruiseHeroImg from "../assets/cruise_hero.jpg";
 
@@ -18,7 +18,7 @@ const Cruise = () => {
   useEffect(() => {
     const fetchCalendar = async () => {
       try {
-        const response = await axios.get("/api/cruise-calendar/");
+        const response = await api.get("/api/cruise-calendar/");
         setCalendarData(response.data);
       } catch (err) {
         console.error("Error fetching cruise calendar:", err);

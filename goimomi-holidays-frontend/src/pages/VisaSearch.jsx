@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Home, Plane, Calendar, MapPin, ChevronDown, Zap, ShieldCheck, Headphones } from "lucide-react";
-import axios from "axios";
+import api from "../api";
 import visaBg from "../assets/Hero/visa_bg.jpg";
 import { getImageUrl } from "../utils/imageUtils";
 
@@ -40,9 +40,9 @@ const VisaSearch = () => {
             setLoading(true);
             try {
                 const [countriesRes, popularDestRes, popularVisasRes] = await Promise.all([
-                    axios.get("/api/countries/"),
-                    axios.get("/api/destinations/"),
-                    axios.get("/api/visas/?is_popular=true")
+                    api.get("/api/countries/"),
+                    api.get("/api/destinations/"),
+                    api.get("/api/visas/?is_popular=true")
                 ]);
                 setCountries(countriesRes.data);
                 setPopularDestinations(popularDestRes.data);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 
@@ -66,7 +66,7 @@ const VisaResults = () => {
 
     const fetchCountries = async () => {
         try {
-            const response = await axios.get("/api/countries/");
+            const response = await api.get("/api/countries/");
             // Ensure response.data is an array and filter out any invalid entries
             const validCountries = Array.isArray(response.data) ? response.data.filter(c => c && c.name) : [];
             setCountries(validCountries);
@@ -86,7 +86,7 @@ const VisaResults = () => {
 
         try {
             setLoading(true);
-            const response = await axios.get(`/api/visas/?country=${encodeURIComponent(country)}`);
+            const response = await api.get(`/api/visas/?country=${encodeURIComponent(country)}`);
 
             // Ensure response.data is an array before filtering
             const rawData = Array.isArray(response.data) ? response.data : [];
@@ -245,7 +245,7 @@ Terms & Conditions:
 Visa approval, processing time, and entry depend on authorities. Fees are non-refundable, delays may occur, rules may change, and overstaying may cause penalties.`;
 
         try {
-            await axios.post('/api/send-visa-details/', {
+            await api.post('/api/send-visa-details/', {
                 email: sharingEmail,
                 subject,
                 body

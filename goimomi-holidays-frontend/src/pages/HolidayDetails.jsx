@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import FormModal from "../components/FormModal";
 import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
@@ -35,7 +35,7 @@ const HolidayDetails = () => {
   };
 
   useEffect(() => {
-    axios.get(`/api/packages/${id}/`)
+    api.get(`/api/packages/${id}/`)
       .then((res) => setPkg(res.data))
       .catch((err) => console.error("Error fetching package details:", err));
 

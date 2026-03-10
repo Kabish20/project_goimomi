@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
@@ -80,18 +80,18 @@ const Holidays = () => {
   useEffect(() => {
     setLoading(true);
     // Fetch packages
-    axios.get("/api/packages/")
+    api.get("/api/packages/")
       .then((res) => setPackages(res.data))
       .catch((err) => console.error("Error fetching packages:", err))
       .finally(() => setLoading(false));
 
     // Fetch destinations
-    axios.get("/api/destinations/")
+    api.get("/api/destinations/")
       .then((res) => setDestinationsList(res.data))
       .catch((err) => console.error("Error fetching destinations:", err));
 
     // Fetch starting cities
-    axios.get("/api/starting-cities/")
+    api.get("/api/starting-cities/")
       .then((res) => setStartingCitiesList(res.data))
       .catch((err) => console.error("Error fetching starting cities:", err));
   }, []);
@@ -381,7 +381,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
     const body = generateShareText(emailModalPkg);
 
     try {
-      await axios.post('/api/send-visa-details/', {
+      await api.post('/api/send-visa-details/', {
         email: sharingEmail,
         subject,
         body

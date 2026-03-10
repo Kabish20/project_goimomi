@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import {
     Plus, Search, MapPin, Trash2, Edit3, MoreVertical,
@@ -22,7 +22,7 @@ const PickupPointManage = () => {
     const fetchPoints = async () => {
         try {
             setLoading(true);
-            const res = await axios.get("/api/pickup-point-masters/");
+            const res = await api.get("/api/pickup-point-masters/");
             setPoints(res.data);
         } catch (err) {
             console.error("Error fetching points:", err);
@@ -34,7 +34,7 @@ const PickupPointManage = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this pickup point?")) return;
         try {
-            await axios.delete(`/api/pickup-point-masters/${id}/`);
+            await api.delete(`/api/pickup-point-masters/${id}/`);
             setPoints(points.filter(p => p.id !== id));
         } catch (err) {
             console.error("Error deleting point:", err);

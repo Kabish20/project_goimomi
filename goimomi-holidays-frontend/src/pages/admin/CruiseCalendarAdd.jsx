@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Calendar } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -45,7 +45,7 @@ const CruiseCalendarAdd = () => {
                 return;
             }
 
-            await axios.post(`${API_BASE_URL}/cruise-calendar/`, formData);
+            await api.post(`${API_BASE_URL}/cruise-calendar/`, formData);
             navigate("/admin/cruise-calendar");
         } catch (err) {
             console.error("Error adding cruise calendar:", err);

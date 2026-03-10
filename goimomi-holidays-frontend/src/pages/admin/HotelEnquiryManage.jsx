@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Eye, Trash2, Mail, Phone, Hotel } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -21,7 +21,7 @@ const HotelEnquiryManage = () => {
     const fetchEnquiries = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/enquiry-form/`);
+            const response = await api.get(`${API_BASE_URL}/enquiry-form/`);
             // Filter for Hotel enquiries
             const hotelEnquiries = response.data.filter(e => e.enquiry_type === "Hotel");
             setEnquiries(hotelEnquiries);
@@ -49,7 +49,7 @@ const HotelEnquiryManage = () => {
         if (window.confirm("Are you sure you want to delete this enquiry?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/enquiry-form/${id}/`);
+                await api.delete(`${API_BASE_URL}/enquiry-form/${id}/`);
                 fetchEnquiries();
             } catch (err) {
                 console.error("Error deleting enquiry:", err);

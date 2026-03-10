@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../../api";
 import { Search, Trash2, Edit2, CheckCircle, XCircle, ChevronDown, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,7 +23,7 @@ const AdminVisaManage = () => {
 
     const fetchCountries = async () => {
         try {
-            const response = await axios.get("/api/countries/");
+            const response = await api.get("/api/countries/");
             setCountries(response.data);
         } catch (error) {
             console.error("Error fetching countries:", error);
@@ -43,7 +43,7 @@ const AdminVisaManage = () => {
 
     const fetchVisas = async () => {
         try {
-            const response = await axios.get("/api/visas/?all=true");
+            const response = await api.get("/api/visas/?all=true");
             setVisas(response.data);
             setLoading(false);
         } catch (error) {
@@ -56,7 +56,7 @@ const AdminVisaManage = () => {
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this visa?")) {
             try {
-                await axios.delete(`/api/visas/${id}/`);
+                await api.delete(`/api/visas/${id}/`);
                 setVisas(visas.filter((v) => v.id !== id));
                 setStatusMessage({ text: "Visa deleted successfully", type: "success" });
             } catch (error) {
@@ -68,7 +68,7 @@ const AdminVisaManage = () => {
 
     const handleStatusToggle = async (visa) => {
         try {
-            await axios.patch(`/api/visas/${visa.id}/`, { is_active: !visa.is_active });
+            await api.patch(`/api/visas/${visa.id}/`, { is_active: !visa.is_active });
             setVisas(visas.map((v) => (v.id === visa.id ? { ...v, is_active: !v.is_active } : v)));
             setStatusMessage({
                 text: `Visa ${!visa.is_active ? "activated" : "deactivated"} successfully`,

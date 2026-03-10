@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Hotel, MapPin, Ship, Sun, Moon, MessageSquare } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -28,9 +28,9 @@ const EnquiryManage = () => {
     try {
       setLoading(true);
       const [generalRes, holidayRes, umrahRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/enquiry-form/`),
-        axios.get(`${API_BASE_URL}/holiday-form/`),
-        axios.get(`${API_BASE_URL}/umrah-form/`)
+        api.get(`${API_BASE_URL}/enquiry-form/`),
+        api.get(`${API_BASE_URL}/holiday-form/`),
+        api.get(`${API_BASE_URL}/umrah-form/`)
       ]);
 
       const generalData = generalRes.data || [];

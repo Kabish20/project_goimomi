@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, Globe, Flag } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -29,7 +29,7 @@ const CountryAdd = () => {
 
         try {
             setLoading(true);
-            await axios.post("/api/countries/", form);
+            await api.post("/api/countries/", form);
             navigate("/admin/countries");
         } catch (err) {
             console.error("Error adding country:", err);

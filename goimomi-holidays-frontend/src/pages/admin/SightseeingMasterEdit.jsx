@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { MapPin, Image as ImageIcon, Plus, X, ArrowLeft, Camera, Clock, IndianRupee, Link as LinkIcon, Info, Trash2 } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -53,7 +53,7 @@ const SightseeingMasterEdit = () => {
 
     const fetchDestinations = async () => {
         try {
-            const res = await axios.get("/api/destinations/");
+            const res = await api.get("/api/destinations/");
             setDestinations(res.data);
         } catch (err) {
             console.error("Error fetching destinations:", err);
@@ -63,7 +63,7 @@ const SightseeingMasterEdit = () => {
     const fetchSightseeingData = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`/api/sightseeing-masters/${id}/`);
+            const res = await api.get(`/api/sightseeing-masters/${id}/`);
             const data = res.data;
             setFormData({
                 destination: data.destination || "",
@@ -128,7 +128,7 @@ const SightseeingMasterEdit = () => {
                 fd.append("gallery_images", img);
             });
 
-            await axios.put(`/api/sightseeing-masters/${id}/`, fd, {
+            await api.put(`/api/sightseeing-masters/${id}/`, fd, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 

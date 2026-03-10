@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -28,7 +28,7 @@ const ItineraryMasterAdd = () => {
 
     const fetchDestinations = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/destinations/`);
+            const response = await api.get(`${API_BASE_URL}/destinations/`);
             setDestinations(response.data);
         } catch (err) {
             console.error("Error fetching destinations:", err);
@@ -69,7 +69,7 @@ const ItineraryMasterAdd = () => {
         }
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/itinerary-masters/`, formData, {
+            const response = await api.post(`${API_BASE_URL}/itinerary-masters/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },

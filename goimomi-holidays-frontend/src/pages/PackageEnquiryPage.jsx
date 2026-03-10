@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
@@ -138,7 +138,7 @@ const PackageEnquiryPage = () => {
         };
 
         try {
-            await axios.post("/api/holiday-form/", payload);
+            await api.post("/api/holiday-form/", payload);
             setShowSuccess(true);
             setTimeout(() => {
                 setShowSuccess(false);

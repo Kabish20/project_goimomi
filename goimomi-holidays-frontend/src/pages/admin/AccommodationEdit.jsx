@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
     MapPin,
@@ -66,7 +66,7 @@ const AccommodationEdit = () => {
     useEffect(() => {
         const fetchDestinations = async () => {
             try {
-                const res = await axios.get("/api/destinations/");
+                const res = await api.get("/api/destinations/");
                 setDestinations(res.data);
             } catch (err) {
                 console.error("Error fetching destinations:", err);
@@ -78,7 +78,7 @@ const AccommodationEdit = () => {
     useEffect(() => {
         const fetchAccommodation = async () => {
             try {
-                const res = await axios.get(`/api/accommodations/${id}/`);
+                const res = await api.get(`/api/accommodations/${id}/`);
                 const data = res.data;
                 setFormData({
                     name: data.name || "",
@@ -155,7 +155,7 @@ const AccommodationEdit = () => {
                 fd.append("accommodation_images", img);
             });
 
-            await axios.put(`/api/accommodations/${id}/`, fd, {
+            await api.put(`/api/accommodations/${id}/`, fd, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 

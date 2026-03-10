@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, Calendar, Loader2 } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -37,7 +37,7 @@ const CruiseCalendarEdit = () => {
     const fetchCalendarEntry = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/cruise-calendar/${id}/`);
+            const response = await api.get(`${API_BASE_URL}/cruise-calendar/${id}/`);
             setFormData(response.data);
             setError("");
         } catch (err) {
@@ -65,7 +65,7 @@ const CruiseCalendarEdit = () => {
                 return;
             }
 
-            await axios.put(`${API_BASE_URL}/cruise-calendar/${id}/`, formData);
+            await api.put(`${API_BASE_URL}/cruise-calendar/${id}/`, formData);
             navigate("/admin/cruise-calendar");
         } catch (err) {
             console.error("Error updating cruise calendar:", err);

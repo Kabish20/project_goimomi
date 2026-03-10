@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useParams, useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -27,7 +27,7 @@ const DestinationEdit = () => {
     const fetchDestination = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/destinations/${id}/`);
+            const response = await api.get(`${API_BASE_URL}/destinations/${id}/`);
             const data = response.data;
             setForm({
                 name: data.name || "",
@@ -103,7 +103,7 @@ const DestinationEdit = () => {
         }
 
         try {
-            const response = await axios.put(`${API_BASE_URL}/destinations/${id}/`, formData, {
+            const response = await api.put(`${API_BASE_URL}/destinations/${id}/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },

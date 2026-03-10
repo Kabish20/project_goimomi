@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { ArrowLeft, Save, Trash2, Globe, Flag, Map } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -22,7 +22,7 @@ const NationalityEdit = () => {
     useEffect(() => {
         const fetchNationality = async () => {
             try {
-                const response = await axios.get(`/api/nationalities/${id}/`);
+                const response = await api.get(`/api/nationalities/${id}/`);
                 setFormData(response.data);
                 setIsLoading(false);
             } catch (error) {
@@ -53,7 +53,7 @@ const NationalityEdit = () => {
         setStatusMessage({ text: "", type: "" });
 
         try {
-            await axios.put(`/api/nationalities/${id}/`, formData);
+            await api.put(`/api/nationalities/${id}/`, formData);
 
             if (action === "continue") {
                 setStatusMessage({ text: "Heritage record synchronized successfully.", type: "success" });
@@ -71,7 +71,7 @@ const NationalityEdit = () => {
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to permanently purge this heritage record?")) {
             try {
-                await axios.delete(`/api/nationalities/${id}/`);
+                await api.delete(`/api/nationalities/${id}/`);
                 navigate("/admin/nationalities");
             } catch (error) {
                 console.error("Error deleting nationality:", error);

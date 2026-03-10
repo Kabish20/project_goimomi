@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Camera, CreditCard, Phone, MessageSquare, Info, FileText, Upload } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -97,7 +97,7 @@ const DriverMasterAdd = () => {
                 }
             });
 
-            await axios.post("/api/driver-masters/", fd, {
+            await api.post("/api/driver-masters/", fd, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 

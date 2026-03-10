@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -29,7 +29,7 @@ const StartingCityAdd = () => {
         setError("");
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/starting-cities/`, form);
+            const response = await api.post(`${API_BASE_URL}/starting-cities/`, form);
 
             if (response.status === 201) {
                 setMessage("Starting city added successfully!");

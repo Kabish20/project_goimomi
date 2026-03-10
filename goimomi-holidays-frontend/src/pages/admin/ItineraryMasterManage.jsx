@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -25,7 +25,7 @@ const ItineraryMasterManage = () => {
 
   const fetchDestinations = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/destinations/`);
+      const response = await api.get(`${API_BASE_URL}/destinations/`);
       setDestinations(response.data);
     } catch (err) {
       console.error("Error fetching destinations:", err);
@@ -35,7 +35,7 @@ const ItineraryMasterManage = () => {
   const fetchItineraries = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/itinerary-masters/`);
+      const response = await api.get(`${API_BASE_URL}/itinerary-masters/`);
       setItineraries(response.data);
       setFilteredItineraries(response.data);
       setError("");
@@ -68,7 +68,7 @@ const ItineraryMasterManage = () => {
     if (window.confirm("Are you sure you want to delete this itinerary?")) {
       try {
         setLoading(true);
-        await axios.delete(`${API_BASE_URL}/itinerary-masters/${id}/`);
+        await api.delete(`${API_BASE_URL}/itinerary-masters/${id}/`);
         setMessage("Itinerary deleted successfully!");
         fetchItineraries();
       } catch (err) {

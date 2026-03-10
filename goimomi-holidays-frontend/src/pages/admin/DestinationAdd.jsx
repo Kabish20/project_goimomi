@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -86,7 +86,7 @@ const DestinationAdd = () => {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/destinations/`, formData, {
+      const response = await api.post(`${API_BASE_URL}/destinations/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

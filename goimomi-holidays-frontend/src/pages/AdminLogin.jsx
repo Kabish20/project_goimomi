@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { jwtDecode } from "jwt-decode";
 import { User, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
@@ -17,7 +17,7 @@ const AdminLogin = ({ isOpen, onClose }) => {
         setIsLoading(true);
 
         try {
-            const response = await axios.post("/api/token/", {
+            const response = await api.post("/api/token/", {
                 username,
                 password,
             });

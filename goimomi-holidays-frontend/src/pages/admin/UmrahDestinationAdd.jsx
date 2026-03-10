@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { ArrowLeft, Save, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -31,7 +31,7 @@ const UmrahDestinationAdd = () => {
         setStatusMessage({ text: "", type: "" });
 
         try {
-            const response = await axios.post("/api/umrah-destinations/", formData);
+            const response = await api.post("/api/umrah-destinations/", formData);
 
             if (action === "continue") {
                 navigate(`/admin/umrah-destinations/edit/${response.data.id}`);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useParams, useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -39,7 +39,7 @@ const ItineraryMasterEdit = () => {
     const fetchItinerary = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/itinerary-masters/${id}/`);
+            const response = await api.get(`${API_BASE_URL}/itinerary-masters/${id}/`);
             const data = response.data;
             setForm({
                 name: data.name,
@@ -60,7 +60,7 @@ const ItineraryMasterEdit = () => {
 
     const fetchDestinations = useCallback(async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/destinations/`);
+            const response = await api.get(`${API_BASE_URL}/destinations/`);
             setDestinations(response.data);
         } catch (err) {
             console.error("Error fetching destinations:", err);
@@ -107,7 +107,7 @@ const ItineraryMasterEdit = () => {
         }
 
         try {
-            const response = await axios.put(`${API_BASE_URL}/itinerary-masters/${id}/`, formData, {
+            const response = await api.put(`${API_BASE_URL}/itinerary-masters/${id}/`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },

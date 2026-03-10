@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 import PhoneInput from "react-phone-input-2";
@@ -92,7 +92,7 @@ const VisaApplication = () => {
             const fetchVisa = async () => {
                 try {
                     setIsLoadingVisa(true);
-                    const response = await axios.get(`/api/visas/${id}/`);
+                    const response = await api.get(`/api/visas/${id}/`);
                     setVisaData(response.data);
                 } catch (error) {
                     console.error("Error fetching visa:", error);
@@ -115,7 +115,7 @@ const VisaApplication = () => {
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await axios.get("/api/countries/");
+                const response = await api.get("/api/countries/");
                 setCountries(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error("Error fetching countries:", error);
@@ -421,7 +421,7 @@ const VisaApplication = () => {
                 });
             });
 
-            await axios.post("/api/visa-applications/", formData, {
+            await api.post("/api/visa-applications/", formData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 

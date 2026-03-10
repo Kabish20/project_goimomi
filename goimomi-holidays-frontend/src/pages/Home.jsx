@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { MapPin, Zap, ShieldCheck, Headphones } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 
@@ -187,11 +187,11 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        // const destRes = await axios.get("/api/destinations/?is_popular=true");
-        // setPopularDestinations(destRes.data);
+        const destRes = await api.get("/api/destinations/?is_popular=true");
+        setPopularDestinations(destRes.data);
         setLoadingDestinations(false);
 
-        const visaRes = await axios.get("/api/visas/?is_popular=true");
+        const visaRes = await api.get("/api/visas/?is_popular=true");
         setPopularVisas(visaRes.data);
         setLoadingVisas(false);
       } catch (err) {

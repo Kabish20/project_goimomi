@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api";
 import { ArrowLeft, Save, Plus, Globe, Flag, Map } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -35,7 +35,7 @@ const NationalityAdd = () => {
         setStatusMessage({ text: "", type: "" });
 
         try {
-            const response = await axios.post("/api/nationalities/", formData);
+            const response = await api.post("/api/nationalities/", formData);
 
             if (action === "continue") {
                 navigate(`/admin/nationalities/edit/${response.data.id}`);

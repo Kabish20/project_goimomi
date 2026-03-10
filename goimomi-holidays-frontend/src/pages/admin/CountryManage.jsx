@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, Globe, Flag } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -23,7 +23,7 @@ const CountryManage = () => {
     const fetchCountries = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/countries/`);
+            const response = await api.get(`${API_BASE_URL}/countries/`);
             setCountries(response.data);
             setFilteredCountries(response.data);
             setError("");
@@ -47,7 +47,7 @@ const CountryManage = () => {
         if (window.confirm("Are you sure you want to delete this country?")) {
             try {
                 setLoading(true);
-                await axios.delete(`${API_BASE_URL}/countries/${id}/`);
+                await api.delete(`${API_BASE_URL}/countries/${id}/`);
                 setMessage("Country deleted successfully!");
                 fetchCountries();
             } catch (err) {

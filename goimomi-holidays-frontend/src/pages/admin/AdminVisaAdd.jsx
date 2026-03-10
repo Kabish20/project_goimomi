@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../api";
 import { ArrowLeft, Save, Plus, ChevronDown, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -43,7 +43,7 @@ const AdminVisaAdd = () => {
 
     const fetchCountries = async () => {
         try {
-            const response = await axios.get("/api/countries/");
+            const response = await api.get("/api/countries/");
             setCountries(response.data);
         } catch (error) {
             console.error("Error fetching countries:", error);
@@ -52,7 +52,7 @@ const AdminVisaAdd = () => {
 
     const fetchSuppliers = async () => {
         try {
-            const response = await axios.get("/api/suppliers/");
+            const response = await api.get("/api/suppliers/");
             // Filter suppliers who provide Visa services
             const visaSuppliers = response.data.filter(supplier =>
                 supplier.services && supplier.services.includes("Visa")
@@ -143,7 +143,7 @@ const AdminVisaAdd = () => {
             data.append("documents_required", documentsString);
             data.append("photography_required", photosString);
 
-            const response = await axios.post("/api/visas/", data, {
+            const response = await api.post("/api/visas/", data, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
