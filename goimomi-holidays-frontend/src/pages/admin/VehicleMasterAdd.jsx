@@ -112,10 +112,18 @@ const VehicleMasterAdd = () => {
 
     const fetchBrands = async () => {
         try {
+            console.log("Fetching vehicle brands...");
             const res = await api.get("/api/vehicle-brands/");
-            setBrands(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+            console.log("Vehicle brands response:", res.data);
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setBrands(data);
+            console.log(`Loaded ${data.length} brands`);
         } catch (err) {
             console.error("Error fetching brands:", err);
+            if (err.response) {
+                console.error("Response data:", err.response.data);
+                console.error("Response status:", err.response.status);
+            }
         }
     };
 

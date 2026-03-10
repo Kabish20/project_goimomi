@@ -1,16 +1,46 @@
+import json
+
+# Django Imports
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+
+# Rest Framework Imports
+from rest_framework import status, serializers
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import authentication_classes, permission_classes # Import decorators
-from rest_framework.permissions import AllowAny # Import AllowAny
-from django.contrib.auth import authenticate
-from .models import *
-from .serializers import *
-from django.core.mail import send_mail
-from django.conf import settings
+from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.permissions import AllowAny
 
+# Local App Imports
+from .models import (
+    HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, Destination,
+    StartingCity, ItineraryMaster, Nationality, UmrahDestination, Visa,
+    VisaApplication, VisaApplicant, VisaAdditionalDocument, Country,
+    Supplier, CruiseCalendar, HotelMaster, Airline, SightseeingMaster,
+    SightseeingImage, MealMaster, VehicleBrand, Accommodation,
+    AccommodationImage, RoomType, VehicleMaster, DriverMaster,
+    VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
+    CancellationPolicy
+)
+from .serializers import (
+    HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
+    HolidayPackageSerializer, DestinationSerializer, StartingCitySerializer,
+    ItineraryMasterSerializer, UserSerializer, NationalitySerializer,
+    UmrahDestinationSerializer, VisaSerializer, VisaApplicationSerializer,
+    VisaApplicantSerializer, VisaAdditionalDocumentSerializer,
+    CountrySerializer, SupplierSerializer, CruiseCalendarSerializer,
+    HotelMasterSerializer, AirlineSerializer, SightseeingMasterSerializer,
+    MealMasterSerializer, VehicleBrandSerializer, AccommodationSerializer,
+    RoomTypeSerializer, VehicleMasterSerializer, DriverMasterSerializer,
+    VehicleRateCardSerializer, PickupPointMasterSerializer,
+    CabBookingSerializer, CabAdditionalDocumentSerializer,
+    CancellationPolicySerializer
+)
 
 @authentication_classes([])
 @permission_classes([AllowAny])
@@ -74,8 +104,6 @@ class HolidayPackageViewSet(ModelViewSet):
         
         # In list view, we usually filter by is_active unless 'all=true' is passed
         if self.action == 'list' and not is_all:
-            from django.utils import timezone
-            import json
             today = timezone.now().date()
             
             # Filter by is_active first
@@ -152,7 +180,6 @@ class ItineraryMasterViewSet(ModelViewSet):
     pagination_class = None
 
 
-from django.contrib.auth.models import User
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
@@ -216,7 +243,6 @@ class VisaApplicationViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data
         applicants_json = data.get('applicants_data')
-        import json
         try:
             applicants_list = json.loads(applicants_json) if applicants_json else []
         except:
@@ -348,7 +374,6 @@ class SightseeingMasterViewSet(ModelViewSet):
         if not dest_id or dest_id == "":
             dest_name = data.get('city')
             if dest_name:
-                from .models import Destination
                 dest = Destination.objects.filter(name=dest_name).first()
                 if dest:
                     data['destination'] = dest.id
@@ -360,7 +385,6 @@ class SightseeingMasterViewSet(ModelViewSet):
         # Handle multiple images
         images = request.FILES.getlist('gallery_images')
         for img in images:
-            from .models import SightseeingImage
             SightseeingImage.objects.create(sightseeing=sightseeing, image=img)
             
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -373,7 +397,6 @@ class SightseeingMasterViewSet(ModelViewSet):
         if not dest_id or dest_id == "":
             dest_name = data.get('city')
             if dest_name:
-                from .models import Destination
                 dest = Destination.objects.filter(name=dest_name).first()
                 if dest:
                     data['destination'] = dest.id
@@ -387,7 +410,6 @@ class SightseeingMasterViewSet(ModelViewSet):
         if images:
             # Optionally clear existing gallery if needed
             # sightseeing.images.all().delete()
-            from .models import SightseeingImage
             for img in images:
                 SightseeingImage.objects.create(sightseeing=sightseeing, image=img)
 
@@ -401,11 +423,15 @@ class MealMasterViewSet(ModelViewSet):
     pagination_class = None
 
 class VehicleBrandViewSet(ModelViewSet):
-    authentication_classes = []
     permission_classes = [AllowAny]
     queryset = VehicleBrand.objects.all().order_by('name')
     serializer_class = VehicleBrandSerializer
     pagination_class = None
+
+    def list(self, request, *args, **kwargs):
+        # Health check log
+        print(f"INFO: VehicleBrand API accessed. Total brands: {self.get_queryset().count()}")
+        return super().list(request, *args, **kwargs)
 
 class AccommodationViewSet(ModelViewSet):
     authentication_classes = []
@@ -528,7 +554,6 @@ class CabBookingViewSet(ModelViewSet):
         # Handle removals
         remove_ids = request.data.get('remove_doc_ids')
         if remove_ids:
-            import json
             try:
                 ids = json.loads(remove_ids) if isinstance(remove_ids, str) else remove_ids
                 if ids:
@@ -565,7 +590,6 @@ class CabSearchAPI(APIView):
             return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            from django.utils import timezone
             p_date = timezone.datetime.strptime(pickup_date, '%Y-%m-%d').date()
         except:
             return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
@@ -624,8 +648,16 @@ class CabSearchAPI(APIView):
         for opt in available_options:
             name = opt['name']
             try:
-                price_val = float(opt['price'])
-                if name not in unique_options or price_val < float(unique_options[name]['price']):
+                # Ensure price is handled safely
+                raw_price = opt.get('price')
+                if raw_price is None or str(raw_price).strip() == "":
+                    price_val = 0.0
+                elif isinstance(raw_price, (int, float)):
+                    price_val = float(raw_price)
+                else:
+                    price_val = float(str(raw_price))
+                
+                if name not in unique_options or price_val < float(unique_options[name].get('price', float('inf'))):
                     unique_options[name] = opt
             except (ValueError, TypeError):
                 if name not in unique_options:

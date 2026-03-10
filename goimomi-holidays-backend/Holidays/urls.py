@@ -1,42 +1,42 @@
-from rest_framework.routers import SimpleRouter
+from rest_framework.routers import DefaultRouter
 from django.urls import path, include
-from .views import *
+from . import views
 
-router = SimpleRouter()
-router.register("holiday-form", HolidayEnquiryAPI)
-router.register("umrah-form", UmrahEnquiryAPI)
-router.register("enquiry-form", EnquiryAPI)
-router.register("packages", HolidayPackageViewSet)
-router.register("destinations", DestinationViewSet)
-router.register("starting-cities", StartingCityViewSet)
-router.register("itinerary-masters", ItineraryMasterViewSet)
-router.register("users", UserViewSet)
-router.register("nationalities", NationalityViewSet)
-router.register("umrah-destinations", UmrahDestinationViewSet)
-router.register("visas", VisaViewSet)
-router.register("visa-applications", VisaApplicationViewSet)
-router.register("visa-applicants", VisaApplicantViewSet)
-router.register("additional-documents", VisaAdditionalDocumentViewSet)
-router.register("countries", CountryViewSet)
-router.register("suppliers", SupplierViewSet)
-router.register("cruise-calendar", CruiseCalendarViewSet)
-router.register("hotel-masters", HotelMasterViewSet)
-router.register("airlines", AirlineViewSet)
-router.register("sightseeing-masters", SightseeingMasterViewSet)
-router.register("meal-masters", MealMasterViewSet)
-router.register("vehicle-brands", VehicleBrandViewSet)
-router.register("accommodations", AccommodationViewSet)
-router.register("room-types", RoomTypeViewSet)
-router.register("vehicle-masters", VehicleMasterViewSet)
-router.register("driver-masters", DriverMasterViewSet)
-router.register("vehicle-rate-cards", VehicleRateCardViewSet)
-router.register("pickup-point-masters", PickupPointMasterViewSet)
-router.register("cab-bookings", CabBookingViewSet)
-router.register("cab-additional-documents", CabAdditionalDocumentViewSet)
+router = DefaultRouter()
+router.register("holiday-form", views.HolidayEnquiryAPI, basename="holiday-enquiry")
+router.register("umrah-form", views.UmrahEnquiryAPI, basename="umrah-enquiry")
+router.register("enquiry-form", views.EnquiryAPI, basename="enquiry")
+router.register("packages", views.HolidayPackageViewSet, basename="package")
+router.register("destinations", views.DestinationViewSet, basename="destination")
+router.register("starting-cities", views.StartingCityViewSet, basename="starting-city")
+router.register("itinerary-masters", views.ItineraryMasterViewSet, basename="itinerary-master")
+router.register("users", views.UserViewSet, basename="user")
+router.register("nationalities", views.NationalityViewSet, basename="nationality")
+router.register("umrah-destinations", views.UmrahDestinationViewSet, basename="umrah-destination")
+router.register("visas", views.VisaViewSet, basename="visa")
+router.register("visa-applications", views.VisaApplicationViewSet, basename="visa-application")
+router.register("visa-applicants", views.VisaApplicantViewSet, basename="visa-applicant")
+router.register("additional-documents", views.VisaAdditionalDocumentViewSet, basename="additional-document")
+router.register("countries", views.CountryViewSet, basename="country")
+router.register("suppliers", views.SupplierViewSet, basename="supplier")
+router.register("cruise-calendar", views.CruiseCalendarViewSet, basename="cruise-calendar")
+router.register("hotel-masters", views.HotelMasterViewSet, basename="hotel-master")
+router.register("airlines", views.AirlineViewSet, basename="airline")
+router.register("sightseeing-masters", views.SightseeingMasterViewSet, basename="sightseeing-master")
+router.register("meal-masters", views.MealMasterViewSet, basename="meal-master")
+router.register("vehicle-brands", views.VehicleBrandViewSet, basename="vehiclebrand")
+router.register("accommodations", views.AccommodationViewSet, basename="accommodation")
+router.register("room-types", views.RoomTypeViewSet, basename="room-type")
+router.register("vehicle-masters", views.VehicleMasterViewSet, basename="vehicle-master")
+router.register("driver-masters", views.DriverMasterViewSet, basename="driver-master")
+router.register("vehicle-rate-cards", views.VehicleRateCardViewSet, basename="vehicle-rate-card")
+router.register("pickup-point-masters", views.PickupPointMasterViewSet, basename="pickup-point-master")
+router.register("cab-bookings", views.CabBookingViewSet, basename="cab-booking")
+router.register("cab-additional-documents", views.CabAdditionalDocumentViewSet, basename="cab-additional-document")
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('admin-login/', AdminLoginView.as_view(), name='admin-login'),
-    path('send-visa-details/', SendVisaDetailsAPI.as_view(), name='send-visa-details'),
-    path('cab-search/', CabSearchAPI.as_view(), name='cab-search'),
+    path('admin-login/', views.AdminLoginView.as_view(), name='admin-login'),
+    path('send-visa-details/', views.SendVisaDetailsAPI.as_view(), name='send-visa-details'),
+    path('cab-search/', views.CabSearchAPI.as_view(), name='cab-search'),
 ]

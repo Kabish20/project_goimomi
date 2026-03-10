@@ -442,12 +442,22 @@ const HolidayPackageAdd = () => {
 
   const fetchVehicleBrands = async () => {
     try {
+      console.log("Fetching vehicle brands in HolidayPackageAdd...");
       const response = await api.get(`${API_BASE_URL}/vehicle-brands/`);
+      console.log("Vehicle brands response (HolidayPackageAdd):", response.data);
       if (Array.isArray(response.data)) {
         setVehicleBrands(response.data);
+        console.log(`Loaded ${response.data.length} vehicle brands`);
+      } else if (response.data?.results) {
+        setVehicleBrands(response.data.results);
+        console.log(`Loaded ${response.data.results.length} vehicle brands (paginated)`);
       }
     } catch (err) {
       console.error("Error fetching vehicle brands:", err);
+      if (err.response) {
+        console.error("Status:", err.response.status);
+        console.error("Data:", err.response.data);
+      }
     }
   };
 
