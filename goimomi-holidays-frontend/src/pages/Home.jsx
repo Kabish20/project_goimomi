@@ -411,7 +411,7 @@ const Home = () => {
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div>
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starting from</p>
-                      <p className="text-2xl font-black text-[#14532d]">₹{item.selling_price}</p>
+                      <p className="text-2xl font-black text-[#14532d]">₹{Number(item.selling_price || 0).toLocaleString('en-IN')}</p>
                     </div>
                     <Link
                       to={`/visa/apply/${item.id}`}

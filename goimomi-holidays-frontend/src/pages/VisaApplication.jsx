@@ -1101,7 +1101,7 @@ const VisaApplication = () => {
                                     </div>
                                 )}
                             </div>
-                            <span className="text-2xl font-bold text-[#14532d]">₹{TOTAL_PRICE.toLocaleString()}</span>
+                            <span className="text-2xl font-bold text-[#14532d]">₹{TOTAL_PRICE.toLocaleString('en-IN')}</span>
                         </div>
                     </div>
 

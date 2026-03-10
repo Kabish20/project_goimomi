@@ -279,10 +279,10 @@ const HolidayDetails = () => {
             <p className="text-gray-400 text-[11px] font-medium uppercase tracking-wider leading-tight">Starts at<br />per person</p>
             <div className="text-right relative holiday-details-price-info">
               {pkg.price && (
-                <p className="line-through text-gray-400 text-xs">₹ {pkg.price.toLocaleString()}</p>
+                <p className="line-through text-gray-400 text-xs">₹ {Number(pkg.price || 0).toLocaleString('en-IN')}</p>
               )}
               <div className="flex items-center justify-end gap-1">
-                <p className="text-xl font-black text-gray-900">₹ {(pkg.Offer_price || 0).toLocaleString()}</p>
+                <p className="text-xl font-black text-gray-900">₹ {Number(pkg.Offer_price || 0).toLocaleString('en-IN')}</p>
                 <button
                   onClick={() => setPricePopupOpen(!pricePopupOpen)}
                   className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"

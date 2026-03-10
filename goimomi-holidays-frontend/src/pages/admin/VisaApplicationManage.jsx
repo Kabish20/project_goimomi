@@ -445,7 +445,7 @@ const VisaApplicationManage = () => {
                       </div>
                       <div>
                         <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Total Price</span>
-                        <span className="text-base font-bold text-[#14532d]">₹{selectedApplication.total_price}</span>
+                        <span className="text-base font-bold text-[#14532d]">₹{Number(selectedApplication.total_price || 0).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>

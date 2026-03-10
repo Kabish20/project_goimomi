@@ -225,7 +225,7 @@ const SightseeingMasterManage = () => {
                                                 <td className="px-6 py-4 text-right font-black text-gray-900 text-sm">
                                                     <div className="flex items-center justify-end gap-1 text-[#14532d]">
                                                         <IndianRupee size={11} strokeWidth={3} />
-                                                        <span>{Number(s.price || 0).toLocaleString()}</span>
+                                                        <span>{Number(s.price || 0).toLocaleString('en-IN')}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">

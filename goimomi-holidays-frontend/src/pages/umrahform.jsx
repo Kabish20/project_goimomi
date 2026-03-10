@@ -640,6 +640,7 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
                 <input
                   type="text"
                   className="border rounded px-3 py-1.5 w-full mt-1 text-sm"
+                  placeholder="Budget (Ex: ₹30,000)"
                   value={budget}
                   onChange={(e) => setBudget(e.target.value)}
                 />

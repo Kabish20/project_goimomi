@@ -202,7 +202,7 @@ const HolidayPackageManage = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <p className="text-xs font-black text-gray-900 leading-none">₹{pkg.Offer_price?.toLocaleString() || pkg.offer_price?.toLocaleString() || pkg.price?.toLocaleString()}</p>
+                            <p className="text-xs font-black text-gray-900 leading-none">₹{Number(pkg.Offer_price || pkg.offer_price || pkg.price || 0).toLocaleString('en-IN')}</p>
                           </td>
                           <td className="px-6 py-4 text-center">
                             <button

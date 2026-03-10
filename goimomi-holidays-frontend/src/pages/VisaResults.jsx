@@ -167,7 +167,7 @@ const VisaResults = () => {
             text += `Country: ${visa.country_details?.name || visa.country}\n`;
             text += `Type: ${visa.visa_type}\n`;
             text += `Entry: ${visa.entry_type}\n`;
-            text += `Price: ₹${visa.selling_price?.toLocaleString()}\n`;
+            text += `Price: ₹${Number(visa.selling_price || 0).toLocaleString('en-IN')}\n`;
             text += `Processing Time: ${visa.processing_time}\n`;
             text += `Documents Required: ${visa.documents_required || "N/A"}\n`;
             text += `Photography Requirements: ${visa.photography_required || "N/A"}\n`;
@@ -234,7 +234,7 @@ Entry: ${emailModalVisa.entry_type}
 Validity: ${emailModalVisa.validity || "N/A"}
 Duration: ${emailModalVisa.duration || "N/A"}
 Processing Time: ${emailModalVisa.processing_time}
-Price: ₹${emailModalVisa.selling_price?.toLocaleString()}
+Price: ₹${Number(emailModalVisa.selling_price || 0).toLocaleString('en-IN')}
 -------------------------------------------------------------
 Thank you for choosing goimomi.com
 In case of any support :
@@ -485,7 +485,7 @@ Entry: ${visa.entry_type}
 Validity: ${visa.validity || "N/A"}
 Duration: ${visa.duration || "N/A"}
 Processing Time: ${visa.processing_time}
-Price: ₹${visa.selling_price?.toLocaleString()}
+Price: ₹${Number(visa.selling_price || 0).toLocaleString('en-IN')}
 -------------------------------------------------------------
 Thank you for choosing goimomi.com
 In case of any support :
@@ -673,7 +673,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                             {/* Price and Action */}
                                             <div className="flex flex-row md:flex-col items-center md:items-end gap-4 min-w-[150px]">
                                                 <div className="flex items-center gap-1 relative price-info-container">
-                                                    <span className="text-xl font-bold text-gray-900">₹{visa.selling_price?.toLocaleString()}</span>
+                                                    <span className="text-xl font-bold text-gray-900">₹{Number(visa.selling_price || 0).toLocaleString('en-IN')}</span>
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -739,7 +739,7 @@ Duration: ${viewDetailsVisa.duration || "N/A"}
 Processing Time: ${viewDetailsVisa.processing_time}
 Documents Required: ${viewDetailsVisa.documents_required || "N/A"}
 Photography Requirements: ${viewDetailsVisa.photography_required || "N/A"}
-Price: ₹${viewDetailsVisa.selling_price?.toLocaleString()}
+Price: ₹${Number(viewDetailsVisa.selling_price || 0).toLocaleString('en-IN')}
 -------------------------------------------------------------
 Thank you for choosing goimomi.com
 In case of any support :
@@ -803,7 +803,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                         </div>
                                     )}
 
-                                    <p className="pt-1"><span className="font-bold">Price:</span> ₹{viewDetailsVisa.selling_price?.toLocaleString()}</p>
+                                    <p className="pt-1"><span className="font-bold">Price:</span> ₹{Number(viewDetailsVisa.selling_price || 0).toLocaleString('en-IN')}</p>
                                 </div>
                                 <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
                                 <p>Thank you for choosing goimomi.com</p>
@@ -928,7 +928,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                                 </div>
                                             )}
 
-                                            <p className="pt-1"><span className="font-bold">Price:</span> ₹{visa.selling_price?.toLocaleString()}</p>
+                                            <p className="pt-1"><span className="font-bold">Price:</span> ₹{Number(visa.selling_price || 0).toLocaleString('en-IN')}</p>
                                         </div>
                                     </div>
                                 ))}

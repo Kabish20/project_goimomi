@@ -215,7 +215,7 @@ const AdminVisaManage = () => {
                                                 <td className="px-6 py-3 text-xs font-bold text-gray-400">{v.entry_type}</td>
                                                 <td className="px-6 py-3 text-[10px] font-bold text-gray-400">{v.validity}</td>
                                                 <td className="px-6 py-3 text-xs font-black text-gray-900">
-                                                    ₹{v.selling_price}
+                                                    ₹{Number(v.selling_price || 0).toLocaleString('en-IN')}
                                                 </td>
                                                 <td className="px-6 py-3 text-center">
                                                     <button

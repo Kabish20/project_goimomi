@@ -129,7 +129,7 @@ const Holidays = () => {
     let text = `Hello, please find details with regards to your holiday query for:
 ${pkg.title}
 Duration: ${pkg.days} Days / ${pkg.days - 1} Nights
-Starting From: ₹ ${Number(pkg.Offer_price || 0).toLocaleString()}
+Starting From: ₹ ${Number(pkg.Offer_price || 0).toLocaleString('en-IN')}
 
 ${pkg.description ? `Description:\n${pkg.description}\n` : ""}
 Highlights:
@@ -643,7 +643,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 Budget
               </label>
               <span className="text-[10px] font-black text-[#14532d] bg-green-50 px-2 py-0.5 rounded-full border border-green-100">
-                ₹{budget[1].toLocaleString()}
+                ₹{Number(budget[1] || 0).toLocaleString('en-IN')}
               </span>
             </div>
             <div className="relative pt-3">
@@ -838,7 +838,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                       <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Starting from</p>
                       <div className="flex items-baseline gap-2 relative holiday-price-info-container">
                         <span className="text-xl font-black text-gray-900 leading-none">
-                          ₹ {Number(pkg.Offer_price || 0).toLocaleString()}
+                          ₹ {Number(pkg.Offer_price || 0).toLocaleString('en-IN')}
                         </span>
                         <button
                           onClick={(e) => {
@@ -868,7 +868,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
 
                         {Number(pkg.price) > Number(pkg.Offer_price) && (
                           <span className="text-gray-400 line-through text-sm">
-                            ₹ {Number(pkg.price || 0).toLocaleString()}
+                            ₹ {Number(pkg.price || 0).toLocaleString('en-IN')}
                           </span>
                         )}
                       </div>
@@ -933,7 +933,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 <p>Hello, please find details with regards to your holiday query for:</p>
                 <p className="font-bold text-[#14532d]">{viewDetailsPkg.title}</p>
                 <p>Duration: {viewDetailsPkg.days} Days / {viewDetailsPkg.days - 1} Nights</p>
-                <p>Starting From: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString()}</p>
+                <p>Starting From: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString('en-IN')}</p>
 
                 {viewDetailsPkg.description && (
                   <div className="mt-4">

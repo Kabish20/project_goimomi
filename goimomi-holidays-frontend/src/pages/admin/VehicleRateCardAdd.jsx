@@ -447,11 +447,16 @@ const VehicleRateCardAdd = () => {
                                                         {route.vehicles.map((rate, vIdx) => (
                                                             <td key={vIdx} className="p-1.5 bg-gray-50/20">
                                                                 <input
-                                                                    type="number"
+                                                                    type="text"
                                                                     className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d] disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                                     placeholder="0"
-                                                                    value={rate ?? ""}
-                                                                    onChange={(e) => handleVehicleRateChange(idx, vIdx, e.target.value)}
+                                                                    value={rate ? Number(rate.toString().replace(/,/g, '')).toLocaleString('en-IN') : ""}
+                                                                    onChange={(e) => {
+                                                                        const rawValue = e.target.value.replace(/,/g, '');
+                                                                        if (rawValue === "" || !isNaN(rawValue)) {
+                                                                            handleVehicleRateChange(idx, vIdx, rawValue);
+                                                                        }
+                                                                    }}
                                                                     disabled={!columnVehicles[vIdx]}
                                                                 />
                                                             </td>

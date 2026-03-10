@@ -682,11 +682,11 @@ const Cab = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-[11px] font-black">
                     <span className="text-gray-400 uppercase tracking-widest">Base Price</span>
-                    <span className="text-gray-900">${selectedVehicle?.price}</span>
+                    <span className="text-gray-900">₹{Number(selectedVehicle?.price || 0).toLocaleString('en-IN')}</span>
                   </div>
                   <div className="pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
                     <span className="text-xs font-black text-green-700 uppercase tracking-[0.1em]">Total Amount</span>
-                    <span className="text-lg font-black text-green-700">${selectedVehicle?.price}</span>
+                    <span className="text-lg font-black text-green-700">₹{Number(selectedVehicle?.price || 0).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
@@ -909,8 +909,8 @@ const Cab = () => {
                             <div className="text-right">
                               <span className="text-[8px] font-bold text-gray-300 uppercase tracking-widest block mb-0.5">Starting from</span>
                               <div className="flex items-baseline gap-0.5 text-[#14532d]">
-                                <span className="text-base font-black">$</span>
-                                <span className="text-3xl font-black tracking-tighter">{car.price}</span>
+                                <span className="text-base font-black">₹</span>
+                                <span className="text-3xl font-black tracking-tighter">{Number(car?.price || 0).toLocaleString('en-IN')}</span>
                               </div>
                             </div>
                             <button
