@@ -492,6 +492,59 @@ class CabBookingViewSet(ModelViewSet):
     serializer_class = CabBookingSerializer
     pagination_class = None
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+        
+        # Handle confirmation_doc if it's a file
+        confirmation_doc = request.FILES.get('confirmation_doc')
+        if confirmation_doc:
+            data['confirmation_doc'] = confirmation_doc
+        elif 'confirmation_doc' in request.data and not request.data.get('confirmation_doc'):
+            # If the field is present but empty/falsey, it means removal
+            data['confirmation_doc'] = None
+            
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        booking = serializer.save()
+
+        # Handle additional documents
+        docs_count = request.data.get('additional_docs_count', 0)
+        try:
+            docs_count = int(docs_count)
+        except:
+            docs_count = 0
+            
+        for i in range(docs_count):
+            file = request.FILES.get(f'additional_doc_{i}')
+            name = request.data.get(f'additional_doc_name_{i}', f'Document {i+1}')
+            if file:
+                CabAdditionalDocument.objects.create(
+                    booking=booking,
+                    document_name=name,
+                    file=file
+                )
+        
+        # Handle removals
+        remove_ids = request.data.get('remove_doc_ids')
+        if remove_ids:
+            import json
+            try:
+                ids = json.loads(remove_ids) if isinstance(remove_ids, str) else remove_ids
+                if ids:
+                    CabAdditionalDocument.objects.filter(id__in=ids, booking=booking).delete()
+            except:
+                pass
+
+        return Response(serializer.data)
+
+class CabAdditionalDocumentViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = CabAdditionalDocument.objects.all()
+    serializer_class = CabAdditionalDocumentSerializer
+    pagination_class = None
+
 class CabSearchAPI(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]

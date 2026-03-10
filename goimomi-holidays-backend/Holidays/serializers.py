@@ -5,7 +5,8 @@ from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, ItineraryDay,
     Inclusion, Exclusion, Highlight, Destination, StartingCity, PackageDestination,
     ItineraryMaster, Nationality, UmrahDestination, Visa, VisaApplication, VisaApplicant, Country, VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster, Airline, HolidayVehicle,
-    SightseeingMaster, MealMaster, CancellationPolicy, RoomType, VehicleMaster, PickupPointMaster
+    SightseeingMaster, MealMaster, CancellationPolicy, RoomType, VehicleMaster, PickupPointMaster,
+    CabBooking, CabAdditionalDocument
 )
 from . import models
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -607,7 +608,13 @@ class PickupPointMasterSerializer(serializers.ModelSerializer):
         model = PickupPointMaster
         fields = "__all__"
 
+class CabAdditionalDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.CabAdditionalDocument
+        fields = "__all__"
+
 class CabBookingSerializer(serializers.ModelSerializer):
+    additional_documents = CabAdditionalDocumentSerializer(many=True, read_only=True)
     class Meta:
         model = models.CabBooking
         fields = "__all__"

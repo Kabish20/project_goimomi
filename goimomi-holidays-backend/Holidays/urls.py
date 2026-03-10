@@ -32,6 +32,7 @@ router.register("driver-masters", DriverMasterViewSet)
 router.register("vehicle-rate-cards", VehicleRateCardViewSet)
 router.register("pickup-point-masters", PickupPointMasterViewSet)
 router.register("cab-bookings", CabBookingViewSet)
+router.register("cab-additional-documents", CabAdditionalDocumentViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

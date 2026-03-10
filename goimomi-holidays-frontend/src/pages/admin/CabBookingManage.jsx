@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, Pencil, X, Mail } from "lucide-react";
+import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, Pencil, X, Mail, Plus } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -15,6 +15,8 @@ const CabBookingManage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [drivers, setDrivers] = useState([]);
+    const [newAdditionalDocs, setNewAdditionalDocs] = useState([]);
+    const [docsToRemove, setDocsToRemove] = useState([]);
 
     const API_BASE_URL = "/api";
 
@@ -87,8 +89,43 @@ const CabBookingManage = () => {
         e.preventDefault();
         try {
             setIsSaving(true);
-            await axios.put(`${API_BASE_URL}/cab-bookings/${editingBooking.id}/`, editingBooking);
+            const formData = new FormData();
+            
+            // Append all fields from editingBooking
+            Object.keys(editingBooking).forEach(key => {
+                // Skip relationships that should be handled differently or already present as file objects
+                if (key === 'additional_documents' || key === 'confirmation_doc') return;
+                
+                if (key === 'confirmation_doc_file') {
+                    if (editingBooking[key]) formData.append('confirmation_doc', editingBooking[key]);
+                } else if (key === 'confirmation_doc') {
+                    if (!editingBooking[key]) formData.append('confirmation_doc', '');
+                } else if (editingBooking[key] !== null && editingBooking[key] !== undefined) {
+                    formData.append(key, editingBooking[key]);
+                }
+            });
+
+            // Append new additional documents
+            formData.append('additional_docs_count', newAdditionalDocs.length);
+            newAdditionalDocs.forEach((doc, index) => {
+                if (doc.file) {
+                    formData.append(`additional_doc_${index}`, doc.file);
+                    formData.append(`additional_doc_name_${index}`, doc.name || `Document ${index + 1}`);
+                }
+            });
+
+            // Append removal IDs
+            if (docsToRemove.length > 0) {
+                formData.append('remove_doc_ids', JSON.stringify(docsToRemove));
+            }
+
+            await axios.put(`${API_BASE_URL}/cab-bookings/${editingBooking.id}/`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
             setEditingBooking(null);
+            setNewAdditionalDocs([]);
+            setDocsToRemove([]);
             fetchBookings();
             alert("Booking updated successfully!");
         } catch (err) {
@@ -97,6 +134,24 @@ const CabBookingManage = () => {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const addAdditionalDoc = () => {
+        setNewAdditionalDocs([...newAdditionalDocs, { name: "", file: null }]);
+    };
+
+    const removeNewDoc = (index) => {
+        setNewAdditionalDocs(newAdditionalDocs.filter((_, i) => i !== index));
+    };
+
+    const updateNewDoc = (index, field, value) => {
+        const updated = [...newAdditionalDocs];
+        updated[index][field] = value;
+        setNewAdditionalDocs(updated);
+    };
+
+    const markForRemoval = (docId) => {
+        setDocsToRemove([...docsToRemove, docId]);
     };
 
     const handleEditChange = (e) => {
@@ -236,7 +291,11 @@ const CabBookingManage = () => {
                                                                 <Eye size={18} />
                                                             </button>
                                                             <button
-                                                                onClick={() => setEditingBooking({ ...booking })}
+                                                                onClick={() => {
+                                                                    setEditingBooking({ ...booking });
+                                                                    setNewAdditionalDocs([]);
+                                                                    setDocsToRemove([]);
+                                                                }}
                                                                 className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                                                 title="Edit Booking"
                                                             >
@@ -391,6 +450,37 @@ const CabBookingManage = () => {
                                             {selectedBooking.special_requirements || "No specific requirements."}
                                         </div>
                                     </div>
+
+                                    {/* Documents */}
+                                    {(selectedBooking.confirmation_doc || selectedBooking.additional_documents?.length > 0) && (
+                                        <div className="space-y-1.5 mt-4">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Booking Documents</p>
+                                            <div className="space-y-2">
+                                                {selectedBooking.confirmation_doc && (
+                                                    <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="bg-blue-100 p-1.5 rounded-lg text-blue-600">
+                                                                <Eye size={16} />
+                                                            </div>
+                                                            <span className="text-sm font-bold text-gray-700">Confirmation Voucher</span>
+                                                        </div>
+                                                        <a href={selectedBooking.confirmation_doc} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase text-blue-600 tracking-widest hover:underline">View File</a>
+                                                    </div>
+                                                )}
+                                                {selectedBooking.additional_documents?.map((doc) => (
+                                                    <div key={doc.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="bg-gray-100 p-1.5 rounded-lg text-gray-400">
+                                                                <Luggage size={16} />
+                                                            </div>
+                                                            <span className="text-sm font-bold text-gray-700">{doc.document_name}</span>
+                                                        </div>
+                                                        <a href={doc.file} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase text-[#14532d] tracking-widest hover:underline">View</a>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -702,6 +792,108 @@ const CabBookingManage = () => {
                                     </div>
                                 </div>
 
+                                {/* Document Upload */}
+                                <div className="space-y-2">
+                                    <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest border-b border-green-100 pb-0.5">Documents</p>
+                                    
+                                    {/* Main Confirmation Doc */}
+                                    <div className="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block tracking-tight">Main Confirmation Document</label>
+                                        <div className="flex flex-col gap-2">
+                                            <input
+                                                type="file"
+                                                onChange={(e) => setEditingBooking(prev => ({ ...prev, confirmation_doc_file: e.target.files[0] }))}
+                                                className="text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:bg-[#14532d] file:text-white hover:file:bg-[#0d2f1f] cursor-pointer"
+                                            />
+                                            {editingBooking.confirmation_doc && (
+                                                <div className="flex items-center gap-2">
+                                                    <a 
+                                                        href={editingBooking.confirmation_doc} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer" 
+                                                        className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1"
+                                                    >
+                                                        <Eye size={12} /> View Current Document
+                                                    </a>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => setEditingBooking(prev => ({ ...prev, confirmation_doc: null }))}
+                                                        className="text-[10px] text-red-500 font-bold hover:underline"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Existing Additional Documents */}
+                                    {editingBooking.additional_documents?.length > 0 && (
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-bold text-gray-500 uppercase tracking-tight">Existing Additional Documents</label>
+                                            <div className="grid grid-cols-1 gap-1.5">
+                                                {editingBooking.additional_documents.map((doc) => (
+                                                    !docsToRemove.includes(doc.id) && (
+                                                        <div key={doc.id} className="flex items-center justify-between bg-white px-3 py-1.5 rounded-lg border border-gray-100">
+                                                            <div className="flex items-center gap-2">
+                                                                <Luggage size={12} className="text-gray-400" />
+                                                                <span className="text-[10px] font-medium text-gray-700">{doc.document_name}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <a href={doc.file} target="_blank" rel="noopener noreferrer" className="text-[9px] text-blue-600 font-black uppercase tracking-widest hover:underline">View</a>
+                                                                <button 
+                                                                    type="button" 
+                                                                    onClick={() => markForRemoval(doc.id)}
+                                                                    className="text-red-500 hover:text-red-700 p-1"
+                                                                >
+                                                                    <Trash2 size={12} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* New Additional Documents */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-bold text-gray-500 uppercase tracking-tight">Upload Additional Documents</label>
+                                        <div className="space-y-2">
+                                            {newAdditionalDocs.map((doc, index) => (
+                                                <div key={index} className="flex gap-2 items-center bg-gray-50 p-2 rounded-xl border border-gray-100">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Document Name (e.g. Voucher)"
+                                                        value={doc.name}
+                                                        onChange={(e) => updateNewDoc(index, 'name', e.target.value)}
+                                                        className="flex-1 px-2 py-1 text-[10px] border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#14532d]/30"
+                                                    />
+                                                    <input
+                                                        type="file"
+                                                        onChange={(e) => updateNewDoc(index, 'file', e.target.files[0])}
+                                                        className="text-[10px] w-32"
+                                                    />
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => removeNewDoc(index)} 
+                                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={addAdditionalDoc}
+                                                className="text-[9px] font-black text-[#14532d] uppercase tracking-widest flex items-center gap-1.5 px-3 py-1.5 bg-green-50 rounded-lg hover:bg-green-100 transition-colors border border-dashed border-green-200"
+                                            >
+                                                <Plus size={12} /> Add New Document
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 {/* Special Requirements */}
                                 <div className="space-y-2">
                                     <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest border-b border-green-100 pb-0.5">Special Requirements</p>
