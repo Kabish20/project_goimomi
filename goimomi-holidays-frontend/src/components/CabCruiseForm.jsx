@@ -209,7 +209,7 @@ const CabCruiseForm = ({ isOpen, onClose, type, initialDescription = "" }) => {
                                             </svg>
                                             Processing...
                                         </div>
-                                    ) : 'Confirm Booking Enquiry'}
+                                    ) : 'Submit Enquiry'}
                                 </button>
                             </div>
                         </form>
