@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, Pencil, X, Mail, Plus } from "lucide-react";
+import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, Pencil, X, Mail, Plus, FileText } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -17,6 +17,9 @@ const CabBookingManage = () => {
     const [drivers, setDrivers] = useState([]);
     const [newAdditionalDocs, setNewAdditionalDocs] = useState([]);
     const [docsToRemove, setDocsToRemove] = useState([]);
+    const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
+    const [statusFilter, setStatusFilter] = useState("All");
+    const [invoiceSearch, setInvoiceSearch] = useState("");
 
     const API_BASE_URL = "/api";
 
@@ -54,16 +57,30 @@ const CabBookingManage = () => {
     };
 
     useEffect(() => {
-        const filtered = bookings.filter(booking =>
-            booking.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            booking.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            booking.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            booking.from_city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            booking.to_city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            booking.vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        let filtered = bookings.filter(booking => {
+            const matchesSearch =
+                booking.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                booking.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                booking.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                booking.from_city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                booking.to_city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                booking.vehicle_name?.toLowerCase().includes(searchTerm.toLowerCase());
+
+            const matchesStatus = statusFilter === "All" || booking.status === statusFilter;
+            const matchesInvoice = !invoiceSearch || booking.invoice_number?.toLowerCase().includes(invoiceSearch.toLowerCase());
+
+            return matchesSearch && matchesStatus && matchesInvoice;
+        });
+
+        // Sort by pickup_date
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.pickup_date);
+            const dateB = new Date(b.pickup_date);
+            return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+        });
+
         setFilteredBookings(filtered);
-    }, [searchTerm, bookings]);
+    }, [searchTerm, bookings, sortOrder, statusFilter, invoiceSearch]);
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this booking?")) {
@@ -90,17 +107,13 @@ const CabBookingManage = () => {
         try {
             setIsSaving(true);
             const formData = new FormData();
-            
+
             // Append all fields from editingBooking
             Object.keys(editingBooking).forEach(key => {
                 // Skip relationships that should be handled differently or already present as file objects
-                if (key === 'additional_documents' || key === 'confirmation_doc') return;
-                
-                if (key === 'confirmation_doc_file') {
-                    if (editingBooking[key]) formData.append('confirmation_doc', editingBooking[key]);
-                } else if (key === 'confirmation_doc') {
-                    if (!editingBooking[key]) formData.append('confirmation_doc', '');
-                } else if (editingBooking[key] !== null && editingBooking[key] !== undefined) {
+                if (key === 'additional_documents') return;
+
+                if (editingBooking[key] !== null && editingBooking[key] !== undefined) {
                     formData.append(key, editingBooking[key]);
                 }
             });
@@ -159,6 +172,22 @@ const CabBookingManage = () => {
         setEditingBooking(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleStatusUpdate = async (bookingId, newStatus) => {
+        try {
+            const formData = new FormData();
+            formData.append('status', newStatus);
+
+            const response = await api.put(`${API_BASE_URL}/cab-bookings/${bookingId}/`, formData);
+
+            // Update local state to reflect change immediately
+            setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b));
+            setFilteredBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b));
+        } catch (err) {
+            console.error("Error updating status:", err);
+            setError("Failed to update status. Please try again.");
+        }
+    };
+
     return (
         <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
@@ -184,8 +213,8 @@ const CabBookingManage = () => {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="mb-4">
-                        <div className="relative max-w-md">
+                    <div className="mb-4 flex flex-col md:flex-row gap-3">
+                        <div className="relative flex-1 max-w-md">
                             <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
                             <input
                                 type="text"
@@ -194,6 +223,29 @@ const CabBookingManage = () => {
                                 placeholder="Search by name, phone, or route..."
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm"
                             />
+                        </div>
+                        <div className="md:w-64 flex gap-2">
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-sm font-semibold text-gray-700"
+                            >
+                                <option value="All">All Status</option>
+                                <option value="Booking requested">Booking requested</option>
+                                <option value="Tentative Confirmation">Tentative Confirmation</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                            <div className="relative flex-1">
+                                <FileText size={16} className="absolute left-3 top-3 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={invoiceSearch}
+                                    onChange={(e) => setInvoiceSearch(e.target.value)}
+                                    placeholder="Invoice No..."
+                                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-sm"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -219,7 +271,17 @@ const CabBookingManage = () => {
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Guest</th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Route & Vehicle</th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Type & Time</th>
-                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Pickup Date</th>
+                                            <th
+                                                className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider cursor-pointer hover:bg-[#0d2f1f] transition-colors"
+                                                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                                            >
+                                                <div className="flex items-center gap-1">
+                                                    Pickup Date
+                                                    <span className="text-[8px] opacity-70">
+                                                        {sortOrder === "asc" ? "▲" : "▼"}
+                                                    </span>
+                                                </div>
+                                            </th>
                                             <th className="text-center py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Status</th>
                                             <th className="text-center py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Actions</th>
                                         </tr>
@@ -253,6 +315,11 @@ const CabBookingManage = () => {
                                                         <div className="text-[10px] text-[#14532d] font-black uppercase tracking-widest mt-0.5">
                                                             {booking.vehicle_name}
                                                         </div>
+                                                        {booking.driver && (
+                                                            <div className="mt-1 flex items-center gap-1 text-[9px] font-bold text-gray-500 italic">
+                                                                Driver: {booking.driver}
+                                                            </div>
+                                                        )}
                                                     </td>
                                                     <td className="py-2.5 px-4">
                                                         <div className={`text-[10px] font-black uppercase tracking-widest inline-block px-2 py-0.5 rounded-full ${booking.transfer_type === 'airport' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
@@ -273,12 +340,27 @@ const CabBookingManage = () => {
                                                         {formatDate(booking.pickup_date)}
                                                     </td>
                                                     <td className="py-2.5 px-4 text-center">
-                                                        <div className={`text-[10px] font-black uppercase tracking-widest inline-block px-2 py-1 rounded-full ${booking.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
-                                                            booking.status === 'Payment Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                                booking.status === 'Canceled' ? 'bg-red-100 text-red-700' :
-                                                                    'bg-blue-100 text-blue-700'
-                                                            }`}>
-                                                            {booking.status || 'Booking requested'}
+                                                        <div className="flex items-center gap-2 justify-center whitespace-nowrap">
+                                                            <select
+                                                                value={booking.status || 'Booking requested'}
+                                                                onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
+                                                                className={`text-[10px] font-black uppercase tracking-widest inline-block px-2 py-1 rounded-full cursor-pointer border-none outline-none appearance-none text-center ${booking.status === 'Tentative Confirmation' ? 'bg-green-100 text-green-700' :
+                                                                    booking.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                                        booking.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                                            'bg-blue-100 text-blue-700'
+                                                                    }`}
+                                                                style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
+                                                            >
+                                                                <option value="Booking requested" className="bg-white text-gray-900">Booking requested</option>
+                                                                <option value="Tentative Confirmation" className="bg-white text-gray-900">Tentative Confirmation</option>
+                                                                <option value="Completed" className="bg-white text-gray-900">Completed</option>
+                                                                <option value="Cancelled" className="bg-white text-gray-900">Cancelled</option>
+                                                            </select>
+                                                            {booking.invoice_number && (
+                                                                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-black uppercase tracking-normal rounded border border-emerald-100">
+                                                                    <FileText size={7} /> Invoice No: {booking.invoice_number}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </td>
                                                     <td className="py-2.5 px-4">
@@ -365,13 +447,25 @@ const CabBookingManage = () => {
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                                                 <p className="text-[10px] font-black text-gray-400 uppercase">Booking Status</p>
-                                                <div className={`mt-1 text-[10px] font-black uppercase tracking-widest inline-block px-2 py-0.5 rounded-md ${selectedBooking.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
-                                                    selectedBooking.status === 'Payment Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                        selectedBooking.status === 'Canceled' ? 'bg-red-100 text-red-700' :
-                                                            'bg-blue-100 text-blue-700'
-                                                    }`}>
-                                                    {selectedBooking.status || "Booking requested"}
-                                                </div>
+                                                <select
+                                                    value={selectedBooking.status || 'Booking requested'}
+                                                    onChange={(e) => {
+                                                        const newStatus = e.target.value;
+                                                        handleStatusUpdate(selectedBooking.id, newStatus);
+                                                        setSelectedBooking(prev => ({ ...prev, status: newStatus }));
+                                                    }}
+                                                    className={`mt-1 text-[10px] font-black uppercase tracking-widest inline-block px-2 py-0.5 rounded-md cursor-pointer border-none outline-none appearance-none ${selectedBooking.status === 'Tentative Confirmation' ? 'bg-green-100 text-green-700' :
+                                                        selectedBooking.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                            selectedBooking.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                                'bg-blue-100 text-blue-700'
+                                                        }`}
+                                                    style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
+                                                >
+                                                    <option value="Booking requested" className="bg-white text-gray-900">Booking requested</option>
+                                                    <option value="Tentative Confirmation" className="bg-white text-gray-900">Tentative Confirmation</option>
+                                                    <option value="Completed" className="bg-white text-gray-900">Completed</option>
+                                                    <option value="Cancelled" className="bg-white text-gray-900">Cancelled</option>
+                                                </select>
                                             </div>
                                             <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                                                 <p className="text-[10px] font-black text-gray-400 uppercase">Assigned Driver</p>
@@ -451,22 +545,21 @@ const CabBookingManage = () => {
                                         </div>
                                     </div>
 
+                                    {/* Invoice Info */}
+                                    {selectedBooking.invoice_number && (
+                                        <div className="space-y-1.5">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Invoice Details</p>
+                                            <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+                                                <p className="text-sm font-bold text-emerald-800">No: {selectedBooking.invoice_number}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Documents */}
-                                    {(selectedBooking.confirmation_doc || selectedBooking.additional_documents?.length > 0) && (
+                                    {selectedBooking.additional_documents?.length > 0 && (
                                         <div className="space-y-1.5 mt-4">
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Booking Documents</p>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Additional Documents</p>
                                             <div className="space-y-2">
-                                                {selectedBooking.confirmation_doc && (
-                                                    <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="bg-blue-100 p-1.5 rounded-lg text-blue-600">
-                                                                <Eye size={16} />
-                                                            </div>
-                                                            <span className="text-sm font-bold text-gray-700">Confirmation Voucher</span>
-                                                        </div>
-                                                        <a href={selectedBooking.confirmation_doc} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black uppercase text-blue-600 tracking-widest hover:underline">View File</a>
-                                                    </div>
-                                                )}
                                                 {selectedBooking.additional_documents?.map((doc) => (
                                                     <div key={doc.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100">
                                                         <div className="flex items-center gap-2">
@@ -774,13 +867,13 @@ const CabBookingManage = () => {
                                                 className="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none font-bold text-gray-700"
                                             >
                                                 <option value="Booking requested">Booking requested</option>
-                                                <option value="Payment Pending">Payment Pending</option>
-                                                <option value="Confirmed">Confirmed</option>
-                                                <option value="Canceled">Canceled</option>
+                                                <option value="Tentative Confirmation">Tentative Confirmation</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="Cancelled">Cancelled</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="text-[9px] font-bold text-gray-500 uppercase mb-0.5 block tracking-tight">Driver Assigned</label>
+                                            <label className="text-[9px] font-bold text-gray-500 uppercase mb-0.5 block tracking-tight">Assigned Driver</label>
                                             <SearchableSelect
                                                 options={drivers}
                                                 value={editingBooking.driver || ""}
@@ -795,35 +888,19 @@ const CabBookingManage = () => {
                                 {/* Document Upload */}
                                 <div className="space-y-2">
                                     <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest border-b border-green-100 pb-0.5">Documents</p>
-                                    
-                                    {/* Main Confirmation Doc */}
-                                    <div className="bg-gray-50 p-2 rounded-xl border border-gray-100">
-                                        <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block tracking-tight">Main Confirmation Document</label>
-                                        <div className="flex flex-col gap-2">
+
+                                    {/* Invoice Information */}
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div className="bg-gray-50 p-2 rounded-xl border border-gray-100">
+                                            <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block tracking-tight">Invoice Number</label>
                                             <input
-                                                type="file"
-                                                onChange={(e) => setEditingBooking(prev => ({ ...prev, confirmation_doc_file: e.target.files[0] }))}
-                                                className="text-[10px] text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[9px] file:font-black file:uppercase file:bg-[#14532d] file:text-white hover:file:bg-[#0d2f1f] cursor-pointer"
+                                                type="text"
+                                                name="invoice_number"
+                                                value={editingBooking.invoice_number || ""}
+                                                onChange={handleEditChange}
+                                                placeholder="Enter Invoice No."
+                                                className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
                                             />
-                                            {editingBooking.confirmation_doc && (
-                                                <div className="flex items-center gap-2">
-                                                    <a 
-                                                        href={editingBooking.confirmation_doc} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer" 
-                                                        className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1"
-                                                    >
-                                                        <Eye size={12} /> View Current Document
-                                                    </a>
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => setEditingBooking(prev => ({ ...prev, confirmation_doc: null }))}
-                                                        className="text-[10px] text-red-500 font-bold hover:underline"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
 
@@ -841,8 +918,8 @@ const CabBookingManage = () => {
                                                             </div>
                                                             <div className="flex items-center gap-3">
                                                                 <a href={doc.file} target="_blank" rel="noopener noreferrer" className="text-[9px] text-blue-600 font-black uppercase tracking-widest hover:underline">View</a>
-                                                                <button 
-                                                                    type="button" 
+                                                                <button
+                                                                    type="button"
                                                                     onClick={() => markForRemoval(doc.id)}
                                                                     className="text-red-500 hover:text-red-700 p-1"
                                                                 >
@@ -874,9 +951,9 @@ const CabBookingManage = () => {
                                                         onChange={(e) => updateNewDoc(index, 'file', e.target.files[0])}
                                                         className="text-[10px] w-32"
                                                     />
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={() => removeNewDoc(index)} 
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeNewDoc(index)}
                                                         className="text-red-500 hover:text-red-700 transition-colors"
                                                     >
                                                         <Trash2 size={14} />
@@ -893,7 +970,7 @@ const CabBookingManage = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 {/* Special Requirements */}
                                 <div className="space-y-2">
                                     <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest border-b border-green-100 pb-0.5">Special Requirements</p>

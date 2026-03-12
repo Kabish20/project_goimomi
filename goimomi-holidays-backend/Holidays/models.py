@@ -661,14 +661,14 @@ class CabBooking(models.Model):
         max_length=50, 
         choices=[
             ('Booking requested', 'Booking requested'),
-            ('Payment Pending', 'Payment Pending'),
-            ('Confirmed', 'Confirmed'),
-            ('Canceled', 'Canceled')
+            ('Tentative Confirmation', 'Tentative Confirmation'),
+            ('Completed', 'Completed'),
+            ('Cancelled', 'Cancelled')
         ], 
         default='Booking requested'
     )
     driver = models.CharField(max_length=255, blank=True, null=True)
-    confirmation_doc = models.FileField(upload_to='cab_bookings/', blank=True, null=True)
+    invoice_number = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

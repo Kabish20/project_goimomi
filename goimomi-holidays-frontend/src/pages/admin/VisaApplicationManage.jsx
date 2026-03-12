@@ -315,27 +315,27 @@ const VisaApplicationManage = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden relative">
         <AdminTopbar />
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar relative">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-semibold text-gray-800">Manage Visa Applications</h1>
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-lg font-bold text-gray-800 tracking-tight">Manage Visa Applications</h1>
             <button
               onClick={fetchApplications}
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+              className="bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition text-xs font-bold"
             >
               Refresh List
             </button>
           </div>
 
           {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
-              <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
+          <div className="mb-4">
+            <div className="relative max-w-xs">
+              <Search size={16} className="absolute left-3 top-2 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by country, visa, group name..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                placeholder="Search..."
+                className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white"
               />
             </div>
           </div>
@@ -358,12 +358,12 @@ const VisaApplicationManage = () => {
               <table className="w-full">
                 <thead className="bg-[#14532d] text-white">
                   <tr>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">ID</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Visa</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Type</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Dates</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Status</th>
-                    <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">ID</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Visa</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Type</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Dates</th>
+                    <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Status</th>
+                    <th className="text-center py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -376,27 +376,27 @@ const VisaApplicationManage = () => {
                   ) : (
                     filteredApplications.map((app) => (
                       <tr key={app.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-6 font-medium text-gray-900 border-r">#{app.id}</td>
-                        <td className="py-4 px-6 border-r">
-                          <div className="font-semibold text-gray-900">{app.visa_country}</div>
-                          <div className="text-xs text-gray-500">{app.visa_title}</div>
+                        <td className="py-2 px-4 font-medium text-gray-900 border-r text-xs">#{app.id}</td>
+                        <td className="py-2 px-4 border-r">
+                          <div className="font-bold text-gray-900 text-xs">{app.visa_country}</div>
+                          <div className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">{app.visa_title}</div>
                         </td>
-                        <td className="py-4 px-6 border-r">
-                          <div className="text-sm text-gray-900">{app.application_type}</div>
-                          {app.group_name && <div className="text-xs text-gray-500">Group: {app.group_name}</div>}
+                        <td className="py-2 px-4 border-r">
+                          <div className="text-[11px] font-medium text-gray-900">{app.application_type}</div>
+                          {app.group_name && <div className="text-[9px] text-gray-500 font-bold uppercase tracking-tighter">Grp: {app.group_name}</div>}
                         </td>
-                        <td className="py-4 px-6 border-r">
-                          <div className="flex flex-col gap-1 text-sm">
+                        <td className="py-2 px-4 border-r">
+                          <div className="flex flex-col gap-0.5 text-[10px] font-bold">
                             <span className="flex items-center gap-1 text-gray-600">
-                              <Calendar size={12} /> Dep: {formatDate(app.departure_date)}
+                              <Calendar size={10} /> {formatDate(app.departure_date)}
                             </span>
-                            <span className="flex items-center gap-1 text-gray-600">
-                              <Calendar size={12} /> Ret: {formatDate(app.return_date)}
+                            <span className="flex items-center gap-1 text-gray-600 border-t border-gray-100 pt-0.5 mt-0.5">
+                              <Calendar size={10} /> {formatDate(app.return_date)}
                             </span>
                           </div>
                         </td>
-                        <td className="py-4 px-6 border-r">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold
+                        <td className="py-2 px-4 border-r text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest
                             ${app.status === 'Approved' ? 'bg-green-100 text-green-800' :
                               app.status === 'Rejected' ? 'bg-red-100 text-red-800' :
                                 app.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
@@ -404,28 +404,28 @@ const VisaApplicationManage = () => {
                             {app.status}
                           </span>
                         </td>
-                        <td className="py-4 px-6 text-center">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="py-2 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => handleView(app)}
-                              className="text-emerald-600 hover:text-emerald-800 p-2 rounded-full hover:bg-emerald-50 transition-colors"
-                              title="View Details & Documents"
+                              className="text-emerald-600 hover:text-emerald-800 p-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+                              title="View"
                             >
-                              <Eye size={18} />
+                              <Eye size={16} />
                             </button>
                             <button
                               onClick={() => handleEdit(app.id)}
-                              className="text-amber-600 hover:text-amber-800 p-2 rounded-full hover:bg-amber-50 transition-colors"
-                              title="Edit Application"
+                              className="text-amber-600 hover:text-amber-800 p-1.5 rounded-lg hover:bg-amber-50 transition-colors"
+                              title="Edit"
                             >
-                              <Edit size={18} />
+                              <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(app.id)}
-                              className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors"
-                              title="Delete Application"
+                              className="text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                              title="Delete"
                             >
-                              <Trash2 size={18} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
@@ -455,22 +455,7 @@ const VisaApplicationManage = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-1 -ml-2 shrink-0">
-                  {!isEditingApp ? (
-                      <button onClick={handleEditAppStart} className="flex items-center gap-1 bg-green-50 text-[#14532d] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">
-                          <Edit size={14} /> Edit
-                      </button>
-                  ) : (
-                      <div className="flex gap-2">
-                          <button onClick={() => setIsEditingApp(false)} className="bg-gray-100 text-gray-600 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200">
-                              Cancel
-                          </button>
-                          <button onClick={handleUpdateApp} disabled={isUpdatingApp} className="flex items-center gap-1 bg-[#14532d] text-white px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-[#0f4a24]">
-                              <Save size={14} /> {isUpdatingApp ? "..." : "Save"}
-                          </button>
-                      </div>
-                  )}
-              </div>
+
 
               <button
                 onClick={closeModal}
@@ -490,62 +475,27 @@ const VisaApplicationManage = () => {
                     <div className="space-y-3">
                       <div>
                         <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Status</span>
-                        {isEditingApp ? (
-                            <select 
-                                name="status" 
-                                value={editAppForm.status || ""} 
-                                onChange={handleEditAppChange}
-                                className="w-full text-xs font-bold border border-gray-300 rounded px-2 py-1 outline-none focus:border-[#14532d]"
-                            >
-                                <option value="Processing">Processing</option>
-                                <option value="Approved">Approved</option>
-                                <option value="Rejected">Rejected</option>
-                            </select>
-                        ) : (
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedApplication.status === 'Approved' ? 'bg-green-100 text-green-800' : selectedApplication.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                              {selectedApplication.status}
-                            </span>
-                        )}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedApplication.status === 'Approved' ? 'bg-green-100 text-green-800' : selectedApplication.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          {selectedApplication.status}
+                        </span>
                       </div>
                       <div>
                         <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Total Price</span>
-                        {isEditingApp ? (
-                            <input 
-                                type="number" 
-                                name="total_price" 
-                                value={editAppForm.total_price || ""} 
-                                onChange={handleEditAppChange} 
-                                className="w-full text-sm font-bold text-[#14532d] border border-gray-300 rounded px-2 py-1 outline-none" 
-                            />
-                        ) : (
-                            <span className="text-base font-bold text-[#14532d]">₹{Number(selectedApplication.total_price || 0).toLocaleString('en-IN')}</span>
-                        )}
+                        <span className="text-base font-bold text-[#14532d]">₹{Number(selectedApplication.total_price || 0).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Departure</span>
-                          {isEditingApp ? (
-                              <input type="date" name="departure_date" value={editAppForm.departure_date || ""} onChange={handleEditAppChange} className="w-full text-[10px] font-medium border border-gray-300 rounded px-1 py-0.5" />
-                          ) : (
-                              <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.departure_date)}</span>
-                          )}
+                          <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.departure_date)}</span>
                         </div>
                         <div>
                           <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Return</span>
-                          {isEditingApp ? (
-                              <input type="date" name="return_date" value={editAppForm.return_date || ""} onChange={handleEditAppChange} className="w-full text-[10px] font-medium border border-gray-300 rounded px-1 py-0.5" />
-                          ) : (
-                              <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.return_date)}</span>
-                          )}
+                          <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.return_date)}</span>
                         </div>
                       </div>
                       <div>
                         <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Reference</span>
-                        {isEditingApp ? (
-                            <input type="text" name="internal_id" value={editAppForm.internal_id || ""} onChange={handleEditAppChange} className="w-full text-xs font-medium border border-gray-300 rounded px-2 py-1 outline-none" />
-                        ) : (
-                            <span className="text-xs font-medium text-gray-700">{selectedApplication.internal_id || 'N/A'}</span>
-                        )}
+                        <span className="text-xs font-medium text-gray-700">{selectedApplication.internal_id || 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -562,91 +512,27 @@ const VisaApplicationManage = () => {
                           </span>
                           {applicant.first_name} {applicant.last_name}
                         </h4>
-                        {editingApplicantId !== applicant.id ? (
-                          <button
-                            onClick={() => handleStartEditApplicant(applicant)}
-                            className="p-1 px-2 text-[10px] font-bold text-gray-400 hover:text-[#14532d] hover:bg-green-50 rounded-lg transition-colors flex items-center gap-1"
-                          >
-                            <Edit size={12} /> Edit
-                          </button>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={handleSaveApplicant}
-                              disabled={isUpdatingApplicant}
-                              className="px-2.5 py-1 bg-[#14532d] text-white text-[10px] font-bold rounded-lg hover:bg-[#0f4a24] disabled:opacity-50"
-                            >
-                              {isUpdatingApplicant ? "Wait..." : "Save"}
-                            </button>
-                            <button
-                              onClick={handleCancelEditApplicant}
-                              className="px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-lg hover:bg-gray-200"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
                       </div>
 
                       <div className="p-4">
-                        {editingApplicantId === applicant.id ? (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                            {[
-                              { label: 'First Name', name: 'first_name' },
-                              { label: 'Last Name', name: 'last_name' },
-                              { label: 'Passport', name: 'passport_number' },
-                              { label: 'Nationality', name: 'nationality' },
-                              { label: 'DOB', name: 'dob', type: 'date' },
-                              { label: 'Sex', name: 'sex', type: 'select', options: ['Male', 'Female', 'Other'] },
-                              { label: 'Marital', name: 'marital_status', type: 'select', options: ['Single', 'Married', 'Divorced', 'Widowed'] },
-                              { label: 'POB', name: 'place_of_birth' },
-                              { label: 'POI', name: 'place_of_issue' },
-                              { label: 'Issued', name: 'date_of_issue', type: 'date' },
-                              { label: 'Expiry', name: 'date_of_expiry', type: 'date' },
-                              { label: 'Phone', name: 'phone' },
-                            ].map((field) => (
-                              <div key={field.name} className="space-y-0.5">
-                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{field.label}</label>
-                                {field.type === 'select' ? (
-                                  <select
-                                    value={editApplicantData[field.name] || ''}
-                                    onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
-                                    className="w-full px-2 py-1 text-[10px] border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#14532d] outline-none"
-                                  >
-                                    <option value="">Select</option>
-                                    {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                  </select>
-                                ) : (
-                                  <input
-                                    type={field.type || 'text'}
-                                    value={editApplicantData[field.name] || ''}
-                                    onChange={(e) => setEditApplicantData({ ...editApplicantData, [field.name]: e.target.value })}
-                                    className="w-full px-2 py-1 text-[10px] border border-gray-200 rounded-lg focus:ring-1 focus:ring-[#14532d] outline-none"
-                                  />
-                                )}
-                              </div>
-                            ))}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 text-[11px] text-gray-600">
+                          <div>
+                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">Passport</span>
+                            <span className="font-semibold text-gray-900">{applicant.passport_number || 'N/A'}</span>
                           </div>
-                        ) : (
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4 text-[11px] text-gray-600">
-                            <div>
-                              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">Passport</span>
-                              <span className="font-semibold text-gray-900">{applicant.passport_number || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">Nationality</span>
-                              <span className="font-semibold text-gray-900">{applicant.nationality || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">DOB</span>
-                              <span className="font-semibold text-gray-900">{applicant.dob || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">Phone</span>
-                              <span className="font-semibold text-gray-900">{applicant.phone || 'N/A'}</span>
-                            </div>
+                          <div>
+                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">Nationality</span>
+                            <span className="font-semibold text-gray-900">{applicant.nationality || 'N/A'}</span>
                           </div>
-                        )}
+                          <div>
+                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">DOB</span>
+                            <span className="font-semibold text-gray-900">{applicant.dob || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">Phone</span>
+                            <span className="font-semibold text-gray-900">{applicant.phone || 'N/A'}</span>
+                          </div>
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {/* Passport Document */}

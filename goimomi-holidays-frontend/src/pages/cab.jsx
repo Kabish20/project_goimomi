@@ -695,7 +695,7 @@ const Cab = () => {
                       : "bg-green-600 text-white hover:bg-green-700"
                       } ${bookingStatus.loading ? "opacity-70 cursor-wait" : ""}`}
                   >
-                    {bookingStatus.loading ? "Processing..." : bookingStatus.success ? "Booking Confirmed!" : "Confirm & Pay Later"}
+                    {bookingStatus.loading ? "Processing..." : bookingStatus.success ? "Booking Requested!" : "Request Booking"}
                   </button>
                 </div>
                 {bookingStatus.error && (
