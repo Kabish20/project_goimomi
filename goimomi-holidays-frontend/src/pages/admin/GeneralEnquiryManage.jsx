@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { Search, Eye, Trash2, Mail, Phone, ArrowLeft, MapPin } from "lucide-react";
+import { Search, Eye, Trash2, Mail, Phone, ArrowLeft, MapPin, Edit, Save, X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,46 @@ const GeneralEnquiryManage = () => {
     const [error, setError] = useState("");
     const [selectedEnquiry, setSelectedEnquiry] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({});
+    const [isUpdating, setIsUpdating] = useState(false);
     const navigate = useNavigate();
+
+    const handleEditEnquiry = () => {
+        setIsEditing(true);
+        setEditForm({ ...selectedEnquiry });
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditForm({});
+    };
+
+    const handleEditChange = (e) => {
+        setEditForm({ ...editForm, [e.target.name]: e.target.value });
+    };
+
+    const handleUpdate = async () => {
+        try {
+            setIsUpdating(true);
+            await api.patch(`${API_BASE_URL}/enquiry-form/${selectedEnquiry.id}/`, editForm);
+            const updated = { ...selectedEnquiry, ...editForm };
+            setSelectedEnquiry(updated);
+            setFilteredEnquiries(filteredEnquiries.map(e => e.id === updated.id ? updated : e));
+            setEnquiries(enquiries.map(e => e.id === updated.id ? updated : e));
+            setIsEditing(false);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to update enquiry.");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setSelectedEnquiry(null);
+        setIsEditing(false);
+    };
 
     const API_BASE_URL = "/api";
 
@@ -198,19 +237,45 @@ const GeneralEnquiryManage = () => {
             {selectedEnquiry && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
-                            <div className="flex flex-col">
-                                <h2 className="text-lg font-black text-gray-900 leading-tight">{selectedEnquiry.name}</h2>
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-start bg-white sticky top-0 z-10 w-full overflow-hidden">
+                            <div className="flex flex-col flex-1 pl-2">
+                                {isEditing ? (
+                                    <input 
+                                        name="name" 
+                                        value={editForm.name || ""} 
+                                        onChange={handleEditChange} 
+                                        className="text-lg font-black text-gray-900 border border-gray-300 rounded px-2 py-1 focus:ring-[#14532d] outline-none max-w-[200px] mb-1" 
+                                    />
+                                ) : (
+                                    <h2 className="text-lg font-black text-gray-900 leading-tight truncate">{selectedEnquiry.name}</h2>
+                                )}
                                 <div className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] mt-0.5">
                                     <span className="bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-wider text-gray-500">General Enquiry</span>
                                 </div>
                             </div>
+                            
+                            <div className="flex items-center gap-2 mt-1 -ml-2 shrink-0">
+                                {!isEditing ? (
+                                    <button onClick={handleEditEnquiry} className="flex items-center gap-1 bg-green-50 text-[#14532d] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">
+                                        <Edit size={14} /> Edit
+                                    </button>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <button onClick={handleCancelEdit} className="bg-gray-100 text-gray-600 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200">
+                                            Cancel
+                                        </button>
+                                        <button onClick={handleUpdate} disabled={isUpdating} className="flex items-center gap-1 bg-[#14532d] text-white px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-[#0f4a24]">
+                                            <Save size={14} /> {isUpdating ? "..." : "Save"}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            
                             <button
-                                onClick={() => setSelectedEnquiry(null)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full"
+                                onClick={handleCloseModal}
+                                className="absolute right-5 top-5 text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full text-2xl leading-none"
                             >
-                                <Eye size={18} className="rotate-45" /> {/* Close icon fix or simple X */}
-                                <span className="text-xl">×</span>
+                                ×
                             </button>
                         </div>
 
@@ -223,14 +288,19 @@ const GeneralEnquiryManage = () => {
                                             <div className="bg-white p-1.5 rounded-lg shadow-sm">
                                                 <Phone size={14} className="text-[#14532d]" />
                                             </div>
-                                            <span className="font-bold text-gray-700 text-sm">{selectedEnquiry.phone}</span>
+                                            <span className="font-bold text-gray-700 text-sm w-full flex-1">
+                                                {isEditing ? <input name="phone" value={editForm.phone || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded px-2 py-1 font-normal text-xs" /> : selectedEnquiry.phone}
+                                            </span>
                                         </div>
-                                        {selectedEnquiry.email && (
+                                        {/* Show email field always if editing, else show if present */}
+                                        {(selectedEnquiry.email || isEditing) && (
                                             <div className="flex items-center gap-2.5 bg-gray-50/50 p-2 rounded-xl border border-gray-100 transition-colors">
                                                 <div className="bg-white p-1.5 rounded-lg shadow-sm">
                                                     <Mail size={14} className="text-[#14532d]" />
                                                 </div>
-                                                <span className="font-bold text-gray-700 truncate text-sm">{selectedEnquiry.email}</span>
+                                                <span className="font-bold text-gray-700 truncate text-sm w-full flex-1">
+                                                    {isEditing ? <input name="email" value={editForm.email || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded px-2 py-1 font-normal text-xs" /> : selectedEnquiry.email}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
@@ -239,7 +309,16 @@ const GeneralEnquiryManage = () => {
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Message / Purpose</p>
                                     <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100 text-gray-600 text-[13px] leading-relaxed min-h-[60px]">
-                                        {selectedEnquiry.purpose || "No details provided"}
+                                        {isEditing ? (
+                                            <textarea 
+                                                name="purpose" 
+                                                value={editForm.purpose || ""} 
+                                                onChange={handleEditChange} 
+                                                className="w-full text-xs border border-gray-300 rounded p-2 focus:ring-[#14532d] outline-none min-h-[80px]" 
+                                            />
+                                        ) : (
+                                            selectedEnquiry.purpose || "No details provided"
+                                        )}
                                     </div>
                                 </div>
 
@@ -251,7 +330,7 @@ const GeneralEnquiryManage = () => {
 
                         <div className="p-4 bg-gray-50 flex gap-2 border-t border-gray-100">
                             <button
-                                onClick={() => setSelectedEnquiry(null)}
+                                onClick={handleCloseModal}
                                 className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors"
                             >
                                 Close
@@ -259,7 +338,7 @@ const GeneralEnquiryManage = () => {
                             <button
                                 onClick={() => {
                                     handleDelete(selectedEnquiry.id);
-                                    setSelectedEnquiry(null);
+                                    handleCloseModal();
                                 }}
                                 className="flex-1 bg-red-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
                             >

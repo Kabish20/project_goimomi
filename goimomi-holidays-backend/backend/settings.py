@@ -175,13 +175,13 @@ SPECTACULAR_SETTINGS = {
 }
 
 # Email Settings
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'hello@goimomi.com'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = '' # Add your email here
-EMAIL_HOST_PASSWORD = '' # Add your app password here
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'hello@goimomi.com')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '') # Add your email to .env or here
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '') # Add your app password to .env or here
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),

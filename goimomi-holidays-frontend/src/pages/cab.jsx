@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy } from "lucide-react";
+import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle } from "lucide-react";
 import api from "../api";
 import SearchableSelect from "../components/admin/SearchableSelect";
 import CabCruiseForm from "../components/CabCruiseForm";
+import CabTermsModal from "../components/CabTermsModal";
+import CabPrivacyModal from "../components/CabPrivacyModal";
 import cabSearchBg from "../assets/Hero/cab_search_bg_v4.jpg";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -26,6 +28,8 @@ const Cab = () => {
   const [emailModalCar, setEmailModalCar] = useState(null);
   const [sharingEmail, setSharingEmail] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   // Form State
   const [bookingFormData, setBookingFormData] = useState({
@@ -38,9 +42,12 @@ const Cab = () => {
     luggageCount: "",
     flightNumber: "",
     terminal: "",
+    arrivalDate: "",
     arrivalTime: "",
+    departureDate: "",
     departureTime: "",
     pickupLocationDetails: "",
+    pickupDate: "",
     pickupTime: "",
     specialRequirements: ""
   });
@@ -77,10 +84,10 @@ const Cab = () => {
       transfer_type: transferType,
       flight_number: bookingFormData.flightNumber,
       terminal: bookingFormData.terminal,
-      arrival_time: bookingFormData.arrivalTime,
-      departure_time: bookingFormData.departureTime,
+      arrival_time: `${bookingFormData.arrivalDate || ""} ${bookingFormData.arrivalTime || ""}`.trim(),
+      departure_time: `${bookingFormData.departureDate || ""} ${bookingFormData.departureTime || ""}`.trim(),
       pickup_location_details: `Pickup: ${bookingFormData.pickupPoint}, Drop: ${bookingFormData.dropPoint}. ${bookingFormData.pickupLocationDetails}`,
-      pickup_time: bookingFormData.pickupTime,
+      pickup_time: `${bookingFormData.pickupDate || ""} ${bookingFormData.pickupTime || ""}`.trim(),
       special_requirements: bookingFormData.specialRequirements
     };
 
@@ -394,7 +401,7 @@ const Cab = () => {
                         >
                           <option value="">Select Pickup Point in {searchParams.fromName}</option>
                           {pickupPoints.filter(p => p.city_name === searchParams.fromName).map(p => (
-                            <option key={p.id} value={p.name}>{p.name}</option>
+                            <option key={p.id} value={p.name}>{p.name} ({p.city_name})</option>
                           ))}
                         </select>
                       </div>
@@ -410,7 +417,7 @@ const Cab = () => {
                         >
                           <option value="">Select Drop Point in {searchParams.toName}</option>
                           {pickupPoints.filter(p => p.city_name === searchParams.toName).map(p => (
-                            <option key={p.id} value={p.name}>{p.name}</option>
+                            <option key={p.id} value={p.name}>{p.name} ({p.city_name})</option>
                           ))}
                         </select>
                       </div>
@@ -559,21 +566,39 @@ const Cab = () => {
                             className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
                           />
                         </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Arrival Time</label>
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Arrival Date & Time</label>
                           <input
-                            type="time"
-                            value={bookingFormData.arrivalTime}
-                            onChange={(e) => setBookingFormData(prev => ({ ...prev, arrivalTime: e.target.value }))}
+                            type="datetime-local"
+                            value={(bookingFormData.arrivalDate && bookingFormData.arrivalTime) ? `${bookingFormData.arrivalDate}T${bookingFormData.arrivalTime}` : ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const [d, t] = val.split("T");
+                                setBookingFormData(prev => ({ ...prev, arrivalDate: d, arrivalTime: t || "" }));
+                              } else {
+                                setBookingFormData(prev => ({ ...prev, arrivalDate: '', arrivalTime: '' }));
+                              }
+                            }}
                             className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Departure Time</label>
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Departure Date & Time</label>
                           <input
-                            type="time"
-                            value={bookingFormData.departureTime}
-                            onChange={(e) => setBookingFormData(prev => ({ ...prev, departureTime: e.target.value }))}
+                            type="datetime-local"
+                            value={(bookingFormData.departureDate && bookingFormData.departureTime) ? `${bookingFormData.departureDate}T${bookingFormData.departureTime}` : ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const [d, t] = val.split("T");
+                                setBookingFormData(prev => ({ ...prev, departureDate: d, departureTime: t || "" }));
+                              } else {
+                                setBookingFormData(prev => ({ ...prev, departureDate: '', departureTime: '' }));
+                              }
+                            }}
                             className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
                           />
                         </div>
@@ -593,11 +618,19 @@ const Cab = () => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pickup Time</label>
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pickup Date & Time</label>
                           <input
-                            type="time"
-                            value={bookingFormData.pickupTime}
-                            onChange={(e) => setBookingFormData(prev => ({ ...prev, pickupTime: e.target.value }))}
+                            type="datetime-local"
+                            value={(bookingFormData.pickupDate && bookingFormData.pickupTime) ? `${bookingFormData.pickupDate}T${bookingFormData.pickupTime}` : ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const [d, t] = val.split("T");
+                                setBookingFormData(prev => ({ ...prev, pickupDate: d, pickupTime: t || "" }));
+                              } else {
+                                setBookingFormData(prev => ({ ...prev, pickupDate: '', pickupTime: '' }));
+                              }
+                            }}
                             className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
                           />
                         </div>
@@ -624,7 +657,7 @@ const Cab = () => {
                   <div className="flex gap-2">
                     <div className="w-4 h-4 rounded-full border border-green-300 flex items-center justify-center text-green-400 text-[9px] font-bold flex-shrink-0 mt-0.5">i</div>
                     <p className="text-[10px] font-bold text-gray-500 leading-tight">
-                      In case of flight delays or cancellations, kindly inform Leamigo Helpline to ensure timely updates.
+                      In case of flight delays or cancellations, kindly inform Goimomi Helpline to ensure timely updates.
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -646,10 +679,9 @@ const Cab = () => {
                   <span className="text-[10px] font-black">✓</span>
                 </div>
                 <p
-                  className="text-[11px] font-black text-gray-400 cursor-pointer select-none"
-                  onClick={() => setIsAgreed(!isAgreed)}
+                  className="text-[11px] font-black text-gray-400 select-none"
                 >
-                  By proceeding, I acknowledge that I have read and agree to the <span className="text-green-500 hover:underline">Terms & Conditions</span> and <span className="text-green-500 hover:underline">Privacy Policy</span>
+                  By proceeding, I acknowledge that I have read and agree to the <span className="text-green-500 hover:underline cursor-pointer" onClick={(e) => { e.stopPropagation(); setIsTermsOpen(true); }}>Terms & Conditions</span> and <span className="text-green-500 hover:underline cursor-pointer" onClick={(e) => { e.stopPropagation(); setIsPrivacyOpen(true); }}>Privacy Policy</span>
                 </p>
               </div>
 
@@ -672,9 +704,27 @@ const Cab = () => {
                   </p>
                 )}
                 {bookingStatus.success && (
-                  <p className="text-[10px] font-black text-green-500 uppercase tracking-widest">
-                    Your booking enquiry has been sent successfully!
-                  </p>
+                  <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl w-full max-w-sm flex flex-col items-center p-8 shadow-2xl relative">
+                      <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                        <CheckCircle size={40} className="text-green-500" />
+                      </div>
+                      <h2 className="text-2xl font-black text-gray-900 tracking-tight text-center mb-3">Thank You!</h2>
+                      <p className="text-sm font-bold text-gray-500 text-center mb-8 px-2 leading-relaxed">
+                        Your booking has been sent successfully. Our team will reach out to you shortly.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setBookingStatus({ loading: false, success: false, error: null });
+                          setIsBooking(false);
+                          window.scrollTo(0, 0);
+                        }}
+                        className="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-100 transition-all active:scale-95"
+                      >
+                        Back to Search
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -873,54 +923,54 @@ const Cab = () => {
                 ) : vehicles.length > 0 ? (
                   vehicles.map((car) => (
                     <div key={car.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow max-w-4xl mx-auto">
-                        {/* Share Bar - TOP */}
-                        <div className="bg-white border-b border-gray-100 flex items-center justify-end gap-3 px-3 py-1.5 rounded-t-xl">
-                          <div className="flex items-center gap-1.5 text-[#14532d] font-bold text-[9px] uppercase tracking-wider">
-                            <Share2 size={11} className="text-[#14532d]/70" />
-                            <span className="hidden sm:inline">Share By :</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const text = `Hello, please find details for the following cab transfer:\n\nVehicle: ${car.name}\nCategory: ${car.category}\nPassengers: ${car.passengers} Pax\nBags: ${car.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(car.price || 0).toLocaleString('en-IN')}\n\nFree cancellation till ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
-                                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                              }}
-                              className="flex items-center gap-1 text-[#14532d] hover:text-[#14532d]/80 font-bold text-[9px] md:text-[10px] transition-colors"
-                            >
-                              <MessageCircle size={12} />
-                              WhatsApp
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEmailModalCar(car);
-                                setSharingEmail("");
-                              }}
-                              className="flex items-center gap-1 text-[#14532d] hover:text-[#14532d]/80 font-bold text-[9px] md:text-[10px] transition-colors"
-                            >
-                              <Mail size={12} />
-                              Email
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setViewDetailsCar(car);
-                              }}
-                              className="flex items-center gap-1 text-yellow-500 hover:text-yellow-600 font-bold text-[9px] md:text-[10px] transition-colors"
-                            >
-                              <Eye size={12} />
-                              View
-                            </button>
-                          </div>
+                      {/* Share Bar - TOP */}
+                      <div className="bg-white border-b border-gray-100 flex items-center justify-end gap-3 px-3 py-1.5 rounded-t-xl">
+                        <div className="flex items-center gap-1.5 text-[#14532d] font-bold text-[9px] uppercase tracking-wider">
+                          <Share2 size={11} className="text-[#14532d]/70" />
+                          <span className="hidden sm:inline">Share By :</span>
                         </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const text = `Hello, please find details for the following cab transfer:\n\nVehicle: ${car.name}\nCategory: ${car.category}\nPassengers: ${car.passengers} Pax\nBags: ${car.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(car.price || 0).toLocaleString('en-IN')}\n\nFree cancellation till ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                              window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                            }}
+                            className="flex items-center gap-1 text-[#14532d] hover:text-[#14532d]/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                          >
+                            <MessageCircle size={12} />
+                            WhatsApp
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEmailModalCar(car);
+                              setSharingEmail("");
+                            }}
+                            className="flex items-center gap-1 text-[#14532d] hover:text-[#14532d]/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                          >
+                            <Mail size={12} />
+                            Email
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewDetailsCar(car);
+                            }}
+                            className="flex items-center gap-1 text-yellow-500 hover:text-yellow-600 font-bold text-[9px] md:text-[10px] transition-colors"
+                          >
+                            <Eye size={12} />
+                            View
+                          </button>
+                        </div>
+                      </div>
                       <div className="flex flex-col md:flex-row divide-y md:divide-y-0 divide-gray-100 h-auto md:h-36">
                         {/* Image */}
-                        <div className="md:w-[28%] relative overflow-hidden bg-white flex items-center justify-center h-48 md:h-full">
+                        <div className="md:w-[28%] relative overflow-hidden bg-white flex items-center justify-center h-48 md:h-full p-3">
                           <img
                             src={car.image}
                             alt={car.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover rounded-2xl"
                           />
                         </div>
 
@@ -948,33 +998,6 @@ const Cab = () => {
                               Free cancellation till {new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                             </div>
 
-                            {/* Pickup & Drop Points (Specific to Rate Card Route) */}
-                            {(car.pickup_point || car.drop_point) && (
-                              <div className="space-y-1.5 pt-1">
-                                {car.pickup_point && (
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 shrink-0">
-                                      <MapPin size={9} className="text-green-500" />
-                                      Pickup:
-                                    </span>
-                                    <span className="text-[9px] font-bold text-[#14532d] bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">
-                                      {car.pickup_point}
-                                    </span>
-                                  </div>
-                                )}
-                                {car.drop_point && (
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 shrink-0">
-                                      <MapPin size={9} className="text-red-400" />
-                                      Drop:
-                                    </span>
-                                    <span className="text-[9px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md">
-                                      {car.drop_point}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
                           </div>
 
                           {/* Price & Book */}
@@ -1018,7 +1041,7 @@ const Cab = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\n${viewDetailsCar.pickup_point ? `Pickup: ${viewDetailsCar.pickup_point}\n` : ""}${viewDetailsCar.drop_point ? `Drop: ${viewDetailsCar.drop_point}\n` : ""}Date: ${searchParams.pickupDate}\nPrice: ₹${Number(viewDetailsCar.price || 0).toLocaleString('en-IN')}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nPrice: ₹${Number(viewDetailsCar.price || 0).toLocaleString('en-IN')}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
                     navigator.clipboard.writeText(text);
                     alert("Details with price copied to clipboard!");
                   }}
@@ -1029,7 +1052,7 @@ const Cab = () => {
                 </button>
                 <button
                   onClick={() => {
-                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\n${viewDetailsCar.pickup_point ? `Pickup: ${viewDetailsCar.pickup_point}\n` : ""}${viewDetailsCar.drop_point ? `Drop: ${viewDetailsCar.drop_point}\n` : ""}Date: ${searchParams.pickupDate}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
                     navigator.clipboard.writeText(text);
                     alert("Details without price copied to clipboard!");
                   }}
@@ -1054,8 +1077,6 @@ const Cab = () => {
                   <p><span className="font-bold">Bags:</span> {viewDetailsCar.bags}</p>
                   <p><span className="font-bold">From:</span> {searchParams.fromName}</p>
                   <p><span className="font-bold">To:</span> {searchParams.toName}</p>
-                  {viewDetailsCar.pickup_point && <p><span className="font-bold">Pickup Point:</span> {viewDetailsCar.pickup_point}</p>}
-                  {viewDetailsCar.drop_point && <p><span className="font-bold">Drop Point:</span> {viewDetailsCar.drop_point}</p>}
                   <p><span className="font-bold">Date:</span> {searchParams.pickupDate}</p>
                   <p><span className="font-bold">Guests:</span> {searchParams.guests}</p>
                   <p><span className="font-bold">Price:</span> ₹{Number(viewDetailsCar.price || 0).toLocaleString('en-IN')}</p>
@@ -1136,6 +1157,9 @@ const Cab = () => {
         type="Cab"
         initialDescription={selectedCar}
       />
+
+      <CabTermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+      <CabPrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </div>
   );
 };

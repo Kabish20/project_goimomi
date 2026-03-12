@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { Search, Eye, Download, X, Calendar, User, Edit, Trash2, Upload, Plus } from "lucide-react";
+import { Search, Eye, Download, X, Calendar, User, Edit, Trash2, Upload, Plus, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -28,7 +28,12 @@ const VisaApplicationManage = () => {
   const [editingApplicantId, setEditingApplicantId] = useState(null);
   const [editApplicantData, setEditApplicantData] = useState({});
   const [isUpdatingApplicant, setIsUpdatingApplicant] = useState(false);
-  // uploadingDocFor removed - tracking is done via isUploading
+  
+  // Application editing states
+  const [isEditingApp, setIsEditingApp] = useState(false);
+  const [editAppForm, setEditAppForm] = useState({});
+  const [isUpdatingApp, setIsUpdatingApp] = useState(false);
+
   const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
@@ -87,6 +92,34 @@ const VisaApplicationManage = () => {
     setShowModal(false);
     setSelectedApplication(null);
     setEditingApplicantId(null);
+    setIsEditingApp(false);
+    setEditAppForm({});
+  };
+
+  const handleEditAppStart = () => {
+    setIsEditingApp(true);
+    setEditAppForm({ ...selectedApplication });
+  };
+
+  const handleEditAppChange = (e) => {
+    setEditAppForm({ ...editAppForm, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdateApp = async () => {
+    try {
+      setIsUpdatingApp(true);
+      await api.patch(`${API_BASE_URL}/visa-applications/${selectedApplication.id}/`, editAppForm);
+      const updated = { ...selectedApplication, ...editAppForm };
+      setSelectedApplication(updated);
+      setFilteredApplications(filteredApplications.map(e => e.id === updated.id ? updated : e));
+      setApplications(applications.map(e => e.id === updated.id ? updated : e));
+      setIsEditingApp(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update application.");
+    } finally {
+      setIsUpdatingApp(false);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -411,7 +444,7 @@ const VisaApplicationManage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+            <div className="p-5 border-b border-gray-100 flex justify-between items-start bg-white sticky top-0 z-10 w-full overflow-hidden">
               <div className="flex items-center gap-3">
                 <div className="bg-green-50 p-2.5 rounded-xl">
                   <User size={20} className="text-[#14532d]" />
@@ -421,9 +454,27 @@ const VisaApplicationManage = () => {
                   <p className="text-[10px] text-gray-500 uppercase font-black tracking-wider">{selectedApplication.visa_country} - {selectedApplication.visa_title}</p>
                 </div>
               </div>
+
+              <div className="flex items-center gap-2 mt-1 -ml-2 shrink-0">
+                  {!isEditingApp ? (
+                      <button onClick={handleEditAppStart} className="flex items-center gap-1 bg-green-50 text-[#14532d] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">
+                          <Edit size={14} /> Edit
+                      </button>
+                  ) : (
+                      <div className="flex gap-2">
+                          <button onClick={() => setIsEditingApp(false)} className="bg-gray-100 text-gray-600 px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200">
+                              Cancel
+                          </button>
+                          <button onClick={handleUpdateApp} disabled={isUpdatingApp} className="flex items-center gap-1 bg-[#14532d] text-white px-2 py-1.5 rounded-lg text-xs font-bold hover:bg-[#0f4a24]">
+                              <Save size={14} /> {isUpdatingApp ? "..." : "Save"}
+                          </button>
+                      </div>
+                  )}
+              </div>
+
               <button
                 onClick={closeModal}
-                className="p-1.5 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-colors"
+                className="p-1.5 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-colors absolute right-5 top-5"
               >
                 <X size={20} />
               </button>
@@ -439,27 +490,62 @@ const VisaApplicationManage = () => {
                     <div className="space-y-3">
                       <div>
                         <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Status</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedApplication.status === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                          {selectedApplication.status}
-                        </span>
+                        {isEditingApp ? (
+                            <select 
+                                name="status" 
+                                value={editAppForm.status || ""} 
+                                onChange={handleEditAppChange}
+                                className="w-full text-xs font-bold border border-gray-300 rounded px-2 py-1 outline-none focus:border-[#14532d]"
+                            >
+                                <option value="Processing">Processing</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        ) : (
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedApplication.status === 'Approved' ? 'bg-green-100 text-green-800' : selectedApplication.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                              {selectedApplication.status}
+                            </span>
+                        )}
                       </div>
                       <div>
                         <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Total Price</span>
-                        <span className="text-base font-bold text-[#14532d]">₹{Number(selectedApplication.total_price || 0).toLocaleString('en-IN')}</span>
+                        {isEditingApp ? (
+                            <input 
+                                type="number" 
+                                name="total_price" 
+                                value={editAppForm.total_price || ""} 
+                                onChange={handleEditAppChange} 
+                                className="w-full text-sm font-bold text-[#14532d] border border-gray-300 rounded px-2 py-1 outline-none" 
+                            />
+                        ) : (
+                            <span className="text-base font-bold text-[#14532d]">₹{Number(selectedApplication.total_price || 0).toLocaleString('en-IN')}</span>
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Departure</span>
-                          <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.departure_date)}</span>
+                          {isEditingApp ? (
+                              <input type="date" name="departure_date" value={editAppForm.departure_date || ""} onChange={handleEditAppChange} className="w-full text-[10px] font-medium border border-gray-300 rounded px-1 py-0.5" />
+                          ) : (
+                              <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.departure_date)}</span>
+                          )}
                         </div>
                         <div>
                           <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Return</span>
-                          <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.return_date)}</span>
+                          {isEditingApp ? (
+                              <input type="date" name="return_date" value={editAppForm.return_date || ""} onChange={handleEditAppChange} className="w-full text-[10px] font-medium border border-gray-300 rounded px-1 py-0.5" />
+                          ) : (
+                              <span className="text-xs font-medium text-gray-700">{formatDate(selectedApplication.return_date)}</span>
+                          )}
                         </div>
                       </div>
                       <div>
                         <span className="block text-[10px] text-gray-400 font-bold uppercase mb-0.5">Reference</span>
-                        <span className="text-xs font-medium text-gray-700">{selectedApplication.internal_id || 'N/A'}</span>
+                        {isEditingApp ? (
+                            <input type="text" name="internal_id" value={editAppForm.internal_id || ""} onChange={handleEditAppChange} className="w-full text-xs font-medium border border-gray-300 rounded px-2 py-1 outline-none" />
+                        ) : (
+                            <span className="text-xs font-medium text-gray-700">{selectedApplication.internal_id || 'N/A'}</span>
+                        )}
                       </div>
                     </div>
                   </div>

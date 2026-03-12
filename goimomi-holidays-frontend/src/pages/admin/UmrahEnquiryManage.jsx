@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { Search, Eye, Trash2, Mail, Phone, Calendar, MapPin } from "lucide-react";
+import { Search, Eye, Trash2, Mail, Phone, Calendar, MapPin, Edit, Save, X } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,46 @@ const UmrahEnquiryManage = () => {
   const [error, setError] = useState("");
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
+
+  const handleEditEnquiry = () => {
+    setIsEditing(true);
+    setEditForm({ ...selectedEnquiry });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditForm({});
+  };
+
+  const handleEditChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdate = async () => {
+    try {
+      setIsUpdating(true);
+      await api.patch(`${API_BASE_URL}/umrah-form/${selectedEnquiry.id}/`, editForm);
+      const updated = { ...selectedEnquiry, ...editForm };
+      setSelectedEnquiry(updated);
+      setFilteredEnquiries(filteredEnquiries.map(e => e.id === updated.id ? updated : e));
+      setEnquiries(enquiries.map(e => e.id === updated.id ? updated : e));
+      setIsEditing(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update enquiry.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedEnquiry(null);
+    setIsEditing(false);
+  };
 
   const API_BASE_URL = "/api";
 
@@ -121,62 +160,65 @@ const UmrahEnquiryManage = () => {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-[#14532d] border-b border-[#14532d] text-white">
                     <tr>
-                      <th className="text-left py-4 px-6 font-bold text-gray-600 uppercase text-xs tracking-wider">Name</th>
-                      <th className="text-left py-4 px-6 font-bold text-gray-600 uppercase text-xs tracking-wider">Contact</th>
-                      <th className="text-left py-4 px-6 font-bold text-gray-600 uppercase text-xs tracking-wider">Type</th>
-                      <th className="text-left py-4 px-6 font-bold text-gray-600 uppercase text-xs tracking-wider">Date</th>
-                      <th className="text-center py-4 px-6 font-bold text-gray-600 uppercase text-xs tracking-wider">Actions</th>
+                      <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Name</th>
+                      <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Contact</th>
+                      <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Type</th>
+                      <th className="text-left py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Date</th>
+                      <th className="text-center py-2 px-4 font-bold uppercase text-[10px] tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredEnquiries.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center py-10 text-gray-500 font-medium">
+                        <td colSpan="5" className="text-center py-6 text-gray-500 text-xs font-medium">
                           No enquiries found.
                         </td>
                       </tr>
                     ) : (
                       filteredEnquiries.map((enquiry) => (
                         <tr key={enquiry.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-6 font-bold text-gray-900">{enquiry.full_name}</td>
-                          <td className="py-4 px-6">
+                          <td className="py-2 px-4 font-bold text-xs text-gray-900">{enquiry.full_name}</td>
+                          <td className="py-2 px-4">
                             <div className="space-y-1">
-                              <div className="flex items-center gap-2 text-xs text-gray-600 font-medium">
-                                <Mail size={12} className="text-[#14532d]" />
+                              <div className="flex items-center gap-2 text-[10px] text-gray-600 font-medium">
+                                <Mail size={10} className="text-[#14532d]" />
                                 {enquiry.email}
                               </div>
-                              <div className="flex items-center gap-2 text-xs text-gray-600 font-medium">
-                                <Phone size={12} className="text-[#14532d]" />
+                              <div className="flex items-center gap-2 text-[10px] text-gray-600 font-medium">
+                                <Phone size={10} className="text-[#14532d]" />
                                 {enquiry.phone}
                               </div>
                             </div>
                           </td>
-                          <td className="py-4 px-6">
-                            <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">
-                              {enquiry.package_type || "N/A"}
+                          <td className="py-2 px-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${enquiry.package_type ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                              {enquiry.package_type || "Customized"}
                             </span>
                           </td>
-                          <td className="py-4 px-6 text-sm font-medium text-gray-600">
-                            {formatDate(enquiry.travel_date)}
+                          <td className="py-2 px-4 text-xs font-medium text-gray-600 border-r">
+                            <div className="flex items-center gap-1.5">
+                                <Calendar size={12} className="text-gray-400" />
+                                {formatDate(enquiry.travel_date)}
+                            </div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-2 px-4 border-l">
                             <div className="flex justify-center gap-2">
-                              <button
+                                <button
                                 onClick={() => setSelectedEnquiry(enquiry)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="View Details"
-                              >
-                                <Eye size={18} />
-                              </button>
-                              <button
+                                className="flex items-center gap-1 bg-blue-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700"
+                                >
+                                <Eye size={12} />
+                                View
+                                </button>
+                                <button
                                 onClick={() => handleDelete(enquiry.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="Delete"
-                              >
-                                <Trash2 size={18} />
-                              </button>
+                                className="flex items-center gap-1 bg-red-600 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-red-700"
+                                >
+                                <Trash2 size={12} />
+                                Delete
+                                </button>
                             </div>
                           </td>
                         </tr>
@@ -194,17 +236,53 @@ const UmrahEnquiryManage = () => {
       {selectedEnquiry && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
-              <div className="flex flex-col">
-                <h2 className="text-lg font-black text-gray-900 leading-tight">{selectedEnquiry.full_name}</h2>
+            <div className="p-5 border-b border-gray-100 flex justify-between items-start bg-white sticky top-0 z-10">
+              <div className="flex flex-col flex-1 relative">
+                {isEditing ? (
+                  <input 
+                    name="full_name" 
+                    value={editForm.full_name || ""} 
+                    onChange={handleEditChange} 
+                    className="text-lg font-black text-gray-900 border border-gray-300 rounded px-2 py-1 focus:ring-[#14532d] outline-none max-w-sm mb-1" 
+                  />
+                ) : (
+                  <h2 className="text-lg font-black text-gray-900 leading-tight">{selectedEnquiry.full_name}</h2>
+                )}
                 <div className="flex items-center gap-1.5 text-[#14532d] font-bold text-[10px] mt-0.5">
                   <MapPin size={12} />
-                  <span>{selectedEnquiry.destination || "Umrah Package"}</span>
+                  {isEditing ? (
+                    <input 
+                      name="destination" 
+                      value={editForm.destination || ""} 
+                      onChange={handleEditChange} 
+                      className="border border-gray-300 rounded px-1 w-48 text-gray-700" 
+                    />
+                  ) : (
+                    <span>{selectedEnquiry.destination || "Umrah Package"}</span>
+                  )}
                 </div>
               </div>
+              
+              <div className="flex items-center gap-2 mt-1 mr-8">
+                {!isEditing ? (
+                  <button onClick={handleEditEnquiry} className="flex items-center gap-1 bg-green-50 text-[#14532d] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">
+                    <Edit size={14} /> Edit
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button onClick={handleCancelEdit} className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-200">
+                      Cancel
+                    </button>
+                    <button onClick={handleUpdate} disabled={isUpdating} className="flex items-center gap-1 bg-[#14532d] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-[#0f4a24]">
+                      <Save size={14} /> {isUpdating ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                )}
+              </div>
+              
               <button
-                onClick={() => setSelectedEnquiry(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full text-2xl leading-none"
+                onClick={handleCloseModal}
+                className="absolute right-5 top-5 text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full text-2xl leading-none"
               >
                 ×
               </button>
@@ -220,28 +298,40 @@ const UmrahEnquiryManage = () => {
                         <div className="bg-white p-1.5 rounded-lg shadow-sm">
                           <Phone size={14} className="text-[#14532d]" />
                         </div>
-                        <span className="font-bold text-gray-700">{selectedEnquiry.phone}</span>
+                        <span className="font-bold text-gray-700 w-full flex-1">
+                          {isEditing ? <input name="phone" value={editForm.phone || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded px-2 py-1 font-normal text-xs" /> : selectedEnquiry.phone}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2.5 bg-gray-50/50 p-2 rounded-xl border border-gray-100 group transition-colors text-sm">
                         <div className="bg-white p-1.5 rounded-lg shadow-sm">
                           <Mail size={14} className="text-[#14532d]" />
                         </div>
-                        <span className="font-bold text-gray-700 truncate">{selectedEnquiry.email}</span>
+                        <span className="font-bold text-gray-700 truncate w-full flex-1">
+                          {isEditing ? <input name="email" value={editForm.email || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded px-2 py-1 font-normal text-xs" /> : selectedEnquiry.email}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Travel Summary</p>
-                    <div className="bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 text-xs grid grid-cols-2 gap-y-1.5">
+                    <div className="bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 text-xs grid grid-cols-2 gap-y-1.5 items-center">
                       <span className="text-gray-500 font-bold">Departure:</span>
-                      <span className="font-bold text-gray-800 text-right">{formatDate(selectedEnquiry.travel_date)}</span>
+                      <span className="font-bold text-gray-800 text-right">
+                        {isEditing ? <input type="date" name="travel_date" value={editForm.travel_date || ""} onChange={handleEditChange} className="border border-gray-300 rounded px-1 py-0.5 text-xs w-full text-left" /> : formatDate(selectedEnquiry.travel_date)}
+                      </span>
                       <span className="text-gray-500 font-bold">Duration:</span>
-                      <span className="font-bold text-gray-800 text-right">{selectedEnquiry.duration || "N/A"} Days</span>
+                      <span className="font-bold text-gray-800 text-right flex items-center justify-end gap-1">
+                        {isEditing ? <input name="duration" value={editForm.duration || ""} onChange={handleEditChange} className="border border-gray-300 rounded px-1 py-0.5 text-xs w-full text-left" /> : `${selectedEnquiry.duration || "N/A"} Days`}
+                      </span>
                       <span className="text-gray-500 font-bold">Adults:</span>
-                      <span className="font-bold text-gray-800 text-right">{selectedEnquiry.adults || 0}</span>
+                      <span className="font-bold text-gray-800 text-right flex items-center justify-end">
+                        {isEditing ? <input type="number" name="adults" value={editForm.adults || 0} onChange={handleEditChange} className="border border-gray-300 rounded px-1 py-0.5 text-xs w-full text-left" /> : (selectedEnquiry.adults || 0)}
+                      </span>
                       <span className="text-gray-500 font-bold">Children:</span>
-                      <span className="font-bold text-gray-800 text-right">{selectedEnquiry.children || 0}</span>
+                      <span className="font-bold text-gray-800 text-right flex items-center justify-end">
+                        {isEditing ? <input type="number" name="children" value={editForm.children || 0} onChange={handleEditChange} className="border border-gray-300 rounded px-1 py-0.5 text-xs w-full text-left" /> : (selectedEnquiry.children || 0)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -250,14 +340,18 @@ const UmrahEnquiryManage = () => {
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Package Preferences</p>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
                     {[
-                      { label: "Phone Pref", value: selectedEnquiry.phone_preference },
-                      { label: "Makkah", value: selectedEnquiry.hotel_makkah },
-                      { label: "Madinah", value: selectedEnquiry.hotel_madinah },
-                      { label: "Transport", value: selectedEnquiry.transport_preference }
+                      { label: "Phone Pref", name: "phone_preference", value: isEditing ? editForm.phone_preference : selectedEnquiry.phone_preference },
+                      { label: "Makkah", name: "hotel_makkah", value: isEditing ? editForm.hotel_makkah : selectedEnquiry.hotel_makkah },
+                      { label: "Madinah", name: "hotel_madinah", value: isEditing ? editForm.hotel_madinah : selectedEnquiry.hotel_madinah },
+                      { label: "Transport", name: "transport_preference", value: isEditing ? editForm.transport_preference : selectedEnquiry.transport_preference }
                     ].map((item, i) => (
-                      <div key={i} className="bg-white border border-gray-100 p-2 rounded-lg shadow-sm text-center group hover:border-[#14532d]/20 transition-colors">
+                      <div key={i} className="bg-white border border-gray-100 p-2 rounded-lg shadow-sm text-center group hover:border-[#14532d]/20 transition-colors flex flex-col justify-center">
                         <p className="text-[8px] text-gray-400 uppercase font-black">{item.label}</p>
-                        <p className="text-[10px] font-bold text-gray-700 line-clamp-1">{item.value || "N/A"}</p>
+                        {isEditing ? (
+                          <input name={item.name} value={item.value || ""} onChange={handleEditChange} className="text-[10px] font-bold text-gray-700 w-full text-center border border-gray-300 rounded mt-1 py-0.5 outline-none focus:border-[#14532d]" />
+                        ) : (
+                          <p className="text-[10px] font-bold text-gray-700 line-clamp-1">{item.value || "N/A"}</p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -266,7 +360,16 @@ const UmrahEnquiryManage = () => {
                 <div className="space-y-2">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Message & Requests</p>
                   <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-100 text-gray-600 text-[13px] leading-relaxed min-h-[60px]">
-                    {selectedEnquiry.message || "No message provided."}
+                    {isEditing ? (
+                      <textarea 
+                        name="message" 
+                        value={editForm.message || ""} 
+                        onChange={handleEditChange} 
+                        className="w-full text-xs border border-gray-300 rounded p-2 focus:ring-[#14532d] outline-none min-h-[80px]" 
+                      />
+                    ) : (
+                      selectedEnquiry.message || "No message provided."
+                    )}
                   </div>
                 </div>
 
@@ -278,7 +381,7 @@ const UmrahEnquiryManage = () => {
 
             <div className="p-4 bg-gray-50 flex gap-2 border-t border-gray-100">
               <button
-                onClick={() => setSelectedEnquiry(null)}
+                onClick={handleCloseModal}
                 className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-100 transition-colors"
               >
                 Close
@@ -286,7 +389,7 @@ const UmrahEnquiryManage = () => {
               <button
                 onClick={() => {
                   handleDelete(selectedEnquiry.id);
-                  setSelectedEnquiry(null);
+                  handleCloseModal();
                 }}
                 className="flex-1 bg-red-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
               >

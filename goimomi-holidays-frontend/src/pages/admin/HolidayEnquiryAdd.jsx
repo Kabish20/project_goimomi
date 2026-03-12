@@ -136,7 +136,7 @@ const HolidayEnquiryAdd = () => {
             <AdminSidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="p-4">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                         {/* Header */}
                         <div className="p-4 border-b border-gray-100 bg-[#14532d] text-white">
