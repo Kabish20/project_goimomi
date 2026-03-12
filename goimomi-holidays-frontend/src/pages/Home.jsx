@@ -246,79 +246,47 @@ const Home = () => {
           Discover amazing places around the world
         </p>
 
-        {loadingDestinations ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#14532d]"></div>
-          </div>
-        ) : Array.isArray(popularDestinations) && popularDestinations.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-8 mt-10">
-            {popularDestinations.map((item, i) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <div className="relative h-40 overflow-hidden">
-                  <img
-                    src={getImageUrl(item.card_image) || maldives}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    alt={item.name}
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase text-[#14532d] shadow-sm">
-                    {item.country}
-                  </div>
-                </div>
-                <div className="p-3 space-y-2">
-                  <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-2 italic">
-                    {item.region ? `${item.region}, ` : ''}{item.country}
-                  </p>
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">Available Visas</span>
-                    <Link
-                      to={`/visa/results?citizenOf=India&goingTo=${encodeURIComponent(item.name)}`}
-                      className="bg-[#14532d] text-white px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#0f4a24] transition-all transform active:scale-95 shadow-md shadow-green-900/10"
-                    >
-                      Check Visa
-                    </Link>
-                  </div>
+        <div className="grid md:grid-cols-3 gap-8 mt-10">
+          {[
+            { img: thailandOffer, title: "Bangkok", region: "SOUTH EAST ASIA", country: "Thailand", category: "International" },
+            { img: keralaOffer, title: "Kerala", region: "SOUTH ASIA", country: "India", category: "Domestic" },
+            { img: bali, title: "Bali", region: "SOUTH EAST ASIA", country: "Indonesia", category: "International" },
+            { img: dubai, title: "Dubai", region: "MIDDLE EAST", country: "United Arab Emirates", category: "International" },
+            { img: singapore, title: "Singapore", region: "SOUTH EAST ASIA", country: "Singapore", category: "International" },
+            { img: paris, title: "Paris", region: "EUROPE", country: "France", category: "International" }
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            >
+              <div className="relative h-48 overflow-hidden">
+                <img
+                  src={item.img}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  alt={item.title}
+                />
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black uppercase text-[#14532d] shadow-sm tracking-widest">
+                  {item.country}
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-3 gap-8 mt-10">
-            {[
-              { img: maldives, title: "Maldives Luxury Escape", price: "₹29,500", destination: "Maldives" },
-              { img: dubai, title: "Dubai Desert & City Adventure", price: "₹35,000", destination: "Dubai" },
-              { img: singapore, title: "Singapore City & Island Getaway", price: "₹30,000", destination: "Singapore" },
-              { img: paris, title: "Paris Romantic Getaway", price: "₹45,000", destination: "Paris" },
-              { img: santorini, title: "Santorini Greek Island Paradise", price: "₹42,000", destination: "Santorini" },
-              { img: bali, title: "Bali Tropical Adventure", price: "₹28,000", destination: "Bali" }
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <div className="h-40 overflow-hidden">
-                  <img src={item.img} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
-                </div>
-                <div className="p-3 space-y-2">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="text-sm text-gray-600">Experience unparalleled beauty...</p>
-                  <p className="font-semibold text-lg text-[#14532d]">{item.price}</p>
+              <div className="p-5 space-y-1">
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">{item.title}</h3>
+                <p className="text-[13px] text-gray-500 italic mt-0 mb-2">
+                  {item.region}, {item.country}
+                </p>
+                <div className="pt-3">
                   <button
-                    onClick={() => navigate('/holidays?category=International', { state: { filter: item.destination } })}
-                    className="bg-[#14532d] text-white px-4 py-2 rounded-lg hover:bg-[#0f4022] transition-colors"
+                    onClick={() => navigate(`/holidays?category=${item.category}`, { state: { filter: item.title } })}
+                    className="w-full bg-[#14532d] text-white py-3 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-[#0f4a24] transition-all transform active:scale-95 shadow-lg shadow-green-900/10"
                   >
-                    View Details
+                    View Packages
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </section>
 
 

@@ -639,14 +639,16 @@ class CabSearchAPI(APIView):
                                     "passengers": vehicle.seating_capacity,
                                     "bags": vehicle.luggage_capacity,
                                     "price": price,
+                                    "pickup_point": route.get('start_from'),
+                                    "drop_point": route.get('drop_to'),
                                     "image": vehicle.photo.url if vehicle.photo else None,
                                     "description": vehicle.description
                                 })
         
-        # Deduplicate by name and pick lowest price if multiple exist
+        # Deduplicate by name and points to show all unique route options fed in
         unique_options = {}
         for opt in available_options:
-            name = opt['name']
+            key = f"{opt['name']}_{opt['pickup_point']}_{opt['drop_point']}"
             try:
                 # Ensure price is handled safely
                 raw_price = opt.get('price')
@@ -657,11 +659,11 @@ class CabSearchAPI(APIView):
                 else:
                     price_val = float(str(raw_price))
                 
-                if name not in unique_options or price_val < float(unique_options[name].get('price', float('inf'))):
-                    unique_options[name] = opt
+                if key not in unique_options or price_val < float(unique_options[key].get('price', float('inf'))):
+                    unique_options[key] = opt
             except (ValueError, TypeError):
-                if name not in unique_options:
-                    unique_options[name] = opt
+                if key not in unique_options:
+                    unique_options[key] = opt
 
         return Response(list(unique_options.values()))
 

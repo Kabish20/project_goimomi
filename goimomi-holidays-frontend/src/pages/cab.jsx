@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Calendar, Users, ArrowLeftRight } from "lucide-react";
+import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy } from "lucide-react";
 import api from "../api";
 import SearchableSelect from "../components/admin/SearchableSelect";
 import CabCruiseForm from "../components/CabCruiseForm";
@@ -22,6 +22,10 @@ const Cab = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [pickupPoints, setPickupPoints] = useState([]);
+  const [viewDetailsCar, setViewDetailsCar] = useState(null);
+  const [emailModalCar, setEmailModalCar] = useState(null);
+  const [sharingEmail, setSharingEmail] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Form State
   const [bookingFormData, setBookingFormData] = useState({
@@ -869,6 +873,47 @@ const Cab = () => {
                 ) : vehicles.length > 0 ? (
                   vehicles.map((car) => (
                     <div key={car.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow max-w-4xl mx-auto">
+                        {/* Share Bar - TOP */}
+                        <div className="bg-white border-b border-gray-100 flex items-center justify-end gap-3 px-3 py-1.5 rounded-t-xl">
+                          <div className="flex items-center gap-1.5 text-[#14532d] font-bold text-[9px] uppercase tracking-wider">
+                            <Share2 size={11} className="text-[#14532d]/70" />
+                            <span className="hidden sm:inline">Share By :</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const text = `Hello, please find details for the following cab transfer:\n\nVehicle: ${car.name}\nCategory: ${car.category}\nPassengers: ${car.passengers} Pax\nBags: ${car.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(car.price || 0).toLocaleString('en-IN')}\n\nFree cancellation till ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                              }}
+                              className="flex items-center gap-1 text-[#14532d] hover:text-[#14532d]/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                            >
+                              <MessageCircle size={12} />
+                              WhatsApp
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEmailModalCar(car);
+                                setSharingEmail("");
+                              }}
+                              className="flex items-center gap-1 text-[#14532d] hover:text-[#14532d]/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                            >
+                              <Mail size={12} />
+                              Email
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewDetailsCar(car);
+                              }}
+                              className="flex items-center gap-1 text-yellow-500 hover:text-yellow-600 font-bold text-[9px] md:text-[10px] transition-colors"
+                            >
+                              <Eye size={12} />
+                              View
+                            </button>
+                          </div>
+                        </div>
                       <div className="flex flex-col md:flex-row divide-y md:divide-y-0 divide-gray-100 h-auto md:h-36">
                         {/* Image */}
                         <div className="md:w-[28%] relative overflow-hidden bg-white flex items-center justify-center h-48 md:h-full">
@@ -902,6 +947,34 @@ const Cab = () => {
                               <div className="w-2.5 h-2.5 rounded-full bg-green-500 text-white flex items-center justify-center text-[5px] font-black">✓</div>
                               Free cancellation till {new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                             </div>
+
+                            {/* Pickup & Drop Points (Specific to Rate Card Route) */}
+                            {(car.pickup_point || car.drop_point) && (
+                              <div className="space-y-1.5 pt-1">
+                                {car.pickup_point && (
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 shrink-0">
+                                      <MapPin size={9} className="text-green-500" />
+                                      Pickup:
+                                    </span>
+                                    <span className="text-[9px] font-bold text-[#14532d] bg-green-50 border border-green-100 px-2 py-0.5 rounded-md">
+                                      {car.pickup_point}
+                                    </span>
+                                  </div>
+                                )}
+                                {car.drop_point && (
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1 shrink-0">
+                                      <MapPin size={9} className="text-red-400" />
+                                      Drop:
+                                    </span>
+                                    <span className="text-[9px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md">
+                                      {car.drop_point}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* Price & Book */}
@@ -936,6 +1009,123 @@ const Cab = () => {
           </div>
         </div>
       ) : null}
+
+      {/* View Details Modal */}
+      {viewDetailsCar && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsCar(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-4 py-3 border-b">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\n${viewDetailsCar.pickup_point ? `Pickup: ${viewDetailsCar.pickup_point}\n` : ""}${viewDetailsCar.drop_point ? `Drop: ${viewDetailsCar.drop_point}\n` : ""}Date: ${searchParams.pickupDate}\nPrice: ₹${Number(viewDetailsCar.price || 0).toLocaleString('en-IN')}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                    navigator.clipboard.writeText(text);
+                    alert("Details with price copied to clipboard!");
+                  }}
+                  className="flex items-center gap-1 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors border border-green-100"
+                >
+                  <Copy size={12} />
+                  With Price
+                </button>
+                <button
+                  onClick={() => {
+                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\n${viewDetailsCar.pickup_point ? `Pickup: ${viewDetailsCar.pickup_point}\n` : ""}${viewDetailsCar.drop_point ? `Drop: ${viewDetailsCar.drop_point}\n` : ""}Date: ${searchParams.pickupDate}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                    navigator.clipboard.writeText(text);
+                    alert("Details without price copied to clipboard!");
+                  }}
+                  className="flex items-center gap-1 text-[#14532d] font-bold text-[10px] hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors border border-green-100"
+                >
+                  <Copy size={12} />
+                  Without Price
+                </button>
+              </div>
+              <h3 className="text-base font-bold text-gray-800">View Details</h3>
+              <button onClick={() => setViewDetailsCar(null)} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={20} /></button>
+            </div>
+            <div className="p-5 max-h-[70vh] overflow-y-auto">
+              <div className="font-sans text-[12px] text-gray-700 leading-relaxed">
+                <p>Hello, please find the cab transfer details:</p>
+                <br />
+                <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
+                <div className="space-y-1.5 mt-2">
+                  <p><span className="font-bold">Vehicle:</span> {viewDetailsCar.name}</p>
+                  <p><span className="font-bold">Category:</span> {viewDetailsCar.category}</p>
+                  <p><span className="font-bold">Passengers:</span> {viewDetailsCar.passengers} Pax</p>
+                  <p><span className="font-bold">Bags:</span> {viewDetailsCar.bags}</p>
+                  <p><span className="font-bold">From:</span> {searchParams.fromName}</p>
+                  <p><span className="font-bold">To:</span> {searchParams.toName}</p>
+                  {viewDetailsCar.pickup_point && <p><span className="font-bold">Pickup Point:</span> {viewDetailsCar.pickup_point}</p>}
+                  {viewDetailsCar.drop_point && <p><span className="font-bold">Drop Point:</span> {viewDetailsCar.drop_point}</p>}
+                  <p><span className="font-bold">Date:</span> {searchParams.pickupDate}</p>
+                  <p><span className="font-bold">Guests:</span> {searchParams.guests}</p>
+                  <p><span className="font-bold">Price:</span> ₹{Number(viewDetailsCar.price || 0).toLocaleString('en-IN')}</p>
+                  <p><span className="font-bold">Free Cancellation till:</span> {new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                </div>
+                <p className="text-gray-400 text-[10px] mt-2">-------------------------------------------------------------</p>
+                <p className="mt-2">Thank you for choosing goimomi.com</p>
+                <p>In case of any support :</p>
+                <p>Contact : <span className="font-bold">+91 6382220393</span></p>
+                <p>Email : <span className="font-bold">hello@goimomi.com</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Share Modal */}
+      {emailModalCar && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setEmailModalCar(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-gray-900">Share via Email</h3>
+                <button onClick={() => setEmailModalCar(null)} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={20} /></button>
+              </div>
+              <p className="text-sm text-gray-500 mb-6">Enter the email address to share the cab details for <span className="font-bold text-gray-700">{emailModalCar.name}</span>.</p>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!sharingEmail || !emailModalCar) return;
+                  setSendingEmail(true);
+                  const subject = `Cab Transfer: ${emailModalCar.name} — ${searchParams.fromName} to ${searchParams.toName}`;
+                  const body = `Hello, please find the cab transfer details:\n\nVehicle: ${emailModalCar.name}\nCategory: ${emailModalCar.category}\nPassengers: ${emailModalCar.passengers} Pax\nBags: ${emailModalCar.bags}\nFrom: ${searchParams.fromName}\nTo: ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(emailModalCar.price || 0).toLocaleString('en-IN')}\nFree Cancellation till: ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                  try {
+                    await api.post('/api/send-visa-details/', { email: sharingEmail, subject, body });
+                    alert("Details sent successfully to " + sharingEmail);
+                  } catch {
+                    window.location.href = `mailto:${sharingEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  } finally {
+                    setSendingEmail(false);
+                    setEmailModalCar(null);
+                    setSharingEmail("");
+                  }
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="example@email.com"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#14532d]/20 focus:border-[#14532d] outline-none transition-all text-sm"
+                    value={sharingEmail}
+                    onChange={(e) => setSharingEmail(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={sendingEmail}
+                  className="w-full py-3 bg-[#14532d] hover:bg-[#0f4a24] text-white rounded-xl font-bold text-sm shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {sendingEmail ? (<><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sending...</>) : (<><Mail size={16} />Send Details</>)}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       <CabCruiseForm
         isOpen={isFormOpen}
