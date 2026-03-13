@@ -595,9 +595,19 @@ class RoomTypeSerializer(serializers.ModelSerializer):
 class VehicleMasterSerializer(serializers.ModelSerializer):
     brand_name = serializers.CharField(source='brand.name', read_only=True)
     driver_name = serializers.CharField(source='driver.name', read_only=True)
+    latest_rate_card_file = serializers.SerializerMethodField()
     class Meta:
         model = VehicleMaster
         fields = "__all__"
+
+    def get_latest_rate_card_file(self, obj):
+        latest_card = obj.rate_cards.order_by('-created_at').first()
+        if latest_card and latest_card.rate_card_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(latest_card.rate_card_file.url)
+            return latest_card.rate_card_file.url
+        return None
 
 class DriverMasterSerializer(serializers.ModelSerializer):
     class Meta:

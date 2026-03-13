@@ -6,7 +6,8 @@
     {
       "root": ".",
       "extraPaths": [
-        "."
+        ".",
+        "C:\\Users\\kabis\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages"
       ]
     }
   ]

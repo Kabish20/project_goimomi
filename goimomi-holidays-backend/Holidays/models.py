@@ -618,6 +618,7 @@ class VehicleRateCard(models.Model):
     # Structure: [{ "start_from": "...", "drop_to": "...", "v1": "", "v2": "", "v3": "", "v4": "" }]
     routes = models.JSONField(default=list)
     column_vehicles = models.JSONField(default=list, blank=True, null=True)
+    rate_card_file = models.FileField(upload_to="rate_cards/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

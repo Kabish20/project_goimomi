@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus, ArrowRight } from "lucide-react";
+import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus, ArrowRight, Check, Download, FileText, ChevronDown, Upload } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const FormLabel = ({ label, required, optional }) => (
     <div className="flex items-center gap-2 mb-1.5">
@@ -32,11 +34,13 @@ const VehicleMasterAdd = () => {
     const [destinations, setDestinations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
+    const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
     const MAX_VEHICLES = 10;
     const [vehicleCount, setVehicleCount] = useState(4);
     const [vehicleMasters, setVehicleMasters] = useState([]);
     const [columnVehicles, setColumnVehicles] = useState(Array(4).fill(""));
+    const [showErrors, setShowErrors] = useState(false);
     const [prevName, setPrevName] = useState("");
     const [formData, setFormData] = useState({
         name: "",
@@ -54,6 +58,7 @@ const VehicleMasterAdd = () => {
         name: "",
         validity_start: "",
         validity_end: "",
+        rate_card_file: null,
         routes: [{ start_city: "", start_from: "", drop_city: "", drop_to: "", vehicles: Array(4).fill("") }]
     });
 
@@ -170,31 +175,157 @@ const VehicleMasterAdd = () => {
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleRemovePhoto = () => {
+        setFormData(prev => ({ ...prev, photo: null }));
+        setPreview(null);
+    };
 
-        if (currentStep === 1) {
-            if (!formData.name || !formData.brand || !formData.seating_capacity || !formData.luggage_capacity) {
-                alert("Please fill in all required vehicle specifications.");
-                return;
-            }
-            setCurrentStep(2);
+    const saveVehicleOnly = async () => {
+        if (!formData.name || !formData.brand || !formData.seating_capacity || !formData.luggage_capacity) {
+            alert("Please fill in all required vehicle specifications.");
+            setCurrentStep(1);
             return;
         }
 
-        if (currentStep === 2) {
-            // Update first vehicle column if it was empty or matched the previous name of this vehicle
-            if (formData.name && (columnVehicles[0] === "" || columnVehicles[0] === prevName)) {
-                const newCols = [...columnVehicles];
-                newCols[0] = formData.name;
-                setColumnVehicles(newCols);
-                setPrevName(formData.name);
-            }
-            if (!rateCard.name || !rateCard.country || !rateCard.validity_start || !rateCard.validity_end) {
-                alert("Please provide Rate Card Name, Country, and Validity dates.");
-                return;
-            }
-            setCurrentStep(3);
+        setLoading(true);
+        try {
+            const fd = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (formData[key] !== null && formData[key] !== "") {
+                    fd.append(key, formData[key]);
+                }
+            });
+
+            await api.post("/api/vehicle-masters/", fd, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            alert("Vehicle registered successfully!");
+            navigate("/admin/vehicle-masters");
+        } catch (err) {
+            console.error("Error creating vehicle:", err);
+            alert("Failed to register vehicle.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFileExtraction = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Set the file state for backend upload
+        setRateCard(prev => ({ ...prev, rate_card_file: file }));
+
+        // If CSV, perform auto-extraction into the matrix
+        if (file.name.toLowerCase().endsWith('.csv')) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const content = evt.target.result;
+                    const lines = content.split('\n').filter(line => line.trim() !== "");
+                    if (lines.length < 2) { alert("Invalid CSV format."); return; }
+                    
+                    const parseLine = (line) => {
+                        const res = []; let cur = ''; let q = false;
+                        for (let c of line) {
+                            if (c === '"') q = !q;
+                            else if (c === ',' && !q) { res.push(cur.trim()); cur = ''; }
+                            else cur += c;
+                        }
+                        res.push(cur.trim()); return res;
+                    };
+
+                    const newRoutes = lines.slice(1).map(line => {
+                        const cols = parseLine(line);
+                        if (cols.length < 4) return null;
+                        const vRates = Array(vehicleCount).fill("");
+                        for (let i = 0; i < vehicleCount; i++) { 
+                            if (cols[4 + i] !== undefined) vRates[i] = cols[4 + i]; 
+                        }
+                        return { 
+                            start_city: cols[0], 
+                            start_from: cols[1], 
+                            drop_city: cols[2], 
+                            drop_to: cols[3], 
+                            vehicles: vRates 
+                        };
+                    }).filter(Boolean);
+
+                    if (newRoutes.length > 0) {
+                        setRateCard(prev => ({ ...prev, routes: newRoutes }));
+                        // Show errors immediately after import to highlight incomplete data
+                        setShowErrors(true);
+                    }
+                } catch (err) { 
+                    console.error("CSV Import Error:", err); 
+                }
+            };
+            reader.readAsText(file);
+        } else if (file.name.toLowerCase().endsWith('.pdf')) {
+            // PDF auto-extraction is more complex and usually requires pdf.js
+            // For now, we set the file and notify the user
+            console.log("PDF uploaded. Auto-extraction from PDF is currently limited. Data must be entered manually or via CSV.");
+        }
+        
+        // Clear input value so same file can be selected again if needed
+        e.target.value = '';
+    };
+
+    const downloadCSV = () => {
+        try {
+            const vehicles = columnVehicles || [];
+            const headers = ["Start City", "Start Point", "Drop City", "Drop Point", ...vehicles];
+            const rows = (rateCard.routes || []).map(r => [
+                `"${r.start_city || ""}"`, `"${r.start_from || ""}"`,
+                `"${r.drop_city || ""}"`, `"${r.drop_to || ""}"`,
+                ...vehicles.map((_, i) => r.vehicles[i] || "0")
+            ]);
+            const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${(rateCard.name || "rate_card").replace(/\s+/g, '_')}_matrix.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (err) { console.error("CSV Download Error:", err); }
+    };
+
+    const downloadPDF = () => {
+        try {
+            const doc = new jsPDF();
+            doc.setFillColor(20, 83, 45); doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255); doc.setFontSize(22);
+            doc.text((rateCard.name || "RATE CARD").toUpperCase(), 14, 25);
+            doc.setFontSize(10); doc.text(`${rateCard.country || "GLOBAL"} | VALIDITY: ${rateCard.validity_start || "N/A"} TO ${rateCard.validity_end || "N/A"}`, 14, 34);
+            const vehicles = columnVehicles || [];
+            const headers = [["START CITY", "START POINT", "DROP CITY", "DROP POINT", ...vehicles.map(v => v ? v.toUpperCase() : "VEHICLE")]];
+            const data = (rateCard.routes || []).map(r => [
+                r.start_city || "-", r.start_from || "-", r.drop_city || "-", r.drop_to || "-",
+                ...vehicles.map((_, i) => r.vehicles[i] || "0")
+            ]);
+            autoTable(doc, {
+                head: headers, body: data, startY: 50,
+                styles: { fontSize: 8, cellPadding: 3 },
+                headStyles: { fillColor: [20, 83, 45], textColor: 255 },
+                alternateRowStyles: { fillColor: [245, 247, 245] }
+            });
+            doc.save(`${(rateCard.name || "rate_card").replace(/\s+/g, '_')}_matrix.pdf`);
+        } catch (err) { console.error("PDF Download Error:", err); }
+    };
+
+    const performSave = async () => {
+        if (!formData.name || !formData.brand || !formData.seating_capacity || !formData.luggage_capacity) {
+            alert("Please fill in all required vehicle specifications.");
+            setCurrentStep(1);
+            return;
+        }
+
+        if (!rateCard.name || !rateCard.country || !rateCard.validity_start || !rateCard.validity_end) {
+            alert("Please provide Rate Card Name, Country, and Validity dates.");
+            setCurrentStep(2);
             return;
         }
 
@@ -213,26 +344,36 @@ const VehicleMasterAdd = () => {
             });
 
             // 2. Create Rate Card
-            // Assuming we want to create it as a separate master based on the payload structure
-            const payload = { ...rateCard };
-            delete payload.routes;
+                                    const rateCardFD = new FormData();
+                                    rateCardFD.append("name", rateCard.name);
+                                    rateCardFD.append("country", rateCard.country);
+                                    if (rateCard.supplier) rateCardFD.append("supplier", rateCard.supplier);
+                                    rateCardFD.append("validity_start", rateCard.validity_start);
+                                    rateCardFD.append("validity_end", rateCard.validity_end);
+                                    rateCardFD.append("vehicle", vehicleRes.data.id);
+                                    rateCardFD.append("column_vehicles", JSON.stringify(columnVehicles));
+                                    
+                                    const routes = rateCard.routes.map(route => {
+                                        const formattedRoute = {
+                                            start_city: route.start_city,
+                                            start_from: route.start_from,
+                                            drop_city: route.drop_city,
+                                            drop_to: route.drop_to
+                                        };
+                                        for (let i = 0; i < vehicleCount; i++) {
+                                            formattedRoute[`v${i + 1}`] = route.vehicles[i] ?? "";
+                                        }
+                                        return formattedRoute;
+                                    });
+                                    rateCardFD.append("routes", JSON.stringify(routes));
 
-            payload.vehicle = vehicleRes.data.id;
-            payload.routes = rateCard.routes.map(route => {
-                const formattedRoute = {
-                    start_city: route.start_city,
-                    start_from: route.start_from,
-                    drop_city: route.drop_city,
-                    drop_to: route.drop_to
-                };
-                for (let i = 0; i < vehicleCount; i++) {
-                    formattedRoute[`v${i + 1}`] = route.vehicles[i] ?? "";
-                }
-                return formattedRoute;
-            });
-            payload.column_vehicles = columnVehicles;
+                                    if (rateCard.rate_card_file) {
+                                        rateCardFD.append("rate_card_file", rateCard.rate_card_file);
+                                    }
 
-            await api.post("/api/vehicle-rate-cards/", payload);
+                                    await api.post("/api/vehicle-rate-cards/", rateCardFD, {
+                                        headers: { "Content-Type": "multipart/form-data" }
+                                    });
 
             alert("Vehicle Master and Rate Card created successfully!");
             navigate("/admin/vehicle-masters");
@@ -242,6 +383,48 @@ const VehicleMasterAdd = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSubmit = async (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+
+        if (currentStep === 1) {
+            if (!formData.name || !formData.brand || !formData.seating_capacity || !formData.luggage_capacity) {
+                alert("Please fill in all required vehicle specifications.");
+                return;
+            }
+            setCurrentStep(2);
+            return;
+        }
+
+        if (currentStep === 2) {
+            if (formData.name && (columnVehicles[0] === "" || columnVehicles[0] === prevName)) {
+                const newCols = [...columnVehicles];
+                newCols[0] = formData.name;
+                setColumnVehicles(newCols);
+                setPrevName(formData.name);
+            }
+            if (!rateCard.name || !rateCard.country || !rateCard.validity_start || !rateCard.validity_end) {
+                alert("Please provide Rate Card Name, Country, and Validity dates.");
+                return;
+            }
+            setCurrentStep(3);
+            return;
+        }
+
+        if (currentStep === 3) {
+            const hasEmpty = rateCard.routes.some(r => 
+                !r.start_city || !r.start_from || !r.drop_city || !r.drop_to || 
+                r.vehicles.some((v, idx) => columnVehicles[idx] && !v)
+            );
+            if (hasEmpty) {
+                setShowErrors(true);
+                alert("Please fill in all pricing matrix fields or remove unused rows.");
+                return;
+            }
+        }
+
+        performSave();
     };
 
     // Add a vehicle column
@@ -451,9 +634,23 @@ const VehicleMasterAdd = () => {
                                 {/* Right Side: Media */}
                                 <div className="space-y-6">
                                     <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 sticky top-6">
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                                            <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">Vehicle Photo</h2>
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+                                                <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">Vehicle Photo</h2>
+                                            </div>
+                                            {preview && (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={saveVehicleOnly}
+                                                        className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-[#14532d] hover:text-white transition-all shadow-sm"
+                                                        title="Quick Register Vehicle"
+                                                    >
+                                                        <Check size={14} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="aspect-[4/3] w-full bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d]/30 transition-colors">
@@ -469,12 +666,6 @@ const VehicleMasterAdd = () => {
                                                 </div>
                                             )}
                                             <input type="file" onChange={handlePhotoChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
-
-                                            {preview && (
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <span className="text-white text-[9px] font-black uppercase tracking-[0.2em] border border-white/50 px-4 py-2 rounded-full backdrop-blur-sm">Change Photo</span>
-                                                </div>
-                                            )}
                                         </div>
 
                                         <div className="mt-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
@@ -552,6 +743,8 @@ const VehicleMasterAdd = () => {
                                                 />
                                             </div>
                                         </div>
+
+
                                     </div>
 
                                 </section>
@@ -564,9 +757,52 @@ const VehicleMasterAdd = () => {
                                             <div className="w-1 h-4 bg-orange-500 rounded-full"></div>
                                             <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Route Matrix (Pricing)</h2>
                                         </div>
-                                        <button onClick={addRouteRow} className="flex items-center gap-1.5 bg-[#14532d]/5 text-[#14532d] px-3 py-1.5 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all">
-                                            <Plus size={12} /> Add New Route
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <input type="file" id="csvImportAdd" className="hidden" accept=".csv" onChange={handleImportCSV} />
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.preventDefault(); document.getElementById('csvImportAdd').click(); }}
+                                                className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Upload size={12} /> Import CSV
+                                            </button>
+                                            <div className="relative">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDownloadMenu(!showDownloadMenu); }}
+                                                    className="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                                >
+                                                    <Download size={12} /> Export Matrix
+                                                </button>
+                                                {showDownloadMenu && (
+                                                    <>
+                                                        <div className="fixed inset-0 z-40" onClick={() => setShowDownloadMenu(false)}></div>
+                                                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-2xl border border-gray-50 z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
+                                                            <div className="px-3 py-1 mb-1 border-b border-gray-50">
+                                                                <p className="text-[7px] font-black text-gray-400 uppercase tracking-widest">Pricing Actions</p>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => { e.preventDefault(); downloadPDF(); setShowDownloadMenu(false); }}
+                                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-[9px] font-bold text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                                                            >
+                                                                <Download size={12} className="text-purple-500" /> Download PDF
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => { e.preventDefault(); downloadCSV(); setShowDownloadMenu(false); }}
+                                                                className="w-full flex items-center gap-2.5 px-3 py-2 text-[9px] font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                                            >
+                                                                <FileText size={12} className="text-blue-500" /> Download CSV
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <button onClick={addRouteRow} className="flex items-center gap-1.5 bg-[#14532d]/5 text-[#14532d] px-3 py-1.5 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all">
+                                                <Plus size={12} /> Add New Route
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="p-2 md:p-3 overflow-x-auto">
@@ -629,6 +865,7 @@ const VehicleMasterAdd = () => {
                                                                         onChange={val => handleRouteParamChange(idx, 'start_city', val)}
                                                                         placeholder="Destination"
                                                                         size="compact"
+                                                                        error={showErrors && !route.start_city}
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -642,6 +879,7 @@ const VehicleMasterAdd = () => {
                                                                         onChange={val => handleRouteParamChange(idx, 'start_from', val)}
                                                                         placeholder="Pickup Point"
                                                                         size="compact"
+                                                                        error={showErrors && !route.start_from}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -655,6 +893,7 @@ const VehicleMasterAdd = () => {
                                                                         onChange={val => handleRouteParamChange(idx, 'drop_city', val)}
                                                                         placeholder="Destination"
                                                                         size="compact"
+                                                                        error={showErrors && !route.drop_city}
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -668,6 +907,7 @@ const VehicleMasterAdd = () => {
                                                                         onChange={val => handleRouteParamChange(idx, 'drop_to', val)}
                                                                         placeholder="Dropping Point"
                                                                         size="compact"
+                                                                        error={showErrors && !route.drop_to}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -676,7 +916,7 @@ const VehicleMasterAdd = () => {
                                                             <td key={vIndex} className="p-1.5 bg-gray-50/20">
                                                                 <input
                                                                     type="number"
-                                                                    className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d] disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                                    className={`w-full bg-white border ${showErrors && !route.vehicles[vIndex] ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-gray-100 focus:border-[#14532d]'} px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all`}
                                                                     placeholder="0"
                                                                     value={route.vehicles[vIndex] ?? ""}
                                                                     onChange={(e) => handleVehicleRateChange(idx, vIndex, e.target.value)}
@@ -698,6 +938,42 @@ const VehicleMasterAdd = () => {
                                         </p>
                                     </div>
                                 </section>
+
+                                <div className="mt-4 flex items-center gap-4 bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm max-w-lg">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1.5 px-1">
+                                            <div className="w-1 h-2.5 bg-[#14532d] rounded-full"></div>
+                                            <span className="text-[8px] font-black text-gray-900 uppercase tracking-widest">Rate Card Source</span>
+                                            <span className="text-[7px] text-gray-400 font-bold uppercase tracking-widest opacity-60">(PDF/CSV)</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 p-1.5 bg-gray-50/50 rounded-lg border-2 border-dashed border-gray-200 hover:border-[#14532d]/30 transition-all group relative">
+                                            <Upload size={11} className="text-gray-400 group-hover:text-[#14532d] ml-1" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[8px] font-black text-gray-900 uppercase truncate">
+                                                    {rateCard.rate_card_file ? rateCard.rate_card_file.name : "Select File"}
+                                                </p>
+                                            </div>
+                                            {rateCard.rate_card_file && (
+                                                <button 
+                                                    onClick={(e) => { 
+                                                        e.preventDefault(); 
+                                                        e.stopPropagation(); 
+                                                        setRateCard(prev => ({ ...prev, rate_card_file: null })); 
+                                                    }} 
+                                                    className="relative z-10 text-red-500 hover:text-red-700 p-1 bg-white rounded-md shadow-sm border border-red-50 group/remove"
+                                                >
+                                                    <Trash2 size={10} className="group-hover/remove:scale-110 transition-transform" />
+                                                </button>
+                                            )}
+                                            <input 
+                                                type="file" 
+                                                accept=".csv,.pdf" 
+                                                onChange={handleFileExtraction}
+                                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

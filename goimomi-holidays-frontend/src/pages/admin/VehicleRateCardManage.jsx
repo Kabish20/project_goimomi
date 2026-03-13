@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Plus, Search, Map, Calendar, Globe } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Map, Calendar, Globe, FileText, Download, Loader2, ChevronDown } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const VehicleRateCardManage = () => {
     const [rateCards, setRateCards] = useState([]);
@@ -12,6 +14,7 @@ const VehicleRateCardManage = () => {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [openDownloadId, setOpenDownloadId] = useState(null);
 
     const navigate = useNavigate();
     const API_BASE_URL = "/api";
@@ -62,6 +65,77 @@ const VehicleRateCardManage = () => {
             } finally {
                 setLoading(false);
             }
+        }
+    };
+
+    const downloadCSV = (card) => {
+        try {
+            const vehicles = card.column_vehicles || [];
+            const headers = ["Start City", "Start Point", "Drop City", "Drop Point", ...vehicles];
+            
+            const rows = (card.routes || []).map(r => [
+                `"${r.start_city || ""}"`,
+                `"${r.start_from || ""}"`,
+                `"${r.drop_city || ""}"`,
+                `"${r.drop_to || ""}"`,
+                ...vehicles.map((_, i) => r[`v${i+1}`] || "0")
+            ]);
+
+            const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${card.name.replace(/\s+/g, '_')}_rates.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (err) {
+            console.error("CSV Download Error:", err);
+            setError("Failed to generate CSV");
+        }
+    };
+
+    const downloadPDF = (card) => {
+        try {
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFillColor(20, 83, 45); // #14532d
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.text(card.name.toUpperCase(), 14, 25);
+            
+            doc.setFontSize(10);
+            doc.text(`${card.country} | VALIDITY: ${card.validity_start} TO ${card.validity_end}`, 14, 34);
+            
+            const vehicles = card.column_vehicles || [];
+            const headers = [["START CITY", "START POINT", "DROP CITY", "DROP POINT", ...vehicles.map(v => v.toUpperCase())]];
+            
+            const data = (card.routes || []).map(r => [
+                r.start_city || "-",
+                r.start_from || "-",
+                r.drop_city || "-",
+                r.drop_to || "-",
+                ...vehicles.map((_, i) => r[`v${i+1}`] || "0")
+            ]);
+
+            autoTable(doc, {
+                head: headers,
+                body: data,
+                startY: 50,
+                styles: { fontSize: 8, cellPadding: 3 },
+                headStyles: { fillStyle: 'F', fillColor: [20, 83, 45], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [245, 247, 245] },
+                margin: { top: 50 }
+            });
+
+            doc.save(`${card.name.replace(/\s+/g, '_')}_rates.pdf`);
+        } catch (err) {
+            console.error("PDF Download Error:", err);
+            setError("Failed to generate PDF");
         }
     };
 
@@ -183,6 +257,59 @@ const VehicleRateCardManage = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
+                                                        <div className="relative">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setOpenDownloadId(openDownloadId === c.id ? null : c.id);
+                                                                }}
+                                                                className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all shadow-sm active:scale-90 ${openDownloadId === c.id ? 'bg-[#14532d] text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                                                                title="Download Options"
+                                                            >
+                                                                <Download size={16} />
+                                                            </button>
+                                                            
+                                                            {openDownloadId === c.id && (
+                                                                <>
+                                                                    <div 
+                                                                        className="fixed inset-0 z-[60]" 
+                                                                        onClick={() => setOpenDownloadId(null)}
+                                                                    ></div>
+                                                                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-2xl shadow-2xl border border-gray-50 z-[70] overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200">
+                                                                        <div className="px-4 py-1 mb-1">
+                                                                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Export As</p>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => { downloadPDF(c); setOpenDownloadId(null); }}
+                                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-[10px] font-bold text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                                                                        >
+                                                                            <Download size={14} className="text-purple-500" />
+                                                                            PDF Document
+                                                                        </button>
+                                                                         <button
+                                                                            onClick={() => { downloadCSV(c); setOpenDownloadId(null); }}
+                                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-[10px] font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                                                        >
+                                                                            <FileText size={14} className="text-blue-500" />
+                                                                            CSV Spreadsheet
+                                                                        </button>
+                                                                        {c.rate_card_file && (
+                                                                            <a
+                                                                                href={c.rate_card_file}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-[10px] font-bold text-[#14532d] hover:bg-green-50 transition-colors border-t border-gray-50 mt-1"
+                                                                                onClick={() => setOpenDownloadId(null)}
+                                                                            >
+                                                                                <Upload size={14} className="text-[#14532d]" />
+                                                                                Uploaded File
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+
                                                         <button
                                                             onClick={() => handleEdit(c.id)}
                                                             className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm active:scale-90"
@@ -192,7 +319,7 @@ const VehicleRateCardManage = () => {
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(c.id)}
-                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-90"
+                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-90"
                                                             title="Delete"
                                                         >
                                                             <Trash2 size={16} />

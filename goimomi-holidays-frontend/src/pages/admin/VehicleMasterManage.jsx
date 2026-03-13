@@ -176,6 +176,17 @@ const VehicleMasterManage = () => {
                                                                 <span className="px-1.5 py-0.5 bg-green-50 text-[#14532d] text-[8px] font-black rounded border border-green-100/50 uppercase tracking-wider">
                                                                     {v.brand_name}
                                                                 </span>
+                                                                {v.latest_rate_card_file && (
+                                                                    <a 
+                                                                        href={v.latest_rate_card_file} 
+                                                                        target="_blank" 
+                                                                        rel="noreferrer"
+                                                                        className="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded border border-blue-100/50 uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        <FileText size={8} /> Rate Card
+                                                                    </a>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>

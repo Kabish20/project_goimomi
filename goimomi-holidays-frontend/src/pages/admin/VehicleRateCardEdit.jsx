@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, MapPin, ArrowRight } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, MapPin, ArrowRight, Upload, FileText } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
@@ -58,12 +58,15 @@ const VehicleRateCardEdit = () => {
     const [vehicleCount, setVehicleCount] = useState(4);
     const [vehicleMasters, setVehicleMasters] = useState([]);
     const [columnVehicles, setColumnVehicles] = useState(Array(4).fill(""));
+    const [showErrors, setShowErrors] = useState(false);
     const [rateCard, setRateCard] = useState({
         country: "",
         supplier: "",
         name: "",
         validity_start: "",
         validity_end: "",
+        rate_card_file: null,
+        existing_file: null,
         routes: [{ start_city: "", start_from: "", drop_city: "", drop_to: "", vehicles: Array(4).fill("") }]
     });
 
@@ -151,7 +154,7 @@ const VehicleRateCardEdit = () => {
                 drop_to: r.drop_to || "",
                 vehicles: routeToVehiclesArray(r, count)
             }));
-            setRateCard({ ...data, routes: normalizedRoutes });
+            setRateCard({ ...data, routes: normalizedRoutes, rate_card_file: null, existing_file: data.rate_card_file || null });
             setColumnVehicles(data.column_vehicles || Array(count).fill(""));
         } catch (err) {
             console.error("Error fetching rate card:", err);
@@ -181,6 +184,63 @@ const VehicleRateCardEdit = () => {
             ...prev,
             routes: prev.routes.map(r => ({ ...r, vehicles: r.vehicles.filter((_, i) => i !== index) }))
         }));
+    };
+
+    const handleFileExtraction = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Set the file state for backend upload
+        setRateCard(prev => ({ ...prev, rate_card_file: file }));
+
+        // If CSV, perform auto-extraction into the matrix
+        if (file.name.toLowerCase().endsWith('.csv')) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const content = evt.target.result;
+                    const lines = content.split('\n').filter(line => line.trim() !== "");
+                    if (lines.length < 2) { alert("Invalid CSV format."); return; }
+                    
+                    const parseLine = (line) => {
+                        const res = []; let cur = ''; let q = false;
+                        for (let c of line) {
+                            if (c === '"') q = !q;
+                            else if (c === ',' && !q) { res.push(cur.trim()); cur = ''; }
+                            else cur += c;
+                        }
+                        res.push(cur.trim()); return res;
+                    };
+
+                    const newRoutes = lines.slice(1).map(line => {
+                        const cols = parseLine(line);
+                        if (cols.length < 4) return null;
+                        const vRates = Array(vehicleCount).fill("");
+                        for (let i = 0; i < vehicleCount; i++) { 
+                            if (cols[4 + i] !== undefined) vRates[i] = cols[4 + i]; 
+                        }
+                        return { 
+                            start_city: cols[0], 
+                            start_from: cols[1], 
+                            drop_city: cols[2], 
+                            drop_to: cols[3], 
+                            vehicles: vRates 
+                        };
+                    }).filter(Boolean);
+
+                    if (newRoutes.length > 0) {
+                        setRateCard(prev => ({ ...prev, routes: newRoutes }));
+                        setShowErrors(true);
+                    }
+                } catch (err) { 
+                    console.error("CSV Import Error:", err); 
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // Clear input value so same file can be selected again
+        e.target.value = '';
     };
 
     const addRouteRow = () => {
@@ -235,29 +295,48 @@ const VehicleRateCardEdit = () => {
             return;
         }
 
+        if (currentStep === 2) {
+            const hasEmpty = rateCard.routes.some(r => 
+                !r.start_city || !r.start_from || !r.drop_city || !r.drop_to || 
+                r.vehicles.some((v, idx) => columnVehicles[idx] && !v)
+            );
+            if (hasEmpty) {
+                setShowErrors(true);
+                alert("Please fill in all pricing matrix fields or remove unused rows.");
+                return;
+            }
+        }
+
         setLoading(true);
         try {
-            // Construct a clean payload
-            const payload = {
-                name: rateCard.name,
-                country: rateCard.country,
-                supplier: typeof rateCard.supplier === 'object' ? rateCard.supplier?.id : rateCard.supplier,
-                vehicle: typeof rateCard.vehicle === 'object' ? rateCard.vehicle?.id : rateCard.vehicle,
-                validity_start: rateCard.validity_start,
-                validity_end: rateCard.validity_end,
-                column_vehicles: columnVehicles,
-                routes: rateCard.routes.map(r => {
-                    const route = {
-                        start_city: r.start_city,
-                        start_from: r.start_from,
-                        drop_city: r.drop_city,
-                        drop_to: r.drop_to
-                    };
-                    r.vehicles.forEach((v, i) => { route[`v${i + 1}`] = v; });
-                    return route;
-                })
-            };
-            await api.put(`/api/vehicle-rate-cards/${id}/`, payload);
+            const fd = new FormData();
+            fd.append("name", rateCard.name);
+            fd.append("country", rateCard.country);
+            fd.append("supplier", typeof rateCard.supplier === 'object' ? rateCard.supplier?.id : rateCard.supplier || "");
+            fd.append("vehicle", typeof rateCard.vehicle === 'object' ? rateCard.vehicle?.id : rateCard.vehicle || "");
+            fd.append("validity_start", rateCard.validity_start);
+            fd.append("validity_end", rateCard.validity_end);
+            fd.append("column_vehicles", JSON.stringify(columnVehicles));
+            
+            const routes = rateCard.routes.map(r => {
+                const route = {
+                    start_city: r.start_city,
+                    start_from: r.start_from,
+                    drop_city: r.drop_city,
+                    drop_to: r.drop_to
+                };
+                r.vehicles.forEach((v, i) => { route[`v${i + 1}`] = v; });
+                return route;
+            });
+            fd.append("routes", JSON.stringify(routes));
+
+            if (rateCard.rate_card_file) {
+                fd.append("rate_card_file", rateCard.rate_card_file);
+            }
+
+            await api.put(`/api/vehicle-rate-cards/${id}/`, fd, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
             alert("Rate Card updated successfully!");
             navigate("/admin/vehicle-rate-cards");
         } catch (err) {
@@ -389,12 +468,58 @@ const VehicleRateCardEdit = () => {
                                                 />
                                             </div>
                                         </div>
+
                                     </div>
 
                                 </section>
                             </div>
                         ) : (
                             <div className="space-y-6">
+                                {/* Compact File Upload */}
+                                <div className="mt-4 bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm max-w-2xl mb-6">
+                                    <div className="flex items-center gap-2 mb-2 px-1">
+                                        <div className="w-1 h-2.5 bg-[#14532d] rounded-full"></div>
+                                        <span className="text-[8px] font-black text-gray-900 uppercase tracking-widest">Rate Card Document</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div className="flex items-center gap-2.5 p-1.5 bg-gray-50/50 rounded-lg border-2 border-dashed border-gray-200 hover:border-[#14532d]/30 transition-all group relative">
+                                            <Upload size={11} className="text-gray-400 group-hover:text-[#14532d] ml-1" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[8px] font-black text-gray-900 uppercase truncate">
+                                                    {rateCard.rate_card_file ? rateCard.rate_card_file.name : "Upload New"}
+                                                </p>
+                                            </div>
+                                            {rateCard.rate_card_file && (
+                                                <button 
+                                                    onClick={(e) => { 
+                                                        e.preventDefault(); 
+                                                        e.stopPropagation(); 
+                                                        setRateCard(prev => ({ ...prev, rate_card_file: null })); 
+                                                    }} 
+                                                    className="relative z-10 text-red-500 hover:text-red-700 p-1 bg-white rounded-md shadow-sm border border-red-50 group/remove"
+                                                >
+                                                    <Trash2 size={10} className="group-hover/remove:scale-110 transition-transform" />
+                                                </button>
+                                            )}
+                                            <input 
+                                                type="file" 
+                                                accept=".csv,.pdf" 
+                                                onChange={handleFileExtraction}
+                                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                            />
+                                        </div>
+
+                                        {rateCard.existing_file && (
+                                            <div className="flex items-center gap-2.5 p-1.5 bg-blue-50/20 rounded-lg border border-blue-100/40">
+                                                <FileText size={11} className="text-blue-500 ml-1" />
+                                                <div className="flex-1 min-w-0">
+                                                    <a href={rateCard.existing_file} target="_blank" rel="noreferrer" className="text-[8px] font-black text-blue-600 uppercase hover:underline truncate block">View Current File</a>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
                                 <section ref={routeMatrixRef} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                                     <div className="p-4 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
@@ -466,6 +591,7 @@ const VehicleRateCardEdit = () => {
                                                                         onChange={val => handleRouteFieldChange(idx, 'start_city', val)}
                                                                         placeholder="Destination"
                                                                         size="compact"
+                                                                        error={showErrors && !route.start_city}
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -475,6 +601,7 @@ const VehicleRateCardEdit = () => {
                                                                         onChange={val => handleRouteFieldChange(idx, 'start_from', val)}
                                                                         placeholder="Pickup Point"
                                                                         size="compact"
+                                                                        error={showErrors && !route.start_from}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -488,6 +615,7 @@ const VehicleRateCardEdit = () => {
                                                                         onChange={val => handleRouteFieldChange(idx, 'drop_city', val)}
                                                                         placeholder="Destination"
                                                                         size="compact"
+                                                                        error={showErrors && !route.drop_city}
                                                                     />
                                                                 </div>
                                                                 <div className="w-1/2">
@@ -497,6 +625,7 @@ const VehicleRateCardEdit = () => {
                                                                         onChange={val => handleRouteFieldChange(idx, 'drop_to', val)}
                                                                         placeholder="Dropping Point"
                                                                         size="compact"
+                                                                        error={showErrors && !route.drop_to}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -505,7 +634,7 @@ const VehicleRateCardEdit = () => {
                                                             <td key={vIdx} className="p-1.5 bg-gray-50/20">
                                                                 <input
                                                                     type="text"
-                                                                    className="w-full bg-white border border-gray-100 px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none focus:border-[#14532d] min-w-[70px] disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                                    className={`w-full bg-white border ${showErrors && !rate ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-gray-100 focus:border-[#14532d]'} px-2 py-1.5 rounded-lg text-[10px] font-bold text-center focus:outline-none min-w-[70px] disabled:opacity-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all`}
                                                                     placeholder="Rate"
                                                                     value={rate ? Number(rate.toString().replace(/,/g, '')).toLocaleString('en-IN') : ""}
                                                                     onChange={(e) => {
