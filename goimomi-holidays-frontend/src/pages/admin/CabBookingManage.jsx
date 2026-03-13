@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
-import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, X, Mail, Plus, FileText } from "lucide-react";
+import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, X, Mail, Plus, FileText, Ticket, Download } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
+import jsPDF from "jspdf";
+import goimomilogo from "../../assets/goimomilogo.png";
 
 const CabBookingManage = () => {
     const [bookings, setBookings] = useState([]);
@@ -101,6 +103,211 @@ const CabBookingManage = () => {
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         return new Date(dateString).toLocaleDateString();
+    };
+
+    const handleDownloadVoucher = (booking) => {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const padding = 15;
+
+        // --- 1. CREATIVE CANVAS SETUP ---
+        // Clean White Background
+        doc.setFillColor(255, 255, 255);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        
+        // Modern Sidebar Accent (Emerald Green)
+        doc.setFillColor(20, 83, 45);
+        doc.rect(0, 0, 8, pageHeight, 'F');
+
+        // Decorative Background Pattern (Subtle circles and lines)
+        doc.setDrawColor(240, 253, 244);
+        doc.setLineWidth(0.1);
+        for(let i=0; i<pageWidth; i+=20) {
+            doc.line(i, 0, i, pageHeight);
+        }
+        doc.setFillColor(240, 253, 244);
+        doc.circle(pageWidth, 0, 90, 'F');
+        doc.circle(0, pageHeight, 60, 'F');
+
+        // --- 2. HEADER SECTION ---
+        let y = 15;
+        try {
+            // Logo on the left (offset by sidebar)
+            doc.addImage(goimomilogo, 'PNG', padding + 5, y, 45, 20);
+        } catch (e) { console.error(e); }
+
+        // Voucher Title & Reference (Right Aligned)
+        doc.setTextColor(20, 83, 45);
+        doc.setFontSize(28);
+        doc.setFont("helvetica", "bold");
+        doc.text("SERVICE VOUCHER", pageWidth - padding, y + 10, { align: "right" });
+        
+        doc.setTextColor(107, 114, 128);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(`REF ID: CAB-${String(booking.id).padStart(5, '0')}`, pageWidth - padding, y + 18, { align: "right" });
+
+        y = 45;
+        doc.setDrawColor(229, 231, 235);
+        doc.setLineWidth(0.5);
+        doc.line(padding + 5, y, pageWidth - padding, y);
+        
+        // --- 3. TRIP HIGHLIGHTS (CREATIVE GRID) ---
+        y += 12;
+        doc.setFillColor(20, 83, 45);
+        doc.roundedRect(padding + 5, y, pageWidth - (padding * 2) - 5, 28, 3, 3, 'F');
+        
+        // Labels in Highlight Box
+        doc.setFontSize(8);
+        doc.setTextColor(220, 252, 231);
+        doc.setFont("helvetica", "normal");
+        doc.text("TRAVEL DATE", padding + 10, y + 8);
+        doc.text("SERVICE ROUTE", padding + 55, y + 8);
+        doc.text("VEHICLE MODEL", padding + 145, y + 8);
+
+        // Values in Highlight Box
+        doc.setFontSize(10); // Slightly smaller to prevent overlap
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatDate(booking.pickup_date), padding + 10, y + 18);
+        
+        // --- DRAW CREATIVE ROUTE ICONS ---
+        const routeStartX = padding + 55;
+        const routeY = y + 17;
+        
+        // 1. Pickup Icon
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.4);
+        doc.circle(routeStartX, routeY, 1.2, 'D');
+        doc.setFillColor(255, 255, 255);
+        doc.circle(routeStartX, routeY, 0.4, 'F');
+        
+        // 2. Connecting Dashed Line
+        doc.setDrawColor(220, 252, 231);
+        doc.setLineWidth(0.2);
+        for(let i=0; i<6; i+=2) {
+            doc.line(routeStartX + 2 + i, routeY, routeStartX + 3 + i, routeY);
+        }
+
+        // 3. Drop Icon
+        const dropX = routeStartX + 10;
+        doc.setDrawColor(255, 255, 255);
+        doc.setFillColor(255, 255, 255);
+        doc.circle(dropX, routeY - 0.8, 1, 'FD');
+        doc.line(dropX, routeY - 0.8, dropX, routeY + 1.2);
+        
+        // 4. Route Text (Cleaned up alignment)
+        const fromCity = (booking.from_city || "").toUpperCase();
+        const toCity = (booking.to_city || "").toUpperCase();
+        const routeDisplay = `${fromCity} > ${toCity}`;
+        
+        // Use a character limit to ensure it doesn't spill into the next column
+        const truncatedRoute = routeDisplay.length > 25 ? routeDisplay.substring(0, 22) + "..." : routeDisplay;
+        doc.text(truncatedRoute, routeStartX + 15, y + 18);
+        
+        // Vehicle Text (Shifted right)
+        doc.text(booking.vehicle_name?.toUpperCase() || "N/A", padding + 145, y + 18);
+        
+        y += 45;
+
+        // --- 4. DETAILS SECTION (2 COLUMNS) ---
+        const leftCol = padding + 5;
+        const rightCol = (pageWidth / 2) + 5;
+
+        // Visual Section Header Decor
+        const drawHeader = (title, x, yPos) => {
+            doc.setFillColor(240, 253, 244);
+            doc.rect(x, yPos - 5, (pageWidth/2) - 20, 8, 'F');
+            doc.setTextColor(20, 83, 45);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text(title, x + 2, yPos + 1);
+            return yPos + 12;
+        };
+
+        const drawRow = (label, value, x, yPos) => {
+            doc.setFontSize(8);
+            doc.setTextColor(156, 163, 175);
+            doc.setFont("helvetica", "normal");
+            doc.text(label, x, yPos);
+            doc.setFontSize(10);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont("helvetica", "bold");
+            doc.text(String(value || "N/A"), x, yPos + 6);
+            return yPos + 15;
+        };
+
+        // Column 1: Passenger
+        let currentY = drawHeader("PASSENGER DETAILS", leftCol, y);
+        currentY = drawRow("PRIMARY GUEST", `${booking.title || ""} ${booking.first_name} ${booking.last_name}`, leftCol, currentY);
+        currentY = drawRow("CONTACT NUMBER", booking.phone, leftCol, currentY);
+        currentY = drawRow("EMAIL ADDRESS", booking.email, leftCol, currentY);
+
+        // Column 2: Vehicle & Driver
+        let rightY = drawHeader("SERVICE INFORMATION", rightCol, y);
+        rightY = drawRow("VEHICLE CATEGORY", booking.vehicle_category, rightCol, rightY);
+        const timing = booking.transfer_type === 'airport' ? `ARR: ${booking.arrival_time || 'N/A'}` : (booking.pickup_time || 'N/A');
+        rightY = drawRow("SCHEDULED TIME", timing, rightCol, rightY);
+        rightY = drawRow("TRIP TYPE", booking.transfer_type?.toUpperCase(), rightCol, rightY);
+
+        y = Math.max(currentY, rightY) + 5;
+
+        // --- 5. DRIVER INFO (Modern Box) ---
+        doc.setDrawColor(20, 83, 45);
+        doc.setLineWidth(0.1);
+        doc.roundedRect(padding + 5, y, pageWidth - (padding * 2) - 5, 22, 2, 2, 'D');
+        doc.setFillColor(20, 83, 45);
+        doc.roundedRect(padding + 5, y, 40, 22, 2, 2, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.text("DRIVER / REP", padding + 10, y + 12);
+        
+        doc.setTextColor(20, 83, 45);
+        doc.setFontSize(12);
+        doc.text(booking.driver || "WILL BE SHARED ON WHATSAPP", padding + 50, y + 13);
+        
+        y += 35;
+
+        // --- 6. TERMS & SPECIAL INSTRUCTIONS ---
+        doc.setTextColor(20, 83, 45);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("IMPORTANT INSTRUCTIONS", padding + 5, y);
+        y += 8;
+
+        doc.setTextColor(75, 85, 99);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        const notes = [
+            "• Present this voucher (digital/print) at the time of pickup.",
+            "• Airport: Paging representative will be waiting with your name board.",
+            "• 15 mins buffer time included. Waiting charges apply thereafter."
+        ];
+        notes.forEach(msg => {
+            const splitMsg = doc.splitTextToSize(msg, pageWidth - padding * 2 - 10);
+            doc.text(splitMsg, padding + 5, y);
+            y += (splitMsg.length * 5);
+        });
+
+        // --- 7. FOOTER ---
+        const footerY = pageHeight - 40;
+        
+        doc.setDrawColor(229, 231, 235);
+        doc.line(padding + 5, footerY + 25, pageWidth - padding, footerY + 25);
+        
+        doc.setTextColor(20, 83, 45);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("GOIMOMI HOLIDAYS", padding + 5, footerY + 32);
+        
+        doc.setTextColor(156, 163, 175);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text("Contact: +91 6382220393 | Email: hello@goimomi.com", padding + 5, footerY + 37);
+
+        doc.save(`GoImomi_Voucher_${booking.id}.pdf`);
     };
 
     const handleEditSave = async (e, section = null) => {
@@ -374,6 +581,13 @@ const CabBookingManage = () => {
                                                         <div className="flex justify-center gap-2">
 
                                                             <button
+                                                                onClick={() => handleDownloadVoucher(booking)}
+                                                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                                title="Download Voucher"
+                                                            >
+                                                                <Ticket size={18} />
+                                                            </button>
+                                                            <button
                                                                 onClick={() => {
                                                                     setEditingBooking({ ...booking });
                                                                     setEditSections({});
@@ -414,12 +628,23 @@ const CabBookingManage = () => {
                         <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
                             <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-[#14532d] text-white">
                                 <h2 className="text-sm font-black uppercase tracking-tight">View / Edit Cab Booking</h2>
-                                <button
-                                    onClick={() => setEditingBooking(null)}
-                                    className="text-white/60 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
-                                >
-                                    <X size={16} />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDownloadVoucher(editingBooking)}
+                                        className="text-white/60 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg flex items-center gap-1.5"
+                                        title="Download Voucher"
+                                    >
+                                        <Ticket size={14} />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Download Voucher</span>
+                                    </button>
+                                    <button
+                                        onClick={() => setEditingBooking(null)}
+                                        className="text-white/60 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
                             </div>
 
                             <form onSubmit={(e) => handleEditSave(e)} className="overflow-y-auto max-h-[70vh] p-3 space-y-4">
