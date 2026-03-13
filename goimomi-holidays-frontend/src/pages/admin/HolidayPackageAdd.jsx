@@ -2663,7 +2663,7 @@ const HolidayPackageAdd = () => {
                           </div>
 
                           <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
                               <div>
                                 <FormLabel label="Arrival City" optional />
                                 <SearchableSelect
@@ -2740,7 +2740,7 @@ const HolidayPackageAdd = () => {
                             </div>
                           </div>
                           <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
                               <div>
                                 <FormLabel label="Departure City" optional />
                                 <SearchableSelect
@@ -2755,6 +2755,7 @@ const HolidayPackageAdd = () => {
                                   error={errors.departure_city}
                                 />
                               </div>
+                              <div></div>
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <FormLabel label="Date" optional />

@@ -2878,185 +2878,78 @@ const HolidayPackageEdit = () => {
 
                                                             {/* 5. VEHICLE */}
                                                             {row.details_json?.active_tab === 'vehicle' && (() => {
-                                                                const vd = row.details_json?.vehicle_data || {};
-                                                                const vehicleMode = vd.mode || 'with_driver';
-                                                                const updateVD = (patch) => {
+                                                                const vTransfers2 = row.details_json?.vehicle_transfers || {
+                                                                    airport: { selected: false, mode: 'Private' },
+                                                                    sightseeing: { selected: false, mode: 'Private' },
+                                                                    intercity: { selected: false, mode: 'Private' }
+                                                                };
+                                                                const updateVT2 = (key, patch) => {
                                                                     const copy = [...itineraryDays];
-                                                                    copy[i].details_json.vehicle_data = { ...vd, ...patch };
+                                                                    if (!copy[i].details_json.vehicle_transfers) {
+                                                                        copy[i].details_json.vehicle_transfers = {
+                                                                            airport: { selected: false, mode: 'Private' },
+                                                                            sightseeing: { selected: false, mode: 'Private' },
+                                                                            intercity: { selected: false, mode: 'Private' }
+                                                                        };
+                                                                    }
+                                                                    copy[i].details_json.vehicle_transfers[key] = {
+                                                                        ...copy[i].details_json.vehicle_transfers[key],
+                                                                        ...patch
+                                                                    };
                                                                     setItineraryDays(copy);
                                                                 };
-                                                                const isSelf = vehicleMode === 'self_drive';
+                                                                const transferTypes2 = [
+                                                                    { id: 'airport', label: 'Airport / Train Transfer' },
+                                                                    { id: 'sightseeing', label: 'Sightseeing Transfer' },
+                                                                    { id: 'intercity', label: 'Intercity Transfer' }
+                                                                ];
                                                                 return (
-                                                                    <div className="bg-white p-0">
-                                                                        {/* Header row */}
-                                                                        <div className="mb-3">
-                                                                            <h3 className="text-[13px] font-bold text-gray-900">Vehicle</h3>
+                                                                    <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 mb-8 max-w-xl">
+                                                                        <h3 className="text-[12px] font-bold text-gray-900 mb-2 border-b pb-1.5">Vehicles:</h3>
+                                                                        <div className="space-y-1.5">
+                                                                            {transferTypes2.map(t => {
+                                                                                const data = vTransfers2[t.id] || { selected: false, mode: 'Private' };
+                                                                                return (
+                                                                                    <div key={t.id} className={`flex items-center justify-between p-2 px-3 rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
+                                                                                        <div className="flex items-center">
+                                                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                                                <input
+                                                                                                    type="checkbox"
+                                                                                                    checked={data.selected}
+                                                                                                    onChange={(e) => updateVT2(t.id, { selected: e.target.checked })}
+                                                                                                    className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                                                                                                />
+                                                                                                <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <div className="flex items-center gap-4">
+                                                                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                <input
+                                                                                                    type="radio"
+                                                                                                    name={`transfer_mode_edit2_${i}_${t.id}`}
+                                                                                                    checked={data.mode === 'Private'}
+                                                                                                    onChange={() => updateVT2(t.id, { mode: 'Private' })}
+                                                                                                    className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                    disabled={!data.selected}
+                                                                                                />
+                                                                                                <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
+                                                                                            </label>
+                                                                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                <input
+                                                                                                    type="radio"
+                                                                                                    name={`transfer_mode_edit2_${i}_${t.id}`}
+                                                                                                    checked={data.mode === 'SIC'}
+                                                                                                    onChange={() => updateVT2(t.id, { mode: 'SIC' })}
+                                                                                                    className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                    disabled={!data.selected}
+                                                                                                />
+                                                                                                <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
+                                                                                            </label>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                );
+                                                                            })}
                                                                         </div>
-                                                                        {/* Radio buttons */}
-                                                                        <div className="flex items-center gap-6 mb-3">
-                                                                            <label className="flex items-center gap-1.5 cursor-pointer">
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    name={`vehicleMode_${i}`}
-                                                                                    checked={!isSelf}
-                                                                                    onChange={() => updateVD({ mode: 'with_driver' })}
-                                                                                    className="w-3.5 h-3.5 accent-blue-500"
-                                                                                />
-                                                                                <span className="text-[11px] font-medium text-gray-700">Vehicle with Driver/ Chaffeur</span>
-                                                                            </label>
-                                                                            <label className="flex items-center gap-1.5 cursor-pointer">
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    name={`vehicleMode_${i}`}
-                                                                                    checked={isSelf}
-                                                                                    onChange={() => updateVD({ mode: 'self_drive' })}
-                                                                                    className="w-3.5 h-3.5 accent-blue-500"
-                                                                                />
-                                                                                <span className="text-[11px] font-medium text-gray-700">Self Drive</span>
-                                                                            </label>
-                                                                        </div>
-                                                                        {/* Sub-heading */}
-                                                                        <p className="text-[11px] font-bold text-gray-800 mb-2">
-                                                                            {isSelf ? 'Self Drive' : 'Vehicle with Driver/ Chaffeur'}
-                                                                        </p>
-                                                                        {/* Vehicle Type + No. of Vehicles */}
-                                                                        <div className="grid grid-cols-[1fr_180px] gap-3 mb-2">
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Vehicle Type</p>
-                                                                                <SearchableSelect
-                                                                                    options={vehicleMasters.map(v => ({
-                                                                                        value: v.name,
-                                                                                        label: v.name,
-                                                                                        subtitle: `${v.brand_name} • ${v.seating_capacity} Seats`
-                                                                                    }))}
-                                                                                    value={vd.vehicleType || ''}
-                                                                                    onChange={val => updateVD({
-                                                                                        vehicleType: val,
-                                                                                        _vehicleDetails: vehicleMasters.find(v => v.name === val)
-                                                                                    })}
-                                                                                    placeholder="🔍 Select vehicle model..."
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">No. of Vehicles</p>
-                                                                                <select
-                                                                                    value={vd.noOfVehicles || '1'}
-                                                                                    onChange={e => updateVD({ noOfVehicles: e.target.value })}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
-                                                                                >
-                                                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                        {/* Pick Up Date + Pick Up Location */}
-                                                                        <div className="grid grid-cols-2 gap-3 mb-2">
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Date <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    value={vd.pickUpDate || ''}
-                                                                                    onChange={e => updateVD({ pickUpDate: e.target.value })}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                <SearchableSelect
-                                                                                    options={pickupPoints.map(p => ({
-                                                                                        value: p.name,
-                                                                                        label: p.name,
-                                                                                        subtitle: p.city_name
-                                                                                    }))}
-                                                                                    value={vd.pickUpLocation || ''}
-                                                                                    onChange={val => updateVD({ pickUpLocation: val })}
-                                                                                    placeholder="🔍 Search pickup point..."
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                        {/* Drop Off Date + Drop Off Location */}
-                                                                        <div className="grid grid-cols-2 gap-3 mb-2">
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Date <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                <input
-                                                                                    type="date"
-                                                                                    value={vd.dropOffDate || ''}
-                                                                                    onChange={e => updateVD({ dropOffDate: e.target.value })}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                <SearchableSelect
-                                                                                    options={pickupPoints.map(p => ({
-                                                                                        value: p.name,
-                                                                                        label: p.name,
-                                                                                        subtitle: p.city_name
-                                                                                    }))}
-                                                                                    value={vd.dropOffLocation || ''}
-                                                                                    onChange={val => updateVD({ dropOffLocation: val })}
-                                                                                    placeholder="🔍 Search drop point..."
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                        {/* Vehicle Brand + Pick Up time + Drop off time */}
-                                                                        <div className="grid grid-cols-3 gap-3">
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5">
-                                                                                    Vehicle Brand <span className="text-sky-400 font-normal">(Optional)</span>
-                                                                                </p>
-                                                                                <SearchableSelect
-                                                                                    options={vehicleBrands.map(b => ({ value: b.name, label: b.name }))}
-                                                                                    value={vd.vehicleBrand || ''}
-                                                                                    onChange={val => updateVD({ vehicleBrand: val })}
-                                                                                    placeholder="🔍 Select Brand"
-                                                                                    className="w-full"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
-                                                                                    Pick Up time <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span>
-                                                                                </p>
-                                                                                <input
-                                                                                    type="time"
-                                                                                    value={vd.pickUpTime || ''}
-                                                                                    onChange={e => updateVD({ pickUpTime: e.target.value })}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                                />
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
-                                                                                    Drop off time <span className="text-orange-400 text-[10px]">?</span> <span className="text-sky-400 font-normal">(Optional)</span>
-                                                                                </p>
-                                                                                <input
-                                                                                    type="time"
-                                                                                    value={vd.dropOffTime || ''}
-                                                                                    onChange={e => updateVD({ dropOffTime: e.target.value })}
-                                                                                    className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                        {/* Driver Selection */}
-                                                                        {!isSelf && (
-                                                                            <div className="mt-3">
-                                                                                <p className="text-[10px] font-semibold text-gray-700 mb-1">Driver Name <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                                                                <SearchableSelect
-                                                                                    options={driverMasters.map(d => ({
-                                                                                        value: d.id.toString(),
-                                                                                        label: d.name,
-                                                                                        subtitle: d.mobile_number
-                                                                                    }))}
-                                                                                    value={vd.driverId || ''}
-                                                                                    onChange={val => {
-                                                                                        const d = driverMasters.find(dm => dm.id.toString() === val);
-                                                                                        updateVD({
-                                                                                            driverId: val,
-                                                                                            driverName: d?.name || ''
-                                                                                        });
-                                                                                    }}
-                                                                                    placeholder="🔍 Select driver from masters..."
-                                                                                />
-                                                                            </div>
-                                                                        )}
                                                                     </div>
                                                                 );
                                                             })()}
@@ -3127,7 +3020,7 @@ const HolidayPackageEdit = () => {
                                                       </div>
 
                                                       <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                          <div className="grid grid-cols-3 gap-4">
+                                                          <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
                                                               <div>
                                                                   <FormLabel label="Arrival City" optional />
                                                                   <SearchableSelect
@@ -3204,7 +3097,7 @@ const HolidayPackageEdit = () => {
                                                           </div>
                                                       </div>
                                                       <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                          <div className="grid grid-cols-2 gap-4">
+                                                          <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
                                                               <div>
                                                                   <FormLabel label="Departure City" optional />
                                                                   <SearchableSelect
@@ -3219,6 +3112,7 @@ const HolidayPackageEdit = () => {
                                                                       error={errors.departure_city}
                                                                   />
                                                               </div>
+                                                              <div></div>
                                                               <div className="grid grid-cols-2 gap-2">
                                                                   <div>
                                                                       <FormLabel label="Date" optional />
