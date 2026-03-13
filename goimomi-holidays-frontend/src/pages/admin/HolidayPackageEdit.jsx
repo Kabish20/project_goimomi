@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import api from "../../api";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -2606,6 +2606,87 @@ const HolidayPackageEdit = () => {
                                                                                 </div>
                                                                             );
                                                                         })()}
+                                                                        {/* 5. VEHICLE TAB */}
+                                                                        {row.details_json?.active_tab === 'vehicle' && (() => {
+                                                                            const vTransfers = row.details_json?.vehicle_transfers || {
+                                                                                airport: { selected: false, mode: 'Private' },
+                                                                                sightseeing: { selected: false, mode: 'Private' },
+                                                                                intercity: { selected: false, mode: 'Private' }
+                                                                            };
+
+                                                                            const updateVT = (key, patch) => {
+                                                                                const copy = [...itineraryDays];
+                                                                                if (!copy[i].details_json.vehicle_transfers) {
+                                                                                    copy[i].details_json.vehicle_transfers = {
+                                                                                        airport: { selected: false, mode: 'Private' },
+                                                                                        sightseeing: { selected: false, mode: 'Private' },
+                                                                                        intercity: { selected: false, mode: 'Private' }
+                                                                                    };
+                                                                                }
+                                                                                copy[i].details_json.vehicle_transfers[key] = {
+                                                                                    ...copy[i].details_json.vehicle_transfers[key],
+                                                                                    ...patch
+                                                                                };
+                                                                                setItineraryDays(copy);
+                                                                            };
+
+                                                                            const transferTypes = [
+                                                                                { id: 'airport', label: 'Airport / Train Transfer' },
+                                                                                { id: 'sightseeing', label: 'Sightseeing Transfer' },
+                                                                                { id: 'intercity', label: 'Intercity Transfer' }
+                                                                            ];
+
+                                                                            return (
+                                                                                <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 mb-8 max-w-xl">
+                                                                                    <h3 className="text-[12px] font-bold text-gray-900 mb-2 border-b pb-1.5">Vehicles:</h3>
+                                                                                    <div className="space-y-1.5">
+                                                                                        {transferTypes.map(t => {
+                                                                                            const data = vTransfers[t.id] || { selected: false, mode: 'Private' };
+                                                                                            return (
+                                                                                                <div key={t.id} className={`flex items-center justify-between p-2 px-3 rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
+                                                                                                    <div className="flex items-center">
+                                                                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                                                                            <input
+                                                                                                                type="checkbox"
+                                                                                                                checked={data.selected}
+                                                                                                                onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
+                                                                                                                className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                                                                                                            />
+                                                                                                            <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
+                                                                                                        </label>
+                                                                                                    </div>
+                                                                                                    
+                                                                                                    <div className="flex items-center gap-4">
+                                                                                                        <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                            <input
+                                                                                                                type="radio"
+                                                                                                                name={`transfer_mode_edit_${i}_${t.id}`}
+                                                                                                                checked={data.mode === 'Private'}
+                                                                                                                onChange={() => updateVT(t.id, { mode: 'Private' })}
+                                                                                                                className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                                disabled={!data.selected}
+                                                                                                            />
+                                                                                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
+                                                                                                        </label>
+                                                                                                        <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                            <input
+                                                                                                                type="radio"
+                                                                                                                name={`transfer_mode_edit_${i}_${t.id}`}
+                                                                                                                checked={data.mode === 'SIC'}
+                                                                                                                onChange={() => updateVT(t.id, { mode: 'SIC' })}
+                                                                                                                className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                                disabled={!data.selected}
+                                                                                                            />
+                                                                                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
+                                                                                                        </label>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })()}
                                                                         <div className="flex gap-4">
                                                                             {/* Main accommodation panel */}
                                                                             <div className="flex-1 space-y-3">
@@ -3019,158 +3100,160 @@ const HolidayPackageEdit = () => {
                                     <Section title="Trip Information" active={activeSection === 'policy'}>
                                         <div className="space-y-6 max-w-5xl mx-auto">
                                             {/* Global Arrival & Departure Logistics */}
-                                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${!formData.with_flight ? 'opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500' : 'transition-all duration-300'}`}>
-                                                {/* Arrival */}
-                                                <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
-                                                    <div className="flex justify-between items-center mb-6">
-                                                        <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
-                                                            <Plane size={16} className="rotate-45" /> Arrival Logistics
-                                                        </h4>
-                                                        <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setFormData({ ...formData, with_arrival: true })}
-                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_arrival ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                            >
-                                                                INCLUDED
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setFormData({ ...formData, with_arrival: false })}
-                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_arrival ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                            >
-                                                                EXCLUDED
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                            {formData.with_flight && (
+                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 transition-all duration-300">
+                                                  {/* Arrival */}
+                                                  <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
+                                                      <div className="flex justify-between items-center mb-6">
+                                                          <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                                                              <Plane size={16} className="rotate-45" /> Arrival Logistics
+                                                          </h4>
+                                                          <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => setFormData({ ...formData, with_arrival: true })}
+                                                                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_arrival ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                              >
+                                                                  INCLUDED
+                                                              </button>
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => setFormData({ ...formData, with_arrival: false })}
+                                                                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_arrival ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                              >
+                                                                  EXCLUDED
+                                                              </button>
+                                                          </div>
+                                                      </div>
 
-                                                    <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                        <div className="grid grid-cols-3 gap-4">
-                                                            <div>
-                                                                <FormLabel label="Arrival City" optional />
-                                                                <SearchableSelect
-                                                                    options={[
-                                                                        { value: "Any City", label: "Any City" },
-                                                                        ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                                    ]}
-                                                                    value={formData.arrival_city}
-                                                                    onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
-                                                                    placeholder="🔍 Select City"
-                                                                    className="!py-1"
-                                                                    error={errors.arrival_city}
-                                                                />
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <FormLabel label="No. of Nights" required />
-                                                                <Input type="number" name="arrival_no_of_nights" value={formData.arrival_no_of_nights} onChange={handleInputChange} className="!py-1" />
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                <div>
-                                                                    <FormLabel label="Date" optional />
-                                                                    <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
-                                                                </div>
-                                                                <div>
-                                                                    <FormLabel label="Time" optional />
-                                                                    <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <div>
-                                                                <FormLabel label="Airline" optional />
-                                                                <SearchableSelect
-                                                                    options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                    value={formData.arrival_airline}
-                                                                    onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                                                    placeholder="🔍 Select Airline"
-                                                                    className="!py-1"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <FormLabel label="Flight No." optional />
-                                                                <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Arrival Airport" optional />
-                                                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                      <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                                                          <div className="grid grid-cols-3 gap-4">
+                                                              <div>
+                                                                  <FormLabel label="Arrival City" optional />
+                                                                  <SearchableSelect
+                                                                      options={[
+                                                                          { value: "Any City", label: "Any City" },
+                                                                          ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                                      ]}
+                                                                      value={formData.arrival_city}
+                                                                      onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
+                                                                      placeholder="🔍 Select City"
+                                                                      className="!py-1"
+                                                                      error={errors.arrival_city}
+                                                                  />
+                                                              </div>
+                                                              <div className="flex flex-col">
+                                                                  <FormLabel label="No. of Nights" required />
+                                                                  <Input type="number" name="arrival_no_of_nights" value={formData.arrival_no_of_nights} onChange={handleInputChange} className="!py-1" />
+                                                              </div>
+                                                              <div className="grid grid-cols-2 gap-2">
+                                                                  <div>
+                                                                      <FormLabel label="Date" optional />
+                                                                      <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
+                                                                  </div>
+                                                                  <div>
+                                                                      <FormLabel label="Time" optional />
+                                                                      <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
+                                                                  </div>
+                                                              </div>
+                                                          </div>
+                                                          <div className="grid grid-cols-2 gap-4">
+                                                              <div>
+                                                                  <FormLabel label="Airline" optional />
+                                                                  <SearchableSelect
+                                                                      options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                      value={formData.arrival_airline}
+                                                                      onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
+                                                                      placeholder="🔍 Select Airline"
+                                                                      className="!py-1"
+                                                                  />
+                                                              </div>
+                                                              <div>
+                                                                  <FormLabel label="Flight No." optional />
+                                                                  <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
+                                                              </div>
+                                                          </div>
+                                                          <div>
+                                                              <FormLabel label="Arrival Airport" optional />
+                                                              <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
+                                                          </div>
+                                                      </div>
+                                                  </div>
 
-                                                {/* Departure */}
-                                                <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
-                                                    <div className="flex justify-between items-center mb-6">
-                                                        <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-                                                            <Plane size={16} className="-rotate-45" /> Departure Logistics
-                                                        </h4>
-                                                        <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setFormData({ ...formData, with_departure: true })}
-                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_departure ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                            >
-                                                                INCLUDED
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setFormData({ ...formData, with_departure: false })}
-                                                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_departure ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                                                            >
-                                                                EXCLUDED
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <div>
-                                                                <FormLabel label="Departure City" optional />
-                                                                <SearchableSelect
-                                                                    options={[
-                                                                        { value: "Any City", label: "Any City" },
-                                                                        ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                                    ]}
-                                                                    value={formData.departure_city}
-                                                                    onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                                                    placeholder="🔍 Select City"
-                                                                    className="!py-1"
-                                                                    error={errors.departure_city}
-                                                                />
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                <div>
-                                                                    <FormLabel label="Date" optional />
-                                                                    <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
-                                                                </div>
-                                                                <div>
-                                                                    <FormLabel label="Time" optional />
-                                                                    <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <div>
-                                                                <FormLabel label="Airline" optional />
-                                                                <SearchableSelect
-                                                                    options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                                                    value={formData.departure_airline}
-                                                                    onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                                                    placeholder="🔍 Select Airline"
-                                                                    className="!py-1"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <FormLabel label="Flight No." optional />
-                                                                <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <FormLabel label="Departure Airport" optional />
-                                                            <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                  {/* Departure */}
+                                                  <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
+                                                      <div className="flex justify-between items-center mb-6">
+                                                          <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
+                                                              <Plane size={16} className="-rotate-45" /> Departure Logistics
+                                                          </h4>
+                                                          <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => setFormData({ ...formData, with_departure: true })}
+                                                                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_departure ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                              >
+                                                                  INCLUDED
+                                                              </button>
+                                                              <button
+                                                                  type="button"
+                                                                  onClick={() => setFormData({ ...formData, with_departure: false })}
+                                                                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_departure ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                                                              >
+                                                                  EXCLUDED
+                                                              </button>
+                                                          </div>
+                                                      </div>
+                                                      <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                                                          <div className="grid grid-cols-2 gap-4">
+                                                              <div>
+                                                                  <FormLabel label="Departure City" optional />
+                                                                  <SearchableSelect
+                                                                      options={[
+                                                                          { value: "Any City", label: "Any City" },
+                                                                          ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                                      ]}
+                                                                      value={formData.departure_city}
+                                                                      onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                                                      placeholder="🔍 Select City"
+                                                                      className="!py-1"
+                                                                      error={errors.departure_city}
+                                                                  />
+                                                              </div>
+                                                              <div className="grid grid-cols-2 gap-2">
+                                                                  <div>
+                                                                      <FormLabel label="Date" optional />
+                                                                      <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
+                                                                  </div>
+                                                                  <div>
+                                                                      <FormLabel label="Time" optional />
+                                                                      <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
+                                                                  </div>
+                                                              </div>
+                                                          </div>
+                                                          <div className="grid grid-cols-2 gap-4">
+                                                              <div>
+                                                                  <FormLabel label="Airline" optional />
+                                                                  <SearchableSelect
+                                                                      options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                                                      value={formData.departure_airline}
+                                                                      onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
+                                                                      placeholder="🔍 Select Airline"
+                                                                      className="!py-1"
+                                                                  />
+                                                              </div>
+                                                              <div>
+                                                                  <FormLabel label="Flight No." optional />
+                                                                  <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
+                                                              </div>
+                                                          </div>
+                                                          <div>
+                                                              <FormLabel label="Departure Airport" optional />
+                                                              <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                            )}
 
 
                                             <div>

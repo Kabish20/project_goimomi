@@ -1514,7 +1514,7 @@ const HolidayPackageAdd = () => {
                               { id: 'day_itinerary', label: 'Day Itinerary', symbol: '' },
                               { id: 'sightseeing', label: 'Sightseeing', symbol: '+ ' },
                               { id: 'accommodation', label: 'Accommodation', symbol: '+ ' },
-                              { id: 'vehicle', label: 'Vehicle', symbol: '+ ' }
+                              { id: 'vehicle', label: 'Vehicle', symbol: '+ ' },
                             ].map(tab => (
                               <button
                                 key={tab.id}
@@ -2253,185 +2253,82 @@ const HolidayPackageAdd = () => {
 
                           {/* VEHICLE TAB */}
                           {row.details_json?.active_tab === 'vehicle' && (() => {
-                            const vd = row.details_json?.vehicle_data || {};
-                            const vehicleMode = vd.mode || 'with_driver';
-                            const updateVD = (patch) => {
+                            const vTransfers = row.details_json?.vehicle_transfers || {
+                              airport: { selected: false, mode: 'Private' },
+                              sightseeing: { selected: false, mode: 'Private' },
+                              intercity: { selected: false, mode: 'Private' }
+                            };
+
+                            const updateVT = (key, patch) => {
                               const copy = [...itineraryDays];
-                              copy[i].details_json.vehicle_data = { ...vd, ...patch };
+                              if (!copy[i].details_json.vehicle_transfers) {
+                                copy[i].details_json.vehicle_transfers = {
+                                  airport: { selected: false, mode: 'Private' },
+                                  sightseeing: { selected: false, mode: 'Private' },
+                                  intercity: { selected: false, mode: 'Private' }
+                                };
+                              }
+                              copy[i].details_json.vehicle_transfers[key] = {
+                                ...copy[i].details_json.vehicle_transfers[key],
+                                ...patch
+                              };
                               setItineraryDays(copy);
                             };
-                            const isSelf = vehicleMode === 'self_drive';
+
+                            const transferTypes = [
+                              { id: 'airport', label: 'Airport / Train Transfer' },
+                              { id: 'sightseeing', label: 'Sightseeing Transfer' },
+                              { id: 'intercity', label: 'Intercity Transfer' }
+                            ];
+
                             return (
-                              <div className="bg-white p-0">
-                                {/* Header row */}
-                                <div className="mb-3">
-                                  <h3 className="text-[13px] font-bold text-gray-900">Vehicle</h3>
+                              <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 max-w-xl">
+                                <h3 className="text-[12px] font-bold text-gray-900 mb-2 border-b pb-1.5">Vehicles:</h3>
+                                <div className="space-y-1.5">
+                                  {transferTypes.map(t => {
+                                    const data = vTransfers[t.id] || { selected: false, mode: 'Private' };
+                                    return (
+                                      <div key={t.id} className={`flex items-center justify-between p-2 px-3 rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
+                                        <div className="flex items-center">
+                                          <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                              type="checkbox"
+                                              checked={data.selected}
+                                              onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
+                                              className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                                            />
+                                            <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
+                                          </label>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-4">
+                                          <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                            <input
+                                              type="radio"
+                                              name={`transfer_mode_add_${i}_${t.id}`}
+                                              checked={data.mode === 'Private'}
+                                              onChange={() => updateVT(t.id, { mode: 'Private' })}
+                                              className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                              disabled={!data.selected}
+                                            />
+                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
+                                          </label>
+                                          <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                            <input
+                                              type="radio"
+                                              name={`transfer_mode_add_${i}_${t.id}`}
+                                              checked={data.mode === 'SIC'}
+                                              onChange={() => updateVT(t.id, { mode: 'SIC' })}
+                                              className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                              disabled={!data.selected}
+                                            />
+                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
+                                          </label>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                                {/* Radio buttons */}
-                                <div className="flex items-center gap-6 mb-3">
-                                  <label className="flex items-center gap-1.5 cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name={`vehicleMode_add_${i}`}
-                                      checked={!isSelf}
-                                      onChange={() => updateVD({ mode: 'with_driver' })}
-                                      className="w-3.5 h-3.5 accent-blue-500"
-                                    />
-                                    <span className="text-[11px] font-medium text-gray-700">Vehicle with Driver/ Chaffeur</span>
-                                  </label>
-                                  <label className="flex items-center gap-1.5 cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name={`vehicleMode_add_${i}`}
-                                      checked={isSelf}
-                                      onChange={() => updateVD({ mode: 'self_drive' })}
-                                      className="w-3.5 h-3.5 accent-blue-500"
-                                    />
-                                    <span className="text-[11px] font-medium text-gray-700">Self Drive</span>
-                                  </label>
-                                </div>
-                                {/* Sub-heading */}
-                                <p className="text-[11px] font-bold text-gray-800 mb-2">
-                                  {isSelf ? 'Self Drive' : 'Vehicle with Driver/ Chaffeur'}
-                                </p>
-                                {/* Vehicle Type + No. of Vehicles */}
-                                <div className="grid grid-cols-[1fr_160px] gap-3 mb-2">
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Vehicle Type</p>
-                                    <SearchableSelect
-                                      options={vehicleMasters.map(v => ({
-                                        value: v.name,
-                                        label: v.name,
-                                        subtitle: `${v.brand_name} • ${v.seating_capacity} Seats`
-                                      }))}
-                                      value={vd.vehicleType || ''}
-                                      onChange={val => updateVD({
-                                        vehicleType: val,
-                                        _vehicleDetails: vehicleMasters.find(v => v.name === val)
-                                      })}
-                                      placeholder="🔍 Select vehicle model..."
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5">No. of Vehicles</p>
-                                    <select
-                                      value={vd.noOfVehicles || '1'}
-                                      onChange={e => updateVD({ noOfVehicles: e.target.value })}
-                                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
-                                    >
-                                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={n}>{n}</option>)}
-                                    </select>
-                                  </div>
-                                </div>
-                                {/* Pick Up Date + Pick Up Location */}
-                                <div className="grid grid-cols-2 gap-3 mb-2">
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Date <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                    <input
-                                      type="date"
-                                      value={vd.pickUpDate || ''}
-                                      onChange={e => updateVD({ pickUpDate: e.target.value })}
-                                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Pick Up Location <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                    <SearchableSelect
-                                      options={pickupPoints.map(p => ({
-                                        value: p.name,
-                                        label: p.name,
-                                        subtitle: p.city_name
-                                      }))}
-                                      value={vd.pickUpLocation || ''}
-                                      onChange={val => updateVD({ pickUpLocation: val })}
-                                      placeholder="🔍 Search pickup point..."
-                                    />
-                                  </div>
-                                </div>
-                                {/* Drop Off Date + Drop Off Location */}
-                                <div className="grid grid-cols-2 gap-3 mb-2">
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Date <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                    <input
-                                      type="date"
-                                      value={vd.dropOffDate || ''}
-                                      onChange={e => updateVD({ dropOffDate: e.target.value })}
-                                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5">Drop Off Location <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                    <SearchableSelect
-                                      options={pickupPoints.map(p => ({
-                                        value: p.name,
-                                        label: p.name,
-                                        subtitle: p.city_name
-                                      }))}
-                                      value={vd.dropOffLocation || ''}
-                                      onChange={val => updateVD({ dropOffLocation: val })}
-                                      placeholder="🔍 Search drop point..."
-                                    />
-                                  </div>
-                                </div>
-                                {/* Vehicle Brand + Pick Up time + Drop off time */}
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5">
-                                      Vehicle Brand <span className="text-sky-400 font-normal">(Optional)</span>
-                                    </p>
-                                    <SearchableSelect
-                                      options={vehicleBrands.map(b => ({ value: b.name, label: b.name }))}
-                                      value={vd.vehicleBrand || ''}
-                                      onChange={val => updateVD({ vehicleBrand: val })}
-                                      placeholder="🔍 Select Brand"
-                                      className="w-full"
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
-                                      Pick Up time <span className="text-orange-400 text-[10px]">ⓘ</span> <span className="text-sky-400 font-normal">(Optional)</span>
-                                    </p>
-                                    <input
-                                      type="time"
-                                      value={vd.pickUpTime || ''}
-                                      onChange={e => updateVD({ pickUpTime: e.target.value })}
-                                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-0.5 flex items-center gap-1">
-                                      Drop off time <span className="text-orange-400 text-[10px]">ⓘ</span> <span className="text-sky-400 font-normal">(Optional)</span>
-                                    </p>
-                                    <input
-                                      type="time"
-                                      value={vd.dropOffTime || ''}
-                                      onChange={e => updateVD({ dropOffTime: e.target.value })}
-                                      className="w-full border border-gray-300 rounded-sm px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-blue-400"
-                                    />
-                                  </div>
-                                </div>
-                                {/* Driver Selection */}
-                                {!isSelf && (
-                                  <div className="mt-3">
-                                    <p className="text-[10px] font-semibold text-gray-700 mb-1">Driver Name <span className="text-sky-400 font-normal">(Optional)</span></p>
-                                    <SearchableSelect
-                                      options={driverMasters.map(d => ({
-                                        value: d.id.toString(),
-                                        label: d.name,
-                                        subtitle: d.mobile_number
-                                      }))}
-                                      value={vd.driverId || ''}
-                                      onChange={val => {
-                                        const d = driverMasters.find(dm => dm.id.toString() === val);
-                                        updateVD({
-                                          driverId: val,
-                                          driverName: d?.name || ''
-                                        });
-                                      }}
-                                      placeholder="🔍 Select driver from masters..."
-                                    />
-                                  </div>
-                                )}
                               </div>
                             );
                           })()}
@@ -2739,257 +2636,162 @@ const HolidayPackageAdd = () => {
                 <Section title="Trip Information" active={currentPage === 5}>
                   <div className="space-y-6 max-w-5xl mx-auto">
                     {/* Global Arrival & Departure Logistics */}
-                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${!formData.with_flight ? 'opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500' : 'transition-all duration-300'}`}>
-                      {/* Arrival */}
-                      <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
-                        <div className="flex justify-between items-center mb-6">
-                          <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
-                            <Plane size={16} className="rotate-45" /> Arrival Logistics
-                          </h4>
-                          <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
-                            <button
-                              type="button"
-                              onClick={() => setFormData({ ...formData, with_arrival: true })}
-                              className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_arrival ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                              INCLUDED
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setFormData({ ...formData, with_arrival: false })}
-                              className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_arrival ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                              EXCLUDED
-                            </button>
+                    {formData.with_flight && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 transition-all duration-300">
+                        {/* Arrival */}
+                        <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-50 relative group shadow-sm">
+                          <div className="flex justify-between items-center mb-6">
+                            <h4 className="text-[12px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                              <Plane size={16} className="rotate-45" /> Arrival Logistics
+                            </h4>
+                            <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, with_arrival: true })}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_arrival ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
+                                INCLUDED
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, with_arrival: false })}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_arrival ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
+                                EXCLUDED
+                              </button>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div>
-                              <FormLabel label="Arrival City" optional />
-                              <SearchableSelect
-                                options={[
-                                  { value: "Any City", label: "Any City" },
-                                  ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                ]}
-                                value={formData.arrival_city}
-                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
-                                placeholder="🔍 Select City"
-                                className="!py-1"
-                                error={errors.arrival_city}
-                              />
-                            </div>
-                            <div className="flex flex-col">
-                              <FormLabel label="No. of Nights" required />
-                              <Input type="number" name="arrival_no_of_nights" value={formData.arrival_no_of_nights} onChange={handleInputChange} className="!py-1" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
+                          <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                            <div className="grid grid-cols-3 gap-4">
                               <div>
-                                <FormLabel label="Date" optional />
-                                <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
+                                <FormLabel label="Arrival City" optional />
+                                <SearchableSelect
+                                  options={[
+                                    { value: "Any City", label: "Any City" },
+                                    ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                  ]}
+                                  value={formData.arrival_city}
+                                  onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
+                                  placeholder="🔍 Select City"
+                                  className="!py-1"
+                                  error={errors.arrival_city}
+                                />
                               </div>
-                              <div>
-                                <FormLabel label="Time" optional />
-                                <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
+                              <div className="flex flex-col">
+                                <FormLabel label="No. of Nights" required />
+                                <Input type="number" name="arrival_no_of_nights" value={formData.arrival_no_of_nights} onChange={handleInputChange} className="!py-1" />
                               </div>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <FormLabel label="Airline" optional />
-                              <SearchableSelect
-                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                value={formData.arrival_airline}
-                                onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
-                                placeholder="🔍 Select Airline"
-                                className="!py-1"
-                              />
-                            </div>
-                            <div>
-                              <FormLabel label="Flight No." optional />
-                              <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
-                            </div>
-                          </div>
-                          <div>
-                            <FormLabel label="Arrival Airport" optional />
-                            <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Departure */}
-                      <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
-                        <div className="flex justify-between items-center mb-6">
-                          <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-                            <Plane size={16} className="-rotate-45" /> Departure Logistics
-                          </h4>
-                          <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
-                            <button
-                              type="button"
-                              onClick={() => setFormData({ ...formData, with_departure: true })}
-                              className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_departure ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                              INCLUDED
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setFormData({ ...formData, with_departure: false })}
-                              className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_departure ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                              EXCLUDED
-                            </button>
-                          </div>
-                        </div>
-                        <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <FormLabel label="Departure City" optional />
-                              <SearchableSelect
-                                options={[
-                                  { value: "Any City", label: "Any City" },
-                                  ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                ]}
-                                value={formData.departure_city}
-                                onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                placeholder="🔍 Select City"
-                                className="!py-1"
-                                error={errors.departure_city}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <FormLabel label="Date" optional />
-                                <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
-                              </div>
-                              <div>
-                                <FormLabel label="Time" optional />
-                                <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <FormLabel label="Airline" optional />
-                              <SearchableSelect
-                                options={airlines.map(a => ({ value: a.name, label: a.name }))}
-                                value={formData.departure_airline}
-                                onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
-                                placeholder="🔍 Select Airline"
-                                className="!py-1"
-                              />
-                            </div>
-                            <div>
-                              <FormLabel label="Flight No." optional />
-                              <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
-                            </div>
-                          </div>
-                          <div>
-                            <FormLabel label="Departure Airport" optional />
-                            <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-
-                    {/* Arrival & Departure Logistics — per travel date when fixed_departure */}
-                    {formData.fixed_departure && fixedDepartureData.length > 0 && (
-                      <div className="space-y-4 mb-8">
-                        {fixedDepartureData.map((slot, sIdx) => {
-                          const lg = slot.logistics || mkLogistics();
-                          const updateLg = (patch) =>
-                            setFixedDepartureData(prev =>
-                              prev.map((s, i) =>
-                                i === sIdx
-                                  ? { ...s, logistics: { ...(s.logistics || mkLogistics()), ...patch } }
-                                  : s
-                              )
-                            );
-                          return (
-                            <div key={sIdx} className="border-2 border-gray-100 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
-                              <div className="bg-[#14532d]/5 px-4 py-2 flex items-center gap-2 border-b border-gray-100">
-                                <Calendar size={13} className="text-[#14532d]" />
-                                <span className="text-[10px] font-black text-[#14532d] uppercase tracking-widest">
-                                  Travel Date {sIdx + 1}{slot.travel_date ? ` — ${slot.travel_date}` : ''}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                                {/* Arrival */}
-                                <div className="bg-blue-50/20 p-3 rounded-lg border border-blue-100/30">
-                                  <div className="flex justify-between items-center mb-3">
-                                    <h4 className="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-1.5">
-                                      <Plane size={12} className="rotate-45" /> Arrival Logistics
-                                    </h4>
-                                    <label className="flex items-center gap-1.5 cursor-pointer">
-                                      <input type="checkbox" checked={lg.with_arrival} onChange={(e) => updateLg({ with_arrival: e.target.checked })} className="w-3 h-3 rounded border-gray-300 text-blue-600" />
-                                      <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Included</span>
-                                    </label>
-                                  </div>
-                                  <div className={!lg.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
-                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                      <div>
-                                        <FormLabel label="Arrival City" optional />
-                                        <Input value={lg.arrival_city} onChange={(e) => updateLg({ arrival_city: e.target.value })} placeholder="City Name" className="!py-1 !text-[10px]" />
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-1.5">
-                                        <div>
-                                          <FormLabel label="Date" optional />
-                                          {slot.travel_date ? (
-                                            <div className="flex items-center gap-1 bg-[#14532d]/5 border-2 border-[#14532d]/20 px-2 py-1 rounded-xl">
-                                              <Calendar size={10} className="text-[#14532d] shrink-0" />
-                                              <span className="text-[10px] font-black text-[#14532d] tracking-wide">{slot.travel_date}</span>
-                                              <span className="text-[8px] font-black text-[#14532d]/50 uppercase tracking-widest ml-auto">Locked</span>
-                                            </div>
-                                          ) : (
-                                            <Input type="date" value={lg.arrival_date} onChange={(e) => updateLg({ arrival_date: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" />
-                                          )}
-                                        </div>
-                                        <div><FormLabel label="Time" optional /><Input type="time" value={lg.arrival_time} onChange={(e) => updateLg({ arrival_time: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
-                                      </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.arrival_airline} onChange={(val) => updateLg({ arrival_airline: val })} placeholder="🔍 Select" className="!py-1 !text-[10px]" /></div>
-                                      <div><FormLabel label="Flight No." optional /><Input value={lg.arrival_flight_no} onChange={(e) => updateLg({ arrival_flight_no: e.target.value })} placeholder="No." className="!py-1 !text-[10px]" /></div>
-                                    </div>
-                                    <div><FormLabel label="Airport" optional /><Input value={lg.arrival_airport} onChange={(e) => updateLg({ arrival_airport: e.target.value })} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
-                                  </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <FormLabel label="Date" optional />
+                                  <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
                                 </div>
-                                {/* Departure */}
-                                <div className="bg-indigo-50/20 p-3 rounded-lg border border-indigo-100/30">
-                                  <div className="flex justify-between items-center mb-3">
-                                    <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1.5">
-                                      <Plane size={12} className="-rotate-45" /> Departure Logistics
-                                    </h4>
-                                    <label className="flex items-center gap-1.5 cursor-pointer">
-                                      <input type="checkbox" checked={lg.with_departure} onChange={(e) => updateLg({ with_departure: e.target.checked })} className="w-3 h-3 rounded border-indigo-300 text-indigo-600" />
-                                      <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Included</span>
-                                    </label>
-                                  </div>
-                                  <div className={!lg.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300"}>
-                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                      <div>
-                                        <FormLabel label="Departure City" optional />
-                                        <Input value={lg.departure_city} onChange={(e) => updateLg({ departure_city: e.target.value })} placeholder="City Name" className="!py-1 !text-[10px]" />
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-1.5">
-                                        <div><FormLabel label="Date" optional /><Input type="date" value={lg.departure_date} onChange={(e) => updateLg({ departure_date: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
-                                        <div><FormLabel label="Time" optional /><Input type="time" value={lg.departure_time} onChange={(e) => updateLg({ departure_time: e.target.value })} className="!py-1 !text-[10px] !px-1 [&::-webkit-calendar-picker-indicator]:scale-75" /></div>
-                                      </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                      <div><FormLabel label="Airline" optional /><SearchableSelect options={airlines.map(a => ({ value: a.name, label: a.name }))} value={lg.departure_airline} onChange={(val) => updateLg({ departure_airline: val })} placeholder="🔍 Select" className="!py-1 !text-[10px]" /></div>
-                                      <div><FormLabel label="Flight No." optional /><Input value={lg.departure_flight_no} onChange={(e) => updateLg({ departure_flight_no: e.target.value })} placeholder="No." className="!py-1 !text-[10px]" /></div>
-                                    </div>
-                                    <div><FormLabel label="Airport" optional /><Input value={lg.departure_airport} onChange={(e) => updateLg({ departure_airport: e.target.value })} placeholder="Airport Name" className="!py-1 !text-[10px]" /></div>
-                                  </div>
+                                <div>
+                                  <FormLabel label="Time" optional />
+                                  <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <FormLabel label="Airline" optional />
+                                <SearchableSelect
+                                  options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                  value={formData.arrival_airline}
+                                  onChange={(val) => setFormData(prev => ({ ...prev, arrival_airline: val }))}
+                                  placeholder="🔍 Select Airline"
+                                  className="!py-1"
+                                />
+                              </div>
+                              <div>
+                                <FormLabel label="Flight No." optional />
+                                <Input name="arrival_flight_no" value={formData.arrival_flight_no} onChange={handleInputChange} placeholder="e.g. EK501" className="!py-1" />
+                              </div>
+                            </div>
+                            <div>
+                              <FormLabel label="Arrival Airport" optional />
+                              <Input name="arrival_airport" value={formData.arrival_airport} onChange={handleInputChange} placeholder="Airport Name" className="!py-1" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Departure */}
+                        <div className="bg-white p-6 rounded-[2rem] border-2 border-indigo-50 relative group shadow-sm">
+                          <div className="flex justify-between items-center mb-6">
+                            <h4 className="text-[12px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
+                              <Plane size={16} className="-rotate-45" /> Departure Logistics
+                            </h4>
+                            <div className="flex bg-gray-50 p-1 rounded-xl border-2 border-gray-100">
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, with_departure: true })}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${formData.with_departure ? 'bg-indigo-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
+                                INCLUDED
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, with_departure: false })}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${!formData.with_departure ? 'bg-red-500 text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                              >
+                                EXCLUDED
+                              </button>
+                            </div>
+                          </div>
+                          <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <FormLabel label="Departure City" optional />
+                                <SearchableSelect
+                                  options={[
+                                    { value: "Any City", label: "Any City" },
+                                    ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                  ]}
+                                  value={formData.departure_city}
+                                  onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                  placeholder="🔍 Select City"
+                                  className="!py-1"
+                                  error={errors.departure_city}
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <FormLabel label="Date" optional />
+                                  <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
+                                </div>
+                                <div>
+                                  <FormLabel label="Time" optional />
+                                  <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <FormLabel label="Airline" optional />
+                                <SearchableSelect
+                                  options={airlines.map(a => ({ value: a.name, label: a.name }))}
+                                  value={formData.departure_airline}
+                                  onChange={(val) => setFormData(prev => ({ ...prev, departure_airline: val }))}
+                                  placeholder="🔍 Select Airline"
+                                  className="!py-1"
+                                />
+                              </div>
+                              <div>
+                                <FormLabel label="Flight No." optional />
+                                <Input name="departure_flight_no" value={formData.departure_flight_no} onChange={handleInputChange} placeholder="e.g. UA890" className="!py-1" />
+                              </div>
+                            </div>
+                            <div>
+                              <FormLabel label="Departure Airport" optional />
+                              <Input name="departure_airport" value={formData.departure_airport} onChange={handleInputChange} placeholder="Enter full airport name..." className="!py-1" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
+
+
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                       <div className="space-y-10">
