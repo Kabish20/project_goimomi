@@ -1,0 +1,6 @@
+{
+  "python.analysis.extraPaths": [
+    "./goimomi-holidays-backend"
+  ],
+  "python.testing.cwd": "./goimomi-holidays-backend"
+}

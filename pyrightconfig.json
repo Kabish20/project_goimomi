@@ -1,0 +1,13 @@
+{
+  "include": [
+    "goimomi-holidays-backend"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "goimomi-holidays-backend",
+      "extraPaths": [
+        "goimomi-holidays-backend"
+      ]
+    }
+  ]
+}
