@@ -445,8 +445,8 @@ const CabBookingManage = () => {
                                 className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-xs font-semibold text-gray-700"
                             >
                                 <option value="All">All Status</option>
-                                <option value="Booking requested">Requested</option>
-                                <option value="Tentative Confirmation">Tentative</option>
+                                <option value="Booking Requested">Booking Requested</option>
+                                <option value="Tentative Confirmation">Tentative Confirmation</option>
                                 <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
                             </select>
@@ -556,7 +556,7 @@ const CabBookingManage = () => {
                                                     <td className="py-1.5 px-3 text-center">
                                                         <div className="flex items-center gap-1.5 justify-center whitespace-nowrap">
                                                             <select
-                                                                value={booking.status || 'Booking requested'}
+                                                                value={booking.status || 'Booking Requested'}
                                                                 onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
                                                                 className={`text-[8px] font-black uppercase tracking-widest inline-block px-1.5 py-0.5 rounded-full cursor-pointer border-none outline-none appearance-none text-center ${booking.status === 'Tentative Confirmation' ? 'bg-green-100 text-green-700' :
                                                                     booking.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
@@ -565,8 +565,8 @@ const CabBookingManage = () => {
                                                                     }`}
                                                                 style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
                                                             >
-                                                                <option value="Booking requested" className="bg-white text-gray-900">Requested</option>
-                                                                <option value="Tentative Confirmation" className="bg-white text-gray-900">Tentative</option>
+                                                                <option value="Booking Requested" className="bg-white text-gray-900">Booking Requested</option>
+                                                                <option value="Tentative Confirmation" className="bg-white text-gray-900">Tentative Confirmation</option>
                                                                 <option value="Completed" className="bg-white text-gray-900">Completed</option>
                                                                 <option value="Cancelled" className="bg-white text-gray-900">Cancelled</option>
                                                             </select>
@@ -1041,11 +1041,11 @@ const CabBookingManage = () => {
                                                 <label className="text-[9px] font-bold text-gray-500 uppercase mb-0.5 block tracking-tight">Booking Status</label>
                                                 <select
                                                     name="status"
-                                                    value={editingBooking.status || "Booking requested"}
+                                                    value={editingBooking.status || "Booking Requested"}
                                                     onChange={handleEditChange}
                                                     className="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none font-bold text-gray-700"
                                                 >
-                                                    <option value="Booking requested">Booking requested</option>
+                                                    <option value="Booking Requested">Booking Requested</option>
                                                     <option value="Tentative Confirmation">Tentative Confirmation</option>
                                                     <option value="Completed">Completed</option>
                                                     <option value="Cancelled">Cancelled</option>

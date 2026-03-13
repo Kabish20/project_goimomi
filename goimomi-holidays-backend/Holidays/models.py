@@ -660,12 +660,12 @@ class CabBooking(models.Model):
     status = models.CharField(
         max_length=50, 
         choices=[
-            ('Booking requested', 'Booking requested'),
+            ('Booking Requested', 'Booking Requested'),
             ('Tentative Confirmation', 'Tentative Confirmation'),
             ('Completed', 'Completed'),
             ('Cancelled', 'Cancelled')
         ], 
-        default='Booking requested'
+        default='Booking Requested'
     )
     driver = models.CharField(max_length=255, blank=True, null=True)
     invoice_number = models.CharField(max_length=100, blank=True, null=True)
