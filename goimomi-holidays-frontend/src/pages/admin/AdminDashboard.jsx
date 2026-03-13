@@ -4,7 +4,7 @@ import {
   MapPin, Package, Calendar, Users,
   Phone, Ship, Building2, Globe,
   Flag, CreditCard, ClipboardList,
-  Map, PlaneTakeoff, HelpCircle
+  Map, PlaneTakeoff, HelpCircle, Car, Plus, ArrowRight
 } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
@@ -254,6 +254,65 @@ const AdminDashboard = () => {
                   <AdminCard title="Hotel Enq" count={stats.hotelEnquiries} link="/admin/hotel-enquiries" icon={<Building2 />} />
                   <AdminCard title="Holiday Enq" count={stats.holidayEnquiries} link="/admin/holiday-enquiries" icon={<Calendar />} />
                   <AdminCard title="Umrah Enq" count={stats.umrahEnquiries} link="/admin/umrah-enquiries" icon={<Building2 />} />
+                </div>
+              </div>
+
+              {/* Create Booking Section */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="h-1 w-3 bg-[#14532d] rounded-full"></div>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-[#14532d]">Create Booking</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+
+                  {/* Visa Booking Card */}
+                  <div
+                    onClick={() => navigate("/admin/visa-applications/add")}
+                    className="group cursor-pointer bg-white border border-gray-100 rounded-lg px-3 py-2 flex items-center justify-between hover:border-[#14532d] hover:shadow-sm transition-all duration-200 shadow-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center text-[#14532d] group-hover:bg-[#14532d] group-hover:text-white transition-all">
+                        <Globe size={14} />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-black text-gray-900 uppercase tracking-tight">Visa Booking</p>
+                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-wider">Create a new visa application</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-1.5 py-0.5 rounded bg-green-50 border border-green-100 text-[#14532d] text-[8px] font-black uppercase tracking-wider">
+                        {stats.visaApplications} total
+                      </span>
+                      <div className="w-5 h-5 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#14532d] group-hover:text-white transition-all">
+                        <ArrowRight size={11} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cab Booking Card */}
+                  <div
+                    onClick={() => navigate("/admin/cab-bookings")}
+                    className="group cursor-pointer bg-white border border-gray-100 rounded-lg px-3 py-2 flex items-center justify-between hover:border-amber-400 hover:shadow-sm transition-all duration-200 shadow-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                        <Car size={14} />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-black text-gray-900 uppercase tracking-tight">Cab Booking</p>
+                        <p className="text-[8px] text-gray-400 font-bold uppercase tracking-wider">Manage taxi & transport bookings</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-wider">
+                        {stats.cabEnquiries} enq
+                      </span>
+                      <div className="w-5 h-5 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                        <ArrowRight size={11} />
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
