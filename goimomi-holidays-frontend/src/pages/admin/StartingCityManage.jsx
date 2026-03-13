@@ -67,94 +67,94 @@ const StartingCityManage = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-semibold text-gray-800">Manage Starting Cities</h1>
-            <div className="flex gap-3">
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-lg font-bold text-gray-800">Manage Starting Cities</h1>
+            <div className="flex gap-2">
               <button
                 onClick={fetchCities}
-                className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+                className="bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition shadow-sm text-xs font-semibold"
               >
-                Refresh List
+                Refresh
               </button>
               <button
                 onClick={() => navigate("/admin/starting-cities/add")}
-                className="flex items-center gap-2 bg-[#14532d] text-white px-4 py-2 rounded hover:bg-[#0f4a24] transition"
+                className="flex items-center gap-1.5 bg-[#14532d] text-white px-3 py-1.5 rounded-lg hover:bg-[#0f4a24] transition shadow-sm text-xs font-semibold"
               >
-                <Plus size={16} />
-                Add New City
+                <Plus size={14} />
+                Add City
               </button>
             </div>
           </div>
 
           {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative max-w-md">
-              <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
+          <div className="mb-4">
+            <div className="relative max-w-sm">
+              <Search size={16} className="absolute left-3 top-2 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search cities by name or region..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                placeholder="Search by name or region..."
+                className="w-full pl-9 pr-4 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d] text-xs transition-all shadow-sm"
               />
             </div>
           </div>
 
           {message && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
+            <div className="mb-3 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-xs">
               {message}
             </div>
           )}
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-xs">
               {error}
             </div>
           )}
 
           {loading && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
-              <p className="mt-2 text-gray-600">Loading cities...</p>
+            <div className="text-center py-6">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#14532d]"></div>
+              <p className="mt-1 text-xs text-gray-600">Loading cities...</p>
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-[#14532d] text-white">
                   <tr>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">City Name</th>
-                    <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Region</th>
-                    <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
+                    <th className="text-left py-2 px-4 font-semibold uppercase text-[9px] tracking-wider">City Name</th>
+                    <th className="text-left py-2 px-4 font-semibold uppercase text-[9px] tracking-wider">Region</th>
+                    <th className="text-center py-2 px-4 font-semibold uppercase text-[9px] tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {filteredCities.length === 0 ? (
                     <tr>
-                      <td colSpan="3" className="text-center py-10 text-gray-500">
-                        {searchTerm ? `No cities match "${searchTerm}"` : "No starting cities found. Add one to get started!"}
+                      <td colSpan="3" className="text-center py-12 text-gray-500 text-xs">
+                        {searchTerm ? `No cities match "${searchTerm}"` : "No starting cities found."}
                       </td>
                     </tr>
                   ) : (
                     filteredCities.map((city) => (
-                      <tr key={city.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="py-4 px-6 font-medium text-gray-900 border-r">{city.name}</td>
-                        <td className="py-4 px-6 text-gray-600 border-r">{city.region || "-"}</td>
-                        <td className="py-4 px-6">
-                          <div className="flex justify-center gap-4">
+                      <tr key={city.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-2 px-4 text-[11px] font-medium text-gray-900">{city.name}</td>
+                        <td className="py-2 px-4 text-[10px] text-gray-600 uppercase tracking-tight">{city.region || "-"}</td>
+                        <td className="py-2 px-4">
+                          <div className="flex justify-center gap-2">
                             <button
                               onClick={() => navigate(`/admin/starting-cities/edit/${city.id}`)}
-                              className="flex items-center gap-1.5 bg-[#1f7a45] text-white px-4 py-1.5 rounded-md text-sm hover:bg-[#1a6338] transition shadow-sm"
+                              className="flex items-center gap-1 bg-green-600 text-white px-2.5 py-1 rounded-md text-[10px] font-bold hover:bg-green-700 transition shadow-sm uppercase tracking-wide"
                             >
-                              <Edit2 size={14} />
+                              <Edit2 size={10} />
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(city.id)}
-                              className="flex items-center gap-1.5 bg-red-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-red-700 transition shadow-sm"
+                              className="flex items-center gap-1 bg-red-600 text-white px-2.5 py-1 rounded-md text-[10px] font-bold hover:bg-red-700 transition shadow-sm uppercase tracking-wide"
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={10} />
                               Delete
                             </button>
                           </div>

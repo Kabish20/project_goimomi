@@ -53,34 +53,34 @@ const UmrahDestinationManage = () => {
             <AdminSidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="flex-1 overflow-y-auto p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-xl font-semibold text-gray-800">Umrah Destinations</h1>
+                <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-lg font-bold text-gray-800">Umrah Destinations</h1>
                         <button
                             onClick={() => navigate("/admin/umrah-destinations/add")}
-                            className="bg-[#14532d] hover:bg-[#1f7a45] text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            className="bg-[#14532d] hover:bg-[#1f7a45] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm uppercase tracking-wide"
                         >
                             ADD UMRAH DESTINATION
                         </button>
                     </div>
 
                     {/* Search Bar */}
-                    <div className="mb-6">
-                        <div className="relative max-w-md">
-                            <Search size={20} className="absolute left-3 top-2.5 text-gray-400" />
+                    <div className="mb-4">
+                        <div className="relative max-w-sm">
+                            <Search size={16} className="absolute left-3 top-2 text-gray-400" />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search destinations..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d]"
+                                className="w-full pl-9 pr-4 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d] text-xs transition-all shadow-sm"
                             />
                         </div>
                     </div>
 
                     {statusMessage.text && (
                         <div
-                            className={`mb-6 p-4 rounded-lg flex justify-between items-center ${statusMessage.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            className={`mb-4 p-3 rounded-lg flex justify-between items-center text-xs ${statusMessage.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                                 }`}
                         >
                             <span>{statusMessage.text}</span>
@@ -88,48 +88,48 @@ const UmrahDestinationManage = () => {
                         </div>
                     )}
 
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-[#14532d] text-white">
                                     <tr>
-                                        <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">City Name</th>
-                                        <th className="text-left py-4 px-6 font-semibold uppercase text-sm tracking-wider">Country</th>
-                                        <th className="text-center py-4 px-6 font-semibold uppercase text-sm tracking-wider">Actions</th>
+                                        <th className="text-left py-2 px-4 font-semibold uppercase text-[9px] tracking-wider">City Name</th>
+                                        <th className="text-left py-2 px-4 font-semibold uppercase text-[9px] tracking-wider">Country</th>
+                                        <th className="text-center py-2 px-4 font-semibold uppercase text-[9px] tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-y divide-gray-100">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan="3" className="text-center py-10">
-                                                <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                            <td colSpan="3" className="text-center py-12">
+                                                <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                                             </td>
                                         </tr>
                                     ) : filteredDestinations.length === 0 ? (
                                         <tr>
-                                            <td colSpan="3" className="text-center py-10 text-gray-500">
+                                            <td colSpan="3" className="text-center py-12 text-gray-500 text-xs">
                                                 No Umrah destinations found.
                                             </td>
                                         </tr>
                                     ) : (
                                         filteredDestinations.map((d) => (
-                                            <tr key={d.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="py-4 px-6 font-medium text-gray-900 border-r">{d.name}</td>
-                                                <td className="py-4 px-6 text-gray-600 border-r">{d.country}</td>
-                                                <td className="py-4 px-6">
-                                                    <div className="flex justify-center gap-4">
+                                            <tr key={d.id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="py-2 px-4 text-[11px] font-medium text-gray-900 border-r border-gray-50">{d.name}</td>
+                                                <td className="py-2 px-4 text-[10px] text-gray-600 border-r border-gray-50 uppercase tracking-tight">{d.country}</td>
+                                                <td className="py-2 px-4">
+                                                    <div className="flex justify-center gap-2">
                                                         <button
                                                             onClick={() => navigate(`/admin/umrah-destinations/edit/${d.id}`)}
-                                                            className="flex items-center gap-1.5 bg-[#1f7a45] text-white px-4 py-1.5 rounded-md text-sm hover:bg-[#1a6338] transition shadow-sm"
+                                                            className="flex items-center gap-1 bg-green-600 text-white px-2.5 py-1 rounded-md text-[10px] font-bold hover:bg-green-700 transition shadow-sm uppercase tracking-wide"
                                                         >
-                                                            <Edit2 size={14} />
+                                                            <Edit2 size={10} />
                                                             Edit
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(d.id)}
-                                                            className="flex items-center gap-1.5 bg-red-600 text-white px-4 py-1.5 rounded-md text-sm hover:bg-red-700 transition shadow-sm"
+                                                            className="flex items-center gap-1 bg-red-600 text-white px-2.5 py-1 rounded-md text-[10px] font-bold hover:bg-red-700 transition shadow-sm uppercase tracking-wide"
                                                         >
-                                                            <Trash2 size={14} />
+                                                            <Trash2 size={10} />
                                                             Delete
                                                         </button>
                                                     </div>
@@ -140,7 +140,7 @@ const UmrahDestinationManage = () => {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="p-4 bg-gray-50 border-t text-sm text-gray-500 font-medium">
+                        <div className="p-2 px-4 bg-gray-50/50 border-t text-[10px] text-gray-500 font-bold uppercase tracking-wider">
                             {filteredDestinations.length} destinations
                         </div>
                     </div>

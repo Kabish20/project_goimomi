@@ -407,22 +407,22 @@ const CabBookingManage = () => {
             <AdminSidebar />
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 <AdminTopbar />
-                <div className="flex-1 overflow-y-auto p-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-[#14532d] p-2 rounded-lg text-white">
-                                <MapPin size={24} />
+                <div className="flex-1 overflow-y-auto p-3">
+                    <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="bg-[#14532d] p-1.5 rounded-md text-white">
+                                <MapPin size={18} />
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-gray-800">Cab Bookings</h1>
-                                <p className="text-sm text-gray-500">Manage all vehicle bookings and transfer requests</p>
+                                <h1 className="text-lg font-bold text-gray-800 leading-none">Cab Bookings</h1>
+                                <p className="text-[10px] text-gray-500 mt-0.5">Manage vehicle bookings and requests</p>
                             </div>
                         </div>
                         <button
                             onClick={fetchBookings}
-                            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition shadow-sm"
+                            className="bg-gray-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition shadow-sm text-xs font-semibold"
                         >
-                            Refresh List
+                            Refresh
                         </button>
                     </div>
 
@@ -435,29 +435,29 @@ const CabBookingManage = () => {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search by name, phone, or route..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm"
+                                className="w-full pl-8 pr-4 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-xs"
                             />
                         </div>
-                        <div className="md:w-64 flex gap-2">
+                        <div className="md:w-60 flex gap-1.5">
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-sm font-semibold text-gray-700"
+                                className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-xs font-semibold text-gray-700"
                             >
                                 <option value="All">All Status</option>
-                                <option value="Booking requested">Booking requested</option>
-                                <option value="Tentative Confirmation">Tentative Confirmation</option>
+                                <option value="Booking requested">Requested</option>
+                                <option value="Tentative Confirmation">Tentative</option>
                                 <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
                             </select>
                             <div className="relative flex-1">
-                                <FileText size={16} className="absolute left-3 top-3 text-gray-400" />
+                                <FileText size={14} className="absolute left-2.5 top-2.5 text-gray-400" />
                                 <input
                                     type="text"
                                     value={invoiceSearch}
                                     onChange={(e) => setInvoiceSearch(e.target.value)}
-                                    placeholder="Invoice No..."
-                                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-sm"
+                                    placeholder="Invoice..."
+                                    className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm text-xs"
                                 />
                             </div>
                         </div>
@@ -482,30 +482,30 @@ const CabBookingManage = () => {
                                 <table className="w-full">
                                     <thead className="bg-[#14532d] text-white">
                                         <tr>
-                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Guest</th>
-                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Route & Vehicle</th>
-                                            <th className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Type & Time</th>
+                                            <th className="text-left py-2 px-3 font-semibold uppercase text-[9px] tracking-wider">Guest</th>
+                                            <th className="text-left py-2 px-3 font-semibold uppercase text-[9px] tracking-wider">Route & Vehicle</th>
+                                            <th className="text-left py-2 px-3 font-semibold uppercase text-[9px] tracking-wider">Type & Time</th>
                                             <th
-                                                className="text-left py-3 px-4 font-semibold uppercase text-[10px] tracking-wider cursor-pointer hover:bg-[#0d2f1f] transition-colors"
+                                                className="text-left py-2 px-3 font-semibold uppercase text-[9px] tracking-wider cursor-pointer hover:bg-[#0d2f1f] transition-colors"
                                                 onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
                                             >
                                                 <div className="flex items-center gap-1">
                                                     Pickup Date
-                                                    <span className="text-[8px] opacity-70">
+                                                    <span className="text-[7px] opacity-70">
                                                         {sortOrder === "asc" ? "▲" : "▼"}
                                                     </span>
                                                 </div>
                                             </th>
-                                            <th className="text-center py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Status</th>
-                                            <th className="text-center py-3 px-4 font-semibold uppercase text-[10px] tracking-wider">Actions</th>
+                                            <th className="text-center py-2 px-3 font-semibold uppercase text-[9px] tracking-wider">Status</th>
+                                            <th className="text-center py-2 px-3 font-semibold uppercase text-[9px] tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {filteredBookings.length === 0 ? (
                                             <tr>
-                                                <td colSpan="5" className="text-center py-16 text-gray-500">
+                                                <td colSpan="6" className="text-center py-16 text-gray-500">
                                                     <div className="flex flex-col items-center gap-2">
-                                                        <MapPin size={48} className="text-gray-200" />
+                                                        <MapPin size={40} className="text-gray-200" />
                                                         {searchTerm ? `No bookings match "${searchTerm}"` : "No cab bookings found."}
                                                     </div>
                                                 </td>
@@ -513,79 +513,78 @@ const CabBookingManage = () => {
                                         ) : (
                                             filteredBookings.map((booking) => (
                                                 <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
-                                                    <td className="py-2.5 px-4">
-                                                        <div className="font-semibold text-gray-900">{booking.title} {booking.first_name} {booking.last_name}</div>
-                                                        <div className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-2">
-                                                            <span className="flex items-center gap-1 whitespace-nowrap"><Phone size={10} /> {booking.phone}</span>
+                                                    <td className="py-1.5 px-3">
+                                                        <div className="font-semibold text-gray-900 text-[11px] leading-tight">{booking.title} {booking.first_name} {booking.last_name}</div>
+                                                        <div className="text-[10px] text-gray-500 mt-0.5 flex flex-wrap items-center gap-1.5">
+                                                            <span className="flex items-center gap-1 whitespace-nowrap"><Phone size={8} /> {booking.phone}</span>
                                                             {booking.email && (
-                                                                <span className="flex items-center gap-1 whitespace-nowrap"><Mail size={10} /> {booking.email}</span>
+                                                                <span className="flex items-center gap-1 whitespace-nowrap"><Mail size={8} /> {booking.email}</span>
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="py-2.5 px-4">
-                                                        <div className="text-sm font-medium text-gray-700">
+                                                    <td className="py-1.5 px-3">
+                                                        <div className="text-[11px] font-medium text-gray-700 leading-tight">
                                                             {booking.from_city} → {booking.to_city}
                                                         </div>
-                                                        <div className="text-[10px] text-[#14532d] font-black uppercase tracking-widest mt-0.5">
+                                                        <div className="text-[8px] text-[#14532d] font-black uppercase tracking-widest mt-0.5">
                                                             {booking.vehicle_name}
                                                         </div>
                                                         {booking.driver && (
-                                                            <div className="mt-1 flex items-center gap-1 text-[9px] font-bold text-gray-500 italic">
+                                                            <div className="mt-0.5 flex items-center gap-1 text-[8px] font-bold text-gray-500 italic">
                                                                 Driver: {booking.driver}
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="py-2.5 px-4">
-                                                        <div className={`text-[10px] font-black uppercase tracking-widest inline-block px-2 py-0.5 rounded-full ${booking.transfer_type === 'airport' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                                                    <td className="py-1.5 px-3">
+                                                        <div className={`text-[8px] font-black uppercase tracking-widest inline-block px-1.5 py-0.5 rounded-full ${booking.transfer_type === 'airport' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
                                                             }`}>
                                                             {booking.transfer_type}
                                                         </div>
                                                         {booking.transfer_type === 'airport' ? (
-                                                            <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                                                <Plane size={10} /> {booking.flight_number || "N/A"}
+                                                            <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
+                                                                <Plane size={8} /> {booking.flight_number || "N/A"}
                                                             </div>
                                                         ) : (
-                                                            <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                                                <Clock size={10} /> {booking.pickup_time || "N/A"}
+                                                            <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
+                                                                <Clock size={8} /> {booking.pickup_time || "N/A"}
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="py-2.5 px-4 text-sm text-gray-500 whitespace-nowrap">
+                                                    <td className="py-1.5 px-3 text-[10px] text-gray-500 whitespace-nowrap">
                                                         {formatDate(booking.pickup_date)}
                                                     </td>
-                                                    <td className="py-2.5 px-4 text-center">
-                                                        <div className="flex items-center gap-2 justify-center whitespace-nowrap">
+                                                    <td className="py-1.5 px-3 text-center">
+                                                        <div className="flex items-center gap-1.5 justify-center whitespace-nowrap">
                                                             <select
                                                                 value={booking.status || 'Booking requested'}
                                                                 onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
-                                                                className={`text-[10px] font-black uppercase tracking-widest inline-block px-2 py-1 rounded-full cursor-pointer border-none outline-none appearance-none text-center ${booking.status === 'Tentative Confirmation' ? 'bg-green-100 text-green-700' :
+                                                                className={`text-[8px] font-black uppercase tracking-widest inline-block px-1.5 py-0.5 rounded-full cursor-pointer border-none outline-none appearance-none text-center ${booking.status === 'Tentative Confirmation' ? 'bg-green-100 text-green-700' :
                                                                     booking.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
                                                                         booking.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
                                                                             'bg-blue-100 text-blue-700'
                                                                     }`}
                                                                 style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
                                                             >
-                                                                <option value="Booking requested" className="bg-white text-gray-900">Booking requested</option>
-                                                                <option value="Tentative Confirmation" className="bg-white text-gray-900">Tentative Confirmation</option>
+                                                                <option value="Booking requested" className="bg-white text-gray-900">Requested</option>
+                                                                <option value="Tentative Confirmation" className="bg-white text-gray-900">Tentative</option>
                                                                 <option value="Completed" className="bg-white text-gray-900">Completed</option>
                                                                 <option value="Cancelled" className="bg-white text-gray-900">Cancelled</option>
                                                             </select>
                                                             {booking.invoice_number && (
-                                                                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-black uppercase tracking-normal rounded border border-emerald-100">
-                                                                    <FileText size={7} /> Invoice No: {booking.invoice_number}
+                                                                <div className="inline-flex items-center gap-1 px-1 py-0.5 bg-emerald-50 text-emerald-700 text-[7px] font-black uppercase tracking-normal rounded border border-emerald-100">
+                                                                    <FileText size={6} /> {booking.invoice_number}
                                                                 </div>
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="py-2.5 px-4">
-                                                        <div className="flex justify-center gap-2">
-
+                                                    <td className="py-1.5 px-3">
+                                                        <div className="flex justify-center gap-1">
                                                             <button
                                                                 onClick={() => handleDownloadVoucher(booking)}
-                                                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors"
                                                                 title="Download Voucher"
                                                             >
-                                                                <Ticket size={18} />
+                                                                <Ticket size={14} />
                                                             </button>
                                                             <button
                                                                 onClick={() => {
@@ -594,17 +593,17 @@ const CabBookingManage = () => {
                                                                     setNewAdditionalDocs([]);
                                                                     setDocsToRemove([]);
                                                                 }}
-                                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                title="View/Edit Booking"
+                                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                                title="View/Edit"
                                                             >
-                                                                <Eye size={18} />
+                                                                <Eye size={14} />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDelete(booking.id)}
-                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                                                 title="Delete"
                                                             >
-                                                                <Trash2 size={18} />
+                                                                <Trash2 size={14} />
                                                             </button>
                                                         </div>
                                                     </td>
