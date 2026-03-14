@@ -2288,42 +2288,52 @@ const HolidayPackageAdd = () => {
                                   {transferTypes.map(t => {
                                     const data = vTransfers[t.id] || { selected: false, mode: 'Private' };
                                     return (
-                                      <div key={t.id} className={`flex items-center justify-between p-2 px-3 rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
-                                        <div className="flex items-center">
-                                          <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                              type="checkbox"
-                                              checked={data.selected}
-                                              onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
-                                              className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
-                                            />
-                                            <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
-                                          </label>
+                                      <div key={t.id} className={`rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
+                                        <div className="flex items-center justify-between p-2 px-3">
+                                          <div className="flex items-center">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                              <input
+                                                type="checkbox"
+                                                checked={data.selected}
+                                                onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
+                                                className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                                              />
+                                              <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
+                                            </label>
+                                          </div>
+                                          <div className="flex items-center gap-4">
+                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                              <input
+                                                type="radio"
+                                                name={`transfer_mode_add_${i}_${t.id}`}
+                                                checked={data.mode === 'Private'}
+                                                onChange={() => updateVT(t.id, { mode: 'Private' })}
+                                                className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                disabled={!data.selected}
+                                              />
+                                              <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
+                                            </label>
+                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                              <input
+                                                type="radio"
+                                                name={`transfer_mode_add_${i}_${t.id}`}
+                                                checked={data.mode === 'SIC'}
+                                                onChange={() => updateVT(t.id, { mode: 'SIC' })}
+                                                className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                disabled={!data.selected}
+                                              />
+                                              <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
+                                            </label>
+                                          </div>
                                         </div>
-                                        
-                                        <div className="flex items-center gap-4">
-                                          <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
-                                            <input
-                                              type="radio"
-                                              name={`transfer_mode_add_${i}_${t.id}`}
-                                              checked={data.mode === 'Private'}
-                                              onChange={() => updateVT(t.id, { mode: 'Private' })}
-                                              className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                                              disabled={!data.selected}
-                                            />
-                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
-                                          </label>
-                                          <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
-                                            <input
-                                              type="radio"
-                                              name={`transfer_mode_add_${i}_${t.id}`}
-                                              checked={data.mode === 'SIC'}
-                                              onChange={() => updateVT(t.id, { mode: 'SIC' })}
-                                              className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                                              disabled={!data.selected}
-                                            />
-                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
-                                          </label>
+                                        <div className="px-3 pb-2">
+                                          <textarea
+                                            rows={2}
+                                            value={data.description || ''}
+                                            onChange={(e) => updateVT(t.id, { description: e.target.value })}
+                                            placeholder="Description (optional)..."
+                                            className="w-full text-[10px] text-gray-600 placeholder-gray-400 bg-white border border-gray-200 rounded-md px-2 py-1 resize-none focus:outline-none focus:border-blue-300 transition-colors"
+                                          />
                                         </div>
                                       </div>
                                     );

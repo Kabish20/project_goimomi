@@ -1418,7 +1418,7 @@ const HolidayPackageEdit = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                     <div>
                                                         <FormLabel
-                                                            label="Package Title"
+                                                            label="Trip Title"
                                                             required
                                                             limit={TITLE_LIMIT}
                                                             current={formData.title.length}
@@ -1433,57 +1433,34 @@ const HolidayPackageEdit = () => {
                                                         />
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
-                                                        <div className={`aspect-[21/9] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative group hover:border-[#14532d] transition-all cursor-pointer`}>
-                                                            {(headerPreview) ? (
-                                                                <>
-                                                                    <img src={headerPreview} className="w-full h-full object-cover" alt="Header Preview" />
-                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                setHeaderPreview(null);
-                                                                                setFormData({ ...formData, header_image: null });
-                                                                            }}
-                                                                            className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
-                                                                        >
-                                                                            <X size={14} />
-                                                                        </button>
-                                                                    </div>
-                                                                </>
-                                                            ) : (
-                                                                <div className="text-center">
-                                                                    <ImageIcon size={18} className="text-gray-300 mx-auto" />
-                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Header</p>
+                                                        <div className={`relative border-2 border-dashed rounded-2xl p-4 transition-all h-full min-h-[100px] flex flex-col items-center justify-center ${headerPreview ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
+                                                            {headerPreview ? (
+                                                                <div className="text-center group/main w-full h-full relative">
+                                                                    <img src={headerPreview} alt="H" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
+                                                                    <button type="button" onClick={() => { setHeaderPreview(null); setFormData({ ...formData, header_image: null }); }} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-lg active:scale-90 transition-transform"><X size={10} /></button>
                                                                 </div>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="w-8 h-8 bg-white rounded-lg shadow flex items-center justify-center text-gray-400 font-black text-xl mb-1">+</div>
+                                                                    <p className="font-black text-gray-900 text-[8px] uppercase tracking-widest">Header Banner</p>
+                                                                    <input type="file" name="header_image" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setHeaderPreview(URL.createObjectURL(e.target.files[0])); } }} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+                                                                </>
                                                             )}
-                                                            <input type="file" name="header_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setHeaderPreview(URL.createObjectURL(e.target.files[0])); } }} />
                                                         </div>
-                                                        <div className="aspect-[4/3] w-full bg-white rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center relative group hover:border-[#14532d] transition-all cursor-pointer">
-                                                            {(cardPreview) ? (
-                                                                <>
-                                                                    <img src={cardPreview} className="w-full h-full object-cover" alt="Card Preview" />
-                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                setCardPreview(null);
-                                                                                setFormData({ ...formData, card_image: null });
-                                                                            }}
-                                                                            className="bg-red-500 text-white p-2 rounded-full hover:scale-110 transition-transform"
-                                                                        >
-                                                                            <X size={14} />
-                                                                        </button>
-                                                                    </div>
-                                                                </>
-                                                            ) : (
-                                                                <div className="text-center">
-                                                                    <ImageIcon size={18} className="text-gray-300 mx-auto" />
-                                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-1">Card</p>
+
+                                                        <div className={`relative border-2 border-dashed rounded-2xl p-4 transition-all h-full min-h-[100px] flex flex-col items-center justify-center ${cardPreview ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
+                                                            {cardPreview ? (
+                                                                <div className="text-center group/card w-full h-full relative">
+                                                                    <img src={cardPreview} alt="C" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
+                                                                    <button type="button" onClick={() => { setCardPreview(null); setFormData({ ...formData, card_image: null }); }} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-lg active:scale-90 transition-transform"><X size={10} /></button>
                                                                 </div>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="w-8 h-8 bg-white rounded-lg shadow flex items-center justify-center text-gray-400 font-black text-xl mb-1">+</div>
+                                                                    <p className="font-black text-gray-900 text-[8px] uppercase tracking-widest">Card Visual</p>
+                                                                    <input type="file" name="card_image" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setCardPreview(URL.createObjectURL(e.target.files[0])); } }} accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" />
+                                                                </>
                                                             )}
-                                                            <input type="file" name="card_image" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { handleFileChange(e); if (e.target.files[0]) { setCardPreview(URL.createObjectURL(e.target.files[0])); } }} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1512,7 +1489,7 @@ const HolidayPackageEdit = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div>
-                                                            <FormLabel label="Package Category" required />
+                                                            <FormLabel label="Category" required />
                                                             <select
                                                                 name="category"
                                                                 value={formData.category}
@@ -2643,42 +2620,52 @@ const HolidayPackageEdit = () => {
                                                                                         {transferTypes.map(t => {
                                                                                             const data = vTransfers[t.id] || { selected: false, mode: 'Private' };
                                                                                             return (
-                                                                                                <div key={t.id} className={`flex items-center justify-between p-2 px-3 rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
-                                                                                                    <div className="flex items-center">
-                                                                                                        <label className="flex items-center gap-2 cursor-pointer">
-                                                                                                            <input
-                                                                                                                type="checkbox"
-                                                                                                                checked={data.selected}
-                                                                                                                onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
-                                                                                                                className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
-                                                                                                            />
-                                                                                                            <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
-                                                                                                        </label>
+                                                                                                <div key={t.id} className={`rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
+                                                                                                    <div className="flex items-center justify-between p-2 px-3">
+                                                                                                        <div className="flex items-center">
+                                                                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                                                                <input
+                                                                                                                    type="checkbox"
+                                                                                                                    checked={data.selected}
+                                                                                                                    onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
+                                                                                                                    className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                                                                                                                />
+                                                                                                                <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
+                                                                                                            </label>
+                                                                                                        </div>
+                                                                                                        <div className="flex items-center gap-4">
+                                                                                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                                <input
+                                                                                                                    type="radio"
+                                                                                                                    name={`transfer_mode_edit_${i}_${t.id}`}
+                                                                                                                    checked={data.mode === 'Private'}
+                                                                                                                    onChange={() => updateVT(t.id, { mode: 'Private' })}
+                                                                                                                    className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                                    disabled={!data.selected}
+                                                                                                                />
+                                                                                                                <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
+                                                                                                            </label>
+                                                                                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                                <input
+                                                                                                                    type="radio"
+                                                                                                                    name={`transfer_mode_edit_${i}_${t.id}`}
+                                                                                                                    checked={data.mode === 'SIC'}
+                                                                                                                    onChange={() => updateVT(t.id, { mode: 'SIC' })}
+                                                                                                                    className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                                    disabled={!data.selected}
+                                                                                                                />
+                                                                                                                <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
+                                                                                                            </label>
+                                                                                                        </div>
                                                                                                     </div>
-                                                                                                    
-                                                                                                    <div className="flex items-center gap-4">
-                                                                                                        <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
-                                                                                                            <input
-                                                                                                                type="radio"
-                                                                                                                name={`transfer_mode_edit_${i}_${t.id}`}
-                                                                                                                checked={data.mode === 'Private'}
-                                                                                                                onChange={() => updateVT(t.id, { mode: 'Private' })}
-                                                                                                                className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                                                                                                                disabled={!data.selected}
-                                                                                                            />
-                                                                                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
-                                                                                                        </label>
-                                                                                                        <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
-                                                                                                            <input
-                                                                                                                type="radio"
-                                                                                                                name={`transfer_mode_edit_${i}_${t.id}`}
-                                                                                                                checked={data.mode === 'SIC'}
-                                                                                                                onChange={() => updateVT(t.id, { mode: 'SIC' })}
-                                                                                                                className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                                                                                                                disabled={!data.selected}
-                                                                                                            />
-                                                                                                            <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
-                                                                                                        </label>
+                                                                                                    <div className="px-3 pb-2">
+                                                                                                        <textarea
+                                                                                                            rows={2}
+                                                                                                            value={data.description || ''}
+                                                                                                            onChange={(e) => updateVT(t.id, { description: e.target.value })}
+                                                                                                            placeholder="Description (optional)..."
+                                                                                                            className="w-full text-[10px] text-gray-600 placeholder-gray-400 bg-white border border-gray-200 rounded-md px-2 py-1 resize-none focus:outline-none focus:border-blue-300 transition-colors"
+                                                                                                        />
                                                                                                     </div>
                                                                                                 </div>
                                                                                             );
@@ -2910,41 +2897,52 @@ const HolidayPackageEdit = () => {
                                                                             {transferTypes2.map(t => {
                                                                                 const data = vTransfers2[t.id] || { selected: false, mode: 'Private' };
                                                                                 return (
-                                                                                    <div key={t.id} className={`flex items-center justify-between p-2 px-3 rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
-                                                                                        <div className="flex items-center">
-                                                                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                                                                <input
-                                                                                                    type="checkbox"
-                                                                                                    checked={data.selected}
-                                                                                                    onChange={(e) => updateVT2(t.id, { selected: e.target.checked })}
-                                                                                                    className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
-                                                                                                />
-                                                                                                <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
-                                                                                            </label>
+                                                                                    <div key={t.id} className={`rounded-lg border border-gray-100 transition-all ${data.selected ? 'bg-blue-50/50 shadow-sm border-blue-100/50' : 'bg-gray-50/50 hover:bg-gray-50'}`}>
+                                                                                        <div className="flex items-center justify-between p-2 px-3">
+                                                                                            <div className="flex items-center">
+                                                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                                                    <input
+                                                                                                        type="checkbox"
+                                                                                                        checked={data.selected}
+                                                                                                        onChange={(e) => updateVT2(t.id, { selected: e.target.checked })}
+                                                                                                        className="w-3.5 h-3.5 rounded-sm border-2 border-gray-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                                                                                                    />
+                                                                                                    <span className={`text-[11px] font-bold tracking-wide transition-colors ${data.selected ? 'text-blue-900' : 'text-gray-600'}`}>{t.label}</span>
+                                                                                                </label>
+                                                                                            </div>
+                                                                                            <div className="flex items-center gap-4">
+                                                                                                <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                    <input
+                                                                                                        type="radio"
+                                                                                                        name={`transfer_mode_edit2_${i}_${t.id}`}
+                                                                                                        checked={data.mode === 'Private'}
+                                                                                                        onChange={() => updateVT2(t.id, { mode: 'Private' })}
+                                                                                                        className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                        disabled={!data.selected}
+                                                                                                    />
+                                                                                                    <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
+                                                                                                </label>
+                                                                                                <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
+                                                                                                    <input
+                                                                                                        type="radio"
+                                                                                                        name={`transfer_mode_edit2_${i}_${t.id}`}
+                                                                                                        checked={data.mode === 'SIC'}
+                                                                                                        onChange={() => updateVT2(t.id, { mode: 'SIC' })}
+                                                                                                        className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                                                                                                        disabled={!data.selected}
+                                                                                                    />
+                                                                                                    <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
+                                                                                                </label>
+                                                                                            </div>
                                                                                         </div>
-                                                                                        <div className="flex items-center gap-4">
-                                                                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
-                                                                                                <input
-                                                                                                    type="radio"
-                                                                                                    name={`transfer_mode_edit2_${i}_${t.id}`}
-                                                                                                    checked={data.mode === 'Private'}
-                                                                                                    onChange={() => updateVT2(t.id, { mode: 'Private' })}
-                                                                                                    className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                                                                                                    disabled={!data.selected}
-                                                                                                />
-                                                                                                <span className={`text-[11px] font-medium ${data.selected && data.mode === 'Private' ? 'text-blue-900' : 'text-gray-500'}`}>Private</span>
-                                                                                            </label>
-                                                                                            <label className={`flex items-center gap-1.5 cursor-pointer ${!data.selected ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-105 transition-transform'}`}>
-                                                                                                <input
-                                                                                                    type="radio"
-                                                                                                    name={`transfer_mode_edit2_${i}_${t.id}`}
-                                                                                                    checked={data.mode === 'SIC'}
-                                                                                                    onChange={() => updateVT2(t.id, { mode: 'SIC' })}
-                                                                                                    className="w-3 h-3 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                                                                                                    disabled={!data.selected}
-                                                                                                />
-                                                                                                <span className={`text-[11px] font-medium ${data.selected && data.mode === 'SIC' ? 'text-blue-900' : 'text-gray-500'}`}>SIC</span>
-                                                                                            </label>
+                                                                                        <div className="px-3 pb-2">
+                                                                                            <textarea
+                                                                                                rows={2}
+                                                                                                value={data.description || ''}
+                                                                                                onChange={(e) => updateVT2(t.id, { description: e.target.value })}
+                                                                                                placeholder="Description (optional)..."
+                                                                                                className="w-full text-[10px] text-gray-600 placeholder-gray-400 bg-white border border-gray-200 rounded-md px-2 py-1 resize-none focus:outline-none focus:border-blue-300 transition-colors"
+                                                                                            />
                                                                                         </div>
                                                                                     </div>
                                                                                 );
