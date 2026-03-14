@@ -133,6 +133,14 @@ class HolidayPackage(models.Model):
         default='SINGLE',
         blank=True, null=True
     )
+    accommodations_raw = models.JSONField(default=list, blank=True, null=True)
+    vehicles_raw = models.JSONField(default=list, blank=True, null=True)
+    inclusions_raw = models.JSONField(default=list, blank=True, null=True)
+    exclusions_raw = models.JSONField(default=list, blank=True, null=True)
+    highlights_raw = models.JSONField(default=list, blank=True, null=True)
+    cancellation_policies_raw = models.JSONField(default=list, blank=True, null=True)
+    terms_and_policies_raw = models.JSONField(default=list, blank=True, null=True)
+    arrival_no_of_nights = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return self.title

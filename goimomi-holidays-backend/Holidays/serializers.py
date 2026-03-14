@@ -119,6 +119,12 @@ class PackageDestinationSerializer(serializers.ModelSerializer):
         fields = ["name", "nights"]
 
 
+class ItineraryDaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItineraryDay
+        fields = "__all__"
+
+
 class HolidayPackageSerializer(serializers.ModelSerializer):
     itinerary = serializers.SerializerMethodField()
     inclusions = InclusionSerializer(many=True, read_only=True)
@@ -127,21 +133,65 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
     cancellation_policies = CancellationPolicySerializer(many=True, read_only=True)
     destinations = PackageDestinationSerializer(source='extra_destinations', many=True, read_only=True)
     nights = serializers.SerializerMethodField()
-    fixed_departure_data = serializers.SerializerMethodField()
-    
-    # Use distinct field names for writing to avoid clashing with read-only fields
+    fixed_departure_data = serializers.JSONField(required=False)
+    # Write-only fields for nested data handling
     package_destinations = serializers.JSONField(write_only=True, required=False)
     itinerary_days = serializers.JSONField(write_only=True, required=False)
-    inclusions_raw = serializers.JSONField(write_only=True, required=False)
-    exclusions_raw = serializers.JSONField(write_only=True, required=False)
-    highlights_raw = serializers.JSONField(write_only=True, required=False)
-    cancellation_policies_raw = serializers.JSONField(write_only=True, required=False)
-    vehicles_raw = serializers.JSONField(write_only=True, required=False)
+    
+    # Raw data fields for frontend-backend sync
+    accommodations_raw = serializers.JSONField(required=False, allow_null=True)
+    vehicles_raw = serializers.JSONField(required=False, allow_null=True)
+    inclusions_raw = serializers.JSONField(required=False, allow_null=True)
+    exclusions_raw = serializers.JSONField(required=False, allow_null=True)
+    highlights_raw = serializers.JSONField(required=False, allow_null=True)
+    cancellation_policies_raw = serializers.JSONField(required=False, allow_null=True)
+    terms_and_policies_raw = serializers.JSONField(required=False, allow_null=True)
+    
     vehicles = HolidayVehicleSerializer(many=True, read_only=True)
 
     class Meta:
         model = HolidayPackage
         fields = "__all__"
+
+    def to_representation(self, instance):
+        """
+        Custom representation to apply filtering to fixed_departure_data
+        while keeping it writable via JSONField.
+        """
+        data = super().to_representation(instance)
+        
+        # Apply the filtering logic for fixed_departure_data if it's not an admin request
+        fd_data = data.get('fixed_departure_data')
+        if fd_data:
+            if isinstance(fd_data, str):
+                try: fd_data = json.loads(fd_data)
+                except: pass
+            
+            if isinstance(fd_data, list):
+                request = self.context.get('request')
+                is_admin = request and (
+                    request.query_params.get('admin', 'false').lower() == 'true' or
+                    request.query_params.get('all', 'false').lower() == 'true'
+                )
+                if not is_admin:
+                    today = date.today()
+                    filtered = []
+                    for slot in fd_data:
+                        valid_to_str = slot.get('valid_to')
+                        if valid_to_str:
+                            try:
+                                valid_to = date.fromisoformat(valid_to_str)
+                                if valid_to >= today:
+                                    filtered.append(slot)
+                            except (ValueError, TypeError):
+                                filtered.append(slot)
+                        else:
+                            filtered.append(slot)
+                    data['fixed_departure_data'] = filtered
+                else:
+                    data['fixed_departure_data'] = fd_data
+        
+        return data
 
     def get_nights(self, obj):
         return sum(d.nights for d in obj.extra_destinations.all())
@@ -151,47 +201,6 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         qs = obj.itinerary.all()
         return ItineraryDaySerializer(qs, many=True, context=self.context).data
 
-    def get_fixed_departure_data(self, obj):
-        """
-        For the public-facing API, filter out pricing slots where valid_to has expired.
-        For admin requests (detected by ?all=true or when the request comes from admin),
-        return all slots unfiltered.
-        """
-        data = obj.fixed_departure_data
-        if not data:
-            return data
-
-        if isinstance(data, str):
-            try:
-                data = json.loads(data)
-            except Exception:
-                return data
-
-        # Check if this is an admin request (pass ?admin=true to skip filtering)
-        request = self.context.get('request')
-        is_admin = request and (
-            request.query_params.get('admin', 'false').lower() == 'true' or
-            request.query_params.get('all', 'false').lower() == 'true'
-        )
-        if is_admin:
-            return data
-
-        # For public: filter out slots where valid_to has passed
-        today = date.today()
-        filtered = []
-        for slot in data:
-            valid_to_str = slot.get('valid_to')
-            if valid_to_str:
-                try:
-                    valid_to = date.fromisoformat(valid_to_str)
-                    if valid_to >= today:
-                        filtered.append(slot)
-                    # else: expired slot — skip it
-                except (ValueError, TypeError):
-                    filtered.append(slot)  # Keep if date can't be parsed
-            else:
-                filtered.append(slot)  # Keep if no valid_to set
-        return filtered
 
     def create(self, validated_data):
         # Handle stringified data from FormData
@@ -216,12 +225,13 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         exclusions_data = validated_data.pop('exclusions_raw', [])
         highlights_data = validated_data.pop('highlights_raw', [])
         cancellation_policies_data = validated_data.pop('cancellation_policies_raw', [])
+        terms_and_policies_data = validated_data.pop('terms_and_policies_raw', [])
         vehicles_data = validated_data.pop('vehicles_raw', [])
         
         # Create the package
         package = HolidayPackage.objects.create(**validated_data)
         
-        self._handle_nested_data(package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data)
+        self._handle_nested_data(package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data, accommodations_data=None, terms_and_policies_data=terms_and_policies_data)
         return package
 
     def update(self, instance, validated_data):
@@ -247,6 +257,8 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         exclusions_data = validated_data.pop('exclusions_raw', None)
         highlights_data = validated_data.pop('highlights_raw', None)
         cancellation_policies_data = validated_data.pop('cancellation_policies_raw', None)
+        terms_and_policies_data = validated_data.pop('terms_and_policies_raw', None)
+        accommodations_data = validated_data.pop('accommodations_raw', None)
         vehicles_data = validated_data.pop('vehicles_raw', None)
 
         for attr, value in validated_data.items():
@@ -255,7 +267,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
 
         # ONLY update nested data if it was explicitly provided in the request
         # This prevents data loss when updating only basic fields (like is_active)
-        if any(x is not None for x in [package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, cancellation_policies_data]):
+        if any(x is not None for x in [package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, cancellation_policies_data, accommodations_data, vehicles_data, terms_and_policies_data]):
             
             # Clear existing simple relations ONLY if provided
             if package_destinations_data is not None:
@@ -270,13 +282,14 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                 instance.cancellation_policies.all().delete()
             if vehicles_data is not None:
                 instance.vehicles.all().delete()
+            # accommodations_raw is stored in the model now, no need to clear separate model
 
             # The _handle_nested_data method already handles itinerary deletion/preservation logic
-            self._handle_nested_data(instance, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data)
+            self._handle_nested_data(instance, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data, accommodations_data, terms_and_policies_data=terms_and_policies_data)
         
         return instance
 
-    def _handle_nested_data(self, package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data):
+    def _handle_nested_data(self, package, package_destinations_data, itinerary_days_data, inclusions_data, exclusions_data, highlights_data, vehicles_data, cancellation_policies_data, accommodations_data=None, terms_and_policies_data=None):
         # Helper to ensure we have a list/dict, but ONLY if not None
         def ensure_json(data):
             if data is None: return None
@@ -292,6 +305,8 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         highlights_data = ensure_json(highlights_data)
         cancellation_policies_data = ensure_json(cancellation_policies_data)
         vehicles_data = ensure_json(vehicles_data)
+        accommodations_data = ensure_json(accommodations_data)
+        terms_and_policies_data = ensure_json(terms_and_policies_data)
 
         # 1. Package Destinations (only if provided)
         if package_destinations_data is not None and isinstance(package_destinations_data, list):
@@ -302,7 +317,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                         PackageDestination.objects.create(
                             package=package,
                             destination=dest_obj,
-                            nights=dest_data.get('nights', 1) if isinstance(dest_data, dict) else 1
+                            nights=int(dest_data.get('nights', 1)) if isinstance(dest_data, dict) else 1
                         )
 
         # 2. Itinerary Days (only if provided)
@@ -327,7 +342,8 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
             current_day_num = 0
             for i, day_data in enumerate(itinerary_days_data):
                 title = day_data.get('title', '').strip()
-                if not title: continue
+                # Relaxed title check - allow empty titles if description exists
+                if not title and not day_data.get('description'): continue
 
                 current_day_num += 1
                 day_num = current_day_num
@@ -427,6 +443,23 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                         remarks=v.get('remarks', '')
                     )
 
+        # 5. Save Raw Data Fields to Model
+        if inclusions_data is not None:
+            package.inclusions_raw = inclusions_data
+        if exclusions_data is not None:
+            package.exclusions_raw = exclusions_data
+        if highlights_data is not None:
+            package.highlights_raw = highlights_data
+        if cancellation_policies_data is not None:
+            package.cancellation_policies_raw = cancellation_policies_data
+        if vehicles_data is not None:
+            package.vehicles_raw = vehicles_data
+        if accommodations_data is not None:
+            package.accommodations_raw = accommodations_data
+        if terms_and_policies_data is not None:
+            package.terms_and_policies_raw = terms_and_policies_data
+        
+        package.save()
 
 class DestinationSerializer(serializers.ModelSerializer):
     class Meta:
