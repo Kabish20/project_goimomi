@@ -61,10 +61,7 @@ class EnquirySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ItineraryDaySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ItineraryDay
-        fields = ["day_number", "title", "description", "image", "master_template", "details_json"]
+# ItineraryDaySerializer moved after all dependencies
 
 
 class InclusionSerializer(serializers.ModelSerializer):
@@ -511,6 +508,12 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = "__all__"
+
+
 class VisaSerializer(serializers.ModelSerializer):
     country_details = serializers.SerializerMethodField()
     supplier_details = serializers.SerializerMethodField()
@@ -579,10 +582,6 @@ class VisaApplicationSerializer(serializers.ModelSerializer):
         ]
 
 
-class CountrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Country
-        fields = "__all__"
 
 class SupplierSerializer(serializers.ModelSerializer):
     class Meta:

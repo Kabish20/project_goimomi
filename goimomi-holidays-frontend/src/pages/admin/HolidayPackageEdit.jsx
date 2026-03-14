@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import SearchableSelect from "../../components/admin/SearchableSelect";
-import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, FileText, Star, Utensils, Camera, Bus, Bed, List, ListOrdered, PlayCircle } from "lucide-react";
+import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Bus, Camera, ChevronDown, ChevronLeft, ChevronRight, Clock, LayoutGrid, Map, Moon, Plus, Search, Settings, Star, Trash2, Upload, User, Users, Download, FileText, History, Check, ArrowRight } from 'lucide-react';
 
 /* ---------- UI helpers ---------- */
 const Section = ({ title, children, active }) => (
@@ -155,27 +155,24 @@ const HolidayPackageEdit = () => {
     const cancellationRef = useRef(null);
     const highlightsRef = useRef(null);
     const pricingSlotsRef = useRef(null);
-    const [accommodations, setAccommodations] = useState([]);
-    const [showHotelModal, setShowHotelModal] = useState(false);
-    const [hotelModalTargetDay, setHotelModalTargetDay] = useState(null);
-    const [hotelSearchQuery, setHotelSearchQuery] = useState("");
-    const [hotelMasters, setHotelMasters] = useState([]);
     const [sightseeingMasters, setSightseeingMasters] = useState([]);
     const [mealMasters, setMealMasters] = useState([]);
     const [airlines, setAirlines] = useState([]);
     const [driverMasters, setDriverMasters] = useState([]);
     const [vehicleBrands, setVehicleBrands] = useState([]);
-    const [newHotelForm, setNewHotelForm] = useState({
-        name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
-    });
-    const [roomTypes, setRoomTypes] = useState([]);
     const [vehicleMasters, setVehicleMasters] = useState([]);
     const [pickupPoints, setPickupPoints] = useState([]);
     const [vehicles, setVehicles] = useState([]);
+    const [hotelMasters, setHotelMasters] = useState([]);
+    const [roomTypes, setRoomTypes] = useState([]);
     // New Sightseeing panel state
     const [newSightseeingForm, setNewSightseeingForm] = useState({
         name: '', description: '', address: '', city: '', duration: '', price: '', map_link: '',
         latitude: '', longitude: '', images: []
+    });
+    const [hotelPanelDayIndex, setHotelPanelDayIndex] = useState(null);
+    const [newHotelForm, setNewHotelForm] = useState({
+        name: '', stars: '3', address: '', city: '', latitude: '', longitude: '', image: null
     });
     const [sightseeingPanelDayIndex, setSightseeingPanelDayIndex] = useState(null);
 
@@ -323,14 +320,14 @@ const HolidayPackageEdit = () => {
             try {
                 setLoading(true);
                 // Fetch dependencies in parallel
-                const [citiesRes, destRes, suppliersRes, mastersRes, hotelMastersRes, sightseeingMastersRes, mealMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pickupPointsRes, pkgRes] = await Promise.all([
+                const [citiesRes, destRes, suppliersRes, mastersRes, sightseeingMastersRes, mealMastersRes, hotelMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pickupPointsRes, pkgRes] = await Promise.all([
                     api.get(`${API_BASE_URL}/starting-cities/`),
                     api.get(`${API_BASE_URL}/destinations/`),
                     api.get(`${API_BASE_URL}/suppliers/`),
                     api.get(`${API_BASE_URL}/itinerary-masters/`),
-                    api.get(`${API_BASE_URL}/accommodations/`),
                     api.get(`${API_BASE_URL}/sightseeing-masters/`),
                     api.get(`${API_BASE_URL}/meal-masters/`),
+                    api.get(`${API_BASE_URL}/hotel-masters/`),
                     api.get(`${API_BASE_URL}/airlines/`),
                     api.get(`${API_BASE_URL}/vehicle-brands/`),
                     api.get(`${API_BASE_URL}/vehicle-masters/`),
@@ -357,9 +354,20 @@ const HolidayPackageEdit = () => {
                     }));
                     setItineraryMasters(enriched);
                 }
-                if (Array.isArray(hotelMastersRes.data)) setHotelMasters(hotelMastersRes.data);
                 if (Array.isArray(sightseeingMastersRes.data)) setSightseeingMasters(sightseeingMastersRes.data);
                 if (Array.isArray(mealMastersRes.data)) setMealMasters(mealMastersRes.data);
+                if (Array.isArray(hotelMastersRes.data)) {
+                    const destList = Array.isArray(destRes.data) ? destRes.data : [];
+                    const enrichedHotels = hotelMastersRes.data.map(hm => ({
+                        ...hm,
+                        destination_name: hm.destination_name ||
+                            destList.find(d =>
+                                d.city?.toLowerCase() === hm.city?.toLowerCase() ||
+                                d.name?.toLowerCase() === hm.city?.toLowerCase()
+                            )?.name || ''
+                    }));
+                    setHotelMasters(enrichedHotels);
+                }
                 if (Array.isArray(airlinesRes.data)) setAirlines(airlinesRes.data);
                 if (Array.isArray(vehicleBrandsRes.data)) setVehicleBrands(vehicleBrandsRes.data);
                 if (Array.isArray(vehicleMastersRes.data)) setVehicleMasters(vehicleMastersRes.data);
@@ -450,123 +458,76 @@ const HolidayPackageEdit = () => {
                 }
 
                 // Inclusions
+                let loadedInclusions = [""];
                 if (pkg.inclusions_raw) {
                     try {
                         const raw = typeof pkg.inclusions_raw === 'string' ? JSON.parse(pkg.inclusions_raw) : pkg.inclusions_raw;
-                        setInclusions(Array.isArray(raw) && raw.length > 0 ? raw : [""]);
-                    } catch (e) { setInclusions([""]); }
-                } else if (pkg.inclusions && Array.isArray(pkg.inclusions) && pkg.inclusions.length > 0) {
-                    setInclusions(pkg.inclusions.map(i => i.text));
-                } else {
-                    setInclusions([""]);
+                        if (Array.isArray(raw) && raw.length > 0) loadedInclusions = raw;
+                    } catch (e) { console.error("Error parsing inclusions_raw:", e); }
                 }
+                
+                if ((loadedInclusions.length === 0 || (loadedInclusions.length === 1 && !loadedInclusions[0])) && pkg.inclusions && Array.isArray(pkg.inclusions) && pkg.inclusions.length > 0) {
+                    loadedInclusions = pkg.inclusions.map(i => i.text);
+                }
+                setInclusions(loadedInclusions.length > 0 ? loadedInclusions : [""]);
 
                 // Exclusions
+                let loadedExclusions = [""];
                 if (pkg.exclusions_raw) {
                     try {
                         const raw = typeof pkg.exclusions_raw === 'string' ? JSON.parse(pkg.exclusions_raw) : pkg.exclusions_raw;
-                        setExclusions(Array.isArray(raw) && raw.length > 0 ? raw : [""]);
-                    } catch (e) { setExclusions([""]); }
-                } else if (pkg.exclusions && Array.isArray(pkg.exclusions) && pkg.exclusions.length > 0) {
-                    setExclusions(pkg.exclusions.map(e => e.text));
-                } else {
-                    setExclusions([""]);
+                        if (Array.isArray(raw) && raw.length > 0) loadedExclusions = raw;
+                    } catch (e) { console.error("Error parsing exclusions_raw:", e); }
                 }
 
+                if ((loadedExclusions.length === 0 || (loadedExclusions.length === 1 && !loadedExclusions[0])) && pkg.exclusions && Array.isArray(pkg.exclusions) && pkg.exclusions.length > 0) {
+                    loadedExclusions = pkg.exclusions.map(e => e.text);
+                }
+                setExclusions(loadedExclusions.length > 0 ? loadedExclusions : [""]);
+
                 // Highlights
+                let loadedHighlights = [""];
                 if (pkg.highlights_raw) {
                     try {
                         const raw = typeof pkg.highlights_raw === 'string' ? JSON.parse(pkg.highlights_raw) : pkg.highlights_raw;
-                        setHighlights(Array.isArray(raw) && raw.length > 0 ? raw : [""]);
-                    } catch (e) { setHighlights([""]); }
-                } else if (pkg.highlights && Array.isArray(pkg.highlights) && pkg.highlights.length > 0) {
-                    setHighlights(pkg.highlights.map(h => h.text.replace(/^[\u2022\u2023\u25E6\u2043\u2219•]\s*/, '')));
-                } else {
-                    setHighlights([""]);
+                        if (Array.isArray(raw) && raw.length > 0) loadedHighlights = raw;
+                    } catch (e) { console.error("Error parsing highlights_raw:", e); }
                 }
 
-                // Cancellation Policies - Keep for backward compatibility if needed, but Terms & Policy is primary now
+                if ((loadedHighlights.length === 0 || (loadedHighlights.length === 1 && !loadedHighlights[0])) && pkg.highlights && Array.isArray(pkg.highlights) && pkg.highlights.length > 0) {
+                    loadedHighlights = pkg.highlights.map(h => h.text.replace(/^[\u2022\u2023\u25E6\u2043\u2219•]\s*/, ''));
+                }
+                setHighlights(loadedHighlights.length > 0 ? loadedHighlights : [""]);
+
+                // Cancellation Policies
+                let loadedPolicies = [""];
                 if (pkg.cancellation_policies_raw) {
                     try {
                         const raw = typeof pkg.cancellation_policies_raw === 'string' ? JSON.parse(pkg.cancellation_policies_raw) : pkg.cancellation_policies_raw;
-                        setCancellationPolicies(Array.isArray(raw) && raw.length > 0 ? raw : [""]);
-                    } catch (e) { setCancellationPolicies([""]); }
-                } else if (pkg.cancellation_policies && Array.isArray(pkg.cancellation_policies) && pkg.cancellation_policies.length > 0) {
-                    setCancellationPolicies(pkg.cancellation_policies.map(c => c.text));
-                } else {
-                    setCancellationPolicies([""]);
+                        if (Array.isArray(raw) && raw.length > 0) loadedPolicies = raw;
+                    } catch (e) { console.error("Error parsing cancellation_policies_raw:", e); }
                 }
 
+                if ((loadedPolicies.length === 0 || (loadedPolicies.length === 1 && !loadedPolicies[0])) && pkg.cancellation_policies && Array.isArray(pkg.cancellation_policies) && pkg.cancellation_policies.length > 0) {
+                    loadedPolicies = pkg.cancellation_policies.map(c => c.text);
+                }
+                setCancellationPolicies(loadedPolicies.length > 0 ? loadedPolicies : [""]);
+
                 // Terms & Policies
+                let loadedTerms = [""];
                 if (pkg.terms_and_policies_raw) {
                     try {
                         const raw = typeof pkg.terms_and_policies_raw === 'string' ? JSON.parse(pkg.terms_and_policies_raw) : pkg.terms_and_policies_raw;
-                        setTermsAndPolicies(Array.isArray(raw) && raw.length > 0 ? raw : [""]);
-                    } catch (e) { setTermsAndPolicies([""]); }
-                } else {
-                    setTermsAndPolicies([""]);
+                        if (Array.isArray(raw) && raw.length > 0) loadedTerms = raw;
+                    } catch (e) { console.error("Error parsing terms_and_policies_raw:", e); }
                 }
 
-                // Accommodations - NEW STRUCTURE
-                const defaultRoom = { id: Date.now() + 1, type: "", meals: "", checkIn: "", checkOut: "", noOfRooms: "1" };
-                let loadedAccommodations = [];
-
-                if (pkg.accommodations_raw) {
-                    try {
-                        const raw = typeof pkg.accommodations_raw === 'string' 
-                            ? JSON.parse(pkg.accommodations_raw) 
-                            : pkg.accommodations_raw;
-                        if (Array.isArray(raw) && raw.length > 0) {
-                            loadedAccommodations = raw.map(item => {
-                                if (typeof item === 'string') {
-                                    const hotelMaster = hotelMastersRes.data.find(hm => hm.name === item);
-                                    return {
-                                        id: Date.now() + Math.random(),
-                                        hotelId: hotelMaster?.id || null,
-                                        hotelName: item,
-                                        starRating: hotelMaster?.stars || "3",
-                                        address: hotelMaster?.address || "",
-                                        city: hotelMaster?.city || "",
-                                        image: hotelMaster?.image || "",
-                                        isSearching: false,
-                                        rooms: [defaultRoom]
-                                    };
-                                }
-                                return {
-                                    id: item.id || Date.now() + Math.random(),
-                                    hotelId: item.hotelId || null,
-                                    hotelName: item.hotelName || "",
-                                    starRating: item.starRating || "3",
-                                    address: item.address || "",
-                                    city: item.city || "",
-                                    image: item.image || "",
-                                    isSearching: false,
-                                    rooms: item.rooms && Array.isArray(item.rooms) && item.rooms.length > 0
-                                        ? item.rooms.map(room => ({ ...defaultRoom, ...room }))
-                                        : [defaultRoom]
-                                };
-                            });
-                        }
-                    } catch (e) { console.error("Error parsing accommodations_raw:", e); }
+                if ((loadedTerms.length === 0 || (loadedTerms.length === 1 && !loadedTerms[0])) && loadedPolicies.length > 0 && !(loadedPolicies.length === 1 && !loadedPolicies[0])) {
+                    // Fallback to cancellation policies if terms are empty but policies exist
+                    loadedTerms = loadedPolicies;
                 }
+                setTermsAndPolicies(loadedTerms.length > 0 ? loadedTerms : [""]);
 
-                if (loadedAccommodations.length === 0 && pkg.accommodations && Array.isArray(pkg.accommodations)) {
-                    loadedAccommodations = pkg.accommodations.map(a => {
-                        const hotelMaster = hotelMastersRes.data.find(hm => hm.name === a.text);
-                        return {
-                            id: Date.now() + Math.random(),
-                            hotelId: hotelMaster?.id || null,
-                            hotelName: a.text,
-                            starRating: hotelMaster?.stars || "3",
-                            address: hotelMaster?.address || "",
-                            city: hotelMaster?.city || "",
-                            image: hotelMaster?.image || "",
-                            isSearching: false,
-                            rooms: [defaultRoom]
-                        };
-                    });
-                }
-                setAccommodations(loadedAccommodations.length > 0 ? loadedAccommodations : [{ id: Date.now(), hotelId: null, hotelName: "", rooms: [defaultRoom] }]);
 
 
                 // Vehicles
@@ -594,79 +555,6 @@ const HolidayPackageEdit = () => {
         }
     }, [id]);
 
-    const handleSaveHotel = async () => {
-        if (!newHotelForm.name || !newHotelForm.city) {
-            alert("Hotel Name and City are required");
-            return;
-        }
-
-        try {
-            // Find the destination object to get its ID
-            const destObj = destinations.find(d => d.name === newHotelForm.city);
-            if (!destObj) {
-                alert("Please select a valid city from the list.");
-                return;
-            }
-
-            const formDataToSend = new FormData();
-            formDataToSend.append("destination", destObj.id);
-            formDataToSend.append("name", newHotelForm.name);
-            formDataToSend.append("stars", newHotelForm.stars);
-            formDataToSend.append("address", newHotelForm.address);
-            formDataToSend.append("city", newHotelForm.city);
-            formDataToSend.append("phone", newHotelForm.phone);
-            formDataToSend.append("website", newHotelForm.website);
-            formDataToSend.append("email", newHotelForm.email);
-            formDataToSend.append("latitude", newHotelForm.latitude);
-            formDataToSend.append("longitude", newHotelForm.longitude);
-
-            if (newHotelForm.images && newHotelForm.images.length > 0) {
-                formDataToSend.append("image", newHotelForm.images[0]); // Using first image for now based on model
-                newHotelForm.images.forEach(img => {
-                    formDataToSend.append('accommodation_images', img);
-                });
-            }
-
-            const response = await api.post(`${API_BASE_URL}/accommodations/`, formDataToSend, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            setHotelMasters(prev => [...prev, response.data]);
-            setShowHotelModal(false);
-            
-            // If triggered from an itinerary day, auto-select it
-            if (hotelModalTargetDay !== null) {
-                const i = hotelModalTargetDay;
-                const h = response.data;
-                const copy = [...itineraryDays];
-                const dest = getDestinationForDay(i);
-                
-                // Set active tab to accommodation so they see it worked
-                if (!copy[i].details_json) copy[i].details_json = { active_tab: 'accommodation', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
-                copy[i].details_json.active_tab = 'accommodation';
-                
-                const n_pick = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
-                for (let k = i; k < i + n_pick && k < copy.length; k++) {
-                    if (getDestinationForDay(k) === dest) {
-                        if (!copy[k].details_json) copy[k].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
-                        copy[k].details_json.accommodations = [{ hotelId: h.id, hotelName: h.name, is_inherited: k > i }];
-                    } else break;
-                }
-                setItineraryDays(copy);
-                setHotelModalTargetDay(null);
-            }
-
-            setNewHotelForm({
-                name: "", stars: "3", address: "", city: "", phone: "", website: "", email: "", latitude: "", longitude: "", images: []
-            });
-            alert("Hotel added to masters successfully!");
-        } catch (err) {
-            console.error("Error saving hotel master:", err.response?.data || err);
-            const errorMsg = err.response?.data
-                ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
-                : err.message;
-            alert(`Failed to save hotel.\n${errorMsg}`);
-        }
-    };
 
     // Sync itinerary days with "Days" input
     useEffect(() => {
@@ -858,59 +746,6 @@ const HolidayPackageEdit = () => {
         }
     };
 
-    const handleSaveNewHotel = async (dayIndex) => {
-        if (!newHotelForm.name.trim()) { alert('Please enter the accommodation name.'); return; }
-        try {
-            const destObj = destinations.find(d => d.name === newHotelForm.city);
-            if (!destObj) {
-                alert('Please select a valid city from the list.');
-                return;
-            }
-
-            const fd = new FormData();
-            fd.append('destination', destObj.id);
-            fd.append('name', newHotelForm.name);
-            fd.append('stars', newHotelForm.stars || '3');
-            fd.append('address', newHotelForm.address);
-            fd.append('city', newHotelForm.city);
-            fd.append('website', newHotelForm.website || '');
-            fd.append('email', newHotelForm.email || '');
-            fd.append('latitude', newHotelForm.latitude || '');
-            fd.append('longitude', newHotelForm.longitude || '');
-
-            if (newHotelForm.images && newHotelForm.images.length > 0) {
-                fd.append('image', newHotelForm.images[0]);
-                newHotelForm.images.forEach(img => {
-                    fd.append('accommodation_images', img);
-                });
-            }
-
-            const res = await api.post(`/api/accommodations/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-            const savedHotel = res.data;
-            setHotelMasters(prev => [...prev, savedHotel]);
-
-            const copy = [...itineraryDays];
-            const dest = getDestinationForDay(dayIndex);
-            // Apply stay to connected days
-            const n_nights = parseInt(copy[dayIndex].details_json?.accommodation_stay_nights || 1);
-            for (let j = dayIndex; j < dayIndex + n_nights && j < copy.length; j++) {
-                if (getDestinationForDay(j) === dest) {
-                    if (!copy[j].details_json) copy[j].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
-                    copy[j].details_json.accommodations = [{ hotelId: savedHotel.id, hotelName: savedHotel.name, is_inherited: j > dayIndex }];
-                } else break;
-            }
-            copy[dayIndex].details_json._showNewAcc = false;
-            setItineraryDays(copy);
-
-            setNewHotelForm({ name: '', stars: '3', address: '', city: '', phone: '', website: '', email: '', latitude: '', longitude: '', images: [] });
-        } catch (err) {
-            console.error('Error saving hotel:', err.response?.data || err);
-            const errorMsg = err.response?.data
-                ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n')
-                : err.message;
-            alert(`Failed to save accommodation.\n${errorMsg}`);
-        }
-    };
 
     const getNightRange = (index) => {
         let start = 1;
@@ -1120,29 +955,11 @@ const HolidayPackageEdit = () => {
             formDataToSend.append("inclusions_raw", JSON.stringify(inclusions.filter(i => i && i.trim() !== "")));
             formDataToSend.append("exclusions_raw", JSON.stringify(exclusions.filter(e => e && e.trim() !== "")));
 
-            formDataToSend.append("highlights_raw", JSON.stringify(highlightsArray));
+            formDataToSend.append("highlights_raw", JSON.stringify(highlights.filter(h => h && h.trim() !== "")));
 
             formDataToSend.append("cancellation_policies_raw", JSON.stringify(cancellationPolicies.filter(c => c && c.trim() !== "")));
             formDataToSend.append("terms_and_policies_raw", JSON.stringify(termsAndPolicies.filter(t => t && t.trim() !== "")));
 
-            // Sanitize accommodations for backend - Save full object for persistence
-            const sanitizedAccommodations = accommodations.map(acc => {
-                if (acc && acc.hotelName) {
-                    return {
-                        id: acc.id,
-                        hotelId: acc.hotelId,
-                        hotelName: acc.hotelName,
-                        starRating: acc.starRating || "3",
-                        address: acc.address || "",
-                        city: acc.city || "",
-                        image: acc.image || "",
-                        rooms: acc.rooms || []
-                    };
-                }
-                return null;
-            }).filter(a => a !== null);
-
-            formDataToSend.append("accommodations_raw", JSON.stringify(sanitizedAccommodations));
             formDataToSend.append("vehicles_raw", JSON.stringify(vehicles.filter(v => v && v.trim() !== "")));
 
             // Use PUT to update
@@ -1286,7 +1103,7 @@ const HolidayPackageEdit = () => {
     const navItems = [
         { id: 'overview', label: 'Trip Overview', icon: <Globe size={15} />, color: 'bg-emerald-500' },
         { id: 'location', label: 'Arrival & Departure', icon: <Plane size={15} />, color: 'bg-blue-500' },
-        { id: 'hotel', label: 'Accommodations', icon: <Hotel size={15} />, color: 'bg-orange-500' },
+
         { id: 'itinerary', label: 'Day Wise Itinerary', icon: <ClipboardList size={15} />, color: 'bg-indigo-600' },
         { id: 'pricing', label: 'Pricing', icon: <IndianRupee size={15} />, color: 'bg-amber-500' },
         { id: 'policy', label: 'Trip Information', icon: <Info size={15} />, color: 'bg-sky-400' },
@@ -2041,211 +1858,6 @@ const HolidayPackageEdit = () => {
 
 
 
-                                    {/* ACCOMMODATIONS (GLOBAL) */}
-                                    <Section title="Accommodations" active={activeSection === 'hotel'}>
-                                        <div className="space-y-8">
-                                            <div className="bg-gray-50 rounded-[2rem] p-6 border border-gray-100">
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <div>
-                                                        <h3 className="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Package Hotels</h3>
-                                                        <p className="text-[8px] text-gray-400 font-bold uppercase mt-1 tracking-widest">Select hotels for this holiday package</p>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setAccommodations(prev => [...prev, { id: Date.now(), hotelId: null, hotelName: "", rooms: [{ id: Date.now() + 1, type: "", meals: "", checkIn: "", checkOut: "", noOfRooms: "1" }] }])}
-                                                        className="bg-white px-4 py-2 rounded-xl border-2 border-gray-100 text-[10px] font-black text-[#14532d] hover:bg-green-50 active:scale-95 transition-all shadow-sm flex items-center gap-2"
-                                                    >
-                                                        <Plus size={14} /> ADD HOTEL
-                                                    </button>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    {accommodations.map((acc, accIdx) => (
-                                                        <div key={acc.id} className="bg-white rounded-[2rem] border-2 border-gray-100 p-6 relative group/hotel hover:border-[#14532d]/30 transition-all shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${accIdx * 100}ms` }}>
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (accommodations.length > 1) {
-                                                                        setAccommodations(accommodations.filter((_, i) => i !== accIdx));
-                                                                    } else {
-                                                                        // Reset if it's the last one
-                                                                        setAccommodations([{ id: Date.now(), hotelId: null, hotelName: "", rooms: [{ id: Date.now() + 1, type: "", meals: "", checkIn: "", checkOut: "", noOfRooms: "1" }] }]);
-                                                                    }
-                                                                }}
-                                                                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90 z-10"
-                                                                title="Remove Hotel"
-                                                            >
-                                                                <X size={14} />
-                                                            </button>
-
-                                                            <div className="flex flex-col lg:flex-row gap-8">
-                                                                {/* Hotel Info */}
-                                                                <div className="lg:w-1/3 space-y-4">
-                                                                    <div className="relative group/img overflow-hidden rounded-2xl border-2 border-gray-50 aspect-video bg-gray-50 flex items-center justify-center">
-                                                                        {acc.image ? (
-                                                                            <img src={getImageUrl(acc.image)} alt="Hotel" className="w-full h-full object-cover transition-transform group-hover/img:scale-110 duration-500" />
-                                                                        ) : (
-                                                                            <div className="flex flex-col items-center gap-2 text-gray-300">
-                                                                                 <Hotel size={32} strokeWidth={1} className="text-pink-500 opacity-50" />
-                                                                                 <span className="text-[10px] font-black uppercase tracking-widest text-pink-300">No Image</span>
-                                                                             </div>
-                                                                         )}
-                                                                        {acc.starRating && (
-                                                                             <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg flex gap-0.5 items-center">
-                                                                                 {[...Array(parseInt(acc.starRating) || 3)].map((_, i) => <Star key={i} size={8} fill="currentColor" className="text-amber-400" />)}
-                                                                             </div>
-                                                                        )}
-                                                                    </div>
-
-                                                                    <div className="space-y-3">
-                                                                        <div className="relative">
-                                                                            <FormLabel label="Select Hotel from Master" required />
-                                                                            <SearchableSelect
-                                                                                options={hotelMasters.map(m => ({
-                                                                                    value: m.name,
-                                                                                    label: m.name,
-                                                                                    subtitle: `${m.stars}★ | ${m.city}`,
-                                                                                    image: m.image
-                                                                                }))}
-                                                                                value={acc.hotelName}
-                                                                                onChange={(val) => {
-                                                                                    const m = hotelMasters.find(hm => hm.name === val);
-                                                                                    const copy = [...accommodations];
-                                                                                    copy[accIdx] = {
-                                                                                        ...copy[accIdx],
-                                                                                        hotelId: m?.id || null,
-                                                                                        hotelName: val,
-                                                                                        starRating: m?.stars || "3",
-                                                                                        address: m?.address || "",
-                                                                                        city: m?.city || "",
-                                                                                        image: m?.image || ""
-                                                                                    };
-                                                                                    setAccommodations(copy);
-                                                                                }}
-                                                                                placeholder="🔍 Search master hotels..."
-                                                                            />
-                                                                            <button 
-                                                                                type="button" 
-                                                                                onClick={() => setShowHotelModal(true)}
-                                                                                className="mt-2 text-[10px] font-black text-[#14532d] uppercase tracking-widest hover:underline flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
-                                                                            >
-                                                                                <Plus size={10} /> Add New Hotel Master
-                                                                            </button>
-                                                                        </div>
-                                                                        {acc.address && (
-                                                                            <div className="flex items-start gap-2 bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100/30">
-                                                                                <MapPin size={12} className="text-indigo-400 mt-0.5 shrink-0" />
-                                                                                <p className="text-[10px] font-bold text-indigo-700/70 leading-tight">{acc.address}, {acc.city}</p>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Rooms */}
-                                                                <div className="flex-1 space-y-4">
-                                                                     <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/50">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <div className="w-1.5 h-4 bg-orange-400 rounded-full"></div>
-                                                                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Room & Meal Selection</h4>
-                                                                        </div>
-                                                                        <button 
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                const copy = [...accommodations];
-                                                                                copy[accIdx].rooms.push({ id: Date.now(), type: "", meals: "", checkIn: "", checkOut: "", noOfRooms: "1" });
-                                                                                setAccommodations(copy);
-                                                                            }}
-                                                                            className="text-[9px] font-black text-[#14532d] uppercase tracking-widest hover:bg-[#14532d] hover:text-white px-2.5 py-1.5 rounded-lg border border-[#14532d]/10 transition-all flex items-center gap-1.5"
-                                                                        >
-                                                                            <Plus size={10} /> Add Another Room
-                                                                        </button>
-                                                                     </div>
-
-                                                                     <div className="grid grid-cols-1 gap-3">
-                                                                         {acc.rooms.map((room, rIdx) => (
-                                                                             <div key={room.id} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-gray-50/30 p-5 rounded-[1.5rem] border border-gray-100 relative group/room hover:bg-white hover:border-gray-200 transition-all">
-                                                                                 {acc.rooms.length > 1 && (
-                                                                                     <button 
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            const copy = [...accommodations];
-                                                                                            copy[accIdx].rooms.splice(rIdx, 1);
-                                                                                            setAccommodations(copy);
-                                                                                        }}
-                                                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover/room:opacity-100 transition-opacity hover:scale-110 active:scale-95"
-                                                                                     >
-                                                                                         <X size={12} />
-                                                                                     </button>
-                                                                                 )}
-                                                                                 <div>
-                                                                                     <FormLabel label="Room Type" optional />
-                                                                                     <SearchableSelect 
-                                                                                        options={roomTypes.map(rt => ({ value: rt.name, label: rt.name }))}
-                                                                                        value={room.type}
-                                                                                        onChange={(val) => {
-                                                                                            const copy = [...accommodations];
-                                                                                            copy[accIdx].rooms[rIdx].type = val;
-                                                                                            setAccommodations(copy);
-                                                                                        }}
-                                                                                        placeholder="Superior, Deluxe..."
-                                                                                     />
-                                                                                 </div>
-                                                                                 <div>
-                                                                                     <FormLabel label="Meal Plan" optional />
-                                                                                     <SearchableSelect 
-                                                                                        options={mealMasters.map(m => ({ value: m.name, label: m.name }))}
-                                                                                        value={room.meals}
-                                                                                        onChange={(val) => {
-                                                                                            const copy = [...accommodations];
-                                                                                            copy[accIdx].rooms[rIdx].meals = val;
-                                                                                            setAccommodations(copy);
-                                                                                        }}
-                                                                                        placeholder="CP, MAP, AP..."
-                                                                                     />
-                                                                                 </div>
-                                                                                 <div>
-                                                                                     <FormLabel label="Check In" optional />
-                                                                                     <div className="relative">
-                                                                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-                                                                                        <input 
-                                                                                            type="date" 
-                                                                                            value={room.checkIn} 
-                                                                                            className="w-full bg-white border border-gray-200 pl-10 pr-3 py-2 rounded-xl text-[11px] font-bold focus:border-[#14532d] outline-none transition-all shadow-sm"
-                                                                                            onChange={(e) => {
-                                                                                                const copy = [...accommodations];
-                                                                                                copy[accIdx].rooms[rIdx].checkIn = e.target.value;
-                                                                                                setAccommodations(copy);
-                                                                                            }} 
-                                                                                        />
-                                                                                     </div>
-                                                                                 </div>
-                                                                                 <div>
-                                                                                     <FormLabel label="Check Out" optional />
-                                                                                     <div className="relative">
-                                                                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={14} />
-                                                                                        <input 
-                                                                                            type="date" 
-                                                                                            value={room.checkOut} 
-                                                                                            className="w-full bg-white border border-gray-200 pl-10 pr-3 py-2 rounded-xl text-[11px] font-bold focus:border-[#14532d] outline-none transition-all shadow-sm"
-                                                                                            onChange={(e) => {
-                                                                                                const copy = [...accommodations];
-                                                                                                copy[accIdx].rooms[rIdx].checkOut = e.target.value;
-                                                                                                setAccommodations(copy);
-                                                                                            }} 
-                                                                                        />
-                                                                                     </div>
-                                                                                 </div>
-                                                                             </div>
-                                                                         ))}
-                                                                     </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Section>
 
                                     {/* DAY WISE ITINERARY */}
                                     <Section title="Day Wise Itinerary" active={activeSection === 'itinerary'}>
@@ -2316,14 +1928,14 @@ const HolidayPackageEdit = () => {
                                                             {[
                                                                 { id: 'day_itinerary', label: 'Overview', icon: <MapPin size={10} className="text-blue-500" />, color: 'blue' },
                                                                 { id: 'sightseeing', label: 'Sightseeing', icon: <Camera size={10} className="text-orange-500" />, color: 'orange' },
-                                                                { id: 'accommodation', label: 'Hotel', icon: <Hotel size={10} className="text-pink-500" />, color: 'pink' },
+                                                                { id: 'accommodation', label: 'Hotel', icon: <Hotel size={10} className="text-green-500" />, color: 'green' },
                                                                 { id: 'vehicle', label: 'Transfers', icon: <Car size={10} className="text-indigo-500" />, color: 'indigo' }
                                                             ].map(tab => {
                                                                 const isActive = (row.details_json?.active_tab || 'day_itinerary') === tab.id;
                                                                 const colors = {
                                                                     blue: 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100',
                                                                     orange: 'bg-orange-50 text-orange-600 border-orange-100 hover:bg-orange-100',
-                                                                    pink: 'bg-pink-50 text-pink-600 border-pink-100 hover:bg-pink-100',
+                                                                    green: 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100',
                                                                     indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100'
                                                                 };
                                                                 return (
@@ -2370,7 +1982,7 @@ const HolidayPackageEdit = () => {
                                                                         m.name?.toLowerCase().includes(dayMasterSearch.toLowerCase()) ||
                                                                         m.title?.toLowerCase().includes(dayMasterSearch.toLowerCase())
                                                                     ) : [];
-                                                                const mealOptions = ['No Meals', 'Breakfast', 'Lunch', 'High-Tea', 'Dinner'];
+                                                                const mealOptions = ['No Meals', 'Breakfast', 'Lunch', 'Dinner'];
                                                                 return (
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
                                                                         <div className="space-y-4">
@@ -2436,25 +2048,7 @@ const HolidayPackageEdit = () => {
                                                                                     ))}
                                                                                 </div>
                                                                             </div>
-
-                                                                            {/* Transfer Type */}
-                                                                            <div>
-                                                                                <p className="text-[11px] font-bold text-gray-800 mb-1.5">Transfer Type</p>
-                                                                                <select
-                                                                                    value={dayTransferType}
-                                                                                    onChange={e => updateDay({ transfer_type: e.target.value })}
-                                                                                    className="w-48 border border-gray-300 rounded-sm px-2 py-1.5 text-[11px] focus:outline-none focus:border-blue-400 bg-white"
-                                                                                >
-                                                                                    <option value="">Select Transfer Type</option>
-                                                                                    <option value="Private">Private</option>
-                                                                                    <option value="Shared">Shared</option>
-                                                                                    <option value="Self Drive">Self Drive</option>
-                                                                                    <option value="Vehicle with Driver/ Chaffeur">Vehicle with Driver/ Chaffeur</option>
-                                                                                    <option value="No Transfer">No Transfer</option>
-                                                                                </select>
-                                                                            </div>
                                                                         </div>
-
                                                                         <div className="space-y-4">
                                                                             <div>
                                                                                 <FormLabel label="Day Visual (Image)" optional />
@@ -2756,120 +2350,242 @@ const HolidayPackageEdit = () => {
                                                                         </div>
                                                                     </div>
                                                                 );
-                                                            })()}
-
-
-                                                            {/* 4. ACCOMMODATION */}
+                                                            })()}                                                            {/* 3. ACCOMMODATION */}
                                                             {row.details_json?.active_tab === 'accommodation' && (() => {
-                                                                const accs = row.details_json?.accommodations || [];
-                                                                const searchQ = row.details_json?._accSearch || '';
-                                                                const showForm = row.details_json?._showNewAcc || false;
+                                                                const dayAccs = row.details_json?.accommodations || [];
                                                                 const updateDay = (patch) => {
                                                                     const copy = [...itineraryDays];
                                                                     copy[i].details_json = { ...copy[i].details_json, ...patch };
                                                                     setItineraryDays(copy);
                                                                 };
-
                                                                 const currentDest = getDestinationForDay(i);
-                                                                const allowedHotels = currentDest && currentDest !== "---"
-                                                                    ? hotelMasters.filter(h =>
-                                                                        (h.city && h.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
-                                                                        (h.destination_name && h.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase())
-                                                                    )
+                                                                const allPackageDests = packageDestinations.map(d => d.destination).filter(Boolean);
+                                                                const validDests = Array.from(new Set([currentDest, ...allPackageDests]))
+                                                                    .filter(d => d && d !== "---")
+                                                                    .map(d => d.trim().toLowerCase());
+                                                                
+                                                                const allowedHotels = validDests.length > 0
+                                                                    ? hotelMasters.filter(hm => {
+                                                                        const c1 = hm.city ? hm.city.trim().toLowerCase() : "";
+                                                                        const c2 = hm.destination_name ? hm.destination_name.trim().toLowerCase() : "";
+                                                                        
+                                                                        return validDests.some(dest => {
+                                                                            if (!dest) return false;
+                                                                            const matchC1 = c1 && (c1 === dest || c1.includes(dest) || dest.includes(c1));
+                                                                            const matchC2 = c2 && (c2 === dest || c2.includes(dest) || dest.includes(c2));
+                                                                            return matchC1 || matchC2;
+                                                                        });
+                                                                    })
                                                                     : hotelMasters;
 
-                                                                const filteredHotels = searchQ
-                                                                    ? allowedHotels.filter(h =>
-                                                                        h.name?.toLowerCase().includes(searchQ.trim().toLowerCase()) ||
-                                                                        h.city?.toLowerCase().includes(searchQ.trim().toLowerCase())
-                                                                    ) : [];
                                                                 return (
-                                                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                                        {(() => {
-                                                                            // Check if this day is covered by a stay starting on a previous day
-                                                                            const coveringStay = (() => {
-                                                                                for (let j = i - 1; j >= 0; j--) {
-                                                                                    const prevDay = itineraryDays[j];
-                                                                                    if (getDestinationForDay(j) !== getDestinationForDay(i)) break;
-                                                                                    const n = parseInt(prevDay.details_json?.accommodation_stay_nights || 1);
-                                                                                    // If the previous day's stay spans across today
-                                                                                    if (j + n > i) return { originDay: j + 1, hotel: prevDay.details_json?.accommodations?.[0] };
-                                                                                }
-                                                                                return null;
-                                                                            })();
-
-                                                                            if (coveringStay) {
-                                                                                const h = hotelMasters.find(hm => hm.id === coveringStay.hotel?.hotelId);
-                                                                                return (
-                                                                                    <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4 flex items-center justify-between mb-4 animate-in fade-in zoom-in duration-300">
-                                                                                        <div className="flex items-center gap-4">
-                                                                                            <div className="w-10 h-10 rounded-lg bg-white border border-amber-200 flex items-center justify-center shrink-0">
-                                                                                                <Hotel size={18} className="text-amber-500" />
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <div className="flex items-center gap-2 mb-0.5">
-                                                                                                    <p className="text-[11px] font-black text-amber-900 leading-none">{h?.name || coveringStay.hotel?.hotelName || "Continued Stay"}</p>
-                                                                                                    <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest bg-white px-1.5 py-0.5 rounded border border-amber-200">Part of Stay</span>
-                                                                                                </div>
-                                                                                                <p className="text-[9px] font-bold text-amber-600/70 uppercase tracking-wider">Stay continued from Day {coveringStay.originDay}</p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div className="text-right">
-                                                                                            <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest leading-none mb-1">Accommodation</p>
-                                                                                            <p className="text-[10px] font-black text-amber-900 uppercase">Controlled by Day {coveringStay.originDay}</p>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                );
+                                                                  <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                                    {/* Main panel */}
+                                                                    <div className="flex-1 space-y-3">
+                                                                      {/* Search */}
+                                                                      <div>
+                                                                        <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search hotel from the database</p>
+                                                                        <SearchableSelect
+                                                                          options={allowedHotels.map(hm => ({
+                                                                            value: hm.id.toString(),
+                                                                            label: hm.name,
+                                                                            subtitle: `${hm.stars || 3}★ - ${hm.city}`
+                                                                          }))}
+                                                                          value=""
+                                                                          placeholder="🔍 Search for hotel in masters..."
+                                                                          onChange={(val) => {
+                                                                            const master = hotelMasters.find(h => h.id.toString() === val);
+                                                                            if (master) {
+                                                                              const updated = [...dayAccs, { 
+                                                                                hotelId: master.id, 
+                                                                                hotelName: master.name, 
+                                                                                stars: master.stars,
+                                                                                roomType: 'Standard Room',
+                                                                                mealPlan: 'MAP (Breakfast & Dinner)'
+                                                                              }];
+                                                                              updateDay({ accommodations: updated });
                                                                             }
-
-                                                                            const destIdx = getDestIndexForDay(i);
-                                                                            const destRow = destIdx !== -1 ? packageDestinations[destIdx] : null;
-                                                                            if (!destRow) return null;
-
-                                                                            // Calculate how many nights are left in this destination's stay
-                                                                            let daysPassedInDest = 0;
-                                                                            for (let k = 0; k < i; k++) {
-                                                                                if (getDestIndexForDay(k) === destIdx) daysPassedInDest++;
-                                                                            }
-                                                                            const maxAllowed = Math.max(1, parseInt(destRow.nights || 0) - daysPassedInDest);
-
+                                                                          }}
+                                                                        />
+                                                                      </div>
+                                    
+                                                                      {/* Added Hotels list */}
+                                                                      {dayAccs.length === 0 ? (
+                                                                        <div className="border-2 border-dashed border-gray-200 rounded-sm h-24 flex items-center justify-center">
+                                                                          <p className="text-[11px] text-gray-400">No hotels added for this day</p>
+                                                                        </div>
+                                                                      ) : (
+                                                                        <div className="space-y-2">
+                                                                          {dayAccs.map((acc, accIdx) => {
+                                                                            const masterData = hotelMasters.find(h => h.id === acc.hotelId || h.name === acc.hotelName);
                                                                             return (
-                                                                                <div className="flex flex-col items-end mb-2">
-                                                                                    <p className="text-[10px] font-black text-gray-400 uppercase mb-1 tracking-widest">{destRow.destination} Stay</p>
-                                                                                    <div className="w-32">
-                                                                                        <SearchableSelect
-                                                                                            options={[...Array(maxAllowed)].map((_, n) => ({
-                                                                                                value: String(n + 1),
-                                                                                                label: `${n + 1} ${n + 1 === 1 ? 'Night' : 'Nights'}`
-                                                                                            }))}
-                                                                                            value={row.details_json?.accommodation_stay_nights || "1"}
-                                                                                            onChange={(val) => {
-                                                                                                const copy = [...itineraryDays];
-                                                                                                copy[i].details_json.accommodation_stay_nights = val;
-                                                                                                // Update propagation if hotel is already selected
-                                                                                                const hotel = copy[i].details_json.accommodations?.[0];
-                                                                                                if (hotel) {
-                                                                                                    const n = parseInt(val);
-                                                                                                    const dest = getDestinationForDay(i);
-                                                                                                    for (let j = i + 1; j < copy.length; j++) {
-                                                                                                        if (getDestinationForDay(j) === dest) {
-                                                                                                            if (j < i + n) {
-                                                                                                                copy[j].details_json.accommodations = [{ ...hotel, is_inherited: true }];
-                                                                                                            } else if (copy[j].details_json.accommodations?.[0]?.is_inherited) {
-                                                                                                                // Clear if it was inherited from this stay specifically
-                                                                                                                copy[j].details_json.accommodations = [];
-                                                                                                            }
-                                                                                                        } else break;
-                                                                                                    }
-                                                                                                }
-                                                                                                setItineraryDays(copy);
-                                                                                            }}
-                                                                                            placeholder="Nights"
-                                                                                        />
-                                                                                    </div>
+                                                                              <div key={accIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
+                                                                                {masterData?.image && (
+                                                                                  <div className="w-10 h-10 rounded-sm overflow-hidden shrink-0 bg-gray-100">
+                                                                                    <img src={masterData.image} alt={acc.hotelName} className="w-full h-full object-cover" />
+                                                                                  </div>
+                                                                                )}
+                                                                                <div className="flex-1 min-w-0">
+                                                                                  <div className="flex items-center gap-2">
+                                                                                    <p className="text-[11px] font-bold text-gray-900">{acc.hotelName}</p>
+                                                                                    <span className="text-[10px] text-yellow-500">{acc.stars}★</span>
+                                                                                  </div>
+                                                                                  <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1">
+                                                                                    <select
+                                                                                      value={acc.roomType}
+                                                                                      onChange={(e) => {
+                                                                                        const updated = [...dayAccs];
+                                                                                        updated[accIdx].roomType = e.target.value;
+                                                                                        updateDay({ accommodations: updated });
+                                                                                      }}
+                                                                                      className="text-[9px] border border-gray-200 bg-gray-50 rounded-sm px-1 py-0.5 focus:outline-none focus:border-blue-400"
+                                                                                    >
+                                                                                      {roomTypes.map(rt => <option key={rt.id} value={rt.name}>{rt.name}</option>)}
+                                                                                    </select>
+                                                                                    <select
+                                                                                      value={acc.mealPlan}
+                                                                                      onChange={(e) => {
+                                                                                        const updated = [...dayAccs];
+                                                                                        updated[accIdx].mealPlan = e.target.value;
+                                                                                        updateDay({ accommodations: updated });
+                                                                                      }}
+                                                                                      className="text-[9px] border border-gray-200 bg-gray-50 rounded-sm px-1 py-0.5 focus:outline-none focus:border-blue-400"
+                                                                                    >
+                                                                                      <option value="CP (Breakfast Only)">CP (Breakfast Only)</option>
+                                                                                      <option value="MAP (Breakfast & Dinner)">MAP (Breakfast & Dinner)</option>
+                                                                                      <option value="AP (Breakfast, Lunch & Dinner)">AP (All Meals)</option>
+                                                                                      <option value="EP (Room Only)">EP (Room Only)</option>
+                                                                                    </select>
+                                                                                  </div>
                                                                                 </div>
+                                                                                <button
+                                                                                  type="button"
+                                                                                  onClick={() => {
+                                                                                    const updated = dayAccs.filter((_, idx) => idx !== accIdx);
+                                                                                    updateDay({ accommodations: updated });
+                                                                                  }}
+                                                                                  className="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                                                >
+                                                                                  <X size={12} />
+                                                                                </button>
+                                                                              </div>
                                                                             );
-                                                                        })()}
+                                                                          })}
+                                                                        </div>
+                                                                      )}
+                                                                    </div>
+                                    
+                                                                    {/* Right Side Panel */}
+                                                                    <div className="w-56 shrink-0">
+                                                                      {hotelPanelDayIndex === i ? (
+                                                                        <div className="border border-gray-200 rounded-sm p-3 bg-gray-50/50 space-y-2">
+                                                                          <div className="flex items-center justify-between">
+                                                                            <h4 className="text-[11px] font-bold text-gray-800">Add New Hotel</h4>
+                                                                            <button type="button" onClick={() => setHotelPanelDayIndex(null)} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
+                                                                          </div>
+                                    
+                                                                          <div>
+                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Name of the Hotel</p>
+                                                                            <input type="text" value={newHotelForm.name} onChange={e => setNewHotelForm(p => ({ ...p, name: e.target.value }))} placeholder="Enter name" className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                          </div>
+                                    
+                                                                          <div className="grid grid-cols-2 gap-1.5">
+                                                                            <div>
+                                                                              <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Stars</p>
+                                                                              <select value={newHotelForm.stars} onChange={e => setNewHotelForm(p => ({ ...p, stars: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                {[1,2,3,4,5].map(s => <option key={s} value={s}>{s} Star</option>)}
+                                                                              </select>
+                                                                            </div>
+                                                                            <div>
+                                                                              <p className="text-[9px] font-semibold text-gray-600 mb-0.5">City</p>
+                                                                              <select value={newHotelForm.city} onChange={e => setNewHotelForm(p => ({ ...p, city: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
+                                                                                <option value="">Select city...</option>
+                                                                                {[...new Set([getDestinationForDay(i), ...packageDestinations.map(d => d.destination)])].filter(d => d && d !== "---").map(d => (
+                                                                                  <option key={d} value={d}>{d}</option>
+                                                                                ))}
+                                                                              </select>
+                                                                            </div>
+                                                                          </div>
+                                    
+                                                                          <div>
+                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Address <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                            <input type="text" value={newHotelForm.address} onChange={e => setNewHotelForm(p => ({ ...p, address: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                          </div>
+                                    
+                                                                          <div>
+                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5 flex items-center gap-1">Lat & Long <span className="text-sky-400 font-normal">(Optional)</span></p>
+                                                                            <div className="flex gap-1">
+                                                                              <input type="text" value={newHotelForm.latitude} onChange={e => setNewHotelForm(p => ({ ...p, latitude: e.target.value }))} placeholder="Lat" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                              <input type="text" value={newHotelForm.longitude} onChange={e => setNewHotelForm(p => ({ ...p, longitude: e.target.value }))} placeholder="Long" className="flex-1 min-w-0 border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400" />
+                                                                            </div>
+                                                                          </div>
+                                    
+                                                                          <div>
+                                                                            <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Hotel Image</p>
+                                                                            <div className="border border-dashed border-gray-300 rounded-sm p-2 flex items-center justify-center min-h-[44px] relative">
+                                                                              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { if (e.target.files?.[0]) setNewHotelForm(p => ({...p, image: e.target.files[0]})); }} />
+                                                                              {newHotelForm.image ? (
+                                                                                <div className="relative w-full h-16 rounded overflow-hidden">
+                                                                                  <img src={URL.createObjectURL(newHotelForm.image)} alt="Preview" className="w-full h-full object-cover" />
+                                                                                  <button type="button" onClick={(e) => { e.stopPropagation(); setNewHotelForm(p => ({...p, image: null})); }} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
+                                                                                </div>
+                                                                              ) : (
+                                                                                <div className="text-center text-gray-400">
+                                                                                  <Plus size={14} className="mx-auto" />
+                                                                                  <p className="text-[8px] font-bold">Add Image</p>
+                                                                                </div>
+                                                                              )}
+                                                                            </div>
+                                                                          </div>
+                                    
+                                                                          <button
+                                                                            type="button"
+                                                                            onClick={async () => {
+                                                                              if (!newHotelForm.name.trim() || !newHotelForm.city.trim()) { alert('Hotel Name and City are required.'); return; }
+                                                                              try {
+                                                                                const fd = new FormData();
+                                                                                fd.append('name', newHotelForm.name);
+                                                                                fd.append('stars', newHotelForm.stars);
+                                                                                fd.append('city', newHotelForm.city);
+                                                                                if (newHotelForm.address) fd.append('address', newHotelForm.address);
+                                                                                if (newHotelForm.latitude) fd.append('latitude', newHotelForm.latitude);
+                                                                                if (newHotelForm.longitude) fd.append('longitude', newHotelForm.longitude);
+                                                                                if (newHotelForm.image) fd.append('image', newHotelForm.image);
+                                                                                const res = await api.post('/api/hotel-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                                                setHotelMasters(prev => [...prev, res.data]);
+                                                                                const master = res.data;
+                                                                                const updated = [...dayAccs, {
+                                                                                  hotelId: master.id,
+                                                                                  hotelName: master.name,
+                                                                                  stars: master.stars,
+                                                                                  roomType: 'Standard Room',
+                                                                                  mealPlan: 'MAP (Breakfast & Dinner)'
+                                                                                }];
+                                                                                updateDay({ accommodations: updated });
+                                                                                setNewHotelForm({ name: '', stars: '3', address: '', city: '', latitude: '', longitude: '', image: null });
+                                                                                setHotelPanelDayIndex(null);
+                                                                              } catch (err) {
+                                                                                console.error('Error saving hotel:', err.response?.data || err);
+                                                                                const msg = err.response?.data ? Object.entries(err.response.data).map(([k,v]) => `${k}: ${v}`).join('\n') : err.message;
+                                                                                alert(`Failed to save hotel.\n${msg}`);
+                                                                              }
+                                                                            }}
+                                                                            className="w-full py-1.5 bg-[#14532d] text-white text-[10px] font-bold rounded-sm hover:bg-green-800 transition-colors"
+                                                                          >Add</button>
+                                                                        </div>
+                                                                      ) : (
+                                                                        <button
+                                                                          type="button"
+                                                                          onClick={() => { setHotelPanelDayIndex(i); setNewHotelForm({ name: '', stars: '3', address: '', city: getDestinationForDay(i) !== '---' ? getDestinationForDay(i) : '', latitude: '', longitude: '', image: null }); }}
+                                                                          className="w-full py-2 border border-dashed border-green-300 text-green-600 text-[10px] font-medium rounded-sm hover:bg-green-50 transition-colors"
+                                                                        >+ Add New Hotel</button>
+                                                                      )}
+                                                                    </div>
+                                                                  </div>
+                                                                 );
+                                                               })()}
+
+
                                                                         {/* 5. VEHICLE TAB */}
                                                                         {row.details_json?.active_tab === 'vehicle' && (() => {
                                                                             const vTransfers = row.details_json?.vehicle_transfers || {
@@ -2901,199 +2617,50 @@ const HolidayPackageEdit = () => {
                                                                             ];
 
                                                                             return (
-                                                                                <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-500 max-w-xl">
+                                                                                <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
                                                                                     {transferTypes.map(t => {
                                                                                         const data = vTransfers[t.id] || { selected: false, mode: 'Private' };
-                                                                                        const Icon = t.id === 'airport' ? Plane : (t.id === 'sightseeing' ? Map : Car);
-                                                                                        const colorClass = t.id === 'airport' ? 'indigo' : (t.id === 'sightseeing' ? 'emerald' : 'amber');
-                                                                                        
                                                                                         return (
-                                                                                            <div key={t.id} className={`group/vt transition-all duration-300 rounded-[1.25rem] border-2 ${data.selected ? `bg-${colorClass}-50/30 border-${colorClass}-100/50 shadow-sm` : 'bg-white border-gray-50 hover:border-gray-100'}`}>
-                                                                                                <div className="p-3 px-4 flex items-center justify-between gap-4">
-                                                                                                    <div className="flex items-center gap-3">
-                                                                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${data.selected ? `bg-${colorClass}-500 text-white shadow-lg shadow-${colorClass}-500/20 scale-110` : 'bg-gray-50 text-gray-400 group-hover/vt:bg-gray-100'}`}>
-                                                                                                            <Icon size={14} strokeWidth={2.5} />
-                                                                                                        </div>
-                                                                                                        <div>
-                                                                                                            <div className="flex items-center gap-2">
-                                                                                                                <input 
-                                                                                                                    type="checkbox" 
-                                                                                                                    checked={data.selected} 
-                                                                                                                    onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
-                                                                                                                    className="hidden"
-                                                                                                                    id={`vt-${i}-${t.id}`}
-                                                                                                                />
-                                                                                                                <label htmlFor={`vt-${i}-${t.id}`} className={`text-[11px] font-black cursor-pointer uppercase tracking-tight transition-colors ${data.selected ? `text-${colorClass}-700` : 'text-gray-400 hover:text-gray-600'}`}>
-                                                                                                                    {t.label}
-                                                                                                                </label>
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    </div>
-
-                                                                                                    <div className={`flex items-center bg-white/60 p-1 rounded-lg border transition-all ${data.selected ? 'opacity-100 scale-100 border-gray-100' : 'opacity-0 scale-90 pointer-events-none'}`}>
+                                                                                            <div key={t.id} className={`border rounded-sm transition-all ${data.selected ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                                                                                                <div className="flex items-center justify-between px-3 py-2">
+                                                                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                                                                        <input
+                                                                                                            type="checkbox"
+                                                                                                            checked={data.selected}
+                                                                                                            onChange={(e) => updateVT(t.id, { selected: e.target.checked })}
+                                                                                                            className="w-3 h-3 rounded-sm accent-blue-600"
+                                                                                                        />
+                                                                                                        <span className={`text-[10px] font-bold ${data.selected ? 'text-blue-800' : 'text-gray-600'}`}>{t.label}</span>
+                                                                                                    </label>
+                                                                                                    <div className={`flex items-center gap-0 border border-gray-200 rounded-sm overflow-hidden transition-all ${!data.selected ? 'opacity-30 pointer-events-none' : ''}`}>
                                                                                                         {['Private', 'SIC'].map(m => (
                                                                                                             <button
                                                                                                                 key={m}
                                                                                                                 type="button"
                                                                                                                 onClick={() => updateVT(t.id, { mode: m })}
-                                                                                                                className={`px-3 py-1 rounded-md text-[9px] font-black transition-all ${data.mode === m ? `bg-${colorClass}-500 text-white shadow-md` : 'text-gray-400 hover:bg-gray-50'}`}
-                                                                                                            >
-                                                                                                                {m}
-                                                                                                            </button>
+                                                                                                                className={`px-2 py-0.5 text-[9px] font-bold transition-all ${data.mode === m ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
+                                                                                                            >{m}</button>
                                                                                                         ))}
                                                                                                     </div>
                                                                                                 </div>
-                                                                                                
-                                                                                                <div className={`px-4 overflow-hidden transition-all duration-500 ease-in-out ${data.selected ? 'max-h-32 pb-4 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                                                                                    <textarea
-                                                                                                        rows={2}
-                                                                                                        value={data.description || ''}
-                                                                                                        onChange={(e) => updateVT(t.id, { description: e.target.value })}
-                                                                                                        placeholder={`Add details for ${t.label.toLowerCase()}...`}
-                                                                                                        className={`w-full bg-white/50 border-2 border-gray-100/50 rounded-xl p-3 text-[10px] font-bold text-gray-600 placeholder:text-gray-300 focus:outline-none focus:border-${colorClass}-200 transition-all resize-none`}
-                                                                                                    />
-                                                                                                </div>
+                                                                                                {data.selected && (
+                                                                                                    <div className="px-3 pb-2">
+                                                                                                        <textarea
+                                                                                                            rows={2}
+                                                                                                            value={data.description || ''}
+                                                                                                            onChange={(e) => updateVT(t.id, { description: e.target.value })}
+                                                                                                            placeholder={`Description for ${t.label}...`}
+                                                                                                            className="w-full text-[10px] text-gray-600 placeholder-gray-300 bg-white border border-gray-200 rounded-sm px-2 py-1 resize-none focus:outline-none focus:border-blue-300 transition-colors"
+                                                                                                        />
+                                                                                                    </div>
+                                                                                                )}
                                                                                             </div>
                                                                                         );
                                                                                     })}
                                                                                 </div>
                                                                             );
-                                                                        })()}
-                                                                        <div className="flex gap-4">
-                                                                            {/* Main accommodation panel */}
-                                                                            <div className="flex-1 space-y-3">
-                                                                                {/* Search */}
-                                                                                <div>
-                                                                                    <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search accommodation from the database</p>
-                                                                                    <SearchableSelect
-                                                                                        options={allowedHotels.map(h => ({
-                                                                                            value: h.id.toString(),
-                                                                                            label: h.name,
-                                                                                            subtitle: h.city
-                                                                                        }))}
-                                                                                        value={accs?.[0]?.hotelId?.toString() || ""}
-                                                                                        onChange={(val) => {
-                                                                                            const h = hotelMasters.find(hm => hm.id === parseInt(val));
-                                                                                            if (!h) return;
-                                                                                            const copy = [...itineraryDays];
-                                                                                            const dest = getDestinationForDay(i);
-                                                                                            const n_pick = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
-                                                                                            for (let k = i; k < i + n_pick && k < copy.length; k++) {
-                                                                                                if (getDestinationForDay(k) === dest) {
-                                                                                                    if (!copy[k].details_json) copy[k].details_json = { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] };
-                                                                                                    copy[k].details_json.accommodations = [{ hotelId: h.id, hotelName: h.name, is_inherited: k > i }];
-                                                                                                } else break;
-                                                                                            }
-                                                                                            setItineraryDays(copy);
-                                                                                        }}
-                                                                                        placeholder="🔍 Search for accommodation in masters..."
-                                                                                    />
-                                                                                </div>
+                                                                           })()}
 
-                                                                                {/* Added accommodations - PREMIUM LIST */}
-                                                                                <div className="space-y-3">
-                                                                                    {accs.filter(acc => {
-                                                                                        const h = hotelMasters.find(hm => hm.id === acc.hotelId);
-                                                                                        if (!h) return true;
-                                                                                        const currentDest = getDestinationForDay(i);
-                                                                                        if (!currentDest || currentDest === "---") return true;
-                                                                                        return (h.city && h.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
-                                                                                            (h.destination_name && h.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase());
-                                                                                    }).length === 0 ? (
-                                                                                        <div className="border-2 border-dashed border-gray-100 rounded-[1.5rem] h-20 flex flex-col items-center justify-center bg-gray-50/30">
-                                                                                            <Hotel size={16} className="text-gray-300 mb-1" />
-                                                                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">No Hotel Selected</p>
-                                                                                        </div>
-                                                                                    ) : (
-                                                                                        accs.filter(acc => {
-                                                                                            const h = hotelMasters.find(hm => hm.id === acc.hotelId);
-                                                                                            if (!h) return true;
-                                                                                            const currentDest = getDestinationForDay(i);
-                                                                                            if (!currentDest || currentDest === "---") return true;
-                                                                                            return (h.city && h.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
-                                                                                                (h.destination_name && h.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase());
-                                                                                        }).map((acc, accIdx) => {
-                                                                                            const h = hotelMasters.find(hm => hm.id === acc.hotelId);
-                                                                                            return (
-                                                                                                <div key={accIdx} className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 group/hitem relative hover:border-pink-200 transition-all shadow-sm hover:shadow-md animate-in zoom-in-95">
-                                                                                                    <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-gray-100 border border-gray-50">
-                                                                                                        {h?.image ? (
-                                                                                                            <img src={getImageUrl(h.image)} alt={h?.name} className="w-full h-full object-cover" />
-                                                                                                        ) : (
-                                                                                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                                                                                <Hotel size={24} strokeWidth={1} />
-                                                                                                            </div>
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                    <div className="flex-1 min-w-0">
-                                                                                                        <div className="flex items-center gap-2 mb-1">
-                                                                                                            <div className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest border ${acc.is_inherited ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-pink-50 text-pink-600 border-pink-100'}`}>
-                                                                                                                {acc.is_inherited ? 'Continued Stay' : 'New Stay'}
-                                                                                                            </div>
-                                                                                                            <div className="flex gap-0.5">
-                                                                                                                {[...Array(parseInt(h?.stars) || 3)].map((_, si) => <Star key={si} size={6} fill="currentColor" className="text-amber-400" />)}
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                        <div className="flex items-center gap-2">
-                                                                                                            <Hotel size={12} className="text-pink-500 shrink-0" />
-                                                                                                            <p className="text-[11px] font-black text-gray-900 truncate">{acc.hotelName}</p>
-                                                                                                        </div>
-                                                                                                        {h?.address && (
-                                                                                                            <div className="flex items-center gap-1 mt-1 opacity-60">
-                                                                                                                <MapPin size={8} className="text-gray-400" />
-                                                                                                                <p className="text-[9px] font-bold text-gray-500 truncate">{h.address}</p>
-                                                                                                            </div>
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                    <button
-                                                                                                        type="button"
-                                                                                                        onClick={() => {
-                                                                                                            const copy = [...itineraryDays];
-                                                                                                            const dest = getDestinationForDay(i);
-                                                                                                            const hotelIdToRemove = acc.hotelId;
-                                                                                                            const n_rem = parseInt(copy[i].details_json?.accommodation_stay_nights || 1);
-                                                                                                            for (let j_rem = i; j_rem < i + n_rem && j_rem < copy.length; j_rem++) {
-                                                                                                                if (getDestinationForDay(j_rem) === dest && copy[j_rem].details_json?.accommodations) {
-                                                                                                                    copy[j_rem].details_json.accommodations = copy[j_rem].details_json.accommodations.filter(a => a.hotelId !== hotelIdToRemove);
-                                                                                                                } else break;
-                                                                                                            }
-                                                                                                            setItineraryDays(copy);
-                                                                                                        }}
-                                                                                                        className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-lg bg-red-50 text-red-400 opacity-0 group-hover/hitem:opacity-100 hover:bg-red-500 hover:text-white transition-all active:scale-90"
-                                                                                                    >
-                                                                                                        <X size={10} />
-                                                                                                    </button>
-                                                                                                </div>
-                                                                                            );
-                                                                                        })
-                                                                                    )}
-                                                                                </div>
-                                                                            </div>
-
-                                                                            {/* Add New Accommodation - COMPACT TRIGGER */}
-                                                                            <div className="w-56 shrink-0 pt-6">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => {
-                                                                                        setHotelModalTargetDay(i);
-                                                                                        setNewHotelForm({
-                                                                                            ...newHotelForm,
-                                                                                            city: getDestinationForDay(i) !== '---' ? getDestinationForDay(i) : ''
-                                                                                        });
-                                                                                        setShowHotelModal(true);
-                                                                                    }}
-                                                                                    className="w-full py-3 border-2 border-dashed border-pink-100 text-pink-500 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-pink-50 hover:border-pink-200 transition-all flex flex-col items-center justify-center gap-1 group/addh"
-                                                                                >
-                                                                                    <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center group-hover/addh:scale-110 transition-transform">
-                                                                                        <Plus size={14} />
-                                                                                    </div>
-                                                                                    Missing a Hotel?
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })()}
 
 
                                                         </div>
@@ -3114,7 +2681,7 @@ const HolidayPackageEdit = () => {
                                                         image: null,
                                                         existing_image: null,
                                                         save_to_master: false,
-                                                        details_json: { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] }
+                                                        details_json: { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], meals: [""], vehicles: [""] }
                                                     }]);
                                                 }}
                                                 className="w-full py-6 rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-[#14532d]/40 hover:text-[#14532d] transition-all hover:bg-green-50 active:scale-[0.99] group"
@@ -3387,117 +2954,6 @@ const HolidayPackageEdit = () => {
                     </div >
                 </div >
 
-                {/* Add New Accommodation Modal */}
-                {
-                    showHotelModal && (
-                        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in transition-all">
-                            <div className="bg-white rounded-[1.5rem] w-full max-w-xl h-fit max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-                                <div className="px-5 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                                    <h2 className="text-[13px] font-black text-gray-900 uppercase tracking-widest leading-none">Add New Accommodation</h2>
-                                    <button onClick={() => setShowHotelModal(false)} className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all font-outfit">
-                                        <X size={14} />
-                                    </button>
-                                </div>
-
-                                <div className="p-4 overflow-y-auto custom-scrollbar space-y-2.5 flex-1 min-h-0 text-left">
-                                    <div className="grid grid-cols-12 gap-2.5">
-                                        <div className="col-span-8">
-                                            <FormLabel label="Name" required />
-                                            <Input placeholder="Hotel name" value={newHotelForm.name} onChange={(e) => setNewHotelForm({ ...newHotelForm, name: e.target.value })} />
-                                        </div>
-                                        <div className="col-span-4">
-                                            <FormLabel label="Stars" required />
-                                            <select className="w-full bg-white border-2 border-gray-100 px-3 py-1.5 rounded-xl text-[11px] font-black outline-none focus:border-[#14532d] transition-all" value={newHotelForm.stars} onChange={(e) => setNewHotelForm({ ...newHotelForm, stars: Number(e.target.value) })}>
-                                                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Star</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2.5">
-                                        <div>
-                                            <FormLabel label="City" required />
-                                            <SearchableSelect
-                                                options={destinations.map(d => ({ value: d.name, label: d.name }))}
-                                                value={newHotelForm.city}
-                                                onChange={(val) => setNewHotelForm({ ...newHotelForm, city: val })}
-                                                placeholder="🔍 Select City"
-                                            />
-                                        </div>
-                                        <div>
-                                            <FormLabel label="Address" optional />
-                                            <Input placeholder="Hotel address" value={newHotelForm.address} onChange={(e) => setNewHotelForm({ ...newHotelForm, address: e.target.value })} />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2.5">
-                                        <div>
-                                            <FormLabel label="Phone" optional />
-                                            <Input placeholder="Phone number" value={newHotelForm.phone} onChange={(e) => setNewHotelForm({ ...newHotelForm, phone: e.target.value })} />
-                                        </div>
-                                        <div>
-                                            <FormLabel label="Website" optional />
-                                            <Input placeholder="URL" value={newHotelForm.website} onChange={(e) => setNewHotelForm({ ...newHotelForm, website: e.target.value })} />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-12 gap-2.5">
-                                        <div className="col-span-6">
-                                            <FormLabel label="Email" optional />
-                                            <Input placeholder="Email address" value={newHotelForm.email} onChange={(e) => setNewHotelForm({ ...newHotelForm, email: e.target.value })} />
-                                        </div>
-                                        <div className="col-span-3">
-                                            <FormLabel label="Lat" optional />
-                                            <Input placeholder="0.00" value={newHotelForm.latitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, latitude: e.target.value })} />
-                                        </div>
-                                        <div className="col-span-3">
-                                            <FormLabel label="Long" optional />
-                                            <Input placeholder="0.00" value={newHotelForm.longitude} onChange={(e) => setNewHotelForm({ ...newHotelForm, longitude: e.target.value })} />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <FormLabel label="Images" optional />
-                                        <div className="flex flex-wrap gap-2.5 min-h-[40px]">
-                                            {newHotelForm.images && newHotelForm.images.map((img, idx) => (
-                                                <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden group border-2 border-gray-100 shadow-sm animate-in zoom-in-50">
-                                                    <img src={URL.createObjectURL(img)} className="w-full h-full object-cover" alt="Preview" />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const newImgs = [...newHotelForm.images];
-                                                            newImgs.splice(idx, 1);
-                                                            setNewHotelForm({ ...newHotelForm, images: newImgs });
-                                                        }}
-                                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    >
-                                                        <X size={12} className="text-white" />
-                                                    </button>
-                                                    {idx === 0 && <div className="absolute top-0 left-0 bg-[#14532d] text-[5px] text-white font-black px-1 py-0.5 uppercase">Main</div>}
-                                                </div>
-                                            ))}
-                                            <input type="file" id="hotel-image-upload-edit" className="hidden" multiple onChange={(e) => {
-                                                const files = Array.from(e.target.files);
-                                                setNewHotelForm({ ...newHotelForm, images: [...(newHotelForm.images || []), ...files] });
-                                            }} />
-                                            <label htmlFor="hotel-image-upload-edit" className="w-14 h-14 border-2 border-dashed border-gray-100 rounded-xl flex flex-col items-center justify-center bg-gray-50/30 hover:bg-gray-50 transition-all cursor-pointer group">
-                                                <Plus size={14} className="text-gray-300 group-hover:text-[#14532d] transition-colors" />
-                                                <span className="text-[6px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Add</span>
-                                            </label>
-                                        </div>
-                                        {newHotelForm.images?.length > 1 && (
-                                            <p className="text-[7px] text-gray-400 font-bold italic uppercase tracking-wider">* Only the first image will be saved to masters</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                                    <button type="button" onClick={() => setShowHotelModal(false)} className="px-5 py-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-gray-600 transition-all font-outfit">Cancel</button>
-                                    <button type="button" onClick={handleSaveHotel} className="px-6 py-1.5 bg-[#14532d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-green-900/10 hover:scale-105 active:scale-95 transition-all font-outfit">Save Hotel</button>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
             </div >
         </>
     );

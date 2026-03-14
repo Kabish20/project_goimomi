@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Hotel } from "lucide-react";
+import { Hotel, Star, MapPin, Info } from "lucide-react";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import FormModal from "../components/FormModal";
@@ -28,10 +28,10 @@ const HolidayDetails = () => {
   const [openDay, setOpenDay] = useState(null);
   const [pkg, setPkg] = useState(null);
   const [accommodations, setAccommodations] = useState([]);
+  const [sightseeingMasters, setSightseeingMasters] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pricePopupOpen, setPricePopupOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Itinerary");
-
 
   const toggleDay = (index) => {
     setOpenDay(openDay === index ? null : index);
@@ -42,9 +42,13 @@ const HolidayDetails = () => {
       .then((res) => setPkg(res.data))
       .catch((err) => console.error("Error fetching package details:", err));
 
-    api.get("/api/accommodations/")
+    api.get("/api/hotel-masters/")
       .then((res) => setAccommodations(res.data))
-      .catch((err) => console.error("Error fetching accommodations:", err));
+      .catch((err) => console.error("Error fetching hotel masters:", err));
+      
+    api.get("/api/sightseeing-masters/")
+      .then((res) => setSightseeingMasters(res.data))
+      .catch((err) => console.error("Error fetching sightseeing masters:", err));
 
     const handleClickOutside = (event) => {
       if (!event.target.closest(".holiday-details-price-info")) {
@@ -250,35 +254,75 @@ const HolidayDetails = () => {
 
                       {/* EXPERIENCE CARD */}
                       <div className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm mb-4 relative">
-                        <h3 className="text-base font-bold text-gray-900 mb-4">{item.title}</h3>
-                        <p className="text-gray-700 text-[13px] leading-relaxed mb-1">
-                          {item.description}
-                        </p>
+                        <div className="flex gap-6 mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-base font-bold text-gray-900 mb-4">{item.title}</h3>
+                            <p className="text-gray-700 text-[13px] leading-relaxed">
+                              {item.description}
+                            </p>
+                          </div>
+                          {item.image && (
+                            <img 
+                              src={getImageUrl(item.image)} 
+                              alt={item.title} 
+                              className="w-48 h-32 object-cover rounded-2xl shadow-sm border border-gray-50 flex-shrink-0" 
+                            />
+                          )}
+                        </div>
 
+                        {details?.sightseeing?.length > 0 && (
+                          <div className="mt-6 mb-4">
+                            <h4 className="text-[15px] font-bold text-gray-900 mb-1">Sight Seeing Included:</h4>
+                            <p className="text-[#3498db] text-[14px] font-medium leading-relaxed">
+                              {details.sightseeing.filter(s => s && s.trim()).join(', ')}
+                            </p>
+                          </div>
+                        )}
 
                         {/* Transfers Row */}
-                        {details?.transfers?.length > 0 && (
-                          <div className="text-[13px] text-gray-900 mb-8">
-                            {details.transfers.map((t, ti) => {
+                        {(() => {
+                          const transfers = [];
+                          if (details?.vehicle_transfers) {
+                            if (details.vehicle_transfers.airport?.selected) transfers.push({ label: 'Airport / Train Transfer', mode: details.vehicle_transfers.airport.mode, desc: details.vehicle_transfers.airport.description });
+                            if (details.vehicle_transfers.sightseeing?.selected) transfers.push({ label: 'Sightseeing Transfer', mode: details.vehicle_transfers.sightseeing.mode, desc: details.vehicle_transfers.sightseeing.description });
+                            if (details.vehicle_transfers.intercity?.selected) transfers.push({ label: 'Intercity Transfer', mode: details.vehicle_transfers.intercity.mode, desc: details.vehicle_transfers.intercity.description });
+                          } else if (details?.transfers?.length > 0) {
+                            // Fallback for legacy format
+                            details.transfers.forEach(t => {
                               let label = t.type;
                               if (t.type === 'Airport/Train') label = 'Airport to Hotel';
                               if (t.type === 'Sightseeing') label = 'Sightseeing';
-                              return (
-                                <span key={ti}>
-                                  {ti > 0 && " | "}
-                                  <span className="font-bold">{label}</span> : {t.vehicle_model}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
+                              transfers.push({ label, mode: 'Private', desc: t.vehicle_model });
+                            });
+                          }
+
+                          if (transfers.length === 0) return null;
+
+                          return (
+                            <div className="mt-4 mb-8">
+                              <h4 className="text-[15px] font-bold text-gray-900 mb-1">Vehicle:</h4>
+                              <p className="text-[13px] text-gray-900 leading-relaxed">
+                                {transfers.map((t, ti) => {
+                                  let label = t.label;
+                                  if (label === 'Airport / Train Transfer') label = 'Airport to Hotel';
+                                  return (
+                                    <span key={ti}>
+                                      {ti > 0 && " | "}
+                                      <span className="font-bold">{label}</span> : {t.mode} Transport
+                                    </span>
+                                  );
+                                })}
+                              </p>
+                            </div>
+                          );
+                        })()}
 
                         {/* Meals Matrix */}
                         <div className="flex gap-16 pt-6 border-t border-gray-100">
                           {[
-                            { label: 'Breakfast', val: details?.meals?.breakfast },
-                            { label: 'Lunch', val: details?.meals?.lunch },
-                            { label: 'Dinner', val: details?.meals?.dinner }
+                            { label: 'Breakfast', val: details?.meals_included?.includes('Breakfast') || details?.meals?.breakfast },
+                            { label: 'Lunch', val: details?.meals_included?.includes('Lunch') || details?.meals?.lunch },
+                            { label: 'Dinner', val: details?.meals_included?.includes('Dinner') || details?.meals?.dinner }
                           ].map((m, mi) => (
                             <div key={mi} className="flex flex-col">
                               <span className="text-[12px] text-gray-300 font-medium mb-1">{m.label}</span>
@@ -292,10 +336,14 @@ const HolidayDetails = () => {
 
                       {/* STAY CARD */}
                       {details?.accommodations?.map((h, hi) => {
-                        const master = accommodations.find(a =>
-                          (h.hotelId && a.id === h.hotelId) ||
-                          (h.hotelName && a.name === h.hotelName)
-                        );
+                        let master = accommodations.find(a => a.id === h.hotelId);
+                        if (master && h.hotelName && master.name !== h.hotelName) {
+                            const nameMatch = accommodations.find(a => a.name === h.hotelName);
+                            if (nameMatch) { master = nameMatch; } 
+                            else { master = null; }
+                        }
+                        if (!master && h.hotelName) master = accommodations.find(a => a.name === h.hotelName);
+                        
                         return (
                           <div key={hi} className="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm mb-4 last:mb-0">
                             <h4 className="text-base font-bold text-gray-900 mb-1">{h.hotelName || master?.name || h.hotel_name || "Hotel Selection"}</h4>
@@ -317,11 +365,79 @@ const HolidayDetails = () => {
               </div>
             )}
 
+            {activeTab === "Hotels" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                {(() => {
+                  const allAccs = [];
+                  pkg.itinerary?.forEach(day => {
+                    const d = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
+                    if (Array.isArray(d?.accommodations)) {
+                      d.accommodations.forEach(acc => {
+                        if (acc && !allAccs.find(a => (a?.hotelId && a.hotelId === acc?.hotelId) || (a?.hotelName && a.hotelName === acc?.hotelName))) {
+                          allAccs.push(acc);
+                        }
+                      });
+                    }
+                  });
+                  
+                  if (allAccs.length === 0) return (
+                    <div className="col-span-full py-20 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
+                      <p className="text-gray-400 font-medium">No hotels specified for this package.</p>
+                    </div>
+                  );
+                  
+                  return allAccs.map((h, i) => {
+                    if (!h) return null;
+                    let master = accommodations.find(a => a.id === h.hotelId);
+                    if (master && h.hotelName && master.name !== h.hotelName) {
+                        const nameMatch = accommodations.find(a => a.name === h.hotelName);
+                        if (nameMatch) { master = nameMatch; } 
+                        else { master = null; }
+                    }
+                    if (!master && h.hotelName) master = accommodations.find(a => a.name === h.hotelName);
+                    
+                    return (
+                      <div key={`hotel-${i}`} className="border border-gray-200 rounded-md p-4 bg-white mb-2 shadow-sm w-full">
+                        <h4 className="text-[15px] font-bold text-gray-900 mb-1">
+                          {h.hotelName || master?.name || "Premium Hotel"}
+                        </h4>
+                        
+                        <div className="flex items-center gap-1 mb-2">
+                          <span className="text-[12px] text-gray-500">
+                            ({h.roomType || "Standard"})
+                          </span>
+                          <div className="flex gap-0.5 ml-1">
+                            {[...Array(5)].map((_, si) => (
+                              <Star 
+                                key={si} 
+                                size={12} 
+                                className={si < Number(h.stars || master?.stars || 3) ? "text-yellow-400 fill-yellow-400" : "text-gray-200"} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-[12px] text-gray-600">
+                             <MapPin size={12} className="text-gray-500" />
+                             <span className="text-[12px]">{master?.city || "Featured Destination"}</span>
+                          </div>
+                          <p className="text-[12px] text-gray-600">Room Included</p>
+                          <p className="text-[12px] font-bold text-gray-900">{h.roomType || "Standard"}</p>
+                          <p className="text-[12px] text-gray-600">Meals at hotel: {h.mealPlan || "Room Only"}</p>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
+
             {activeTab === "Sightseeing" && (
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-2 mb-5">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 mb-6">
                   <div className="w-1 h-6 bg-[#16a34a] rounded-full"></div>
-                  <h3 className="text-lg font-bold text-gray-900">Sightseeing & Activities</h3>
+                  <h3 className="text-xl font-bold text-gray-900">Sightseeing & Activities</h3>
                 </div>
 
                 {(() => {
@@ -332,137 +448,34 @@ const HolidayDetails = () => {
 
                   if (activities.length > 0) {
                     return (
-                      <div className="space-y-3">
-                        {activities.map((act, i) => (
-                          <div key={i} className="flex gap-3 p-3 bg-gray-50/50 rounded-xl items-start border border-gray-100 hover:border-green-100 transition-colors">
-                            <div className="bg-green-100 text-[#16a34a] text-[9px] font-black px-2 py-0.5 rounded-lg shrink-0">DAY {act.dayNum}</div>
-                            <p className="text-gray-700 text-xs font-medium leading-relaxed">{act.text}</p>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div className="text-center py-10">
-                        <p className="text-gray-500 mb-2 font-medium">Standard sightseeing as per the itinerary is included.</p>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Detailed activity list available on enquiry</p>
-                      </div>
-                    );
-                  }
-                })()}
-              </div>
-            )}
-
-            {activeTab === "Hotels" && (
-              <div className="space-y-4">
-                {(() => {
-                  const allAcc = pkg.itinerary?.flatMap(day => {
-                    const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
-                    return (details?.accommodations || []).map(h => {
-                      const master = accommodations.find(a =>
-                        (h.hotelId && a.id === h.hotelId) ||
-                        (h.hotelName && a.name === h.hotelName)
-                      );
-                      return {
-                        ...h,
-                        hotelName: h.hotelName || master?.name || "Hotel Selection",
-                        city: master?.city || h.city || "",
-                        stars: master?.stars || h.stars || 3,
-                        image: master?.image || h.image || "",
-                        dayNum: day.day_number,
-                        country: pkg.destinations?.find(d => d.name === (master?.city || h.city))?.country || master?.destination_name || "Domestic"
-                      };
-                    });
-                  }) || [];
-
-                  // Group by hotel name to deduplicate and count nights
-                  const hotelGroups = allAcc.reduce((acc, curr) => {
-                    const key = curr.hotelName;
-                    if (!acc[key]) {
-                      acc[key] = {
-                        ...curr,
-                        nights: 1,
-                        days: [curr.dayNum],
-                      };
-                    } else {
-                      acc[key].nights += 1;
-                      acc[key].days.push(curr.dayNum);
-                    }
-                    return acc;
-                  }, {});
-
-                  const hotels = Object.values(hotelGroups);
-
-                  if (hotels.length > 0) {
-                    return (
                       <div className="space-y-4">
-                        {hotels.map((hotel, i) => (
-                          <div key={i} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm p-3.5 flex flex-col md:flex-row gap-5 transition-all hover:shadow-md">
-                            {/* Hotel Image - Minimized */}
-                            <div className="w-full md:w-32 h-24 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0 group relative">
-                              {hotel.image ? (
-                                <img src={getImageUrl(hotel.image)} alt={hotel.hotelName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                              ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50/50">
-                                  <div className="p-3 bg-[#16a34a]/10 rounded-full mb-1 shadow-sm">
-                                    <Hotel size={20} className="text-[#16a34a]" strokeWidth={2} />
-                                  </div>
-                                  <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Image TBA</span>
-                                </div>
+                        {activities.map((act, i) => {
+                          const master = sightseeingMasters.find(m => m.name === act.text);
+                          return (
+                            <div key={i} className="flex gap-4 p-5 bg-white rounded-2xl items-start border border-gray-100 hover:border-green-200 hover:shadow-lg hover:shadow-green-900/5 transition-all group">
+                              <div className="bg-green-50 text-[#16a34a] text-[10px] font-black px-3 py-1.5 rounded-full shrink-0 border border-green-100 mt-1">
+                                DAY {act.dayNum}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-[12px] text-gray-400 font-medium mb-0.5">{master?.city || "Destination Activity"}</p>
+                                <h4 className="text-[16px] font-bold text-gray-900 mb-2 group-hover:text-[#16a34a] transition-colors">{act.text}</h4>
+                                {master?.description && (
+                                  <p className="text-[13px] text-gray-600 leading-relaxed line-clamp-3">{master.description}</p>
+                                )}
+                              </div>
+                              {master?.image && (
+                                <img src={getImageUrl(master.image)} alt={act.text} className="w-24 h-24 object-cover rounded-xl shrink-0 shadow-sm border border-gray-100 hidden sm:block" />
                               )}
                             </div>
-
-                            {/* Hotel Info - Compact */}
-                            <div className="flex-1 flex flex-col justify-between">
-                              <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <div className="flex items-center gap-2">
-                                    <span className="bg-[#16a34a]/10 text-[#16a34a] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#16a34a]/10">
-                                      STAY START / CHECK-IN
-                                    </span>
-                                    <span className="text-[9px] text-gray-400 font-bold italic">
-                                      {hotel.nights} {hotel.nights > 1 ? 'Nights' : 'Night'} stay
-                                    </span>
-                                  </div>
-                                  <div className="bg-blue-50 text-blue-600 text-[8px] font-black px-2 py-0.5 rounded-[4px] uppercase tracking-wider">
-                                    {hotel.nights} {hotel.nights > 1 ? 'NIGHTS' : 'NIGHT'}
-                                  </div>
-                                </div>
-
-                                <h3 className="text-[13px] font-black text-gray-900 mb-0.5 leading-tight">
-                                  {hotel.city ? `${hotel.city} - ` : ''}{hotel.hotelName}
-                                </h3>
-
-                                <div className="flex gap-0.5 mb-2">
-                                  {[...Array(5)].map((_, si) => (
-                                    <span key={si} className={`text-[10px] ${si < Number(hotel.stars || 3) ? 'text-yellow-400' : 'text-gray-200'}`}>★</span>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div className="flex gap-10 pt-2 border-t border-gray-50">
-                                <div>
-                                  <p className="text-gray-400 text-[7px] font-black uppercase tracking-widest mb-0.5">Room Type</p>
-                                  <p className="text-gray-900 font-bold text-[10px] uppercase">Standard Room</p>
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-gray-400 text-[7px] font-black uppercase tracking-widest mb-0.5">Meal Plan</p>
-                                  <p className="text-gray-900 font-bold text-[10px] uppercase truncate">{hotel.meals || 'MAP (Breakfast & Dinner)'}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     );
                   } else {
                     return (
-                      <div className="bg-white p-16 rounded-[2.5rem] shadow-sm border border-gray-100 text-center">
-                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <Hotel className="text-gray-300" size={40} />
-                        </div>
-                        <h4 className="text-gray-900 font-black mb-1 uppercase tracking-wider">Accommodation Details TBA</h4>
-                        <p className="text-xs text-gray-400 font-medium">Specific hotels are assigned upon final booking confirmation.</p>
+                      <div className="text-center py-12 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                        <p className="text-gray-500 mb-2 font-medium">Standard sightseeing as per the itinerary is included.</p>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Detailed activity list available on enquiry</p>
                       </div>
                     );
                   }
