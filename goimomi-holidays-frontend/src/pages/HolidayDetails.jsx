@@ -287,36 +287,58 @@ const HolidayDetails = () => {
                         {(() => {
                           const transfers = [];
                           if (details?.vehicle_transfers) {
-                            if (details.vehicle_transfers.airport?.selected) transfers.push({ label: 'Airport / Train Transfer', mode: details.vehicle_transfers.airport.mode, desc: details.vehicle_transfers.airport.description });
-                            if (details.vehicle_transfers.sightseeing?.selected) transfers.push({ label: 'Sightseeing Transfer', mode: details.vehicle_transfers.sightseeing.mode, desc: details.vehicle_transfers.sightseeing.description });
-                            if (details.vehicle_transfers.intercity?.selected) transfers.push({ label: 'Intercity Transfer', mode: details.vehicle_transfers.intercity.mode, desc: details.vehicle_transfers.intercity.description });
+                            if (details.vehicle_transfers.airport?.selected) {
+                              transfers.push({ 
+                                label: 'Airport to Hotel', 
+                                mode: details.vehicle_transfers.airport.mode || 'Private', 
+                                desc: details.vehicle_transfers.airport.description 
+                              });
+                            }
+                            if (details.vehicle_transfers.sightseeing?.selected) {
+                              transfers.push({ 
+                                label: 'Sightseeing', 
+                                mode: details.vehicle_transfers.sightseeing.mode || 'Private', 
+                                desc: details.vehicle_transfers.sightseeing.description 
+                              });
+                            }
+                            if (details.vehicle_transfers.intercity?.selected) {
+                              transfers.push({ 
+                                label: 'Intercity Transfer', 
+                                mode: details.vehicle_transfers.intercity.mode || 'Private', 
+                                desc: details.vehicle_transfers.intercity.description 
+                              });
+                            }
                           } else if (details?.transfers?.length > 0) {
                             // Fallback for legacy format
                             details.transfers.forEach(t => {
-                              let label = t.type;
+                              let label = t.type || 'Transfer';
                               if (t.type === 'Airport/Train') label = 'Airport to Hotel';
                               if (t.type === 'Sightseeing') label = 'Sightseeing';
-                              transfers.push({ label, mode: 'Private', desc: t.vehicle_model });
+                              transfers.push({ label, mode: 'Private', desc: t.vehicle_model || t.description });
                             });
                           }
 
                           if (transfers.length === 0) return null;
 
                           return (
-                            <div className="mt-4 mb-8">
-                              <h4 className="text-[15px] font-bold text-gray-900 mb-1">Vehicle:</h4>
-                              <p className="text-[13px] text-gray-900 leading-relaxed">
-                                {transfers.map((t, ti) => {
-                                  let label = t.label;
-                                  if (label === 'Airport / Train Transfer') label = 'Airport to Hotel';
-                                  return (
-                                    <span key={ti}>
-                                      {ti > 0 && " | "}
-                                      <span className="font-bold">{label}</span> : {t.mode} Transport
+                            <div className="mt-4 mb-4 pt-3 border-t border-gray-100 flex flex-col gap-1.5">
+                              <h4 className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                                Vehicle & Transfers
+                              </h4>
+                              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                                {transfers.map((t, ti) => (
+                                  <div key={ti} className="flex items-center gap-2">
+                                    <span className="text-[12px] font-bold text-gray-900">{t.label}</span>
+                                    <span className="text-[9px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">
+                                      {t.mode} Transport
                                     </span>
-                                  );
-                                })}
-                              </p>
+                                    {t.desc && (
+                                      <span className="text-[11px] text-gray-400 italic font-medium truncate max-w-[200px]">— {t.desc}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           );
                         })()}
