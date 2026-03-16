@@ -270,14 +270,18 @@ const HolidayDetails = () => {
                           )}
                         </div>
 
-                        {details?.sightseeing?.length > 0 && (
-                          <div className="mt-6 mb-4">
-                            <h4 className="text-[15px] font-bold text-gray-900 mb-1">Sight Seeing Included:</h4>
-                            <p className="text-[#3498db] text-[14px] font-medium leading-relaxed">
-                              {details.sightseeing.filter(s => s && s.trim()).join(', ')}
-                            </p>
-                          </div>
-                        )}
+                        {(() => {
+                          const sightseeingItems = details?.sightseeing?.filter(s => s && s.trim()) || [];
+                          if (sightseeingItems.length === 0) return null;
+                          return (
+                            <div className="mt-6 mb-4">
+                              <h4 className="text-[15px] font-bold text-gray-900 mb-1">Sight Seeing Included:</h4>
+                              <p className="text-[#3498db] text-[14px] font-medium leading-relaxed">
+                                {sightseeingItems.join(', ')}
+                              </p>
+                            </div>
+                          );
+                        })()}
 
                         {/* Transfers Row */}
                         {(() => {

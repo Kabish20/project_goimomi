@@ -1339,8 +1339,30 @@ const HolidayPackageAdd = () => {
                             ))}
                           </div>
                         </div>
-                      </div>
                     </div>
+                  </div>
+                    
+                    {/* Travel Date For Non-Fixed Departure */}
+                    {!formData.fixed_departure && (
+                      <div className="bg-amber-50/30 border border-amber-100 p-4 rounded-xl flex items-center gap-4 animate-in slide-in-from-left-2 mt-4">
+                        <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                          <Calendar size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <FormLabel label="Main Start Date" optional />
+                          <Input 
+                            type="date" 
+                            name="start_date" 
+                            value={formData.start_date || ""} 
+                            onChange={handleInputChange} 
+                            className="!bg-white border-amber-100 focus:border-amber-400" 
+                          />
+                        </div>
+                        <p className="text-[9px] text-amber-400 font-bold uppercase tracking-widest leading-tight max-w-[150px]">
+                          Set the default start date for this package
+                        </p>
+                      </div>
+                    )}
 
                     {/* Trip Highlights Integrated into Overview */}
                     <div className="mt-8">
@@ -2489,8 +2511,8 @@ const HolidayPackageAdd = () => {
                             </div>
                           </div>
 
-                          <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                            <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
+                          <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-4"}>
+                            <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <FormLabel label="Arrival City" optional />
                                 <SearchableSelect
@@ -2509,15 +2531,16 @@ const HolidayPackageAdd = () => {
                                 <FormLabel label="No. of Nights" required />
                                 <Input type="number" name="arrival_no_of_nights" value={formData.arrival_no_of_nights} onChange={handleInputChange} className="!py-1" />
                               </div>
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <FormLabel label="Date" optional />
-                                  <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
-                                </div>
-                                <div>
-                                  <FormLabel label="Time" optional />
-                                  <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
-                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <FormLabel label="Date" optional />
+                                <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
+                              </div>
+                              <div>
+                                <FormLabel label="Time" optional />
+                                <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -2566,8 +2589,8 @@ const HolidayPackageAdd = () => {
                               </button>
                             </div>
                           </div>
-                          <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                            <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
+                          <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-4"}>
+                            <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <FormLabel label="Departure City" optional />
                                 <SearchableSelect
@@ -2582,7 +2605,6 @@ const HolidayPackageAdd = () => {
                                   error={errors.departure_city}
                                 />
                               </div>
-                              <div></div>
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <FormLabel label="Date" optional />

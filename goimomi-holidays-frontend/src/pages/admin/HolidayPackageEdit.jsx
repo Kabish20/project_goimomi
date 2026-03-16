@@ -377,6 +377,8 @@ const HolidayPackageEdit = () => {
 
                 // Populate Form Data
                 const pkg = pkgRes.data;
+                const fetchedCategories = pkg.package_categories && Array.isArray(pkg.package_categories) ? pkg.package_categories : [];
+                
                 setFormData({
                     title: pkg.title || "",
                     description: pkg.description || "",
@@ -386,14 +388,14 @@ const HolidayPackageEdit = () => {
                     days: pkg.days?.toString() || "",
                     start_date: pkg.start_date || "",
                     group_size: pkg.group_size || 0,
-                    offer_price: pkg.Offer_price?.toString() || "", // Note capitalization in model
+                    offer_price: pkg.Offer_price?.toString() || (pkg.offer_price?.toString() || ""), // Handle both cases
                     price: pkg.price?.toString() || "",
-                    header_image: null, // Keep null unless changing
+                    header_image: null,
                     card_image: null,
                     supplier: pkg.supplier || "",
                     with_flight: pkg.with_flight || false,
                     fixed_departure: pkg.fixed_departure || false,
-                    package_categories: pkg.package_categories && Array.isArray(pkg.package_categories) ? pkg.package_categories : [],
+                    package_categories: fetchedCategories,
                     is_active: pkg.is_active !== undefined ? pkg.is_active : true,
                     sharing: pkg.sharing || "SINGLE",
                     arrival_city: pkg.arrival_city || "",
@@ -413,16 +415,53 @@ const HolidayPackageEdit = () => {
                     highlights: pkg.highlights && Array.isArray(pkg.highlights) ? pkg.highlights.map(h => h.text).join("\n") : "",
                     arrival_no_of_nights: pkg.arrival_no_of_nights || "",
                 });
-                const normalizedFD = (pkg.fixed_departure_data && Array.isArray(pkg.fixed_departure_data))
-                    ? pkg.fixed_departure_data.map(slot => {
-                        const newTiers = { ...slot.tiers };
-                        Object.keys(newTiers).forEach(tier => {
-                            if (!Array.isArray(newTiers[tier])) {
-                                newTiers[tier] = [newTiers[tier]];
+
+                // Robust parsing of fixed_departure_data
+                let rawFD = pkg.fixed_departure_data;
+                if (typeof rawFD === 'string') {
+                    try {
+                        rawFD = JSON.parse(rawFD);
+                    } catch (e) {
+                        console.error("Error parsing fixed_departure_data:", e);
+                        rawFD = [];
+                    }
+                }
+
+                const normalizedFD = (rawFD && Array.isArray(rawFD))
+                    ? rawFD.map(slot => {
+                        const rawTiers = slot.tiers || {};
+                        const newTiers = {};
+                        
+                        // Normalize tiers with case-insensitive matching for categories
+                        // and support both lowercase/capitalized field names
+                        fetchedCategories.forEach(tierName => {
+                            // Find matching tier in raw data (case-insensitive)
+                            const matchingKey = Object.keys(rawTiers).find(
+                                k => k.toLowerCase() === tierName.toLowerCase()
+                            );
+                            
+                            let tierRows = matchingKey ? rawTiers[matchingKey] : null;
+                            
+                            if (tierRows) {
+                                if (!Array.isArray(tierRows)) tierRows = [tierRows];
+                                newTiers[tierName] = tierRows.map(row => ({
+                                    offer_price: row.offer_price || row.Offer_price || "",
+                                    market_price: row.market_price || row.Market_price || "",
+                                    min_members: row.min_members || row.min_pax || "1",
+                                    sharing: row.sharing || row.Sharing || "SINGLE"
+                                }));
+                            } else {
+                                // Default row if tier not found
+                                newTiers[tierName] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
                             }
                         });
+
                         return {
                             ...slot,
+                            travel_date: slot.travel_date || slot.date || slot.travelDate || "",
+                            valid_from: slot.valid_from || slot.valid_since || "",
+                            valid_to: slot.valid_to || slot.valid_until || slot.valid_upto || "",
+                            booking_valid_until: slot.booking_valid_until || slot.valid_until || slot.booking_until || "",
                             tiers: newTiers,
                             logistics: slot.logistics || mkLogistics()
                         };
@@ -658,26 +697,38 @@ const HolidayPackageEdit = () => {
             };
         }));
     }, [packageDestinations, loading, itineraryDays.length]);
-
     // Sync fixedDepartureData tiers with selected package categories
     useEffect(() => {
-        setFixedDepartureData(prev => prev.map(slot => {
-            const newTiers = { ...slot.tiers };
-            // Add missing tiers
-            formData.package_categories.forEach(tier => {
-                if (!newTiers[tier]) {
-                    newTiers[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
-                }
+        if (loading) return;
+        setFixedDepartureData(prev => {
+            if (!prev || !Array.isArray(prev)) return [];
+            return prev.map(slot => {
+                const newTiers = { ...(slot.tiers || {}) };
+                const selectedTiers = formData.package_categories || [];
+                
+                // Add missing tiers (case-insensitive check)
+                selectedTiers.forEach(tier => {
+                    const existingKey = Object.keys(newTiers).find(
+                        k => k.toLowerCase() === tier.toLowerCase()
+                    );
+                    
+                    if (!existingKey) {
+                        newTiers[tier] = [{ offer_price: "", market_price: "", min_members: "1", sharing: "SINGLE" }];
+                    }
+                });
+
+                // Optional: Remove tiers that are no longer selected
+                // Object.keys(newTiers).forEach(tier => {
+                //     if (!selectedTiers.some(t => t.toLowerCase() === tier.toLowerCase())) {
+                //         delete newTiers[tier];
+                //     }
+                // });
+
+                return { ...slot, tiers: newTiers };
             });
-            // Remove tiers no longer selected
-            Object.keys(newTiers).forEach(tier => {
-                if (!formData.package_categories.includes(tier)) {
-                    delete newTiers[tier];
-                }
-            });
-            return { ...slot, tiers: newTiers };
-        }));
-    }, [formData.package_categories, formData.fixed_departure]);
+        });
+    }, [formData.package_categories, formData.fixed_departure, loading]);
+
 
     // Synchronize Fixed Departure Travel Dates with Arrival/Departure Dates
     useEffect(() => {
@@ -1264,19 +1315,41 @@ const HolidayPackageEdit = () => {
                                                                     <input
                                                                         type="checkbox"
                                                                         className="w-3.5 h-3.5 rounded border-gray-300 text-[#14532d] focus:ring-[#14532d] transition-all cursor-pointer"
-                                                                        checked={formData.package_categories && formData.package_categories.includes(tier)}
+                                                                        checked={formData.package_categories && formData.package_categories.some(t => t.toLowerCase() === tier.toLowerCase())}
                                                                         onChange={(e) => {
                                                                             const currentTiers = formData.package_categories || [];
                                                                             if (e.target.checked) setFormData({ ...formData, package_categories: [...currentTiers, tier] });
-                                                                            else setFormData({ ...formData, package_categories: currentTiers.filter(t => t !== tier) });
+                                                                            else setFormData({ ...formData, package_categories: currentTiers.filter(t => t.toLowerCase() !== tier.toLowerCase()) });
                                                                         }}
                                                                     />
-                                                                    <span className="text-[10px] font-bold text-gray-700 group-hover:text-[#14532d] transition-colors">{tier}</span>
+                                                                    <span className="text-[10px] font-bold text-gray-700 group-hover:text-[#14532d] transition-colors capitalize">{tier}</span>
                                                                 </label>
                                                             ))}
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {/* Travel Date For Non-Fixed Departure */}
+                                                {!formData.fixed_departure && (
+                                                    <div className="bg-amber-50/30 border border-amber-100 p-4 rounded-xl flex items-center gap-4 animate-in slide-in-from-left-2">
+                                                        <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                                                            <Calendar size={18} />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <FormLabel label="Main Start Date" optional />
+                                                            <Input 
+                                                                type="date" 
+                                                                name="start_date" 
+                                                                value={formData.start_date} 
+                                                                onChange={handleInputChange} 
+                                                                className="!bg-white border-amber-100 focus:border-amber-400" 
+                                                            />
+                                                        </div>
+                                                        <p className="text-[9px] text-amber-400 font-bold uppercase tracking-widest leading-tight max-w-[150px]">
+                                                            Set the default start date for this package
+                                                        </p>
+                                                    </div>
+                                                )}
 
                                                 {/* Starting & Ending City */}
                                                 <div className="grid grid-cols-2 gap-4">
@@ -2729,8 +2802,8 @@ const HolidayPackageEdit = () => {
                                                           </div>
                                                       </div>
 
-                                                      <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                          <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
+                                                      <div className={!formData.with_arrival ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-4"}>
+                                                          <div className="grid grid-cols-2 gap-4">
                                                               <div>
                                                                   <FormLabel label="Arrival City" optional />
                                                                   <SearchableSelect
@@ -2749,15 +2822,16 @@ const HolidayPackageEdit = () => {
                                                                   <FormLabel label="No. of Nights" required />
                                                                   <Input type="number" name="arrival_no_of_nights" value={formData.arrival_no_of_nights} onChange={handleInputChange} className="!py-1" />
                                                               </div>
-                                                              <div className="grid grid-cols-2 gap-2">
-                                                                  <div>
-                                                                      <FormLabel label="Date" optional />
-                                                                      <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
-                                                                  </div>
-                                                                  <div>
-                                                                      <FormLabel label="Time" optional />
-                                                                      <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
-                                                                  </div>
+                                                          </div>
+
+                                                          <div className="grid grid-cols-2 gap-4">
+                                                              <div>
+                                                                  <FormLabel label="Date" optional />
+                                                                  <Input type="date" name="arrival_date" value={formData.arrival_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.arrival_date} />
+                                                              </div>
+                                                              <div>
+                                                                  <FormLabel label="Time" optional />
+                                                                  <Input type="time" name="arrival_time" value={formData.arrival_time} onChange={handleInputChange} className="!py-1" />
                                                               </div>
                                                           </div>
                                                           <div className="grid grid-cols-2 gap-4">
@@ -2806,34 +2880,35 @@ const HolidayPackageEdit = () => {
                                                               </button>
                                                           </div>
                                                       </div>
-                                                      <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-5"}>
-                                                          <div className="grid grid-cols-[1.5fr_1fr_1.5fr] gap-3">
-                                                              <div>
-                                                                  <FormLabel label="Departure City" optional />
-                                                                  <SearchableSelect
-                                                                      options={[
-                                                                          { value: "Any City", label: "Any City" },
-                                                                          ...startingCities.map(city => ({ value: city.name, label: city.name }))
-                                                                      ]}
-                                                                      value={formData.departure_city}
-                                                                      onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
-                                                                      placeholder="🔍 Select City"
-                                                                      className="!py-1"
-                                                                      error={errors.departure_city}
-                                                                  />
-                                                              </div>
-                                                              <div></div>
-                                                              <div className="grid grid-cols-2 gap-2">
-                                                                  <div>
-                                                                      <FormLabel label="Date" optional />
-                                                                      <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
-                                                                  </div>
-                                                                  <div>
-                                                                      <FormLabel label="Time" optional />
-                                                                      <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
-                                                                  </div>
-                                                              </div>
-                                                          </div>
+                                                      <div className={!formData.with_departure ? "opacity-30 blur-[1px] pointer-events-none select-none grayscale transition-all duration-500" : "transition-all duration-300 space-y-4"}>
+                                                           <div className="grid grid-cols-2 gap-4">
+                                                               <div>
+                                                                   <FormLabel label="Departure City" optional />
+                                                                   <SearchableSelect
+                                                                       options={[
+                                                                           { value: "Any City", label: "Any City" },
+                                                                           ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                                                       ]}
+                                                                       value={formData.departure_city}
+                                                                       onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}
+                                                                       placeholder="🔍 Select City"
+                                                                       className="!py-1"
+                                                                       error={errors.departure_city}
+                                                                   />
+                                                               </div>
+                                                               <div></div>
+                                                           </div>
+
+                                                           <div className="grid grid-cols-2 gap-4">
+                                                               <div>
+                                                                   <FormLabel label="Date" optional />
+                                                                   <Input type="date" name="departure_date" value={formData.departure_date} onChange={handleInputChange} className="!py-1 [&::-webkit-calendar-picker-indicator]:scale-75" error={errors.departure_date} />
+                                                               </div>
+                                                               <div>
+                                                                   <FormLabel label="Time" optional />
+                                                                   <Input type="time" name="departure_time" value={formData.departure_time} onChange={handleInputChange} className="!py-1" />
+                                                               </div>
+                                                           </div>
                                                           <div className="grid grid-cols-2 gap-4">
                                                               <div>
                                                                   <FormLabel label="Airline" optional />
