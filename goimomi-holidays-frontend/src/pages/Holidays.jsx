@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import api from "../api";
-import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight } from "lucide-react";
+import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight, Hotel, Utensils } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
 import FormModal from "../components/FormModal";
@@ -22,6 +22,253 @@ import pdfImg13 from "../assets/pdf/amazing places in the world to travel.jpeg";
 import pdfImg14 from "../assets/pdf/The ultimate travel Guide to Cappadocia, Turkey - Jyo Shankar.jpeg";
 import pdfImg15 from "../assets/pdf/100 Most Beautiful UNESCO World Heritage Sites - Road Affair.jpeg";
 import pdfImg16 from "../assets/pdf/15 Best Places In Turkey To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
+
+
+const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downloadPackagePDF, setViewDetailsPkg }) => {
+  const [activeTab, setActiveTab] = useState("Hotels");
+  const [selectedTier, setSelectedTier] = useState("Standard");
+
+  const uniqueHotels = React.useMemo(() => {
+    const hotels = [];
+    (pkg.itinerary || []).forEach(day => {
+      const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
+      (details?.accommodations || []).forEach(acc => {
+        const name = acc.hotelName || acc.hotel_name;
+        if (name && !hotels.includes(name)) hotels.push(name);
+      });
+    });
+    return hotels;
+  }, [pkg.itinerary]);
+
+  const sightseeings = React.useMemo(() => {
+    const s = [];
+    (pkg.itinerary || []).forEach(day => {
+      const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
+      (details?.sightseeing || []).forEach(item => {
+        if (item && !s.includes(item)) s.push(item);
+      });
+    });
+    return s;
+  }, [pkg.itinerary]);
+
+  const slots = React.useMemo(() => {
+    try {
+      return pkg.fixed_departure_data ? (typeof pkg.fixed_departure_data === 'string' ? JSON.parse(pkg.fixed_departure_data) : pkg.fixed_departure_data) : [];
+    } catch (e) { return []; }
+  }, [pkg.fixed_departure_data]);
+
+  const currentPrice = React.useMemo(() => {
+    if (slots.length > 0) {
+      const slot = slots[0];
+      const tierData = slot.tiers?.[selectedTier];
+      if (tierData && tierData.length > 0) return tierData[0].offer_price;
+    }
+    return pkg.Offer_price;
+  }, [slots, selectedTier, pkg.Offer_price]);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-sm shadow-sm mb-4 flex flex-col font-sans max-w-[1000px] mx-auto overflow-hidden">
+      {/* HEADER BAR */}
+      <div className="px-3 py-1.5 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between">
+        <h3 className="text-[15px] font-bold text-gray-800">
+          <span className="font-extrabold text-black">({pkg.nights || pkg.days - 1}N/{pkg.days}D)</span> - {pkg.fixed_departure ? 'Fix Departure: ' : ''}{pkg.title}
+        </h3>
+
+        {/* SHARE PILL BAR - Top Right Corner */}
+        <div className="bg-[#4d4d4d] text-white rounded-full py-1 px-3 flex items-center gap-3 shadow-md scale-95 origin-right">
+          <div className="flex items-center gap-1.5 pr-3 border-r border-gray-500">
+            <Share2 size={12} className="text-gray-300" />
+            <span className="text-[9px] font-black tracking-widest uppercase">Share :</span>
+          </div>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/?text=${encodeURIComponent(generateShareText(pkg))}`, '_blank'); }}
+            className="flex items-center gap-1 hover:text-green-400 transition-colors"
+            title="WhatsApp"
+          >
+            <MessageCircle size={12} />
+            <span className="text-[9px] font-bold">WhatsApp</span>
+          </button>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); setEmailModalPkg(pkg); }}
+            className="flex items-center gap-1 hover:text-blue-400 transition-colors"
+            title="Email"
+          >
+            <Mail size={12} />
+            <span className="text-[9px] font-bold">Email</span>
+          </button>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); downloadPackagePDF(pkg); }}
+            className="flex items-center gap-1 hover:text-red-400 transition-colors"
+            title="PDF"
+          >
+            <FileDown size={12} />
+            <span className="text-[9px] font-bold">PDF</span>
+          </button>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); setViewDetailsPkg(pkg); }}
+            className="flex items-center gap-1 hover:opacity-80 transition-opacity ml-1"
+            title="View"
+          >
+            <Eye size={12} className="text-yellow-500" />
+            <span className="text-[9px] font-bold text-yellow-500">View</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row">
+        {/* LEFT COLUMN */}
+        <div className="w-full md:w-[180px] p-3 flex flex-col items-center shrink-0">
+          <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-sm border border-gray-100">
+            {pkg.fixed_departure && (
+              <div className="absolute top-0 left-0 z-20 flex flex-col items-start translate-x-[-2px] translate-y-[-2px]">
+                <div className="bg-[#1a1a1a] text-white px-3 py-1 text-[11px] font-bold shadow-md rounded-tl-xl">
+                  Fix Departure
+                </div>
+                {/* Speech bubble pointer */}
+                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#1a1a1a] ml-2"></div>
+              </div>
+            )}
+            <img 
+              src={getImageUrl(pkg.card_image)} 
+              className="absolute inset-0 w-full h-full object-cover" 
+              alt={pkg.title}
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          </div>
+          <button
+            onClick={() => navigate(`/holiday/${pkg.id}`)}
+            className="w-full mt-2 border border-[#16a34a] text-[#16a34a] py-1 text-[11px] font-medium hover:bg-green-50 transition-colors"
+          >
+            View Detailed Itinerary
+          </button>
+        </div>
+
+        {/* MIDDLE COLUMN - Tabs Content */}
+        <div className="flex-1 p-0 flex flex-col border-r border-gray-200">
+          {/* TABS */}
+          <div className="flex border-b border-gray-200">
+            {["Hotels", "Sightseeings", "Inclusion", "Exclusion", "Dates"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-1.5 text-[12px] font-medium transition-all relative ${activeTab === tab
+                  ? "bg-[#333] text-white"
+                  : "text-gray-700 hover:text-[#16a34a]"
+                  }`}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-[#333]"></div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* TAB CONTENT */}
+          <div className="p-3 flex-1">
+            {activeTab === "Hotels" && (
+              <div className="border border-gray-200 rounded-sm">
+                <div className="bg-[#f2f2f2] px-3 py-1 text-[11px] font-bold text-gray-700 border-b border-gray-200 uppercase tracking-tight">
+                  Hotels Included in package
+                </div>
+                <div className="p-3 space-y-2">
+                  {uniqueHotels.length > 0 ? uniqueHotels.map((h, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></div>
+                      <span className="text-[12px] font-black text-[#3498db] tracking-tight">{h}</span>
+                    </div>
+                  )) : (
+                    <div className="p-2 text-center text-gray-400 italic text-[11px]">No hotel details specified.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Sightseeings" && (
+              <div className="flex flex-wrap gap-1.5">
+                {sightseeings.length > 0 ? sightseeings.map((s, i) => (
+                  <span key={i} className="bg-gray-50 border border-gray-200 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 rounded">{s}</span>
+                )) : <div className="p-4 text-center text-gray-400 italic w-full">Standard sightseeing included.</div>}
+              </div>
+            )}
+
+            {activeTab === "Inclusion" && (
+              <ul className="grid grid-cols-2 gap-1 text-[11px] text-gray-700">
+                {(pkg.inclusions?.length ? pkg.inclusions : [{ text: "Accommodation" }, { text: "Daily Breakfast" }]).map((inc, i) => (
+                  <li key={i} className="flex items-start gap-1">
+                    <span className="text-green-600 font-bold">✓</span>
+                    {inc.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {activeTab === "Exclusion" && (
+              <ul className="grid grid-cols-2 gap-1 text-[11px] text-gray-500">
+                {(pkg.exclusions?.length ? pkg.exclusions : [{ text: "Optional Tours" }, { text: "Personal Expenses" }]).map((exc, i) => (
+                  <li key={i} className="flex items-start gap-1">
+                    <span className="text-red-500 font-bold">×</span>
+                    {exc.text}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {activeTab === "Dates" && (
+              <div className="grid grid-cols-3 gap-1.5">
+                {slots.length > 0 ? slots.map((s, i) => (
+                  <div key={i} className="border border-gray-100 px-1.5 py-0.5 text-center text-[10px] font-bold text-gray-600 bg-gray-50 uppercase tracking-tighter">
+                    {new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </div>
+                )) : <div className="p-4 text-center text-gray-400 italic w-full">Contact for availability.</div>}
+              </div>
+            )}
+          </div>
+
+          {/* LOWER ICONS BAR */}
+          <div className="px-3 pb-3 flex items-center gap-3">
+            <span className="text-[12px] font-bold text-gray-800">Inclusion :</span>
+            <div className="flex gap-1.5">
+              <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500" title="Hotels"><Hotel size={14} /></div>
+              <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500" title="Meals"><Utensils size={14} /></div>
+              <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500" title="Transfers"><ArrowRight size={14} /></div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN - PRICING */}
+        <div className="w-full md:w-[200px] bg-[#fdfdfd] p-4 flex flex-col items-center justify-center">
+          <select
+            value={selectedTier}
+            onChange={(e) => setSelectedTier(e.target.value)}
+            className="w-full bg-white border border-gray-200 p-1.5 text-[13px] outline-none mb-4 rounded-sm"
+          >
+            {pkg.package_categories?.length > 0 ? pkg.package_categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            )) : <option value="Standard">Standard</option>}
+          </select>
+
+          <div className="text-center mb-4">
+            <p className="text-[12px] text-gray-400 font-medium">Starting From</p>
+            <h4 className="text-[22px] font-black text-[#16a34a] leading-none my-1 tracking-tight">INR {Number(currentPrice || 0).toLocaleString('en-IN')}</h4>
+            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-1">Per Person</p>
+          </div>
+
+          <button
+            onClick={() => navigate(`/holiday/${pkg.id}`)}
+            className="w-full bg-white border border-[#16a34a] text-[#16a34a] py-2 text-[13px] font-bold hover:bg-green-50 transition-colors rounded-sm"
+          >
+            Enquire
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Holidays = () => {
   const navigate = useNavigate();
@@ -706,186 +953,15 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
         ) : (
           <div className="space-y-6">
             {filtered.map((pkg) => (
-              <div
+              <HolidayCard
                 key={pkg.id}
-                className="relative bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col md:flex-row border border-gray-100"
-              >
-                {/* Share Bar */}
-                <div className="absolute top-3 right-3 flex items-center gap-2 bg-black/60 backdrop-blur-md px-2 py-1.5 rounded-xl border border-white/10 z-20 transition-all hover:bg-black/80 shadow-lg">
-                  <div className="flex items-center gap-1.5 text-white/90 font-bold text-[9px] uppercase tracking-wider border-r border-white/20 pr-2">
-                    <Share2 size={11} className="text-white/70" />
-                    <span className="hidden sm:inline">Share :</span>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const text = generateShareText(pkg);
-                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                      }}
-                      className="flex items-center gap-1 text-white hover:text-green-400 font-bold text-[9px] transition-colors"
-                      title="Share on WhatsApp"
-                    >
-                      <MessageCircle size={12} />
-                      WhatsApp
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEmailModalPkg(pkg);
-                      }}
-                      className="flex items-center gap-1 text-white hover:text-blue-400 font-bold text-[9px] transition-colors"
-                      title="Share via Email"
-                    >
-                      <Mail size={12} />
-                      Email
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        downloadPackagePDF(pkg);
-                      }}
-                      className="flex items-center gap-1 text-white hover:text-red-400 font-bold text-[9px] transition-colors"
-                      title="Download PDF"
-                    >
-                      <FileDown size={12} />
-                      PDF
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setViewDetailsPkg(pkg);
-                      }}
-                      className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 font-bold text-[9px] transition-colors"
-                      title="Quick View"
-                    >
-                      <Eye size={12} />
-                      View
-                    </button>
-                  </div>
-                </div>
-
-                {/* IMAGE SECTION - PREMIUM FRAMED DESIGN */}
-                <div className="relative w-52 h-52 shrink-0 overflow-hidden m-3 rounded-2xl border-2 border-gray-50 shadow-sm group-hover:border-[#14532d]/20 group-hover:shadow-md transition-all duration-500">
-                  <img
-                    src={getImageUrl(pkg.card_image)}
-                    onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop" }}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    alt={pkg.title}
-                  />
-
-                  {/* Subtle Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60"></div>
-
-                  {/* Premium Badges */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-2">
-                    <div className="bg-black/40 backdrop-blur-md text-white text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border border-white/20 shadow-lg">
-                      {pkg.days}D / {pkg.days - 1}N
-                    </div>
-                    {pkg.with_flight && (
-                      <div className="bg-[#14532d]/90 backdrop-blur-md text-white text-[8px] px-2.5 py-1.5 rounded-lg font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg border border-white/10">
-                        <Plane size={10} />
-                        Flights
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* CONTENT SECTION */}
-                <div className="flex-1 p-5 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-lg font-bold text-gray-800 leading-tight mb-1 hover:text-[#14532d] transition-colors cursor-pointer" onClick={() => navigate(`/holiday/${pkg.id}`)}>
-                        {pkg.title}
-                      </h3>
-                      <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded text-yellow-700 text-xs font-bold">
-                        ⭐ 4.5
-                      </div>
-                    </div>
-
-                    <p className="text-gray-500 text-sm flex items-center gap-1.5 mb-4 flex-wrap">
-                      <span className="text-[#14532d]">📍</span>
-                      {pkg.starting_city}
-                      {pkg.destinations && pkg.destinations.length > 0 &&
-                        pkg.destinations.map((d, di) => (
-                          <span key={di} className="flex items-center gap-1">
-                            <span className="text-gray-300">•</span>
-                            <span>{d.name}</span>
-                            {(d.region || d.country) && (
-                              <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
-                                ({d.region && d.country ? `${d.region}, ${d.country}` : d.region || d.country})
-                              </span>
-                            )}
-                          </span>
-                        ))
-                      }
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                      {(pkg.highlights?.length ? pkg.highlights.slice(0, 4) : [
-                        { text: "Accommodation" }, { text: "Daily Breakfast" }, { text: "Sightseeing" }, { text: "Transfers" }
-                      ]).map((h, index) => (
-                        <div key={index} className="flex items-center gap-2 text-gray-600 text-sm">
-                          <span className="text-[#14532d]">✓</span>
-                          <span className="truncate">{h.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-xs font-medium uppercase tracking-wider">Starting from</p>
-                      <div className="flex items-baseline gap-2 relative holiday-price-info-container">
-                        <span className="text-xl font-black text-gray-900 leading-none">
-                          ₹ {Number(pkg.Offer_price || 0).toLocaleString('en-IN')}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActivePricePopup(activePricePopup === pkg.id ? null : pkg.id);
-                          }}
-                          className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
-                        >
-                          <svg className="w-4 h-4 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </button>
-
-                        {activePricePopup === pkg.id && (
-                          <div className="absolute bottom-full left-0 mb-3 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-[60] p-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                            <div className="flex flex-col gap-1">
-                              <p className="text-xs font-bold text-gray-900">Conditions Applied</p>
-                              <div className="h-0.5 w-8 bg-[#14532d] rounded-full mb-1"></div>
-                              <p className="text-[10px] text-gray-500 leading-relaxed font-medium">
-                                Package prices are starting prices and may vary based on travel dates and availability.
-                              </p>
-                            </div>
-                            {/* Arrow */}
-                            <div className="absolute -bottom-1.5 left-2 w-3 h-3 bg-white border-b border-r border-gray-100 rotate-45"></div>
-                          </div>
-                        )}
-
-                        {Number(pkg.price) > Number(pkg.Offer_price) && (
-                          <span className="text-gray-400 line-through text-sm">
-                            ₹ {Number(pkg.price || 0).toLocaleString('en-IN')}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-gray-500 text-[10px] mt-0.5">*per person</p>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        className="bg-[#14532d] text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-[#0f4022] hover:shadow-lg transition-all transform active:scale-95"
-                        onClick={() => navigate(`/holiday/${pkg.id}`)}
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                pkg={pkg}
+                navigate={navigate}
+                generateShareText={generateShareText}
+                setEmailModalPkg={setEmailModalPkg}
+                downloadPackagePDF={downloadPackagePDF}
+                setViewDetailsPkg={setViewDetailsPkg}
+              />
             ))}
           </div>
         )}
@@ -898,19 +974,20 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
       />
 
       {viewDetailsPkg && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsPkg(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm" onClick={() => setViewDetailsPkg(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center px-3 py-2 border-b border-gray-100 bg-white gap-2">
               <button
                 onClick={() => {
                   const text = generateShareText(viewDetailsPkg);
                   navigator.clipboard.writeText(text);
-                  alert("Details copied to clipboard!");
+                  alert("Full details copied to clipboard!");
                 }}
-                className="flex items-center gap-1 text-[#14532d] font-black text-[9px] hover:bg-green-50 px-2 py-1 rounded-lg transition-all border border-green-200 uppercase tracking-tight shadow-sm"
+                className="flex items-center gap-1 text-[#16a34a] font-bold text-[9px] hover:bg-green-50 px-2 py-1 rounded-md transition-all border border-[#16a34a]/30 uppercase shadow-sm"
               >
                 <Copy size={10} />
-                Full Text
+                <span>FULL</span>
               </button>
               <button
                 onClick={() => {
@@ -918,45 +995,51 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                   navigator.clipboard.writeText(text);
                   alert("Itinerary copied to clipboard!");
                 }}
-                className="flex items-center gap-1 text-[#14532d] font-black text-[9px] hover:bg-green-50 px-2 py-1 rounded-lg transition-all border border-green-200 uppercase tracking-tight shadow-sm"
+                className="flex items-center gap-1 text-[#16a34a] font-bold text-[9px] hover:bg-green-50 px-2 py-1 rounded-md transition-all border border-[#16a34a]/30 uppercase shadow-sm"
               >
                 <Copy size={10} />
-                Itinerary Only
+                <span>ITRY</span>
               </button>
-              <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">ITINERARY PREVIEW</h3>
-              <button onClick={() => setViewDetailsPkg(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+              
+              <div className="flex-1 text-center">
+                <h3 className="text-[11px] font-black text-gray-300 uppercase tracking-widest">PREVIEW</h3>
+              </div>
+
+              <button onClick={() => setViewDetailsPkg(null)} className="text-gray-400 hover:text-gray-600 transition-colors ml-auto">
                 <X size={20} />
               </button>
             </div>
-            <div className="p-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
-              <div className="font-sans text-[12px] text-gray-700 leading-relaxed whitespace-pre-wrap">
-                <p>Hello, please find details with regards to your holiday query for:</p>
-                <p className="font-bold text-[#14532d]">{viewDetailsPkg.title}</p>
-                <p>Duration: {viewDetailsPkg.days} Days / {viewDetailsPkg.days - 1} Nights</p>
-                <p>Starting From: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString('en-IN')}</p>
+
+            {/* Content */}
+            <div className="p-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+              <div className="font-sans text-[11px] text-gray-700 leading-snug space-y-3">
+                <div>
+                  <p className="mb-1 text-gray-400 text-[10px]">Hello, find details for your query:</p>
+                  <p className="font-bold text-[#16a34a] text-[13px] mb-0.5 leading-tight">{viewDetailsPkg.title}</p>
+                  <p className="text-gray-600 font-bold">Duration: {viewDetailsPkg.days}D / {viewDetailsPkg.nights || viewDetailsPkg.days - 1}N</p>
+                  <p className="text-[#16a34a] font-black text-[12px]">Starting: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString('en-IN')}</p>
+                </div>
 
                 {viewDetailsPkg.description && (
-                  <div className="mt-4">
-                    <p className="font-bold">Description:</p>
-                    <p className="text-gray-600 italic">{viewDetailsPkg.description}</p>
+                  <div>
+                    <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Description:</p>
+                    <p className="text-gray-500 italic leading-tight">{viewDetailsPkg.description}</p>
                   </div>
                 )}
 
-                <div className="mt-4">
-                  <p className="font-bold">Highlights:</p>
-                  <div className="mt-0.5">
-                    {viewDetailsPkg.highlights?.length ? viewDetailsPkg.highlights.map((h, i) => (
-                      <p key={i}>• {h.text}</p>
-                    )) : ["Accommodation", "Daily Breakfast", "Sightseeing", "Transfers"].map((text, i) => (
-                      <p key={i}>• {text}</p>
+                <div>
+                  <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Highlights:</p>
+                  <div className="space-y-0.5">
+                    {(viewDetailsPkg.highlights?.length ? viewDetailsPkg.highlights : [{text: "Accommodation"}, {text: "Daily Breakfast"}, {text: "Sightseeing"}, {text: "Transfers"}]).map((h, i) => (
+                      <p key={i} className="text-gray-600">• {h.text}</p>
                     ))}
                   </div>
                 </div>
 
                 {viewDetailsPkg.inclusions?.length > 0 && (
-                  <div className="mt-4">
-                    <p className="font-bold">Inclusions:</p>
-                    <div className="mt-0.5">
+                  <div>
+                    <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Inclusions:</p>
+                    <div className="space-y-0.5">
                       {viewDetailsPkg.inclusions.map((inc, i) => (
                         <p key={i}>• {inc.text}</p>
                       ))}
@@ -965,9 +1048,9 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 )}
 
                 {viewDetailsPkg.exclusions?.length > 0 && (
-                  <div className="mt-4">
-                    <p className="font-bold">Exclusions:</p>
-                    <div className="mt-0.5">
+                  <div>
+                    <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Exclusions:</p>
+                    <div className="space-y-0.5">
                       {viewDetailsPkg.exclusions.map((exc, i) => (
                         <p key={i}>• {exc.text}</p>
                       ))}
@@ -976,30 +1059,36 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 )}
 
                 {viewDetailsPkg.itinerary?.length > 0 && (
-                  <div className="mt-4">
-                    <p className="font-bold">Itinerary Summary:</p>
-                    <div className="mt-0.5">
+                  <div>
+                    <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Itinerary Summary:</p>
+                    <div className="space-y-2">
                       {viewDetailsPkg.itinerary.map((day, i) => (
-                        <div key={i} className="mb-2">
-                          <p className="font-semibold">Day {day.day_number}: {day.title}</p>
-                          {day.description && <p className="text-gray-500 text-[11px] pl-4 italic leading-relaxed">{day.description}</p>}
+                        <div key={i}>
+                          <p className="font-bold text-gray-700 text-[10px]">Day {day.day_number}: {day.title}</p>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="font-bold">Destinations: <span className="font-normal text-gray-600">{viewDetailsPkg.starting_city}{viewDetailsPkg.destinations?.length > 0 ? " • " + viewDetailsPkg.destinations.map(d => d.name).join(" • ") : ""}</span></p>
+                <div>
+                   <p className="font-bold text-gray-800 text-[10px]">
+                    Destinations: <span className="font-normal text-gray-500 ml-1">
+                      {viewDetailsPkg.starting_city || "Any City"}
+                      {viewDetailsPkg.destinations?.length > 0 
+                        ? " • " + viewDetailsPkg.destinations.map(d => d.name).join(" • ") 
+                        : " • Srinagar • Srinagar"}
+                    </span>
+                  </p>
                 </div>
 
-                <div className="mt-6 space-y-1 border-emerald-500/20 border-l-2 pl-3 bg-green-50/30 p-2 rounded-r-lg">
-                  <p className="italic text-[11px] text-gray-500">Thank you for choosing goimomi.com</p>
-                  <p className="font-bold text-[#14532d] text-[12px]">Contact : +91 6382220393</p>
-                  <p className="text-gray-600 font-medium text-[11px]">Email : hello@goimomi.com</p>
+                <div className="mt-4 pt-3 border-t border-gray-50">
+                  <div className="bg-[#f0f9f1] border-l-[2px] border-[#16a34a] p-2 rounded-r-md space-y-0.5">
+                    <p className="italic text-[10px] text-gray-400">Thank you for choosing goimomi.com</p>
+                    <p className="font-bold text-[#16a34a] text-[12px]">Call: +91 6382220393</p>
+                    <p className="text-gray-500 font-medium text-[10px]">hello@goimomi.com</p>
+                  </div>
                 </div>
-
-
               </div>
             </div>
           </div>
