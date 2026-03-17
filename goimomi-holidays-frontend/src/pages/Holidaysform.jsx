@@ -14,7 +14,7 @@ const HOLIDAY_TYPES = [
   "Ayurveda", "Yoga", "Medical Tourism", "Business", "MICE", "Educational", "Festival Tour"
 ];
 
-const HolidaysForm = ({ isOpen, onClose, packageType }) => {
+const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
   const [step, setStep] = useState(1);
 
   // Step 1 States (Umrah-style)
@@ -348,6 +348,42 @@ const HolidaysForm = ({ isOpen, onClose, packageType }) => {
                   <p className="text-gray-700 text-sm">
                     <span className="font-semibold">Selected Package:</span> {packageType}
                   </p>
+                  
+                  {/* Summary section in the Form */}
+                  {(packageData?.itinerary?.length > 0 || packageData?.highlights?.length > 0) && (
+                    <div className="mt-4 pt-3 border-t border-green-200">
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Highlights */}
+                        {packageData?.highlights?.length > 0 && (
+                          <div className="space-y-2">
+                             <p className="font-bold text-gray-800 text-[10px] uppercase tracking-wide">Highlights:</p>
+                             <div className="space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                               {packageData.highlights.map((h, i) => (
+                                 <p key={i} className="text-[#14532d] text-[9px] font-medium border-l-2 border-green-200 pl-2 leading-tight">
+                                   {h.text}
+                                 </p>
+                               ))}
+                             </div>
+                          </div>
+                        )}
+
+                        {/* Itinerary */}
+                        {packageData?.itinerary?.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="font-bold text-gray-800 text-[10px] uppercase tracking-wide">Itinerary Summary:</p>
+                            <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar border-l border-green-100 pl-3">
+                              {packageData.itinerary.map((day, i) => (
+                                <div key={i} className="bg-white/50 p-1.5 rounded border border-green-50">
+                                  <p className="font-bold text-gray-700 text-[9px] leading-tight">Day {day.day_number}: {day.title}</p>
+                                  {day.description && <p className="text-gray-500 italic mt-0.5 ml-1 leading-tight text-[8px]">{day.description}</p>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

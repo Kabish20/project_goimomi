@@ -702,6 +702,7 @@ const HolidayDetails = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         packageType={pkg?.title}
+        packageData={pkg}
       />
     </div>
   );

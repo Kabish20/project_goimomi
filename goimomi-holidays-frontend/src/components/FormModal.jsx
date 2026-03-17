@@ -2,7 +2,7 @@ import React from "react";
 import PlanTripHolidays from "../pages/Holidaysform.jsx";
 import UmrahForm from "../pages/umrahform.jsx";
 
-const FormModal = ({ isOpen, onClose, packageType }) => {
+const FormModal = ({ isOpen, onClose, packageType, packageData }) => {
   if (!isOpen) return null;
 
   const isUmrah = packageType && packageType.toLowerCase().includes("umrah");
@@ -16,6 +16,7 @@ const FormModal = ({ isOpen, onClose, packageType }) => {
   ) : (
     <PlanTripHolidays
       packageType={packageType}
+      packageData={packageData}
       isOpen={isOpen}
       onClose={onClose}
     />

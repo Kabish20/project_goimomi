@@ -310,9 +310,24 @@ const Holidays = () => {
   const [isStartCityOpen, setIsStartCityOpen] = useState(false);
   const [startCitySearch, setStartCitySearch] = useState("");
 
-  const [selectedPkgTitle] = useState("");
+  const [selectedPkgTitle, setSelectedPkgTitle] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsPkg, setViewDetailsPkg] = useState(null);
+
+  const handleOpenPreview = async (pkg) => {
+    setSelectedPkgTitle(pkg.title);
+    setViewDetailsPkg(pkg); // Set initial data from list
+    
+    try {
+      // Fetch full details to get itinerary descriptions and other extra fields
+      const res = await api.get(`/api/packages/${pkg.id}/`);
+      if (res.data) {
+        setViewDetailsPkg(res.data);
+      }
+    } catch (err) {
+      console.error("Error fetching full package details:", err);
+    }
+  };
   const [emailModalPkg, setEmailModalPkg] = useState(null);
   const [activePricePopup, setActivePricePopup] = useState(null);
   const [sharingEmail, setSharingEmail] = useState("");
@@ -960,17 +975,18 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 generateShareText={generateShareText}
                 setEmailModalPkg={setEmailModalPkg}
                 downloadPackagePDF={downloadPackagePDF}
-                setViewDetailsPkg={setViewDetailsPkg}
+                setViewDetailsPkg={handleOpenPreview}
               />
             ))}
           </div>
         )}
       </div>
 
-      <FormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        packageType={selectedPkgTitle}
+      <FormModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        packageType={selectedPkgTitle} 
+        packageData={viewDetailsPkg}
       />
 
       {viewDetailsPkg && (
@@ -1027,49 +1043,54 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                   </div>
                 )}
 
-                <div>
-                  <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Highlights:</p>
-                  <div className="space-y-0.5">
-                    {(viewDetailsPkg.highlights?.length ? viewDetailsPkg.highlights : [{text: "Accommodation"}, {text: "Daily Breakfast"}, {text: "Sightseeing"}, {text: "Transfers"}]).map((h, i) => (
-                      <p key={i} className="text-gray-600">• {h.text}</p>
-                    ))}
-                  </div>
-                </div>
-
-                {viewDetailsPkg.inclusions?.length > 0 && (
-                  <div>
-                    <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Inclusions:</p>
-                    <div className="space-y-0.5">
-                      {viewDetailsPkg.inclusions.map((inc, i) => (
-                        <p key={i}>• {inc.text}</p>
-                      ))}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div>
+                      <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Highlights & Inclusions:</p>
+                      <div className="space-y-0.5">
+                        {(viewDetailsPkg.highlights?.length ? viewDetailsPkg.highlights : [{text: "Accommodation"}, {text: "Daily Breakfast"}, {text: "Sightseeing"}, {text: "Transfers"}]).map((h, i) => (
+                          <p key={i} className="text-gray-600">• {h.text}</p>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {viewDetailsPkg.exclusions?.length > 0 && (
-                  <div>
-                    <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Exclusions:</p>
-                    <div className="space-y-0.5">
-                      {viewDetailsPkg.exclusions.map((exc, i) => (
-                        <p key={i}>• {exc.text}</p>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {viewDetailsPkg.itinerary?.length > 0 && (
-                  <div>
-                    <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Itinerary Summary:</p>
-                    <div className="space-y-2">
-                      {viewDetailsPkg.itinerary.map((day, i) => (
-                        <div key={i}>
-                          <p className="font-bold text-gray-700 text-[10px]">Day {day.day_number}: {day.title}</p>
+                    {viewDetailsPkg.inclusions?.length > 0 && (
+                      <div className="bg-green-50/30 p-2 rounded border border-green-50">
+                        <p className="font-bold text-[#14532d] text-[10px] uppercase mb-1">Inclusions:</p>
+                        <div className="space-y-0.5">
+                          {viewDetailsPkg.inclusions.map((inc, i) => (
+                            <p key={i} className="text-green-700">✓ {inc.text}</p>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+
+                    {viewDetailsPkg.exclusions?.length > 0 && (
+                      <div className="bg-red-50/30 p-2 rounded border border-red-50">
+                        <p className="font-bold text-red-800 text-[10px] uppercase mb-1">Exclusions:</p>
+                        <div className="space-y-0.5">
+                          {viewDetailsPkg.exclusions.map((exc, i) => (
+                            <p key={i} className="text-red-600">× {exc.text}</p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {viewDetailsPkg.itinerary?.length > 0 && (
+                    <div className="border-l border-gray-100 pl-4">
+                      <p className="font-bold text-gray-800 border-b border-gray-50 mb-1">Itinerary Summary:</p>
+                      <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                        {viewDetailsPkg.itinerary.map((day, i) => (
+                          <div key={i} className="bg-gray-50/50 p-1.5 rounded">
+                            <p className="font-bold text-gray-700 text-[9px] leading-tight">Day {day.day_number}: {day.title}</p>
+                            {day.description && <p className="text-gray-400 italic mt-0.5 ml-1 leading-tight text-[8px]">{day.description}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div>
                    <p className="font-bold text-gray-800 text-[10px]">
