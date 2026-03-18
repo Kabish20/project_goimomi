@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Hotel, Star, MapPin, Info, Utensils, MessageCircle, FileDown, Eye, ArrowRight, Car } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import api from "../api";
 import FormModal from "../components/FormModal";
 import { getImageUrl } from "../utils/imageUtils";
@@ -25,6 +25,7 @@ import pdfImg16 from "../assets/pdf/15 Best Places In Turkey To Visit - Hand Lug
 
 const HolidayDetails = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [openDay, setOpenDay] = useState([]);
   const [pkg, setPkg] = useState(null);
   const [accommodations, setAccommodations] = useState([]);
@@ -32,6 +33,22 @@ const HolidayDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pricePopupOpen, setPricePopupOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Itinerary");
+  const [selectedTier, setSelectedTier] = useState(location.state?.selectedTier || "Standard");
+
+  const slots = useMemo(() => {
+    try {
+      return pkg?.fixed_departure_data ? (typeof pkg.fixed_departure_data === 'string' ? JSON.parse(pkg.fixed_departure_data) : pkg.fixed_departure_data) : [];
+    } catch (e) { return []; }
+  }, [pkg?.fixed_departure_data]);
+
+  const currentPrice = useMemo(() => {
+    if (slots.length > 0) {
+      const slot = slots[0];
+      const tierData = slot.tiers?.[selectedTier];
+      if (tierData && tierData.length > 0) return tierData[0].offer_price;
+    }
+    return pkg?.Offer_price;
+  }, [slots, selectedTier, pkg?.Offer_price]);
 
   const toggleDay = (index) => {
     setOpenDay(openDay === index ? null : index);
@@ -645,6 +662,19 @@ const HolidayDetails = () => {
         {/* RIGHT PRICE CARD - Ultra Compact */}
         <div className="w-[30%] sticky top-28 bg-white shadow-sm rounded-xl p-3 h-fit border border-gray-100/50">
 
+          {/* Tier Selection Dropdown */}
+          <div className="mb-4">
+            <select
+              value={selectedTier}
+              onChange={(e) => setSelectedTier(e.target.value)}
+              className="w-full bg-white border border-gray-200 p-2 text-[13px] font-bold outline-none rounded-lg shadow-sm focus:border-[#16a34a] transition-all cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E')] bg-[length:12px_12px] bg-[right_12px_center] bg-no-repeat pr-10 hover:border-gray-300"
+            >
+              {pkg.package_categories?.length > 0 ? pkg.package_categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              )) : <option value="Standard">Standard</option>}
+            </select>
+          </div>
+
           {/* Price Row */}
           <div className="flex justify-between items-center mb-2.5">
             <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest leading-none">Price per<br />Adult</p>
@@ -653,7 +683,7 @@ const HolidayDetails = () => {
                 <p className="line-through text-gray-400 text-[10px] mb-[-2px]">₹ {Number(pkg.price || 0).toLocaleString('en-IN')}</p>
               )}
               <div className="flex items-center justify-end gap-1">
-                <p className="text-lg font-black text-gray-900 tracking-tighter">₹ {Number(pkg.Offer_price || 0).toLocaleString('en-IN')}</p>
+                <p className="text-lg font-black text-gray-900 tracking-tighter">₹ {Number(currentPrice || 0).toLocaleString('en-IN')}</p>
                 <button
                   onClick={() => setPricePopupOpen(!pricePopupOpen)}
                   className="text-gray-400 hover:text-gray-600 focus:outline-none"

@@ -109,7 +109,7 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); setViewDetailsPkg(pkg); }}
+            onClick={(e) => { e.stopPropagation(); setViewDetailsPkg(pkg, selectedTier); }}
             className="flex items-center gap-1 hover:opacity-80 transition-opacity ml-1"
             title="View"
           >
@@ -140,7 +140,7 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
             />
           </div>
           <button
-            onClick={() => navigate(`/holiday/${pkg.id}`)}
+            onClick={() => navigate(`/holiday/${pkg.id}`, { state: { selectedTier } })}
             className="w-full mt-2 border border-[#16a34a] text-[#16a34a] py-1 text-[11px] font-medium hover:bg-green-50 transition-colors"
           >
             View Detailed Itinerary
@@ -259,7 +259,7 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
           </div>
 
           <button
-            onClick={() => navigate(`/holiday/${pkg.id}`)}
+            onClick={() => navigate(`/holiday/${pkg.id}`, { state: { selectedTier } })}
             className="w-full bg-white border border-[#16a34a] text-[#16a34a] py-2 text-[13px] font-bold hover:bg-green-50 transition-colors rounded-sm"
           >
             Enquire
@@ -314,15 +314,15 @@ const Holidays = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsPkg, setViewDetailsPkg] = useState(null);
 
-  const handleOpenPreview = async (pkg) => {
+  const handleOpenPreview = async (pkg, tier = "Standard") => {
     setSelectedPkgTitle(pkg.title);
-    setViewDetailsPkg(pkg); // Set initial data from list
+    setViewDetailsPkg({ ...pkg, selectedTier: tier }); // Set initial data from list
     
     try {
       // Fetch full details to get itinerary descriptions and other extra fields
       const res = await api.get(`/api/packages/${pkg.id}/`);
       if (res.data) {
-        setViewDetailsPkg(res.data);
+        setViewDetailsPkg({ ...res.data, selectedTier: tier });
       }
     } catch (err) {
       console.error("Error fetching full package details:", err);
@@ -1033,7 +1033,21 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                   <p className="mb-1 text-gray-400 text-[10px]">Hello, find details for your query:</p>
                   <p className="font-bold text-[#16a34a] text-[13px] mb-0.5 leading-tight">{viewDetailsPkg.title}</p>
                   <p className="text-gray-600 font-bold">Duration: {viewDetailsPkg.days}D / {viewDetailsPkg.nights || viewDetailsPkg.days - 1}N</p>
-                  <p className="text-[#16a34a] font-black text-[12px]">Starting: ₹ {Number(viewDetailsPkg.Offer_price || 0).toLocaleString('en-IN')}</p>
+                  <p className="text-[#16a34a] font-black text-[12px]">
+                    Starting: ₹ {Number((() => {
+                      const p = viewDetailsPkg;
+                      const tier = p.selectedTier || "Standard";
+                      let slots = [];
+                      try { slots = p.fixed_departure_data ? (typeof p.fixed_departure_data === 'string' ? JSON.parse(p.fixed_departure_data) : p.fixed_departure_data) : []; } catch (e) {}
+                      if (slots.length > 0) {
+                        const slot = slots[0];
+                        const tierData = slot.tiers?.[tier];
+                        if (tierData && tierData.length > 0) return tierData[0].offer_price;
+                      }
+                      return p.Offer_price;
+                    })() || 0).toLocaleString('en-IN')}
+                    {viewDetailsPkg.selectedTier && <span className="ml-1 text-[9px] font-bold text-gray-400">({viewDetailsPkg.selectedTier})</span>}
+                  </p>
                 </div>
 
                 {viewDetailsPkg.description && (
