@@ -113,13 +113,15 @@ const HolidayDetails = () => {
       try {
         doc.addImage(baseImgs[imgIndex % baseImgs.length], 'JPEG', 0, sidebarY, colW, imgSize, undefined, 'FAST');
         doc.addImage(baseImgs[(imgIndex + 1) % baseImgs.length], 'JPEG', colW, sidebarY, colW, imgSize, undefined, 'FAST');
-      } catch (e) { }
+      } catch (e) { /* image not loaded */ }
+
       sidebarY += imgSize;
       imgIndex += 2;
     }
 
     let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
-    try { doc.addImage(goimomilogo, 'PNG', centerX - 30, 40, 60, 20); } catch (e) { }
+    try { doc.addImage(goimomilogo, 'PNG', centerX - 30, 40, 60, 20); } catch (e) { /* Logo error */ }
+
 
     doc.setTextColor(31, 41, 55);
     doc.setFont("helvetica", "bold");

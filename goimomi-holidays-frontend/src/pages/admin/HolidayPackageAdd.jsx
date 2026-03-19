@@ -953,7 +953,6 @@ const HolidayPackageAdd = () => {
         setExclusions([""]);
         setHighlights([""]);
         setCancellationPolicies([""]);
-        setAccommodations([]);
         setVehicles([""]);
       }
     } catch (err) {
@@ -1786,7 +1785,7 @@ const HolidayPackageAdd = () => {
                                         <div className="border border-dashed border-gray-300 rounded-sm p-2 flex gap-1.5 flex-wrap min-h-[44px]">
                                           <label className="w-[46px] h-[40px] border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors text-gray-400 text-[9px] text-center">
                                             <span className="text-sm leading-none">+</span>
-                                            <span>Add{<br />}Images</span>
+                                            <span>Add<br />Images</span>
                                             <input type="file" accept="image/*" multiple className="hidden" onChange={e => {
                                               const files = Array.from(e.target.files).slice(0, 5);
                                               setNewSightseeingForm(p => ({ ...p, images: [...(p.images || []), ...files].slice(0, 5) }));

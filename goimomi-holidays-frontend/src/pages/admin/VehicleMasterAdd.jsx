@@ -758,10 +758,10 @@ const VehicleMasterAdd = () => {
                                             <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Route Matrix (Pricing)</h2>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <input type="file" id="csvImportAdd" className="hidden" accept=".csv" onChange={handleImportCSV} />
+                                            <input type="file" id="csvImport" className="hidden" accept=".csv" onChange={handleFileExtraction} />
                                             <button
                                                 type="button"
-                                                onClick={(e) => { e.preventDefault(); document.getElementById('csvImportAdd').click(); }}
+                                                onClick={(e) => { e.preventDefault(); document.getElementById('csvImport').click(); }}
                                                 className="flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all shadow-sm"
                                             >
                                                 <Upload size={12} /> Import CSV

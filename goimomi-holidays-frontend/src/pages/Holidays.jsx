@@ -465,7 +465,8 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
       try {
         doc.addImage(baseImgs[imgIndex % baseImgs.length], 'JPEG', 0, sidebarY, colW, imgSize, undefined, 'FAST');
         doc.addImage(baseImgs[(imgIndex + 1) % baseImgs.length], 'JPEG', colW, sidebarY, colW, imgSize, undefined, 'FAST');
-      } catch (e) { }
+      } catch (e) { /* sidebar images */ }
+
       sidebarY += imgSize;
       imgIndex += 2;
     }
@@ -476,7 +477,8 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
     // Logo
     try {
       doc.addImage(goimomilogo, 'PNG', centerX - 30, 30, 60, 20);
-    } catch (e) { }
+    } catch (e) { /* logo error */ }
+
 
     // Title
     doc.setTextColor(31, 41, 55);
@@ -1038,7 +1040,8 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                       const p = viewDetailsPkg;
                       const tier = p.selectedTier || "Standard";
                       let slots = [];
-                      try { slots = p.fixed_departure_data ? (typeof p.fixed_departure_data === 'string' ? JSON.parse(p.fixed_departure_data) : p.fixed_departure_data) : []; } catch (e) {}
+                      try { slots = p.fixed_departure_data ? (typeof p.fixed_departure_data === 'string' ? JSON.parse(p.fixed_departure_data) : p.fixed_departure_data) : []; } catch (e) { /* invalid JSON */ }
+
                       if (slots.length > 0) {
                         const slot = slots[0];
                         const tierData = slot.tiers?.[tier];

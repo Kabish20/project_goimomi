@@ -803,7 +803,7 @@ const VehicleMasterEdit = () => {
                                             <h2 className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Route Matrix (Pricing)</h2>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <input type="file" id="csvImportEdit" className="hidden" accept=".csv" onChange={handleImportCSV} />
+                                            <input type="file" id="csvImportEdit" className="hidden" accept=".csv" onChange={handleFileExtraction} />
                                             <button
                                                 type="button"
                                                 onClick={(e) => { e.preventDefault(); document.getElementById('csvImportEdit').click(); }}
