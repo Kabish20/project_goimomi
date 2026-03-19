@@ -24,8 +24,13 @@ const Contact = () => {
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Invalid email address";
     }
-    if (!phone || phone.trim().length < 5) {
-      newErrors.phone = "Invalid phone number";
+    // Phone validation: MUST be at least 10 digits total, and exactly 10 after +91
+    const phoneDigits = (phone || "").replace(/\D/g, "");
+    if (!phoneDigits || phoneDigits.length < 10) {
+      newErrors.phone = "Phone number must be at least 10 digits";
+    } else if (phoneDigits.startsWith("91") && phoneDigits.length !== 12) {
+      // For India (91), it should be 12 digits (91 + 10 digits).
+      newErrors.phone = "Exactly 10 digits required after +91";
     }
     if (!contactingFor) {
       newErrors.contactingFor = "Please select an option";

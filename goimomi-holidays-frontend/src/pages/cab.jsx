@@ -60,8 +60,19 @@ const Cab = () => {
       return;
     }
 
+    // Phone validation: MUST be at least 10 digits total, and exactly 10 after +91
+    const phoneDigits = (phone || "").replace(/\D/g, "");
     if (!bookingFormData.firstName || !bookingFormData.lastName || !phone || !bookingFormData.email) {
       alert("Please fill in all mandatory fields (First Name, Last Name, Email, Phone)");
+      return;
+    }
+    
+    if (phoneDigits.length < 10) {
+      alert("Please enter a valid 10-digit phone number");
+      return;
+    }
+    if (phoneDigits.startsWith("91") && phoneDigits.length !== 12) {
+      alert("Please enter exactly 10 digits after the country code (+91)");
       return;
     }
 

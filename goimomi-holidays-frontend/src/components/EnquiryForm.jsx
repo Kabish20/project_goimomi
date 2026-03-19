@@ -28,6 +28,23 @@ const EnquiryForm = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // Phone number validation: strip non-digits and check if it has 10 digits after country code
+    const digitsOnly = phone.replace(/\D/g, "");
+    // For India (91), it should be 12 digits (91 + 10 digits).
+    // If it's not India, we still check if the number part is around 10 digits as per "10 phone number limitation".
+    // Usually, this request implies India-specific 10-digit validation.
+    if (digitsOnly.length < 10) {
+      setError("Please enter a valid 10-digit phone number.");
+      return;
+    }
+    
+    // Specifically for India (+91), ensure 10 digits after 91
+    if (digitsOnly.startsWith("91") && digitsOnly.length !== 12) {
+      setError("Please enter exactly 10 digits after the country code.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const payload = {

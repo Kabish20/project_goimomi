@@ -23,6 +23,18 @@ const CabCruiseForm = ({ isOpen, onClose, type, initialDescription = "" }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+
+        // Phone validation: MUST be at least 10 digits total, and exactly 10 after +91
+        const phoneDigits = (phone || "").replace(/\D/g, "");
+        if (phoneDigits.length < 10) {
+            setError("Phone number must be at least 10 digits");
+            return;
+        } else if (phoneDigits.startsWith("91") && phoneDigits.length !== 12) {
+            // For India (91), it should be 12 digits (91 + 10 digits).
+            setError("Exactly 10 digits required after +91");
+            return;
+        }
+
         setIsSubmitting(true);
 
         const payload = {

@@ -293,9 +293,14 @@ const VisaApplication = () => {
                 isValid = false;
             }
 
-            // Phone
-            if (!applicant.phone || applicant.phone.trim().length < 5) {
-                newErrors[`applicant_${index}_phone`] = "Invalid phone number";
+            // Phone validation: MUST be at least 10 digits total, and exactly 10 after +91
+            const phoneDigits = (applicant.phone || "").replace(/\D/g, "");
+            if (!phoneDigits || phoneDigits.length < 10) {
+                newErrors[`applicant_${index}_phone`] = "At least 10 digits required";
+                isValid = false;
+            } else if (phoneDigits.startsWith("91") && phoneDigits.length !== 12) {
+                // For India (91), it should be 12 digits (91 + 10 digits).
+                newErrors[`applicant_${index}_phone`] = "Exactly 10 digits required after +91";
                 isValid = false;
             }
 

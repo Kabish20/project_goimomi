@@ -73,6 +73,18 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Phone validation: MUST be at least 10 digits total, and exactly 10 after +91
+        const phoneDigits = (formData.phone || "").replace(/\D/g, "");
+        if (phoneDigits.length < 10) {
+            alert("Phone number must be at least 10 digits");
+            return;
+        } else if (phoneDigits.startsWith("91") && phoneDigits.length !== 12) {
+            // For India (91), it should be 12 digits (91 + 10 digits).
+            alert("Exactly 10 digits required after +91");
+            return;
+        }
+
         setLoading(true);
 
         const payload = {
