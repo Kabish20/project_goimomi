@@ -24,7 +24,7 @@ import {
 import cantonHero from "../assets/images/canton-hero.png";
 import sourcingImg from "../assets/images/sourcing.png";
 
-const CantonFairEnquire = () => {
+const Canton = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     whatsappNumber: "",
@@ -698,4 +698,4 @@ const CantonFairEnquire = () => {
   );
 };
 
-export default CantonFairEnquire;
+export default Canton;
