@@ -122,8 +122,8 @@ const Navbar = () => {
             <NavLink to="/canton" className={({ isActive }) =>
               `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
             }>
-              <img src="https://cdn-icons-png.flaticon.com/128/14785/14785126.png" alt="Canton Fair" className="w-[38px] h-[38px] mb-1 object-contain" />
-              <span className="font-bold text-[11px] uppercase tracking-wide">Canton Fair</span>
+              <img src="https://cdn-icons-png.flaticon.com/128/14785/14785126.png" alt="Canton" className="w-[38px] h-[38px] mb-1 object-contain" />
+              <span className="font-bold text-[11px] uppercase tracking-wide">Canton</span>
             </NavLink>
 
             {/* Holidays Dropdown */}
@@ -368,8 +368,8 @@ const Navbar = () => {
               </NavLink>
 
               <NavLink to="/canton" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
-                <img src="https://cdn-icons-png.flaticon.com/128/14785/14785126.png" alt="Canton Fair" className="w-6 h-6 object-contain" />
-                Canton Fair
+                <img src="https://cdn-icons-png.flaticon.com/128/14785/14785126.png" alt="Canton" className="w-6 h-6 object-contain" />
+                Canton
               </NavLink>
 
               <NavLink to="/cab" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
