@@ -1,6 +1,13 @@
 {
   "python.analysis.extraPaths": [
-    "./goimomi-holidays-backend"
+    "D:/G/goimomi-holidays-backend",
+    "D:/G/goimomi-holidays-backend/Holidays",
+    "C:/Users/kabis/AppData/Local/Programs/Python/Python313/Lib/site-packages"
   ],
-  "python.testing.cwd": "./goimomi-holidays-backend"
+  "python.testing.cwd": "D:/G/goimomi-holidays-backend",
+  "python.defaultInterpreterPath": "C:/Users/kabis/AppData/Local/Programs/Python/Python313/python.exe",
+  "python.analysis.typeCheckingMode": "basic"
 }
+
+
+

@@ -2,12 +2,12 @@
   "include": [
     "goimomi-holidays-backend"
   ],
-  "executionEnvironments": [
-    {
-      "root": "goimomi-holidays-backend",
-      "extraPaths": [
-        "goimomi-holidays-backend"
-      ]
-    }
-  ]
+  "extraPaths": [
+    "D:/G/goimomi-holidays-backend",
+    "D:/G/goimomi-holidays-backend/Holidays",
+    "C:/Users/kabis/AppData/Local/Programs/Python/Python313/Lib/site-packages"
+  ],
+  "typeCheckingMode": "basic"
 }
+
+
