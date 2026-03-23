@@ -54,6 +54,7 @@ const menu = [
           { name: "Hotel Enquiries" },
           { name: "Holiday Enquiries" },
           { name: "Umrah Enquiries" },
+          { name: "Canton Enquiries" },
         ]
       },
       {
@@ -154,6 +155,7 @@ const AdminSidebar = () => {
   const handleChangeCabBooking = () => navigate("/admin/cab-bookings");
   const handleChangeCruiseEnquiry = () => navigate("/admin/cruise-enquiries");
   const handleChangeHotelEnquiry = () => navigate("/admin/hotel-enquiries");
+  const handleChangeCantonEnquiry = () => navigate("/admin/canton-enquiries");
   const handleAddUmrahDestinations = () => navigate("/admin/umrah-destinations/add");
   const handleAddStartingCity = () => navigate("/admin/starting-cities/add");
   const handleAddItineraryMaster = () => navigate("/admin/itinerary-masters/add");
@@ -212,6 +214,7 @@ const AdminSidebar = () => {
       case "Cab Enquiries": return handleChangeCabEnquiry;
       case "Cruise Enquiries": return handleChangeCruiseEnquiry;
       case "Hotel Enquiries": return handleChangeHotelEnquiry;
+      case "Canton Enquiries": return handleChangeCantonEnquiry;
       case "Visas": return handleChangeVisa;
       case "Visa bookings": return handleChangeVisaApplication;
       case "Cab Bookings": return handleChangeCabBooking;

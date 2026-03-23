@@ -22,6 +22,7 @@ const AdminDashboard = () => {
     hotelEnquiries: 0,
     holidayEnquiries: 0,
     umrahEnquiries: 0,
+    cantonEnquiries: 0,
     startingCities: 0,
     itineraryMasters: 0,
     nationalities: 0,
@@ -61,6 +62,7 @@ const AdminDashboard = () => {
         api.get(`${API_BASE_URL}/umrah-destinations/`).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
         api.get(`${API_BASE_URL}/visas/`).catch(err => ({ error: err, endpoint: 'visas' })),
         api.get(`${API_BASE_URL}/visa-applications/`).catch(err => ({ error: err, endpoint: 'visa-applications' })),
+        api.get(`${API_BASE_URL}/canton-enquiry/`).catch(err => ({ error: err, endpoint: 'canton-enquiries' })),
       ];
 
       const responses = await Promise.all(fetchPromises);
@@ -72,6 +74,7 @@ const AdminDashboard = () => {
         enquiries: 0,
         holidayEnquiries: 0,
         umrahEnquiries: 0,
+        cantonEnquiries: 0,
         startingCities: 0,
         itineraryMasters: 0,
         nationalities: 0,
@@ -84,7 +87,7 @@ const AdminDashboard = () => {
       const errors = [];
 
       responses.forEach((response, index) => {
-        const endpoints = ['destinations', 'packages', 'enquiries', 'holiday-enquiries', 'umrah-enquiries', 'starting-cities', 'itinerary-masters', 'nationalities', 'umrah-destinations', 'visas', 'visa-applications'];
+        const endpoints = ['destinations', 'packages', 'enquiries', 'holiday-enquiries', 'umrah-enquiries', 'starting-cities', 'itinerary-masters', 'nationalities', 'umrah-destinations', 'visas', 'visa-applications', 'canton-enquiries'];
         const endpoint = endpoints[index];
 
         if (response.error) {
@@ -135,6 +138,10 @@ const AdminDashboard = () => {
               break;
             case 'visa-applications':
               newStats.visaApplications = count;
+              break;
+            case 'canton-enquiries':
+              newStats.cantonEnquiries = count;
+              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Canton' })));
               break;
           }
         }
@@ -247,13 +254,14 @@ const AdminDashboard = () => {
                   <div className="h-1 w-4 bg-[#14532d] rounded-full"></div>
                   <h3 className="text-sm font-medium uppercase tracking-widest text-[#14532d]">Customer Enquiries</h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-2">
                   <AdminCard title="General Enq" count={stats.enquiries} link="/admin/enquiries" icon={<HelpCircle />} />
                   <AdminCard title="Cab Enq" count={stats.cabEnquiries} link="/admin/cab-enquiries" icon={<Phone />} />
                   <AdminCard title="Cruise Enq" count={stats.cruiseEnquiries} link="/admin/cruise-enquiries" icon={<Ship />} />
                   <AdminCard title="Hotel Enq" count={stats.hotelEnquiries} link="/admin/hotel-enquiries" icon={<Building2 />} />
                   <AdminCard title="Holiday Enq" count={stats.holidayEnquiries} link="/admin/holiday-enquiries" icon={<Calendar />} />
                   <AdminCard title="Umrah Enq" count={stats.umrahEnquiries} link="/admin/umrah-enquiries" icon={<Building2 />} />
+                  <AdminCard title="Canton Enq" count={stats.cantonEnquiries} link="/admin/canton-enquiries" icon={<Flag />} />
                 </div>
               </div>
 
@@ -351,7 +359,8 @@ const AdminDashboard = () => {
                                   enquiry.type === 'Cab' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                                     enquiry.type === 'Cruise' ? 'bg-sky-50 text-sky-700 border border-sky-100' :
                                       enquiry.type === 'Hotel' ? 'bg-green-50 text-green-700 border border-green-100' :
-                                        'bg-blue-50 text-blue-700 border border-blue-100'
+                                        enquiry.type === 'Canton' ? 'bg-red-50 text-red-700 border border-red-100' :
+                                          'bg-blue-50 text-blue-700 border border-blue-100'
                                 }`}>
                                 {enquiry.type}
                               </span>

@@ -122,7 +122,7 @@ const Navbar = () => {
             <NavLink to="/canton-fair-enquiry" className={({ isActive }) =>
               `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
             }>
-              <img src="https://cdn-icons-png.flaticon.com/128/1041/1041846.png" alt="Canton Fair" className="w-9 h-9 mb-1 object-contain" />
+              <img src="https://cdn-icons-png.flaticon.com/128/14785/14785126.png" alt="Canton Fair" className="w-[38px] h-[38px] mb-1 object-contain" />
               <span className="font-bold text-[11px] uppercase tracking-wide">Canton Fair</span>
             </NavLink>
 
@@ -368,7 +368,7 @@ const Navbar = () => {
               </NavLink>
 
               <NavLink to="/canton-fair-enquiry" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
-                <img src="https://cdn-icons-png.flaticon.com/128/1041/1041846.png" alt="Canton Fair" className="w-6 h-6 object-contain" />
+                <img src="https://cdn-icons-png.flaticon.com/128/14785/14785126.png" alt="Canton Fair" className="w-6 h-6 object-contain" />
                 Canton Fair
               </NavLink>
 
