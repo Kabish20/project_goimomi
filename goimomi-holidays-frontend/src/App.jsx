@@ -28,7 +28,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsConditions from './pages/TermsConditions.jsx'
 import CancellationPolicy from './pages/CancellationPolicy.jsx'
 import HolidayDetails from "./pages/HolidayDetails.jsx";
-import CantonFairEnquire from "./pages/CantonFairEnquire.jsx";
+import CantonFairEnquire from "./pages/Canton.jsx";
 
 import PackageEnquiryPage from "./pages/PackageEnquiryPage.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -127,6 +127,7 @@ const App = () => {
 
       <main className={`flex-1 ${isAdminPath ? 'flex flex-col min-h-0 overflow-hidden' : ''}`}>
         <Routes>
+          <Route path="/canton-fair-enquiry" element={<Navigate to="/canton" replace />} />
           <Route path="/" element={<Home />} />
           <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
           <Route path="/aboutus" element={<About />} />
@@ -160,7 +161,6 @@ const App = () => {
           <Route path="/visa/apply/:id" element={<VisaApplication />} />
           <Route path="/Europeantours" element={<Europeantours />} />
           <Route path="/canton" element={<CantonFairEnquire />} />
-          <Route path="/canton-fair-enquiry" element={<Navigate to="/canton" replace />} />
 
 
           <Route path="/admin-login" element={<AdminLogin />} />

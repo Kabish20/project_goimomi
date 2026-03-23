@@ -37,7 +37,7 @@ const CantonFairEnquire = () => {
   const [activeAccordion, setActiveAccordion] = useState(null);
 
   useEffect(() => {
-    document.title = "Canton Fair Enquire | Goimomi Holidays";
+    document.title = "Canton Fair 2026 | Goimomi Holidays";
   }, []);
 
   const handleSubmit = async (e) => {
