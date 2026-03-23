@@ -392,7 +392,21 @@ const Navbar = () => {
                 Contact Us
               </NavLink>
 
-
+              {/* Social Links for "Instagram Part" */}
+              <div className="pt-6 border-t border-gray-100 flex flex-col items-center gap-4">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400">Follow Our Journey</span>
+                <div className="flex items-center gap-6">
+                  <a href="https://www.instagram.com/goimomi_holidays/" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-2xl shadow-lg shadow-pink-500/20 active:scale-90 transition-transform">
+                    <img src="https://cdn-icons-png.flaticon.com/128/2111/2111463.png" className="w-6 h-6 invert brightness-100" alt="Instagram" />
+                  </a>
+                  <a href="https://www.facebook.com/goimomi" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#1877F2] rounded-2xl shadow-lg shadow-blue-500/20 active:scale-90 transition-transform">
+                    <img src="https://cdn-icons-png.flaticon.com/128/733/733547.png" className="w-6 h-6 invert brightness-100" alt="Facebook" />
+                  </a>
+                  <a href="https://wa.me/916382220393" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#25D366] rounded-2xl shadow-lg shadow-green-500/20 active:scale-90 transition-transform">
+                    <img src="https://cdn-icons-png.flaticon.com/128/733/733585.png" className="w-6 h-6 invert brightness-100" alt="WhatsApp" />
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         )}
