@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
@@ -159,7 +159,8 @@ const App = () => {
           <Route path="/visa/results" element={<VisaResults />} />
           <Route path="/visa/apply/:id" element={<VisaApplication />} />
           <Route path="/Europeantours" element={<Europeantours />} />
-          <Route path="/canton-fair-enquiry" element={<CantonFairEnquire />} />
+          <Route path="/canton" element={<CantonFairEnquire />} />
+          <Route path="/canton-fair-enquiry" element={<Navigate to="/canton" replace />} />
 
 
           <Route path="/admin-login" element={<AdminLogin />} />
