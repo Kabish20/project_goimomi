@@ -28,7 +28,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsConditions from './pages/TermsConditions.jsx'
 import CancellationPolicy from './pages/CancellationPolicy.jsx'
 import HolidayDetails from "./pages/HolidayDetails.jsx";
-import Canton from "./pages/Canton.jsx";
+import CantonFairEnquire from "./pages/CantonFairEnquire.jsx";
 
 import PackageEnquiryPage from "./pages/PackageEnquiryPage.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -158,7 +158,7 @@ const App = () => {
           <Route path="/visa/results" element={<VisaResults />} />
           <Route path="/visa/apply/:id" element={<VisaApplication />} />
           <Route path="/Europeantours" element={<Europeantours />} />
-          <Route path="/canton" element={<Canton />} />
+          <Route path="/canton-fair-enquiry" element={<CantonFairEnquire />} />
 
 
           <Route path="/admin-login" element={<AdminLogin />} />

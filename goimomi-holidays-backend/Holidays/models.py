@@ -691,3 +691,19 @@ class CabAdditionalDocument(models.Model):
 
     def __str__(self):
         return f"Doc for {self.booking.first_name} - {self.document_name or 'unnamed'}"
+
+class CantonEnquiry(models.Model):
+    full_name = models.CharField(max_length=150)
+    whatsapp_number = models.CharField(max_length=20)
+    business_name = models.CharField(max_length=255)
+    selected_phase = models.CharField(max_length=150)
+    payment_status = models.CharField(
+        max_length=20,
+        choices=[('Pending', 'Pending'), ('Success', 'Success'), ('Failed', 'Failed')],
+        default='Pending'
+    )
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.selected_phase}"

@@ -19,8 +19,13 @@ from .models import (
     Accommodation, AccommodationImage, Airline, HolidayVehicle,
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
-    PickupPointMaster, CabBooking, CabAdditionalDocument
+    PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry
 )
+
+class CantonEnquirySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CantonEnquiry
+        fields = "__all__"
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod

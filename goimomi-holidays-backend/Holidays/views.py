@@ -25,7 +25,7 @@ from .models import (
     SightseeingImage, MealMaster, VehicleBrand, Accommodation,
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
-    CancellationPolicy
+    CancellationPolicy, CantonEnquiry
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -39,8 +39,14 @@ from .serializers import (
     RoomTypeSerializer, VehicleMasterSerializer, DriverMasterSerializer,
     VehicleRateCardSerializer, PickupPointMasterSerializer,
     CabBookingSerializer, CabAdditionalDocumentSerializer,
-    CancellationPolicySerializer
+    CancellationPolicySerializer, CantonEnquirySerializer
 )
+
+class CantonEnquiryAPI(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = CantonEnquiry.objects.all().order_by('-created_at')
+    serializer_class = CantonEnquirySerializer
 
 @authentication_classes([])
 @permission_classes([AllowAny])

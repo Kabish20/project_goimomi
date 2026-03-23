@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import api from "../api"; // Assuming api is your axios instance
 import {
   Check,
   X,
@@ -23,7 +24,7 @@ import {
 import cantonHero from "../assets/images/canton-hero.png";
 import sourcingImg from "../assets/images/sourcing.png";
 
-const Canton = () => {
+const CantonFairEnquire = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     whatsappNumber: "",
@@ -32,12 +33,37 @@ const Canton = () => {
     agreed: false
   });
 
+  const [loading, setLoading] = useState(false);
   const [activeAccordion, setActiveAccordion] = useState(null);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    document.title = "Canton Fair Enquire | Goimomi Holidays";
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Redirect to the provided payment link
-    window.location.href = "https://zohopy.in/c5NKM";
+    setLoading(true);
+    
+    try {
+      // Map frontend fields to backend model fields
+      const backendData = {
+        full_name: formData.fullName,
+        whatsapp_number: formData.whatsappNumber,
+        business_name: formData.businessName,
+        selected_phase: formData.selectedPhase,
+      };
+
+      // Store in backend
+      await api.post("/api/canton-enquiry/", backendData);
+      
+      // After storing, redirect to payment part
+      window.location.href = "https://zohopy.in/c5NKM";
+    } catch (error) {
+      console.error("Submission failed:", error);
+      alert("Something went wrong. Please try again or contact us directly.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePhaseSelection = (phaseTitle) => {
@@ -602,11 +628,11 @@ const Canton = () => {
 
                 <button
                   type="submit"
-                  disabled={!formData.agreed}
-                  className={`w-full py-5 rounded-2xl text-xl font-black transition-all shadow-xl flex items-center justify-center gap-3 ${formData.agreed ? 'bg-red-600 hover:bg-red-700 text-white hover:scale-[1.02] active:scale-[0.98]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                  disabled={!formData.agreed || loading}
+                  className={`w-full py-5 rounded-2xl text-xl font-black transition-all shadow-xl flex items-center justify-center gap-3 ${formData.agreed && !loading ? 'bg-red-600 hover:bg-red-700 text-white hover:scale-[1.02] active:scale-[0.98]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
                 >
-                  PAY ₹999 & REGISTER NOW
-                  <ArrowRight className="w-6 h-6" />
+                  {loading ? "SUBMITTING..." : "PAY ₹999 & REGISTER NOW"}
+                  {!loading && <ArrowRight className="w-6 h-6" />}
                 </button>
               </form>
             </div>
@@ -672,4 +698,4 @@ const Canton = () => {
   );
 };
 
-export default Canton;
+export default CantonFairEnquire;
