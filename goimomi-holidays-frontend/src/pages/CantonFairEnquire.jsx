@@ -54,7 +54,7 @@ const CantonFairEnquire = () => {
       };
 
       // Store in backend
-      await api.post("/api/canton-enquiry/", backendData);
+      await api.post("/api/canton-enquiries/", backendData);
       
       // After storing, redirect to payment part
       window.location.href = "https://zohopy.in/c5NKM";

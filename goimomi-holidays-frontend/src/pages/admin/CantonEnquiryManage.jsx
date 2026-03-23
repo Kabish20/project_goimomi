@@ -26,7 +26,7 @@ const CantonEnquiryManage = () => {
     const fetchEnquiries = async () => {
         try {
             setLoading(true);
-            const response = await api.get(`${API_BASE_URL}/canton-enquiry/`);
+            const response = await api.get(`${API_BASE_URL}/canton-enquiries/`);
             const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
             setEnquiries(data);
             setFilteredEnquiries(data);
@@ -66,7 +66,7 @@ const CantonEnquiryManage = () => {
     const handleUpdate = async () => {
         try {
             setIsUpdating(true);
-            await api.patch(`${API_BASE_URL}/canton-enquiry/${selectedEnquiry.id}/`, editForm);
+            await api.patch(`${API_BASE_URL}/canton-enquiries/${selectedEnquiry.id}/`, editForm);
             const updated = { ...selectedEnquiry, ...editForm };
             setSelectedEnquiry(updated);
             setFilteredEnquiries(filteredEnquiries.map(e => e.id === updated.id ? updated : e));
@@ -84,7 +84,7 @@ const CantonEnquiryManage = () => {
         if (window.confirm("Are you sure you want to delete this enquiry?")) {
             try {
                 setLoading(true);
-                await api.delete(`${API_BASE_URL}/canton-enquiry/${id}/`);
+                await api.delete(`${API_BASE_URL}/canton-enquiries/${id}/`);
                 fetchEnquiries();
             } catch (err) {
                 console.error("Error deleting enquiry:", err);

@@ -62,7 +62,7 @@ const AdminDashboard = () => {
         api.get(`${API_BASE_URL}/umrah-destinations/`).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
         api.get(`${API_BASE_URL}/visas/`).catch(err => ({ error: err, endpoint: 'visas' })),
         api.get(`${API_BASE_URL}/visa-applications/`).catch(err => ({ error: err, endpoint: 'visa-applications' })),
-        api.get(`${API_BASE_URL}/canton-enquiry/`).catch(err => ({ error: err, endpoint: 'canton-enquiries' })),
+        api.get(`${API_BASE_URL}/canton-enquiries/`).catch(err => ({ error: err, endpoint: 'canton-enquiries' })),
       ];
 
       const responses = await Promise.all(fetchPromises);
