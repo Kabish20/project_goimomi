@@ -73,7 +73,6 @@ import CabBookingManage from "./pages/admin/CabBookingManage.jsx";
 import CruiseEnquiryManage from "./pages/admin/CruiseEnquiryManage.jsx";
 import HotelEnquiryManage from "./pages/admin/HotelEnquiryManage.jsx";
 import GeneralEnquiryManage from "./pages/admin/GeneralEnquiryManage.jsx";
-import CantonEnquiryManage from "./pages/admin/CantonEnquiryManage.jsx";
 import SupplierManage from "./pages/admin/SupplierManage.jsx";
 import SupplierAdd from "./pages/admin/SupplierAdd.jsx";
 import SupplierEdit from "./pages/admin/SupplierEdit.jsx";
@@ -209,7 +208,6 @@ const App = () => {
             <Route path="/admin/cab-bookings" element={<CabBookingManage />} />
             <Route path="/admin/cruise-enquiries" element={<CruiseEnquiryManage />} />
             <Route path="/admin/hotel-enquiries" element={<HotelEnquiryManage />} />
-            <Route path="/admin/canton-enquiries" element={<CantonEnquiryManage />} />
             <Route path="/admin/general-enquiries" element={<GeneralEnquiryManage />} />
             <Route path="/admin/suppliers" element={<SupplierManage />} />
             <Route path="/admin/suppliers/add" element={<SupplierAdd />} />

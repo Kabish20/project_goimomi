@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, MapPin, Search, ChevronRight, CheckCircle, Clock, Users, ShieldCheck, Zap, Star, Layout, Ticket, Building2, Globe, Send, Phone, Mail, Instagram, Facebook, Share2, Check, X, ArrowRight, Info } from "lucide-react";
+import { Calendar, MapPin, Search, ChevronRight, CheckCircle, Clock, Users, ShieldCheck, Zap, Star, Layout, Ticket, Building2, Globe, Send, Phone, Mail, Instagram, Facebook, Share2, Check, X, ArrowRight, Info, Award, TrendingUp, Newspaper, Shield, Plane } from "lucide-react";
 import usePageSEO from "../hooks/usePageSEO";
 import api from '../api';
 
