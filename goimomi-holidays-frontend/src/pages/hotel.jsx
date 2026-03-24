@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import CabCruiseForm from "../components/CabCruiseForm";
+import usePageSEO from "../hooks/usePageSEO";
 
 const Hotel = () => {
+  usePageSEO(
+    "Premium Hotel Bookings | Best Luxury Stays | Goimomi Holidays",
+    "Book the best hotels and resorts worldwide with Goimomi Holidays. Competitive rates, personally vetted properties, and 24/7 concierge support for your comfort."
+  );
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   return (

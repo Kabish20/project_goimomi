@@ -1,8 +1,13 @@
 import React from 'react'
 import aboutHero from '../assets/aboutus.png'
 import officeImg from '../assets/office.png'
+import usePageSEO from '../hooks/usePageSEO'
 
 const About = () => {
+  usePageSEO(
+    "About Goimomi Holidays | Our Journey & Commitment",
+    "Learn about Goimomi Holidays, our mission to create extraordinary travel experiences, and our decade-long journey as a trusted travel partner in India."
+  );
   return (
     <main className="max-w-7xl mx-auto px-6 py-12">
       {/* Hero */}

@@ -1,10 +1,17 @@
 import React, { useState } from "react";
+import { Phone, Mail, MapPin, Send, Instagram, Facebook, Linkedin, Clock } from 'lucide-react';
 import { FiPhone, FiMail, FiMapPin, FiUser, FiMessageCircle } from "react-icons/fi";
+import usePageSEO from '../hooks/usePageSEO';
+import api from '../api';
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import emailjs from "emailjs-com";
 
 const Contact = () => {
+  usePageSEO(
+    "Contact Goimomi Holidays | 24/7 Travel Support",
+    "Contact Goimomi Holidays for personalized travel consultations, support, and expert guidance on planning your next dream vacation. We're here 24/7."
+  );
 
   // ✅ Popup State (Placed correctly inside component)
   const [showSuccess, setShowSuccess] = useState(false);

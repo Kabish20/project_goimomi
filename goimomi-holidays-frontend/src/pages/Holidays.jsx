@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import api from "../api";
 import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight, Hotel, Utensils } from "lucide-react";
+import usePageSEO from "../hooks/usePageSEO";
 import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
 import FormModal from "../components/FormModal";
@@ -274,6 +275,10 @@ const Holidays = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  usePageSEO(
+    "Explore Holiday Packages | Goimomi Holidays",
+    "Discover affordable and premium tour packages for every destination. Plan your next adventure with Goimomi Holidays' expertly curated itineraries."
+  );
 
   // ===================== FILTER STATES =====================
   const [category, setCategory] = useState("");

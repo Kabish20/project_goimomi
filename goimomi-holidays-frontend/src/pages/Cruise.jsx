@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import api from "../api";
 import CabCruiseForm from "../components/CabCruiseForm";
+import usePageSEO from "../hooks/usePageSEO";
 import cruiseHeroImg from "../assets/cruise_hero.jpg";
 
 const Cruise = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCruise, setSelectedCruise] = useState("");
+  usePageSEO(
+    "Luxury Cruise Holidays | Plan Your Voyage | Goimomi Holidays",
+    "Discover the world's most beautiful destinations on a luxury cruise. Explore our latest sailing schedules, gourmet dining, and premium ocean-view suites."
+  );
 
   const handleBookCruise = (cruiseName) => {
     setSelectedCruise(`Interested in: ${cruiseName}`);

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import { MapPin, Zap, ShieldCheck, Headphones } from "lucide-react";
+import usePageSEO from "../hooks/usePageSEO";
 import { getImageUrl } from "../utils/imageUtils";
 
 // WhatsApp Chat Widget Component
@@ -170,6 +171,10 @@ import Antigua from "../assets/Visa Deals/Antigua & Barbuda.png";
 
 const Home = () => {
   const navigate = useNavigate();
+  usePageSEO(
+    "Goimomi Holidays – Customized Holiday Packages & Travel Experiences",
+    "Goimomi Holidays offers customized vacation packages, family trips, honeymoon tours, adventure travel, and premium holiday planning tailored to your preferences."
+  );
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [popularDestinations, setPopularDestinations] = useState([]);
   const [popularVisas, setPopularVisas] = useState([]);

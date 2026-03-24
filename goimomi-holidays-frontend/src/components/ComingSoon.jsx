@@ -1,7 +1,12 @@
 import React from "react";
 import { FaCalendarAlt, FaEnvelope } from "react-icons/fa";
+import usePageSEO from "../hooks/usePageSEO";
 
 const ComingSoon = ({ title, description }) => {
+  usePageSEO(
+    `${title || "Coming Soon"} | Goimomi Holidays`,
+    description || "This feature is currently under development. Stay tuned for the launch from Goimomi Holidays!"
+  );
   const [email, setEmail] = React.useState("");
   const [subscribed, setSubscribed] = React.useState(false);
 

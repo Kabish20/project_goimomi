@@ -8,8 +8,13 @@ import CabPrivacyModal from "../components/CabPrivacyModal";
 import cabSearchBg from "../assets/Hero/cab_search_bg_v4.jpg";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import usePageSEO from "../hooks/usePageSEO";
 
 const Cab = () => {
+  usePageSEO(
+    "Premium Cab & Transfer Services | Goimomi Holidays",
+    "Book reliable and comfortable airport transfers and intercity cabs with Goimomi Holidays. Professional drivers, clean vehicles, and 24/7 support for all your travel needs."
+  );
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState("");
   const [destinations, setDestinations] = useState([]);

@@ -4,9 +4,14 @@ import { Search, Home, Plane, Calendar, MapPin, ChevronDown, Zap, ShieldCheck, H
 import api from "../api";
 import visaBg from "../assets/Hero/visa_bg.jpg";
 import { getImageUrl } from "../utils/imageUtils";
+import usePageSEO from "../hooks/usePageSEO";
 
 const VisaSearch = () => {
     const navigate = useNavigate();
+    usePageSEO(
+        "Online Visa Services | Fast & Reliable Processing | Goimomi Holidays",
+        "Apply for international visas online with Goimomi Holidays. Get expert assistance and fast, hassle-free visa processing for over 100+ countries."
+    );
     const [citizenOf, setCitizenOf] = useState("India");
     const [goingTo, setGoingTo] = useState("");
 

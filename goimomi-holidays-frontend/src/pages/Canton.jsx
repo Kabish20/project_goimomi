@@ -1,31 +1,23 @@
 import React, { useState, useEffect } from "react";
-import {
-  Check,
-  X,
-  Calendar,
-  MapPin,
-  Users,
-  Plane,
-  Shield,
-  Zap,
-  TrendingUp,
-  Newspaper,
-  Clock,
-  Award,
-  ArrowRight,
-  ChevronRight,
-  Info
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Calendar, MapPin, Search, ChevronRight, CheckCircle, Clock, Users, ShieldCheck, Zap, Star, Layout, Ticket, Building2, Globe, Send, Phone, Mail, Instagram, Facebook, Share2, Check, X, ArrowRight, Info } from "lucide-react";
+import usePageSEO from "../hooks/usePageSEO";
+import api from '../api';
 
 import cantonHero from "../assets/images/canton-hero.png";
 import sourcingImg from "../assets/images/sourcing.png";
 
 const Canton = () => {
+  usePageSEO(
+    "Canton Fair 2026 | Register Now with Goimomi Holidays",
+    "Join the Canton Fair 2026 with Goimomi Holidays. Complete travel solutions including registration, hotel bookings, and guided tours for the world's largest trade fair."
+  );
   const [activeAccordion, setActiveAccordion] = useState(null);
+  // const navigate = useNavigate(); // Assuming useNavigate is needed later, but not provided in the full context to import.
 
-  useEffect(() => {
-    document.title = "Canton Fair 2026 | Goimomi Holidays";
-  }, []);
+  // useEffect(() => {
+  //   document.title = "Canton Fair 2026 | Goimomi Holidays";
+  // }, []);
 
 
   const handlePhaseSelection = (phaseTitle) => {

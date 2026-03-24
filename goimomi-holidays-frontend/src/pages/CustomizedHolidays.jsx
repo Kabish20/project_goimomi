@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import HolidaysForm from "../pages/Holidaysform.jsx";
 import { useNavigate } from "react-router-dom";
+import usePageSEO from "../hooks/usePageSEO";
 
 // Images
 import heroImg from "../assets/cusholidays.png";
@@ -24,6 +25,10 @@ const CustomizedHolidays = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState("Customized Holiday");
   const navigate = useNavigate();
+  usePageSEO(
+    "Goimomi Holidays – Customized Holiday Packages & Travel Planning",
+    "Goimomi Holidays offers fully customizable vacation packages, family trips, honeymoon tours, and adventure travel tailored to your dreams and budget. Plan your perfect getaway today!"
+  );
 
   return (
     <div className="w-full overflow-hidden text-gray-800">
