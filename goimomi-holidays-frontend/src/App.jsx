@@ -130,7 +130,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
           <Route path="/aboutus" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path="/contactus" element={<Contact />} />
           <Route path="/contact/success" element={<ContactSuccess />} />
           <Route path="/holidays" element={<Holidays />} />
           <Route path="/customizedHolidays" element={<CustomizedHolidays />} />

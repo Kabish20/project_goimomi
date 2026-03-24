@@ -235,7 +235,7 @@ const Navbar = () => {
 
             {/* Contact */}
             <NavLink
-              to="/contact"
+              to="/contactus"
               className={({ isActive }) =>
                 `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
               }
@@ -387,7 +387,7 @@ const Navbar = () => {
                 About Us
               </NavLink>
 
-              <NavLink to="/contact" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+              <NavLink to="/contactus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
                 <img src="https://cdn-icons-png.flaticon.com/128/2706/2706907.png" alt="Contact" className="w-6 h-6 object-contain" />
                 Contact Us
               </NavLink>

@@ -17,7 +17,7 @@ const Footer = () => {
           Contact our expert team today for a free consultation and customized itinerary.
         </p>
         <button
-          onClick={() => navigate("/contact")}
+          onClick={() => navigate("/contactus")}
           className="mt-4 bg-[#e9b343] text-[#14532d] font-black uppercase tracking-wider text-xs px-6 py-2 rounded-full shadow-lg hover:bg-[#f2c25d] transition-all active:scale-95"
         >
           Get In Touch Now
@@ -80,7 +80,7 @@ const Footer = () => {
             <li><Link to="/canton" className="hover:text-white transition-colors">Canton Fair</Link></li>
             <li><Link to="/customizedHolidays" className="hover:text-white transition-colors">Customized Holidays</Link></li>
             <li><Link to="/aboutus" className="hover:text-white transition-colors">About Us</Link></li>
-            <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+            <li><Link to="/contactus" className="hover:text-white transition-colors">Contact Us</Link></li>
           </ul>
         </div>
 

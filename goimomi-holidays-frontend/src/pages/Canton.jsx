@@ -120,6 +120,51 @@ const Canton = () => {
         .gold-border {
           border: 2px solid #D4AF37;
         }
+        @keyframes flash-sticker-blink {
+          0% { background-color: #dc2626; box-shadow: 0 0 15px #dc2626; }
+          50% { background-color: #facc15; box-shadow: 0 0 30px #facc15; color: #000; }
+          100% { background-color: #dc2626; box-shadow: 0 0 15px #dc2626; }
+        }
+        .flash-sticker {
+          position: fixed;
+          bottom: 2rem;
+          right: 2rem;
+          z-index: 2000;
+          animation: flash-sticker-blink 0.6s infinite;
+          padding: 1.25rem 2.5rem;
+          border-radius: 1rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          text-decoration: none;
+          color: white;
+          border: 4px solid white;
+          transform: rotate(-5deg);
+          font-size: 1.5rem;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .flash-sticker:hover {
+          transform: rotate(0deg) scale(1.1);
+          animation-play-state: paused;
+          background-color: #dc2626 !important;
+          color: white !important;
+        }
+        @media (max-width: 768px) {
+          .flash-sticker {
+            bottom: 1.5rem;
+            right: 50%;
+            transform: translateX(50%) rotate(0deg);
+            width: 90%;
+            justify-content: center;
+            font-size: 1.25rem;
+          }
+          .flash-sticker:hover {
+            transform: translateX(50%) scale(1.05);
+          }
+        }
       `}} />
 
       {/* --- HERO SECTION --- */}
@@ -164,7 +209,7 @@ const Canton = () => {
             </a>
             <p className="flex items-center gap-2 text-sm text-gray-400 font-medium">
               <Zap className="w-4 h-4 text-yellow-400 fill-current" />
-              Limited slots per phase. Fully refundable deposit.
+              Limited slots per phase.
             </p>
           </div>
         </div>
@@ -481,6 +526,9 @@ const Canton = () => {
             </div>
 
             <div className="bg-white p-10 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-100 relative overflow-hidden">
+              <div className="absolute top-0 left-0 bg-yellow-400 text-black px-6 py-2 font-black text-sm uppercase tracking-widest animate-pulse rounded-br-3xl z-30 shadow-lg">
+                🔥 Limited Flash Offer
+              </div>
               <div className="absolute top-0 right-0 w-24 h-24 bg-red-600 flex items-center justify-center rotate-45 translate-x-12 -translate-y-12">
                 <span className="text-white font-black text-xs -rotate-45 mt-8 mr-8">₹999</span>
               </div>
@@ -560,6 +608,12 @@ const Canton = () => {
           </a>
         </div>
       </section>
+
+      {/* --- FLOATING ADVERTISEMENT STICKER --- */}
+      <a href="#register" className="flash-sticker">
+        <Zap className="w-8 h-8 fill-current" />
+        Register Now!
+      </a>
     </div>
   );
 };
