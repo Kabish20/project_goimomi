@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from "react";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
-import api from "../api"; // Assuming api is your axios instance
 import {
   Check,
   X,
@@ -17,68 +14,27 @@ import {
   Award,
   ArrowRight,
   ChevronRight,
-  Info,
-  ChevronDown
+  Info
 } from "lucide-react";
 
 import cantonHero from "../assets/images/canton-hero.png";
 import sourcingImg from "../assets/images/sourcing.png";
 
 const Canton = () => {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    whatsappNumber: "",
-    businessName: "",
-    selectedPhase: "Phase 1 (Electronics & Machinery)",
-    agreed: false
-  });
-
-  const [loading, setLoading] = useState(false);
   const [activeAccordion, setActiveAccordion] = useState(null);
 
   useEffect(() => {
     document.title = "Canton Fair 2026 | Goimomi Holidays";
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      // Map frontend fields to backend model fields
-      const backendData = {
-        full_name: formData.fullName,
-        whatsapp_number: formData.whatsappNumber,
-        business_name: formData.businessName,
-        selected_phase: formData.selectedPhase,
-      };
-
-      // Store in backend
-      await api.post("/api/canton-enquiries/", backendData);
-      
-      // After storing, redirect to payment part
-      window.location.href = "https://zohopy.in/c5NKM";
-    } catch (error) {
-      console.error("Submission failed:", error);
-      alert("Something went wrong. Please try again or contact us directly.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handlePhaseSelection = (phaseTitle) => {
-    let phaseValue = phaseTitle;
-    if (phaseTitle === "Phase 1") phaseValue = "Phase 1 (Electronics & Machinery)";
-    if (phaseTitle === "Phase 2") phaseValue = "Phase 2 (Consumer & Decor)";
-    if (phaseTitle === "Phase 3") phaseValue = "Phase 3 (Textiles & Food)";
-
-    setFormData(prev => ({ ...prev, selectedPhase: phaseValue }));
-
     const registerSection = document.getElementById("register");
     if (registerSection) {
       registerSection.scrollIntoView({ behavior: "smooth" });
     }
   };
+
 
   const phases = [
     {
@@ -163,31 +119,6 @@ const Canton = () => {
         }
         .gold-border {
           border: 2px solid #D4AF37;
-        }
-        /* Phone Input Custom Styles to match Canton Theme */
-        .canton-phone-input .form-control {
-          width: 100% !important;
-          height: 64px !important;
-          background: #f8fafc !important; /* bg-slate-50 */
-          border: none !important;
-          border-radius: 1rem !important; /* rounded-2xl */
-          font-size: 1rem !important;
-          font-weight: 500 !important;
-          padding-left: 60px !important;
-          color: #0f172a !important;
-        }
-        .canton-phone-input .flag-dropdown {
-          background: #f8fafc !important;
-          border: none !important;
-          border-radius: 1rem 0 0 1rem !important;
-        }
-        .canton-phone-input .selected-flag {
-          width: 50px !important;
-          border-radius: 1rem 0 0 1rem !important;
-        }
-        .canton-phone-input .form-control:focus {
-          background: white !important;
-          box-shadow: 0 0 0 2px #dc2626 !important; /* focus:border-red-600 */
         }
       `}} />
 
@@ -554,87 +485,22 @@ const Canton = () => {
                 <span className="text-white font-black text-xs -rotate-45 mt-8 mr-8">₹999</span>
               </div>
 
-              <h3 className="text-3xl font-black text-slate-900 mb-2">Priority Registration</h3>
-              <p className="text-gray-500 mb-8 font-medium">Pay ₹999 to lock your Canton Fair 2026 Package.</p>
+              <h3 className="text-3xl font-black text-slate-900 mb-6">Secure Your Canton 2026 Seat Today</h3>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="John Doe"
-                    className="w-full px-6 py-4 bg-slate-50 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all text-slate-900 font-medium"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">WhatsApp Number</label>
-                  <div className="canton-phone-input">
-                    <PhoneInput
-                      country={"in"}
-                      value={formData.whatsappNumber}
-                      onChange={(phone) => setFormData({ ...formData, whatsappNumber: phone })}
-                      inputProps={{
-                        name: "whatsappNumber",
-                        required: true,
-                        placeholder: "Enter WhatsApp Number"
-                      }}
-                      containerClass="!w-full"
-                    />
-                  </div>
-                </div>
+              <div className="space-y-4">
+                <iframe
+                  aria-label='Canton Registration Form '
+                  frameBorder="0"
+                  style={{ height: '500px', width: '99%', border: 'none' }}
+                  src='https://forms.zohopublic.in/GoimomiHolidays/form/EventRegistrationForm/formperma/1wgT6SGrRTJktf1BoOPcSx8XzW-50CjHFIQ9jaLJsjQ'
+                ></iframe>
 
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Business Name / Industry</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Manufacturing / Trading"
-                    className="w-full px-6 py-4 bg-slate-50 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all text-slate-900 font-medium"
-                    value={formData.businessName}
-                    onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                  />
-                </div>
-
-                <div className="relative">
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Selected Phase</label>
-                  <div className="relative">
-                    <select
-                      className="w-full px-6 py-4 bg-slate-50 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all text-slate-900 font-medium appearance-none"
-                      value={formData.selectedPhase}
-                      onChange={(e) => setFormData({ ...formData, selectedPhase: e.target.value })}
-                    >
-                      <option>Phase 1 (Electronics & Machinery)</option>
-                      <option>Phase 2 (Consumer & Decor)</option>
-                      <option>Phase 3 (Textiles & Food)</option>
-                    </select>
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <ChevronDown className="w-5 h-5 text-slate-400" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 py-2 cursor-pointer" onClick={() => setFormData({ ...formData, agreed: !formData.agreed })}>
-                  <div className={`w-6 h-6 rounded-lg border-2 flex-shrink-0 flex items-center justify-center transition-all ${formData.agreed ? 'bg-red-600 border-red-600' : 'border-slate-200'}`}>
-                    {formData.agreed && <Check className="w-4 h-4 text-white" strokeWidth={4} />}
-                  </div>
-                  <p className="text-xs text-gray-500 font-medium leading-relaxed">
-                    I understand I am paying ₹999 now as a deposit to secure my seat for the ₹76,000 package. This deposit is fully refundable as per the mentioned terms.
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={!formData.agreed || loading}
-                  className={`w-full py-5 rounded-2xl text-xl font-black transition-all shadow-xl flex items-center justify-center gap-3 ${formData.agreed && !loading ? 'bg-red-600 hover:bg-red-700 text-white hover:scale-[1.02] active:scale-[0.98]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
-                >
-                  {loading ? "SUBMITTING..." : "PAY ₹999 & REGISTER NOW"}
-                  {!loading && <ArrowRight className="w-6 h-6" />}
-                </button>
-              </form>
+                <p className="text-center text-xs text-gray-500 font-medium">
+                  <Shield className="w-4 h-4 inline mr-1 text-green-500" />
+                  Secure Payment • 100% Refundable Deposit
+                </p>
+              </div>
             </div>
           </div>
         </div>
