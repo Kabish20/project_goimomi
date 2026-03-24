@@ -415,7 +415,7 @@ const Navbar = () => {
         isOpen={isAdminLoginOpen}
         onClose={() => setIsAdminLoginOpen(false)}
       />
-    </header >
+    </header>
   );
 };
 
