@@ -10,7 +10,8 @@ import sourcingImg from "../assets/images/sourcing.png";
 const Canton = () => {
   usePageSEO(
     "Canton Fair 2026 | Register Now with Goimomi Holidays",
-    "Join the Canton Fair 2026 with Goimomi Holidays. Complete travel solutions including registration, hotel bookings, and guided tours for the world's largest trade fair."
+    "Join the Canton Fair 2026 with Goimomi Holidays. Complete travel solutions including registration, hotel bookings, and guided tours for the world's largest trade fair.",
+    cantonHero
   );
   const [activeAccordion, setActiveAccordion] = useState(null);
   // const navigate = useNavigate(); // Assuming useNavigate is needed later, but not provided in the full context to import.
