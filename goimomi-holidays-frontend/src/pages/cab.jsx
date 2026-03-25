@@ -5,7 +5,7 @@ import SearchableSelect from "../components/admin/SearchableSelect";
 import CabCruiseForm from "../components/CabCruiseForm";
 import CabTermsModal from "../components/CabTermsModal";
 import CabPrivacyModal from "../components/CabPrivacyModal";
-import cabSearchBg from "../assets/Hero/cab_search_bg_v4.jpg";
+import cabSearchBg from "@/assets/Hero/cab_search_bg_v4.jpg";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import usePageSEO from "../hooks/usePageSEO";
@@ -231,6 +231,25 @@ const Cab = () => {
           }}
         >
           <div className="w-full max-w-6xl z-10 -mt-8">
+            {/* New Service Advertisement Banner */}
+            <div className="mb-4 overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl group/ad">
+              <div className="flex items-center py-3 px-6 cursor-default overflow-hidden">
+                <div className="flex-shrink-0 bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter mr-4 z-10 shadow-lg animate-pulse-slow">
+                  New Update
+                </div>
+                <div className="flex-1 overflow-hidden pointer-events-none relative h-full flex items-center">
+                  <div className="animate-marquee w-max group-hover/ad:[animation-play-state:paused] pointer-events-auto">
+                    <p className="text-white text-xs md:text-sm font-bold tracking-wide whitespace-nowrap pr-24 flex items-center">
+                      🚀 Now providing premium cab transfers in <span className="text-yellow-400 mx-1">Jeddah</span>, <span className="text-yellow-400 mx-1">Makkah</span>, <span className="text-yellow-400 mx-1">Madinah</span>, and <span className="text-yellow-400 mx-1">Taif</span>. Book your spiritual journey with comfort!
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                      🚀 Now providing premium cab transfers in <span className="text-yellow-400 mx-1">Jeddah</span>, <span className="text-yellow-400 mx-1">Makkah</span>, <span className="text-yellow-400 mx-1">Madinah</span>, and <span className="text-yellow-400 mx-1">Taif</span>. Book your spiritual journey with comfort!
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="flex mb-[-1px] relative z-20">
               <div className="bg-white px-6 py-2.5 rounded-t-xl font-bold text-[#14532d] flex items-center gap-2 shadow-sm border-b-2 border-white text-sm">
                 Transfers

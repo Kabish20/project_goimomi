@@ -70,7 +70,16 @@ class Enquiry(models.Model):
     phone = models.CharField(max_length=20)
     destination = models.CharField(max_length=200, blank=True, null=True)
     purpose = models.TextField(blank=True, null=True)
-    enquiry_type = models.CharField(max_length=50, default="General") # General, Cab, Cruise
+    enquiry_type = models.CharField(
+        max_length=50, 
+        choices=[
+            ('General', 'General'), 
+            ('Cab', 'Cab'), 
+            ('Cruise', 'Cruise'), 
+            ('Business Trip', 'Business Trip')
+        ], 
+        default="General"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -81,7 +90,7 @@ class HolidayPackage(models.Model):
     
     category = models.CharField(
         max_length=20,
-        choices=[('Domestic', 'Domestic'), ('International', 'International'), ('Umrah', 'Umrah')],
+        choices=[('Domestic', 'Domestic'), ('International', 'International'), ('Umrah', 'Umrah'), ('Business Trip', 'Business Trip')],
         default='Domestic'
     )
     

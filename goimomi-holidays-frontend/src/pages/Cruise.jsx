@@ -36,6 +36,12 @@ const Cruise = () => {
 
   // No stationary fleet array anymore - using dynamic calendarData
 
+  const handleScheduleClick = (row, month, date) => {
+    const formattedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+    setSelectedCruise(`Enquiry for ${row.cruise_type} (${row.itinerary}) - Sailing Date: ${date} ${formattedMonth}`);
+    setIsFormOpen(true);
+  };
+
   return (
     <div className="bg-gray-50">
 
@@ -80,36 +86,78 @@ const Cruise = () => {
       {/* Cruise Calendar Section */}
       <div className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4 uppercase tracking-tight">Sailing Schedule</h2>
+          <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-4 uppercase tracking-tight">CORDELIA CRUISES CALENDAR</h2>
           <p className="text-lg text-gray-600">Plan your voyage with our updated cruise calendar.</p>
         </div>
 
         {loadingCalendar ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#14532d]"></div>
           </div>
         ) : calendarData.length > 0 ? (
-          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-[#14532d] text-white">
-                <tr className="divide-x divide-white/10">
-                  <th className="py-5 px-6 text-left font-bold uppercase tracking-wider">Cruise Nights</th>
-                  <th className="py-5 px-6 text-left font-bold uppercase tracking-wider">Itinerary</th>
+          <div className="bg-white rounded-[1.5rem] shadow-xl overflow-hidden border border-gray-100 overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-[#14532d] text-white divide-x divide-white/5">
+                  <th className="py-4 px-6 text-left font-bold uppercase tracking-widest text-[9px] border-b border-white/10 min-w-[130px]">Cruise Nights</th>
+                  <th className="py-4 px-6 text-left font-bold uppercase tracking-widest text-[9px] border-b border-white/10 min-w-[150px]">Itinerary</th>
                   {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
-                    <th key={m} className="py-5 px-3 text-center font-bold uppercase tracking-wider">{m}</th>
+                    <th key={m} className="py-4 px-2 text-center font-bold uppercase tracking-widest text-[9px] border-b border-white/10 min-w-[100px]">{m}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-50">
                 {calendarData.map((row, idx) => (
-                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-green-50/50 transition-colors divide-x divide-gray-100`}>
-                    <td className="py-4 px-6 font-bold text-gray-900 whitespace-nowrap">{row.cruise_type}</td>
-                    <td className="py-4 px-6 text-gray-600 font-medium">{row.itinerary}</td>
-                    {['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].map(m => (
-                      <td key={m} className="py-4 px-3 text-center text-green-700 font-bold">
-                        {row[m] || "-"}
-                      </td>
-                    ))}
+                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'} hover:bg-green-50/30 transition-all duration-300 divide-x divide-gray-100`}>
+                    <td className="py-3 px-6">
+                      <div className="font-black text-[#14532d] text-xs uppercase tracking-tight">{row.cruise_type}</div>
+                    </td>
+                    <td className="py-3 px-6">
+                      <div className="text-gray-500 font-medium text-[11px] leading-tight">{row.itinerary}</div>
+                    </td>
+                    {['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'].map((m, mIdx) => {
+                      const now = new Date();
+                      const currentMonthIdx = now.getMonth(); // 0-11
+                      const today = now.getDate();
+
+                      return (
+                        <td key={m} className="py-3 px-2 text-center bg-transparent">
+                          <div className="flex flex-row flex-wrap items-center justify-center gap-1 min-h-[30px] px-1">
+                            {row[m] && row[m] !== "-" ? (
+                              row[m].split(',').map((dateStr, dIdx) => {
+                                const day = parseInt(dateStr.trim());
+                                const isPast = mIdx < currentMonthIdx || (mIdx === currentMonthIdx && day < today);
+
+                                return isPast ? (
+                                  <div
+                                    key={dIdx}
+                                    className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-red-500 bg-red-50 rounded-lg border border-red-100/50 cursor-not-allowed relative group"
+                                  >
+                                    {day}
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full border border-white"></span>
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-red-600 text-white text-[8px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">
+                                      Vacation Completed
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    key={dIdx}
+                                    onClick={() => handleScheduleClick(row, m, dateStr.trim())}
+                                    className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[11px] font-black text-[#14532d] bg-[#f0fdf4] hover:bg-[#14532d] hover:text-white rounded-lg transition-all duration-300 shadow-sm border border-green-100 relative group/btn"
+                                    title={`Enquire for ${dateStr.trim()} ${m.toUpperCase()}`}
+                                  >
+                                    {day}
+                                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#14532d] group-hover/btn:w-1/2 transition-all duration-300 rounded-full"></span>
+                                  </button>
+                                );
+                              })
+                            ) : (
+                              <span className="text-gray-200 font-light">—</span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>

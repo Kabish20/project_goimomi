@@ -671,7 +671,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
   // ===================== FILTERED LIST =====================
   const filtered = packages.filter((pkg) => {
     if (!pkg) return false;
-    const categoryMatch = category ? pkg.category === category : true;
+    const categoryMatch = category ? pkg.category?.toLowerCase() === category.toLowerCase() : true;
 
     // Destination match
     const destinationMatch = !destination ? true : (

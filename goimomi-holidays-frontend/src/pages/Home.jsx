@@ -8,12 +8,21 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
+import { motion, AnimatePresence } from "framer-motion";
 
-import hero1 from "../assets/Hero/sunset.png";
-import hero2 from "../assets/Hero/bluesea.png";
-import hero4 from "../assets/Hero/stone.png";
-import hero5 from "../assets/mountain.png";
-import hero6 from "../assets/turkey.png";
+import biz1 from "../assets/Business/biz1.jpeg";
+import biz2 from "../assets/Business/biz2.jpeg";
+import biz3 from "../assets/Business/biz3.jpeg";
+import biz4 from "../assets/Business/biz4.jpeg";
+import biz5 from "../assets/Business/biz5.jpeg";
+
+const businessImages = [biz1, biz2, biz3, biz4, biz5];
+
+import leisure1 from "../assets/Hero/leisure1.jpeg";
+import leisure2 from "../assets/Hero/leisure2.jpeg";
+import leisure3 from "../assets/Hero/leisure3.jpeg";
+import leisure4 from "../assets/Hero/leisure4.jpeg";
+import leisure5 from "../assets/Hero/leisure5.jpeg";
 
 // POPULAR DESTINATIONS
 import maldives from "../assets/PopularDestinations/maldives.png";
@@ -206,35 +215,212 @@ const Home = () => {
 
   return (
     <div className="w-full overflow-hidden bg-white">
-      {/* ---------------- HERO SLIDER ---------------- */}
-      <section className="relative w-full h-[520px]">
-        <Swiper
-          modules={[Pagination, Autoplay]}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
-          pagination={{ clickable: true }}
-          loop={true}
-          className="w-full h-full"
-        >
-          {[hero1, hero2, hero4, hero5, hero6].map((img, index) => (
-            <SwiperSlide key={index}>
-              <div
-                className="w-full h-[520px] bg-cover bg-center"
-                style={{ backgroundImage: `url(${img})` }}
+      {/* ---------------- SECTION 1: PREMIUM SPLIT HERO ---------------- */}
+      <section className="relative w-full h-[650px] overflow-hidden bg-black group selection:bg-[#14532d]/30">
+        <div className="absolute inset-0 flex flex-col md:flex-row">
+          
+          {/* Business Travel Side */}
+          <motion.div 
+            initial={{ width: "50%" }}
+            whileHover={{ width: "65%" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} // Epic ease
+            className="relative h-1/2 md:h-full overflow-hidden"
+          >
+            <div className="absolute inset-0 animate-slowZoom">
+              <Swiper
+                modules={[Autoplay]}
+                autoplay={{ delay: 4000, disableOnInteraction: false }}
+                loop={true}
+                className="w-full h-full"
               >
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <div className="bg-white/40 backdrop-blur-md px-10 py-8 rounded-xl shadow-lg text-center fade-up">
-                    <h1 className="text-5xl font-bold text-[#14532d]">
-                      {heroContent[index].title}
-                    </h1>
-                    <p className="mt-3 text-lg text-gray-800">
-                      {heroContent[index].subtitle}
-                    </p>
-                  </div>
+                {businessImages.map((img, i) => (
+                  <SwiperSlide key={i}>
+                    <div 
+                      className="w-full h-full bg-cover bg-center shadow-inner transition-all duration-1000"
+                      style={{ backgroundImage: `url(${img})` }}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+            
+            <div className="absolute bottom-12 left-12 z-20 md:block hidden">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5, duration: 1 }}
+              >
+                <div className="flex items-center gap-2 text-white/80 mb-2">
+                  <span className="w-10 h-[1px] bg-white/50" />
+                  <span className="text-[10px] uppercase tracking-[0.3em] font-medium">Elevate Your Strategy</span>
                 </div>
+                <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
+                  Business<br />Travel
+                </h2>
+                <button 
+                  onClick={() => navigate('/holidays?category=Business Trip')}
+                  className="px-8 py-3 bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all transform active:scale-95 shadow-2xl"
+                >
+                  Explore Corporate
+                </button>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Leisure Travel Side */}
+          <motion.div 
+            initial={{ width: "50%" }}
+            whileHover={{ width: "65%" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="relative h-1/2 md:h-full overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-[#0f172a]/20 z-10" />
+            <div className="absolute inset-0 animate-slowZoom">
+              <Swiper
+                modules={[Autoplay]}
+                autoplay={{ delay: 4000, disableOnInteraction: false }}
+                loop={true}
+                className="w-full h-full"
+              >
+                {[leisure1, leisure2, leisure3, leisure4, leisure5].map((img, i) => (
+                  <SwiperSlide key={i}>
+                    <div 
+                      className="w-full h-full bg-cover bg-center transition-all duration-1000"
+                      style={{ backgroundImage: `url(${img})` }}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+
+            <div className="absolute bottom-12 right-12 z-20 text-right md:block hidden">
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5, duration: 1 }}
+              >
+                <div className="flex items-center justify-end gap-2 text-white/80 mb-2">
+                  <span className="text-[10px] uppercase tracking-[0.3em] font-medium">Curated Global Holidays</span>
+                  <span className="w-10 h-[1px] bg-white/50" />
+                </div>
+                <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
+                  Leisure<br />Travel
+                </h2>
+                <button 
+                  onClick={() => navigate('/holidays?category=International')}
+                  className="px-8 py-3 bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all transform active:scale-95 shadow-2xl"
+                >
+                  Plan A Holiday
+                </button>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+        
+        {/* smokey divider effect */}
+        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-48 z-20 pointer-events-none hidden md:block">
+          <div className="w-full h-full bg-gradient-to-r from-transparent via-black/40 to-transparent blur-3xl opacity-80" />
+          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[2px] h-full bg-gradient-to-b from-transparent via-white/20 to-transparent blur-sm" />
+        </div>
+
+        {/* Central Vertical Logo/Callout */}
+        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="text-center px-4 md:px-0"
+          >
+            <div className="px-6 md:px-10 py-6 md:py-8">
+              <motion.span 
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="block text-[10px] md:text-[11px] uppercase tracking-[0.4em] text-white font-black mb-3"
+              >
+                The Future of Journeys
+              </motion.span>
+              <h1 className="text-3xl md:text-5xl font-black text-white leading-[0.9] tracking-tighter mb-4">
+                Travel That<br />
+                <span className="text-[#22c55e]">Grows You.</span>
+              </h1>
+              <p className="text-xs md:text-sm font-medium text-white/70 max-w-sm mx-auto leading-relaxed mb-6 md:block hidden">
+                Strategic Business Travel & Curated Global Holidays.<br />
+                Integrated for the modern high-performer.
+              </p>
+              
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4 pointer-events-auto">
+                <button 
+                  onClick={() => navigate('/holidays?category=Business Trip')}
+                  className="w-full md:w-auto px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-[#14532d] transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
+                >
+                   Business Travel 
+                </button>
+                <button 
+                  onClick={() => navigate('/holidays?category=International')}
+                  className="w-full md:w-auto px-8 py-4 bg-white text-[#14532d] text-[10px] font-black uppercase tracking-widest hover:bg-green-50 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
+                >
+                  Plan a Holiday
+                </button>
               </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ---------------- SECTION 2: CHOOSE YOUR JOURNEY ---------------- */}
+      <section className="relative py-16 px-6 overflow-hidden bg-slate-50/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-10 text-center">
+            <h2 className="text-[10px] uppercase tracking-[0.4em] text-[#14532d] font-black mb-1">Dual Expertise</h2>
+            <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Choose Your Journey</h3>
+          </div>
+                   <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto overflow-hidden">
+            
+            {/* Business Block */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden"
+              onClick={() => navigate('/holidays?category=Business Trip')}
+            >
+              <div className="absolute top-4 right-4 bg-orange-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
+                Trending
+              </div>
+              <div className="mb-4 p-3.5 bg-slate-50 rounded-xl w-fit group-hover:bg-white/10 transition-colors">
+                <span className="text-3xl">💼</span>
+              </div>
+              <h4 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Business Travel</h4>
+              <p className="text-slate-500 mb-4 text-[13px] leading-snug group-hover:text-white/80 line-clamp-2">
+                Optimized itineraries for corporate efficiency and seamless professional logistics.
+              </p>
+              <div className="flex items-center gap-3 text-slate-900 font-bold uppercase tracking-widest text-[9px] group-hover:text-white cursor-pointer">
+                <span>[ Explore Business ]</span>
+                <div className="w-8 h-[1.5px] bg-slate-900 group-hover:bg-white transition-all group-hover:w-12" />
+              </div>
+            </motion.div>
+ 
+            {/* Leisure Block */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden"
+              onClick={() => navigate('/holidays?category=International')}
+            >
+              <div className="absolute top-4 right-4 bg-blue-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
+                Popular
+              </div>
+              <div className="mb-4 p-3.5 bg-slate-50 rounded-xl w-fit group-hover:bg-white/10 transition-colors">
+                <span className="text-3xl">🌴</span>
+              </div>
+              <h4 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Leisure Travel</h4>
+              <p className="text-slate-500 mb-4 text-[13px] leading-snug group-hover:text-white/80 line-clamp-2">
+                Curated global holidays that rejuvenate the soul with luxury retreats and hidden gems.
+              </p>
+              <div className="flex items-center gap-3 text-slate-900 font-bold uppercase tracking-widest text-[9px] group-hover:text-white cursor-pointer">
+                <span>[ Explore Holidays ]</span>
+                <div className="w-8 h-[1.5px] bg-slate-900 group-hover:bg-white transition-all group-hover:w-12" />
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* ---------------- POPULAR DESTINATIONS ---------------- */}
@@ -246,42 +432,73 @@ const Home = () => {
           Discover amazing places around the world
         </p>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 max-w-7xl mx-auto px-4">
           {[
             { img: thailandOffer, title: "Bangkok", region: "SOUTH EAST ASIA", country: "Thailand", category: "International" },
             { img: keralaOffer, title: "Kerala", region: "SOUTH ASIA", country: "India", category: "Domestic" },
             { img: bali, title: "Bali", region: "SOUTH EAST ASIA", country: "Indonesia", category: "International" },
-            { img: dubai, title: "Dubai", region: "MIDDLE EAST", country: "United Arab Emirates", category: "International" },
+            { img: dubaiOffer, title: "UAE", region: "MIDDLE EAST", country: "UAE", category: "International" },
             { img: singapore, title: "Singapore", region: "SOUTH EAST ASIA", country: "Singapore", category: "International" },
             { img: paris, title: "Paris", region: "EUROPE", country: "France", category: "International" }
           ].map((item, i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className="relative h-[300px] rounded-2xl overflow-hidden group border border-white/5 shadow-2xl fade-up cursor-pointer bg-slate-900"
+              style={{ animationDelay: `${i * 0.05}s` }}
+              onClick={() => navigate(`/holidays?category=${item.category}`, { state: { filter: item.title } })}
             >
-              <div className="relative h-48 overflow-hidden">
+              {/* Background Image with Neutral Overlay */}
+              <div className="absolute inset-0 z-0">
                 <img
                   src={item.img}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
                   alt={item.title}
                 />
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black uppercase text-[#14532d] shadow-sm tracking-widest">
-                  {item.country}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black transition-all duration-500" />
+              </div>
+
+              {/* Unique Vertical Accent */}
+              <div className="absolute top-4 left-0 w-1.5 h-10 bg-[#14532d] z-10 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.5)]" />
+
+              {/* Top Badge */}
+              <div className="absolute top-4 right-4 z-20">
+                <div className="bg-black/40 backdrop-blur-xl border border-white/10 px-3 py-1 rounded-lg">
+                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">
+                    {item.country}
+                  </span>
                 </div>
               </div>
-              <div className="p-5 space-y-1">
-                <h3 className="text-xl font-bold text-gray-900 tracking-tight">{item.title}</h3>
-                <p className="text-[13px] text-gray-500 italic mt-0 mb-2">
-                  {item.region}, {item.country}
-                </p>
-                <div className="pt-3">
-                  <button
-                    onClick={() => navigate(`/holidays?category=${item.category}`, { state: { filter: item.title } })}
-                    className="w-full bg-[#14532d] text-white py-3 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-[#0f4a24] transition-all transform active:scale-95 shadow-lg shadow-green-900/10"
-                  >
-                    View Packages
-                  </button>
+
+              {/* Floating Content Card */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                <div className="relative p-4 rounded-xl border border-white/10 bg-black/40 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-5px] group-hover:bg-black/60 shadow-2xl">
+                  {/* Glowing Accent */}
+                  <div className="absolute -top-[1px] left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="flex justify-between items-center mb-2">
+                    <div>
+                      <p className="text-[7px] uppercase tracking-widest text-green-400 font-bold mb-0.5">{item.region}</p>
+                      <h3 className="text-lg font-black text-white uppercase tracking-tighter leading-none italic">
+                        {item.title}
+                      </h3>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-[#14532d] transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(20,83,45,0.4)]">
+                      <Zap className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
+                    <div className="overflow-hidden">
+                      <p className="text-white/50 text-[9px] mb-3 leading-tight line-clamp-1">
+                        Experience the magic of {item.title}.
+                      </p>
+                      <button 
+                        className="w-full py-2 bg-white text-black font-black uppercase text-[9px] tracking-[0.1em] rounded-lg hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
+                      >
+                        Explore Now
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -290,44 +507,88 @@ const Home = () => {
       </section>
 
       {/* ---------------- SPECIAL OFFERS ---------------- */}
-      <section className="py-16 px-6 bg-gray-50">
-        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
-          Special Offers
-        </h2>
-        <p className="text-center text-gray-600 mt-2 fade-up">
-          Limited time deals you don't want to miss
-        </p>
+      <section className="py-20 px-6 bg-slate-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-black text-[#14532d] uppercase tracking-tighter fade-up">
+              Special Offers
+            </h2>
+            <div className="w-20 h-1 bg-[#14532d] mx-auto mt-4 rounded-full fade-up" />
+            <p className="text-gray-500 mt-4 font-medium fade-up">
+              Exclusive limited-time deals curated for you
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-10 max-w-7xl mx-auto">
-          {[
-            { img: dubaiOffer, discount: "15% OFF", title: "Dubai Dream Getaway" },
-            { img: keralaOffer, discount: "10% OFF", title: "Kerala Backwaters Bliss" },
-            { img: europeOffer, discount: "20% OFF", title: "Europe Grand Tour Early Bird" },
-            { img: thailandOffer, discount: "25% OFF", title: "Thailand Island Paradise" },
-            { img: switzerlandOffer, discount: "18% OFF", title: "Swiss Alps Winter Wonderland" },
-            { img: maldivesOffer, discount: "30% OFF", title: "Maldives Luxury Villa Escape" }
-          ].map((offer, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden border fade-up zoom-hover"
-              style={{ animationDelay: `${i * 0.2}s` }}
-            >
-              <div className="relative">
-                <img src={offer.img} className="h-40 w-full object-cover" />
-                <span className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                  {offer.discount}
-                </span>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
+            {[
+              { img: dubaiOffer, discount: "15% OFF", title: "Dubai Dream Getaway", category: "LUXURY TOUR" },
+              { img: keralaOffer, discount: "10% OFF", title: "Kerala Backwaters Bliss", category: "WELLNESS" },
+              { img: europeOffer, discount: "20% OFF", title: "Europe Grand Tour", category: "SIGHTSEEING" },
+              { img: thailandOffer, discount: "25% OFF", title: "Thailand Island Paradise", category: "ADVENTURE" },
+              { img: switzerlandOffer, discount: "18% OFF", title: "Swiss Alps Wonderland", category: "NATURE" },
+              { img: maldivesOffer, discount: "30% OFF", title: "Maldives Luxury Escape", category: "HONEYMOON" }
+            ].map((offer, i) => (
+              <div
+                key={i}
+                className="relative h-[320px] rounded-3xl overflow-hidden group border border-white/5 shadow-2xl fade-up cursor-pointer bg-slate-900"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                {/* Background Image with Neutral Overlay */}
+                <div className="absolute inset-0 z-0">
+                  <img
+                    src={offer.img}
+                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
+                    alt={offer.title}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black/90 transition-all duration-500" />
+                </div>
 
-              <div className="p-3 space-y-2">
-                <h3 className="text-base font-semibold">{offer.title}</h3>
-                <p className="text-gray-600 text-sm">Exclusive holiday offer curated for you...</p>
-                <button className="bg-[#14532d] text-white w-full py-2 rounded-lg font-semibold">
-                  Book Now
-                </button>
+                {/* Theme Accent Line */}
+                <div className="absolute top-6 left-0 w-1.5 h-12 bg-[#14532d] z-10 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.6)]" />
+
+                {/* Promo Badge */}
+                <div className="absolute top-6 right-6 z-20">
+                  <div className="bg-red-600/90 backdrop-blur-md border border-red-500/30 px-3 py-1.5 rounded-xl shadow-lg transform group-hover:scale-110 transition-transform">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white italic">
+                      {offer.discount}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Floating Content Card */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+                  <div className="relative p-4 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-8px] group-hover:bg-black/60 shadow-2xl">
+                    <div className="absolute -top-[1px] left-8 right-8 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="flex justify-between items-center mb-2">
+                      <div>
+                        <p className="text-[8px] uppercase tracking-widest text-green-400 font-bold mb-1">{offer.category}</p>
+                        <h3 className="text-xl font-black text-white uppercase tracking-tighter leading-none italic">
+                          {offer.title}
+                        </h3>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-[#14532d] transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(20,83,45,0.5)]">
+                        <Zap className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
+                      <div className="overflow-hidden">
+                        <p className="text-white/50 text-xs mb-4 leading-tight">
+                          Limited availability for this {offer.title.toLowerCase()}.
+                        </p>
+                        <button 
+                          className="w-full py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
+                        >
+                          Unlock Offer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -389,38 +650,72 @@ const Home = () => {
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-8 mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
             {[
-              { img: dubaiVisa, title: "Dubai Visa", price: "Starting ₹6,500", country: "United Arab Emirates" },
-              { img: saudiVisa, title: "Saudi Arabia Visa", price: "Starting ₹12,000", country: "Kingdom of Saudi Arabia" },
-              { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "Starting ₹4,500", country: "Azerbaijan" },
-              { img: thailandOffer, title: "Thailand Visa", price: "Starting ₹3,200", country: "Thailand" },
-              { img: singaporeVisa, title: "Singapore Visa", price: "Starting ₹2,800", country: "Singapore" },
-              { img: vietnamVisa, title: "Vietnam Visa", price: "Starting ₹3,500", country: "Vietnam" }
+              { img: dubaiVisa, title: "Dubai Visa", price: "₹6,500", country: "United Arab Emirates", category: "PRIORITY" },
+              { img: saudiVisa, title: "Saudi Arabia Visa", price: "₹12,000", country: "Saudi Arabia", category: "FAST-TRACK" },
+              { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "₹4,500", country: "Azerbaijan", category: "E-VISA" },
+              { img: thailandOffer, title: "Thailand Visa", price: "₹3,200", country: "Thailand", category: "E-VISA" },
+              { img: singaporeVisa, title: "Singapore Visa", price: "₹2,800", country: "Singapore", category: "E-VISA" },
+              { img: vietnamVisa, title: "Vietnam Visa", price: "₹3,500", country: "Vietnam", category: "E-VISA" }
             ].map((item, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover"
-                style={{ animationDelay: `${i * 0.2}s` }}
+                className="relative h-[320px] rounded-3xl overflow-hidden group border border-white/5 shadow-2xl fade-up cursor-pointer bg-slate-900"
+                style={{ animationDelay: `${i * 0.1}s` }}
+                onClick={() => navigate('/visa')}
               >
-                <div className="relative">
-                  <div className="relative h-40 overflow-hidden">
-                    <img src={item.img} className="h-full w-full object-cover transition-transform duration-500 hover:scale-110" />
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
-                      <span className="text-xs font-bold text-[#14532d]">{item.country}</span>
-                    </div>
+                {/* Background Image with Neutral Overlay */}
+                <div className="absolute inset-0 z-0">
+                  <img
+                    src={item.img}
+                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
+                    alt={item.title}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black transition-all duration-500" />
+                </div>
+
+                {/* Theme Accent Line */}
+                <div className="absolute top-6 left-0 w-1.5 h-12 bg-[#14532d] z-10 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.6)]" />
+
+                {/* Country Badge */}
+                <div className="absolute top-6 right-6 z-20">
+                  <div className="bg-black/40 backdrop-blur-xl border border-white/10 px-3 py-1 rounded-xl">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white italic">
+                      {item.country}
+                    </span>
                   </div>
                 </div>
-                <div className="p-4 space-y-2">
-                  <h3 className="text-lg font-bold text-gray-800">{item.title}</h3>
-                  <div className="flex items-center justify-between pt-2">
-                    <p className="font-bold text-xl text-[#14532d]">{item.price}</p>
-                    <Link
-                      to="/visa"
-                      className="bg-[#14532d] text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-[#0f4a24] transition-all shadow-md active:scale-95"
-                    >
-                      Apply Now
-                    </Link>
+
+                {/* Floating Content Card */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+                  <div className="relative p-4 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-8px] group-hover:bg-black/60 shadow-2xl">
+                    <div className="absolute -top-[1px] left-8 right-8 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="flex justify-between items-center mb-2">
+                      <div>
+                        <p className="text-[8px] uppercase tracking-widest text-green-400 font-bold mb-1">{item.category}</p>
+                        <h3 className="text-xl font-black text-white uppercase tracking-tighter leading-none italic">
+                          {item.title}
+                        </h3>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-[#14532d] transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(20,83,45,0.5)]">
+                        <Zap className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
+                      <div className="overflow-hidden">
+                        <p className="text-white font-bold text-lg mb-4">
+                          Starting at <span className="text-[#14532d] bg-white px-2 py-0.5 rounded-lg">{item.price}</span>
+                        </p>
+                        <button 
+                          className="w-full py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
+                        >
+                          Apply Now
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
