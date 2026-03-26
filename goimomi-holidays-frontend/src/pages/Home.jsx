@@ -244,6 +244,7 @@ const Home = () => {
               </Swiper>
             </div>
 
+
             <div className="absolute bottom-12 left-12 z-20 md:block hidden">
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
@@ -254,11 +255,14 @@ const Home = () => {
                   <span className="w-10 h-[1px] bg-white/50" />
                   <span className="text-[10px] uppercase tracking-[0.3em] font-medium">Elevate Your Strategy</span>
                 </div>
-                <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
+                <h2 
+                  className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-4 cursor-pointer"
+                  onClick={() => navigate('/businesshome')}
+                >
                   Business<br />Travel
                 </h2>
                 <button
-                  onClick={() => navigate('/holidays?category=Business Travel')}
+                  onClick={() => navigate('/businesshome')}
                   className="px-8 py-3 bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all transform active:scale-95 shadow-2xl"
                 >
                   Explore Corporate
@@ -350,7 +354,7 @@ const Home = () => {
 
               <div className="flex flex-col md:flex-row items-center justify-center gap-4 pointer-events-auto">
                 <button
-                  onClick={() => navigate('/holidays?category=Business Travel')}
+                  onClick={() => navigate('/businesshome')}
                   className="w-full md:w-56 px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-[#14532d] transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
                 >
                   Business Travel
@@ -379,8 +383,8 @@ const Home = () => {
             {/* Business Block */}
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden"
-              onClick={() => navigate('/holidays?category=Business Travel')}
+              className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              onClick={() => navigate('/businesshome')}
             >
               <div className="absolute top-4 right-4 bg-orange-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
                 Trending

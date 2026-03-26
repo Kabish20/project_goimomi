@@ -32,6 +32,7 @@ import HolidayHome from "./pages/holidayhome.jsx";
 
 
 import PackageEnquiryPage from "./pages/PackageEnquiryPage.jsx";
+import BusinessHome from "./pages/businesshome.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import DestinationAdd from "./pages/admin/DestinationAdd.jsx";
 import DestinationManage from "./pages/admin/DestinationManage.jsx";
@@ -134,6 +135,7 @@ const App = () => {
           <Route path="/contactus" element={<Contact />} />
           <Route path="/contact/success" element={<ContactSuccess />} />
           <Route path="/holidayhome" element={<HolidayHome />} />
+          <Route path="/businesshome" element={<BusinessHome />} />
           <Route path="/holidays" element={<Holidays />} />
 
           <Route path="/customizedHolidays" element={<CustomizedHolidays />} />
