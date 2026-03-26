@@ -145,7 +145,7 @@ const AdminDashboard = () => {
       // Sort enquiries by ID (most recent first) and take latest 5
       const sortedEnquiries = allEnquiries
         .sort((a, b) => (b.id || 0) - (a.id || 0))
-        .slice(0, 5);
+        .slice(0, 10);
 
       setRecentEnquiries(sortedEnquiries);
       // setLastUpdated(new Date());
@@ -316,55 +316,59 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Recent Enquiries */}
-              <div className="bg-white rounded-xl shadow-md p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-black uppercase tracking-wider">Recent Enquiries</h3>
+              {/* Recent Enquiries Container - Minimized Compact UI */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="flex justify-between items-center mb-4 px-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-6 bg-[#14532d] rounded-full"></div>
+                    <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tighter uppercase italic">Recent Enquiries</h3>
+                  </div>
                   <button
                     onClick={fetchDashboardData}
-                    className="text-sm bg-[#14532d] text-white px-3 py-1 rounded hover:bg-[#0f4a24]"
+                    className="flex items-center gap-1.5 bg-[#14532d] hover:bg-slate-900 text-white px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] transition-all hover:shadow-lg active:scale-95 shadow-md shadow-green-900/5"
                   >
+                    <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
                     Refresh
                   </button>
                 </div>
 
                 {recentEnquiries.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-gray-50/50">
-                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Name</th>
-                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Type</th>
-                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Email</th>
-                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Phone</th>
-                          <th className="text-left py-2 px-2 uppercase text-sm font-medium tracking-widest text-gray-400">Purpose</th>
-                          <th className="py-2 px-2 text-center uppercase text-sm font-medium tracking-widest text-gray-400">Action</th>
+                  <div className="overflow-x-auto custom-scrollbar max-h-[450px] overflow-y-auto pr-1">
+                    <table className="w-full text-sm border-separate border-spacing-y-1.5">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="text-slate-400">
+                          <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Name</th>
+                          <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Type</th>
+                          <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Email</th>
+                          <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Phone</th>
+                          <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Purpose</th>
+                          <th className="py-2 px-3 text-center uppercase text-[9px] font-black tracking-[0.2em] bg-white">Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {recentEnquiries.map((enquiry) => (
-                          <tr key={`${enquiry.type}-${enquiry.id}`} className="border-b hover:bg-gray-50 transition-colors">
-                            <td className="py-2 px-2 font-bold text-xs">{getEnquiryName(enquiry)}</td>
-                            <td className="py-2 px-2">
-                              <span className={`px-2 py-0.5 text-[8px] font-black rounded uppercase ${enquiry.type === 'Holiday' ? 'bg-green-50 text-green-700 border border-green-100' :
-                                enquiry.type === 'Umrah' ? 'bg-purple-50 text-purple-700 border border-purple-100' :
-                                  enquiry.type === 'Cab' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                                    enquiry.type === 'Cruise' ? 'bg-sky-50 text-sky-700 border border-sky-100' :
-                                      enquiry.type === 'Hotel' ? 'bg-green-50 text-green-700 border border-green-100' :
-                                          'bg-blue-50 text-blue-700 border border-blue-100'
+                          <tr key={`${enquiry.type}-${enquiry.id}`} className="group bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/40 transition-all duration-300 rounded-xl overflow-hidden">
+                            <td className="py-2.5 px-3 font-black text-slate-900 text-[10px] uppercase tracking-tight rounded-l-xl border-y border-l border-slate-50/50 group-hover:border-slate-100">{getEnquiryName(enquiry)}</td>
+                            <td className="py-2.5 px-3 border-y border-slate-50/50 group-hover:border-slate-100">
+                              <span className={`px-2 py-0.5 text-[7px] font-black rounded-md uppercase border border-white shadow-sm ${enquiry.type === 'Holiday' ? 'bg-green-50 text-green-700' :
+                                enquiry.type === 'Umrah' ? 'bg-purple-50 text-purple-700' :
+                                  enquiry.type === 'Cab' ? 'bg-amber-50 text-amber-700' :
+                                    enquiry.type === 'Cruise' ? 'bg-sky-50 text-sky-700' :
+                                      enquiry.type === 'Hotel' ? 'bg-emerald-50 text-emerald-700' :
+                                          'bg-blue-50 text-blue-700'
                                 }`}>
                                 {enquiry.type}
                               </span>
                             </td>
-                            <td className="py-2 px-2 text-xs text-gray-600">{enquiry.email || 'N/A'}</td>
-                            <td className="py-2 px-2 text-xs text-gray-600">{enquiry.phone || 'N/A'}</td>
-                            <td className="py-2 px-2 text-[10px] text-gray-500 italic max-w-[150px] truncate">
-                              {getEnquiryPurpose(enquiry.purpose)}
+                            <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{enquiry.email || 'N/A'}</td>
+                            <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{enquiry.phone || 'N/A'}</td>
+                            <td className="py-2.5 px-3 text-[9px] font-bold text-slate-400 italic max-w-[150px] truncate border-y border-slate-50/50 group-hover:border-slate-100">
+                              {getEnquiryPurpose(enquiry)}
                             </td>
-                            <td className="py-2 px-2 text-center">
+                            <td className="py-2.5 px-3 text-center rounded-r-xl border-y border-r border-slate-50/50 group-hover:border-slate-100">
                               <button
                                 onClick={() => setSelectedEnquiry(enquiry)}
-                                className="bg-[#14532d] hover:bg-[#0f4a24] text-white px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                className="bg-[#14532d] hover:bg-slate-900 text-white px-3.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-md shadow-green-900/5 active:scale-95"
                               >
                                 View
                               </button>
@@ -375,7 +379,9 @@ const AdminDashboard = () => {
                     </table>
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No recent enquiries found</p>
+                  <div className="py-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <p className="text-slate-400 font-black uppercase tracking-[0.3em] text-[9px]">No recent enquiries found</p>
+                  </div>
                 )}
               </div>
             </>

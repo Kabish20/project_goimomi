@@ -76,7 +76,7 @@ class Enquiry(models.Model):
             ('General', 'General'), 
             ('Cab', 'Cab'), 
             ('Cruise', 'Cruise'), 
-            ('Business Trip', 'Business Trip')
+            ('Business Travel', 'Business Travel')
         ], 
         default="General"
     )
@@ -90,7 +90,7 @@ class HolidayPackage(models.Model):
     
     category = models.CharField(
         max_length=20,
-        choices=[('Domestic', 'Domestic'), ('International', 'International'), ('Umrah', 'Umrah'), ('Business Trip', 'Business Trip')],
+        choices=[('Domestic', 'Domestic'), ('International', 'International'), ('Umrah', 'Umrah'), ('Business Travel', 'Business Travel')],
         default='Domestic'
     )
     

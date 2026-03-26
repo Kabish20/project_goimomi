@@ -141,7 +141,7 @@ const Navbar = () => {
               <span className="font-bold text-[11px] uppercase tracking-wide">Canton Fair</span>
             </NavLink>
 
-            {/* Business Trip Dropdown */}
+            {/* Business Travel Dropdown */}
             <div className="relative" ref={businessRef}>
               <button
                 type="button"
@@ -152,9 +152,9 @@ const Navbar = () => {
                   setDesktopHoliday(false);
                 }}
               >
-                <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Trip" className="w-9 h-9 mb-1 object-contain" />
+                <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-9 h-9 mb-1 object-contain" />
                 <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5">
-                  Business Trip
+                  Business Travel
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className={`h-3 w-3 transition-transform duration-300 ${desktopBusiness ? "rotate-180" : "rotate-0"}`}
@@ -169,11 +169,11 @@ const Navbar = () => {
               {desktopBusiness && (
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl">
                   <NavLink
-                    to="/holidays?category=Business Trip"
+                    to="/holidays?category=Business Travel"
                     onClick={() => setDesktopBusiness(false)}
                     className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
                   >
-                    Business Trip
+                    Business Travel
                   </NavLink>
                 </div>
               )}
@@ -205,6 +205,13 @@ const Navbar = () => {
 
               {desktopUmrah && (
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl">
+                  <NavLink
+                    to="/holidayhome"
+                    onClick={() => setDesktopUmrah(false)}
+                    className="block px-4 py-2 text-xs font-black text-[#14532d] hover:bg-goimomi-light text-left w-full uppercase tracking-widest border-b"
+                  >
+                    Umrah Packages
+                  </NavLink>
                   <NavLink
                     to="/holidays?category=Umrah"
                     onClick={() => setDesktopUmrah(false)}
@@ -257,6 +264,13 @@ const Navbar = () => {
               {/* Dropdown */}
               {desktopHoliday && (
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl">
+                  <NavLink
+                    to="/holidayhome"
+                    onClick={() => setDesktopHoliday(false)}
+                    className="block px-4 py-2 text-xs font-black text-[#14532d] hover:bg-goimomi-light text-left w-full uppercase tracking-widest border-b"
+                  >
+                    Holiday Packages
+                  </NavLink>
                   <NavLink
                     to="/holidays?category=Domestic"
                     onClick={() => setDesktopHoliday(false)}
@@ -393,8 +407,8 @@ const Navbar = () => {
                   className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition"
                 >
                   <span className="flex items-center gap-3">
-                    <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Trip" className="w-6 h-6 object-contain" />
-                    Business Trip
+                    <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-6 h-6 object-contain" />
+                    Business Travel
                   </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -407,8 +421,8 @@ const Navbar = () => {
                 </button>
                 {mobileBusiness && (
                   <div className="pl-6 space-y-2">
-                    <NavLink to="/holidays?category=Business Trip" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
-                      Business Trip
+                    <NavLink to="/holidays?category=Business Travel" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
+                      Business Travel
                     </NavLink>
                   </div>
                 )}
@@ -437,6 +451,9 @@ const Navbar = () => {
                 </button>
                 {mobileUmrah && (
                   <div className="pl-6 space-y-2">
+                    <NavLink to="/holidayhome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={() => setMobileOpen(false)}>
+                      Umrah Packages Home
+                    </NavLink>
                     <NavLink to="/holidays?category=Umrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
                       Umrah 
                     </NavLink>
@@ -470,6 +487,13 @@ const Navbar = () => {
                 </button>
                 {mobileHoliday && (
                   <div className="pl-6 space-y-2">
+                    <NavLink
+                      to="/holidayhome"
+                      className="flex items-center gap-3 py-1 pl-2 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b"
+                      onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+                    >
+                      Holiday Packages Home
+                    </NavLink>
                     <NavLink
                       to="/holidays?category=Domestic"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"

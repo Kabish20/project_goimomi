@@ -671,7 +671,11 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
   // ===================== FILTERED LIST =====================
   const filtered = packages.filter((pkg) => {
     if (!pkg) return false;
-    const categoryMatch = category ? pkg.category?.toLowerCase() === category.toLowerCase() : true;
+    const categoryMatch = !category ? true : (
+      pkg.category?.toLowerCase() === category.toLowerCase() ||
+      (category.toLowerCase() === 'business travel' && pkg.category?.toLowerCase() === 'business trip') ||
+      (category.toLowerCase() === 'business trip' && pkg.category?.toLowerCase() === 'business travel')
+    );
 
     // Destination match
     const destinationMatch = !destination ? true : (

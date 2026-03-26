@@ -218,9 +218,9 @@ const Home = () => {
       {/* ---------------- SECTION 1: PREMIUM SPLIT HERO ---------------- */}
       <section className="relative w-full h-[650px] overflow-hidden bg-black group selection:bg-[#14532d]/30">
         <div className="absolute inset-0 flex flex-col md:flex-row">
-          
+
           {/* Business Travel Side */}
-          <motion.div 
+          <motion.div
             initial={{ width: "50%" }}
             whileHover={{ width: "65%" }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} // Epic ease
@@ -235,7 +235,7 @@ const Home = () => {
               >
                 {businessImages.map((img, i) => (
                   <SwiperSlide key={i}>
-                    <div 
+                    <div
                       className="w-full h-full bg-cover bg-center shadow-inner transition-all duration-1000"
                       style={{ backgroundImage: `url(${img})` }}
                     />
@@ -243,7 +243,7 @@ const Home = () => {
                 ))}
               </Swiper>
             </div>
-            
+
             <div className="absolute bottom-12 left-12 z-20 md:block hidden">
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
@@ -257,8 +257,8 @@ const Home = () => {
                 <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
                   Business<br />Travel
                 </h2>
-                <button 
-                  onClick={() => navigate('/holidays?category=Business Trip')}
+                <button
+                  onClick={() => navigate('/holidays?category=Business Travel')}
                   className="px-8 py-3 bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all transform active:scale-95 shadow-2xl"
                 >
                   Explore Corporate
@@ -268,7 +268,7 @@ const Home = () => {
           </motion.div>
 
           {/* Leisure Travel Side */}
-          <motion.div 
+          <motion.div
             initial={{ width: "50%" }}
             whileHover={{ width: "65%" }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -284,7 +284,7 @@ const Home = () => {
               >
                 {[leisure1, leisure2, leisure3, leisure4, leisure5].map((img, i) => (
                   <SwiperSlide key={i}>
-                    <div 
+                    <div
                       className="w-full h-full bg-cover bg-center transition-all duration-1000"
                       style={{ backgroundImage: `url(${img})` }}
                     />
@@ -306,8 +306,8 @@ const Home = () => {
                 <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
                   Leisure<br />Travel
                 </h2>
-                <button 
-                  onClick={() => navigate('/holidays?category=International')}
+                <button
+                  onClick={() => navigate('/holidayhome')}
                   className="px-8 py-3 bg-white text-black text-[11px] font-black uppercase tracking-widest hover:bg-[#14532d] hover:text-white transition-all transform active:scale-95 shadow-2xl"
                 >
                   Plan A Holiday
@@ -316,7 +316,7 @@ const Home = () => {
             </div>
           </motion.div>
         </div>
-        
+
         {/* smokey divider effect */}
         <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-48 z-20 pointer-events-none hidden md:block">
           <div className="w-full h-full bg-gradient-to-r from-transparent via-black/40 to-transparent blur-3xl opacity-80" />
@@ -325,14 +325,14 @@ const Home = () => {
 
         {/* Central Vertical Logo/Callout */}
         <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.5, ease: "easeOut" }}
             className="text-center px-4 md:px-0"
           >
             <div className="px-6 md:px-10 py-6 md:py-8">
-              <motion.span 
+              <motion.span
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 3, repeat: Infinity }}
                 className="block text-[10px] md:text-[11px] uppercase tracking-[0.4em] text-white font-black mb-3"
@@ -347,16 +347,16 @@ const Home = () => {
                 Strategic Business Travel & Curated Global Holidays.<br />
                 Integrated for the modern high-performer.
               </p>
-              
+
               <div className="flex flex-col md:flex-row items-center justify-center gap-4 pointer-events-auto">
-                <button 
-                  onClick={() => navigate('/holidays?category=Business Trip')}
+                <button
+                  onClick={() => navigate('/holidays?category=Business Travel')}
                   className="w-full md:w-auto px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-[#14532d] transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
                 >
-                   Business Travel 
+                  Business Travel
                 </button>
-                <button 
-                  onClick={() => navigate('/holidays?category=International')}
+                <button
+                  onClick={() => navigate('/holidayhome')}
                   className="w-full md:w-auto px-8 py-4 bg-white text-[#14532d] text-[10px] font-black uppercase tracking-widest hover:bg-green-50 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
                 >
                   Plan a Holiday
@@ -374,13 +374,13 @@ const Home = () => {
             <h2 className="text-[10px] uppercase tracking-[0.4em] text-[#14532d] font-black mb-1">Dual Expertise</h2>
             <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Choose Your Journey</h3>
           </div>
-                   <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto overflow-hidden">
-            
+          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto overflow-hidden">
+
             {/* Business Block */}
-            <motion.div 
+            <motion.div
               whileHover={{ y: -5 }}
               className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden"
-              onClick={() => navigate('/holidays?category=Business Trip')}
+              onClick={() => navigate('/holidays?category=Business Travel')}
             >
               <div className="absolute top-4 right-4 bg-orange-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
                 Trending
@@ -397,12 +397,13 @@ const Home = () => {
                 <div className="w-8 h-[1.5px] bg-slate-900 group-hover:bg-white transition-all group-hover:w-12" />
               </div>
             </motion.div>
- 
+
             {/* Leisure Block */}
-            <motion.div 
+            <motion.div
               whileHover={{ y: -5 }}
               className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden"
-              onClick={() => navigate('/holidays?category=International')}
+              onClick={() => navigate('/holidayhome')}
+
             >
               <div className="absolute top-4 right-4 bg-blue-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
                 Popular
@@ -425,7 +426,7 @@ const Home = () => {
 
       {/* ---------------- POPULAR DESTINATIONS ---------------- */}
       <section className="py-16 px-6 max-w-7xl mx-auto">
-        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic text-center fade-up">
           Popular Destinations
         </h2>
         <p className="text-center text-gray-600 mt-2 fade-up">
@@ -474,7 +475,7 @@ const Home = () => {
                 <div className="relative p-4 rounded-xl border border-white/10 bg-black/40 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-5px] group-hover:bg-black/60 shadow-2xl">
                   {/* Glowing Accent */}
                   <div className="absolute -top-[1px] left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
+
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <p className="text-[7px] uppercase tracking-widest text-green-400 font-bold mb-0.5">{item.region}</p>
@@ -492,7 +493,7 @@ const Home = () => {
                       <p className="text-white/50 text-[9px] mb-3 leading-tight line-clamp-1">
                         Experience the magic of {item.title}.
                       </p>
-                      <button 
+                      <button
                         className="w-full py-2 bg-white text-black font-black uppercase text-[9px] tracking-[0.1em] rounded-lg hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
                       >
                         Explore Now
@@ -510,7 +511,7 @@ const Home = () => {
       <section className="py-20 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-black text-[#14532d] uppercase tracking-tighter fade-up">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic fade-up">
               Special Offers
             </h2>
             <div className="w-20 h-1 bg-[#14532d] mx-auto mt-4 rounded-full fade-up" />
@@ -559,7 +560,7 @@ const Home = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
                   <div className="relative p-4 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-8px] group-hover:bg-black/60 shadow-2xl">
                     <div className="absolute -top-[1px] left-8 right-8 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
+
                     <div className="flex justify-between items-center mb-2">
                       <div>
                         <p className="text-[8px] uppercase tracking-widest text-green-400 font-bold mb-1">{offer.category}</p>
@@ -577,7 +578,7 @@ const Home = () => {
                         <p className="text-white/50 text-xs mb-4 leading-tight">
                           Limited availability for this {offer.title.toLowerCase()}.
                         </p>
-                        <button 
+                        <button
                           className="w-full py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
                         >
                           Unlock Offer
@@ -594,7 +595,7 @@ const Home = () => {
 
       {/* ---------------- POPULAR VISAS ---------------- */}
       <section className="py-16 px-6 max-w-7xl mx-auto">
-        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic text-center fade-up">
           Popular Visas
         </h2>
         <p className="text-center text-gray-600 mt-2 fade-up">
@@ -652,8 +653,8 @@ const Home = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
             {[
-              { img: dubaiVisa, title: "Dubai Visa", price: "₹6,500", country: "United Arab Emirates", category: "PRIORITY" },
-              { img: saudiVisa, title: "Saudi Arabia Visa", price: "₹12,000", country: "Saudi Arabia", category: "FAST-TRACK" },
+              { img: dubaiVisa, title: "Dubai Visa", price: "₹8,500", country: "United Arab Emirates", category: "PRIORITY" },
+              { img: saudiVisa, title: "Saudi Arabia Visa", price: "₹6,500", country: "Saudi Arabia", category: "FAST-TRACK" },
               { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "₹4,500", country: "Azerbaijan", category: "E-VISA" },
               { img: thailandOffer, title: "Thailand Visa", price: "₹3,200", country: "Thailand", category: "E-VISA" },
               { img: singaporeVisa, title: "Singapore Visa", price: "₹2,800", country: "Singapore", category: "E-VISA" },
@@ -691,7 +692,7 @@ const Home = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
                   <div className="relative p-4 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-8px] group-hover:bg-black/60 shadow-2xl">
                     <div className="absolute -top-[1px] left-8 right-8 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
+
                     <div className="flex justify-between items-center mb-2">
                       <div>
                         <p className="text-[8px] uppercase tracking-widest text-green-400 font-bold mb-1">{item.category}</p>
@@ -709,7 +710,7 @@ const Home = () => {
                         <p className="text-white font-bold text-lg mb-4">
                           Starting at <span className="text-[#14532d] bg-white px-2 py-0.5 rounded-lg">{item.price}</span>
                         </p>
-                        <button 
+                        <button
                           className="w-full py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
                         >
                           Apply Now
@@ -726,7 +727,7 @@ const Home = () => {
 
       {/* ---------------- VISA DEALS (GALLERY STYLE) ---------------- */}
       <section className="py-16 px-6 bg-white">
-        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic text-center fade-up">
           Visa Deals
         </h2>
         <p className="text-center text-gray-600 mt-2 fade-up">
@@ -781,7 +782,7 @@ const Home = () => {
         </div>
       </section>
       <section className="py-16 px-6 bg-gray-50">
-        <h2 className="text-4xl font-bold text-center text-[#14532d] fade-up">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic text-center fade-up">
           Travel Gallery
         </h2>
         <p className="text-center text-gray-600 mt-2 fade-up">
@@ -826,7 +827,7 @@ const Home = () => {
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-[#14532d] tracking-tight fade-up">
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic fade-up">
               What Our Travelers Say
             </h2>
             <div className="w-24 h-1.5 bg-[#14532d] mx-auto mt-6 rounded-full fade-up" style={{ animationDelay: "0.1s" }}></div>
@@ -981,7 +982,7 @@ const Home = () => {
 
           {/* Why Goimomi Holidays */}
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-2xl font-bold text-[#14532d] mb-4">Why Goimomi Holidays?</h3>
+            <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Why Goimomi Holidays?</h3>
             <p className="text-gray-700 text-sm leading-relaxed">
               Established in 2010, Goimomi Holidays has since positioned itself as one of the leading companies,
               providing great offers, competitive airfares, exclusive discounts, and a seamless online booking
@@ -994,7 +995,7 @@ const Home = () => {
 
           {/* Booking Flights with Goimomi Holidays */}
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-2xl font-bold text-[#14532d] mb-4">Booking Flights with Goimomi Holidays</h3>
+            <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Booking Flights with Goimomi Holidays</h3>
             <p className="text-gray-700 text-sm leading-relaxed">
               At Goimomi Holidays, you can find the best of deals and cheap air tickets to any place you want by
               booking in just a few simple clicks. Just use our deals and you will surely find great discounts
@@ -1009,7 +1010,7 @@ const Home = () => {
 
           {/* Domestic Flights with Goimomi Holidays */}
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-2xl font-bold text-[#14532d] mb-4">Domestic Flights with Goimomi Holidays</h3>
+            <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Domestic Flights with Goimomi Holidays</h3>
             <p className="text-gray-700 text-sm leading-relaxed">
               Goimomi Holidays is India's leading player for flight bookings. With the cheapest fare guarantee,
               experience great value at the lowest price. Instant notifications ensure current flight status,

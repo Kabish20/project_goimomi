@@ -1280,7 +1280,7 @@ const HolidayPackageAdd = () => {
                             <option value="Domestic">Domestic</option>
                             <option value="International">International</option>
                             <option value="Umrah">Umrah</option>
-                            <option value="Business Trip">Business Trip</option>
+                            <option value="Business Travel">Business Travel</option>
                           </select>
                           {errors.category && <p className="text-red-500 text-[9px] font-black mt-1.5 flex items-center gap-2 ml-1 uppercase tracking-wider italic">
                             <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>

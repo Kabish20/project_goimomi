@@ -28,6 +28,8 @@ import TermsConditions from './pages/TermsConditions.jsx'
 import CancellationPolicy from './pages/CancellationPolicy.jsx'
 import HolidayDetails from "./pages/HolidayDetails.jsx";
 import Canton from "./pages/Canton.jsx";
+import HolidayHome from "./pages/holidayhome.jsx";
+
 
 import PackageEnquiryPage from "./pages/PackageEnquiryPage.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
@@ -131,7 +133,9 @@ const App = () => {
           <Route path="/aboutus" element={<About />} />
           <Route path="/contactus" element={<Contact />} />
           <Route path="/contact/success" element={<ContactSuccess />} />
+          <Route path="/holidayhome" element={<HolidayHome />} />
           <Route path="/holidays" element={<Holidays />} />
+
           <Route path="/customizedHolidays" element={<CustomizedHolidays />} />
           <Route
             path="/umrah-package"
