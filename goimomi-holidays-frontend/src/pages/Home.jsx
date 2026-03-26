@@ -221,9 +221,10 @@ const Home = () => {
 
           {/* Business Travel Side */}
           <motion.div
-            initial={{ width: "50%" }}
-            whileHover={{ width: "65%" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} // Epic ease
+            initial={{ width: "100%" }}
+            whileHover={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "65%" } : { width: "100%" }}
+            animate={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "50%" } : { width: "100%" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
             className="relative h-1/2 md:h-full overflow-hidden"
           >
             <div className="absolute inset-0 animate-slowZoom">
@@ -273,8 +274,9 @@ const Home = () => {
 
           {/* Leisure Travel Side */}
           <motion.div
-            initial={{ width: "50%" }}
-            whileHover={{ width: "65%" }}
+            initial={{ width: "100%" }}
+            whileHover={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "65%" } : { width: "100%" }}
+            animate={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "50%" } : { width: "100%" }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="relative h-1/2 md:h-full overflow-hidden"
           >
@@ -409,7 +411,7 @@ const Home = () => {
               onClick={() => navigate('/holidayhome')}
 
             >
-              <div className="absolute top-4 right-4 bg-blue-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
+              <div className="absolute top-4 right-4 bg-green-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
                 Popular
               </div>
               <div className="mb-4 p-3.5 bg-slate-50 rounded-xl w-fit group-hover:bg-white/10 transition-colors">

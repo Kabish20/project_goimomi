@@ -384,31 +384,27 @@ const Navbar = () => {
               </NavLink>
 
               <div>
-                <div
-                  className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition"
+                <button
+                  onClick={() => {
+                    setMobileBusiness(!mobileBusiness);
+                    setMobileUmrah(false);
+                    setMobileHoliday(false);
+                  }}
+                  className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition text-left"
                 >
-                  <span className="flex items-center gap-3 cursor-pointer" onClick={() => setMobileBusiness(!mobileBusiness)}>
+                  <span className="flex items-center gap-3">
                     <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-6 h-6 object-contain" />
                     Business Travel
                   </span>
-                  <button
-                    onClick={() => {
-                        setMobileBusiness(!mobileBusiness);
-                        setMobileUmrah(false);
-                        setMobileHoliday(false);
-                    }}
-                    className="p-2"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-4 w-4 transition-transform duration-300 ${mobileBusiness ? "rotate-180" : "rotate-0"}`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-4 w-4 transition-transform duration-300 ${mobileBusiness ? "rotate-180" : "rotate-0"}`}
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                    >
-                        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </button>
                 {mobileBusiness && (
                   <div className="pl-6 space-y-2">
                     <NavLink to="/businesshome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={() => setMobileOpen(false)}>
