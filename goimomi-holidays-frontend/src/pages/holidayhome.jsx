@@ -96,7 +96,7 @@ const HolidayHome = () => {
     <div className="w-full min-h-screen bg-slate-50 selection:bg-[#14532d]/30">
       
       {/* ---------------- HERO SECTION ---------------- */}
-      <section className="relative w-full h-[500px] md:h-[550px] overflow-hidden bg-black group">
+      <section className="relative w-full h-[400px] md:h-[450px] overflow-hidden bg-black group">
         <div className="absolute inset-0">
           <img 
             src={holidayHero} 
@@ -129,19 +129,20 @@ const HolidayHome = () => {
               <div className="w-12 h-[1px] bg-white/60" />
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter leading-[0.85] mb-6">
+            <h1 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-[0.85] mb-6">
               LEISURE<br />
               <span className="text-white/40 group-hover:text-[#22c55e] transition-colors duration-700">TRAVEL</span>
             </h1>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-3">
               <button 
                 onClick={scrollToCategories}
-                className="px-8 py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#14532d] hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-3"
+                className="px-6 py-3.5 bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] hover:bg-[#14532d] hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-2"
               >
                 PLAN A HOLIDAY
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3 h-3" />
               </button>
+
 
 
             </div>
@@ -155,8 +156,8 @@ const HolidayHome = () => {
       </section>
 
       {/* ---------------- CATEGORIES SECTION ---------------- */}
-      <section id="holiday-categories" className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="mb-14">
+      <section id="holiday-categories" className="py-12 px-6 max-w-6xl mx-auto">
+        <div className="mb-10">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -164,8 +165,8 @@ const HolidayHome = () => {
             className="flex flex-col md:flex-row md:items-end justify-between gap-6"
           >
             <div>
-              <h2 className="text-[10px] uppercase tracking-[0.5em] text-[#14532d] font-black mb-2">Our Collections</h2>
-              <h3 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
+              <h2 className="text-[9px] uppercase tracking-[0.4em] text-[#14532d] font-black mb-1.5">Our Collections</h2>
+              <h3 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
                 Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#14532d] to-emerald-500">Adventure</span>
               </h3>
             </div>
@@ -175,7 +176,7 @@ const HolidayHome = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((cat, idx) => (
             <motion.div
               key={cat.id}
@@ -183,8 +184,8 @@ const HolidayHome = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              whileHover={{ y: -10 }}
-              className="relative aspect-[4/4.5] rounded-[2rem] overflow-hidden group cursor-pointer shadow-2xl bg-slate-900"
+              whileHover={{ y: -5 }}
+              className="relative aspect-[4/4] rounded-[1.5rem] overflow-hidden group cursor-pointer shadow-xl bg-slate-900"
               onClick={() => navigate(cat.path)}
             >
               {/* Image Background */}
@@ -216,7 +217,7 @@ const HolidayHome = () => {
                   <span className="text-[11px] font-bold uppercase tracking-widest">{cat.subtitle}</span>
                 </div>
                 
-                <h4 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tighter leading-none mb-6">
+                <h4 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none mb-4">
                   {cat.title}
                 </h4>
 
@@ -238,37 +239,39 @@ const HolidayHome = () => {
       </section>
 
       {/* ---------------- CTA SECTION ---------------- */}
-      <section className="py-16 px-6">
-        <div className="max-w-6xl mx-auto rounded-[2.5rem] bg-[#14532d] p-10 md:p-14 relative overflow-hidden text-center">
+      <section className="py-12 px-6">
+        <div className="max-w-5xl mx-auto rounded-[2rem] bg-[#14532d] p-8 md:p-12 relative overflow-hidden text-center">
             {/* Background elements */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-400/10 rounded-full blur-3xl -mr-20 -mt-20" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/20 rounded-full blur-3xl -ml-20 -mb-20" />
+            <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl -mr-16 -mt-16" />
+            <div className="absolute bottom-0 left-0 w-56 h-56 bg-black/20 rounded-full blur-3xl -ml-16 -mb-16" />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
             >
-                <h2 className="text-2xl md:text-4xl font-black text-white uppercase italic tracking-tighter mb-4 leading-tight">
+                <h2 className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter mb-4 leading-tight">
                     Every Journey Tells A <br />
                     <span className="text-emerald-400">Different Story.</span>
                 </h2>
-                <p className="text-white/70 max-w-xl mx-auto mb-8 text-xs md:text-sm font-medium leading-relaxed">
+                <p className="text-white/70 max-w-lg mx-auto mb-6 text-[10px] md:text-xs font-medium leading-relaxed">
                     Ready to start yours? Let our travel experts craft the perfect itinerary for your next getaway.
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <button 
                         onClick={() => navigate('/contactus')}
-                        className="px-8 py-3.5 bg-white text-[#14532d] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-50 transition-all shadow-2xl rounded-xl w-full sm:w-auto"
+                        className="w-full sm:w-48 px-6 py-3.5 bg-white text-[#14532d] text-[10px] font-black uppercase tracking-[0.1em] hover:bg-emerald-50 transition-all shadow-xl rounded-lg"
                     >
                         TALK TO EXPERTS
                     </button>
                     <button 
                         onClick={() => navigate('/customizedHolidays')}
-                        className="px-8 py-3.5 bg-transparent border-2 border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all rounded-xl w-full sm:w-auto"
+                        className="w-full sm:w-48 px-6 py-3.5 bg-transparent border-2 border-white/20 text-white text-[10px] font-black uppercase tracking-[0.1em] hover:bg-white/10 transition-all rounded-lg"
                     >
                         CUSTOMIZE TRIP
                     </button>
+
+
 
                 </div>
             </motion.div>

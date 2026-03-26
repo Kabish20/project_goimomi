@@ -351,13 +351,13 @@ const Home = () => {
               <div className="flex flex-col md:flex-row items-center justify-center gap-4 pointer-events-auto">
                 <button
                   onClick={() => navigate('/holidays?category=Business Travel')}
-                  className="w-full md:w-auto px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-[#14532d] transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
+                  className="w-full md:w-56 px-8 py-4 bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-[#14532d] transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
                 >
                   Business Travel
                 </button>
                 <button
                   onClick={() => navigate('/holidayhome')}
-                  className="w-full md:w-auto px-8 py-4 bg-white text-[#14532d] text-[10px] font-black uppercase tracking-widest hover:bg-green-50 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
+                  className="w-full md:w-56 px-8 py-4 bg-white text-[#14532d] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-green-50 transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
                 >
                   Plan a Holiday
                 </button>
