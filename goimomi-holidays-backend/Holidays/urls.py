@@ -1,8 +1,12 @@
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import DefaultRouter, SimpleRouter
 from django.urls import path, include
+from django.conf import settings
 from . import views
 
-router = DefaultRouter()
+if settings.DEBUG:
+    router = DefaultRouter()
+else:
+    router = SimpleRouter()
 router.register("holiday-form", views.HolidayEnquiryAPI, basename="holiday-enquiry")
 router.register("umrah-form", views.UmrahEnquiryAPI, basename="umrah-enquiry")
 router.register("enquiry-form", views.EnquiryAPI, basename="enquiry")
