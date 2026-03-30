@@ -920,13 +920,13 @@ const Cab = () => {
                     { title: "Meet & Greet included", desc: "Driver will welcome you at pickup", icon: "👥" },
                     { title: "Delay compensation", desc: "Get covered for flight delays", icon: "✈️" }
                   ].map((item, idx) => (
-                    <div key={idx} className="flex gap-3">
-                      <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center text-base flex-shrink-0">
+                    <div key={idx} className="flex gap-4">
+                      <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
                         {item.icon}
                       </div>
                       <div>
-                        <h4 className="text-[11px] font-black text-gray-800 leading-tight mb-0.5">{item.title}</h4>
-                        <p className="text-[10px] text-gray-400 leading-normal font-bold">{item.desc}</p>
+                        <h4 className="text-[14px] font-black text-gray-900 leading-tight mb-0.5">{item.title}</h4>
+                        <p className="text-[12px] text-gray-500 leading-normal font-bold">{item.desc}</p>
                       </div>
                     </div>
                   ))}

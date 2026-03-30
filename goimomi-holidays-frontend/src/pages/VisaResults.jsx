@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
+import usePageSEO from "../hooks/usePageSEO";
 
 
 const VisaResults = () => {
@@ -31,6 +32,12 @@ const VisaResults = () => {
     const [goingTo, setGoingTo] = useState(searchParams.get("goingTo") || "");
     const [departureDate, setDepartureDate] = useState(searchParams.get("departureDate") || getTomorrowDate(1));
     const [returnDate, setReturnDate] = useState(searchParams.get("returnDate") || "");
+
+    const goingToParam = searchParams.get("goingTo");
+    usePageSEO(
+        goingToParam ? `${goingToParam} Visa Services | Goimomi Holidays` : "Visa Search Results | Goimomi Holidays",
+        goingToParam ? `Explore visa options for ${goingToParam}. Get details on fees, processing time, and documents required for your trip.` : "Find the right visa for your next international trip with Goimomi Holidays."
+    );
 
     // Dropdown and Search Logic
     const [countries, setCountries] = useState([]);

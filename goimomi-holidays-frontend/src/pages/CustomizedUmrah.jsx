@@ -7,6 +7,7 @@ import {
 } from "react-icons/fa";
 import { FaRegHeart, FaPlane, FaHotel, FaShieldHalved } from "react-icons/fa6";
 import FormModal from "../components/FormModal.jsx";
+import usePageSEO from "../hooks/usePageSEO";
 import umrahImage from "../assets/umrah.png";
 import umrah2Image from "../assets/umrah2.png";
 import umrah3Image from "../assets/umrah3.png";
@@ -14,6 +15,11 @@ import umrah3Image from "../assets/umrah3.png";
 const CustomizedUmrah = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState("");
+
+  usePageSEO(
+    "Customized Umrah Packages | Sacred Spiritual Journey | Goimomi Holidays",
+    "Embark on a spiritual journey with our customized Umrah packages. Premium accommodation, guided rituals, and seamless travel arrangements for your pilgrimage."
+  );
   return (
     <div className="w-full overflow-hidden">
 

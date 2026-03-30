@@ -3,6 +3,7 @@ import { Hotel, Star, MapPin, Info, Utensils, MessageCircle, FileDown, Eye, Arro
 import { useParams, useLocation } from "react-router-dom";
 import api from "../api";
 import FormModal from "../components/FormModal";
+import usePageSEO from "../hooks/usePageSEO";
 import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
 import goimomilogo from "../assets/goimomilogo.png";
@@ -49,6 +50,12 @@ const HolidayDetails = () => {
     }
     return pkg?.Offer_price;
   }, [slots, selectedTier, pkg?.Offer_price]);
+
+  usePageSEO(
+    pkg ? `${pkg.title} | Goimomi Holidays` : "Holiday Details | Goimomi Holidays",
+    pkg ? (pkg.description?.substring(0, 160) || `Book the ${pkg.title} package with Goimomi Holidays. Enjoy ${pkg.days} days and ${pkg.nights} nights in ${pkg.starting_city} and more.`) : "Discover affordable and premium tour packages with Goimomi Holidays.",
+    pkg ? getImageUrl(pkg.header_image || pkg.card_image) : undefined
+  );
 
   const toggleDay = (index) => {
     setOpenDay(openDay === index ? null : index);

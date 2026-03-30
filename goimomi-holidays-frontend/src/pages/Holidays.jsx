@@ -275,10 +275,19 @@ const Holidays = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  usePageSEO(
-    "Explore Holiday Packages | Goimomi Holidays",
-    "Discover affordable and premium tour packages for every destination. Plan your next adventure with Goimomi Holidays' expertly curated itineraries."
-  );
+  const seoTitle = category 
+    ? `${category} Packages | Goimomi Holidays`
+    : destination
+      ? `${destination} Tour Packages | Goimomi Holidays`
+      : "Explore Holiday Packages | Goimomi Holidays";
+      
+  const seoDesc = category
+    ? `Browse our best ${category} travel packages. Expertly curated itineraries for a memorable experience.`
+    : destination
+      ? `Discover the best of ${destination} with Goimomi Holidays. Affordable and premium tour packages for every traveler.`
+      : "Discover affordable and premium tour packages for every destination. Plan your next adventure with Goimomi Holidays' expertly curated itineraries.";
+
+  usePageSEO(seoTitle, seoDesc);
 
   // ===================== FILTER STATES =====================
   const [category, setCategory] = useState("");

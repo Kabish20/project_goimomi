@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import api from "../api";
 import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
+import usePageSEO from "../hooks/usePageSEO";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import visaBg from "../assets/Hero/visa_bg.jpg";
@@ -24,6 +25,12 @@ const VisaApplication = () => {
     const [appDepartureDate, setAppDepartureDate] = useState(location.state?.departureDate || getTomorrowDate(1));
     const [appReturnDate, setAppReturnDate] = useState(location.state?.returnDate || "");
     const citizenOf = location.state?.citizenOf || "India";
+
+    usePageSEO(
+        currentVisa ? `Apply for ${currentVisa.title} | Goimomi Holidays` : "Visa Application | Goimomi Holidays",
+        currentVisa ? `Submit your application for ${currentVisa.title} for ${currentVisa.country}. Fast and secure online visa processing with Goimomi Holidays.` : "Complete your international visa application with Goimomi Holidays.",
+        currentVisa?.card_image ? getImageUrl(currentVisa.card_image) : undefined
+    );
 
     // Steps for Sidebar
     const steps = [
