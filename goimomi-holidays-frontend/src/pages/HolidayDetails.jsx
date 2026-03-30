@@ -92,13 +92,13 @@ const HolidayDetails = () => {
 
     const addHeader = (doc, title) => {
       doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, pageWidth, 25, 'F');
-      doc.addImage(goimomilogo, 'PNG', padding, 5, 40, 12);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+      doc.addImage(goimomilogo, 'PNG', padding, 5, 42, 40);
       doc.setTextColor(156, 163, 175);
       doc.setFontSize(8);
       doc.text(title, pageWidth - padding, 12, { align: "right" });
       doc.setDrawColor(243, 244, 246);
-      doc.line(padding, 20, pageWidth - padding, 20);
+      doc.line(padding, 45, pageWidth - padding, 45);
     };
 
     const addFooter = (doc, pageNum, totalPages) => {
@@ -127,7 +127,7 @@ const HolidayDetails = () => {
     }
 
     let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
-    try { doc.addImage(goimomilogo, 'PNG', centerX - 30, 40, 60, 20); } catch (e) { /* Logo error */ }
+    try { doc.addImage(goimomilogo, 'PNG', centerX - 35, 30, 70, 70); } catch (e) { /* Logo error */ }
 
 
     doc.setTextColor(31, 41, 55);

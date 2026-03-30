@@ -275,6 +275,10 @@ const Holidays = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  // ===================== FILTER STATES =====================
+  const [category, setCategory] = useState("");
+  const [destination, setDestination] = useState("");
+
   const seoTitle = category 
     ? `${category} Packages | Goimomi Holidays`
     : destination
@@ -288,10 +292,6 @@ const Holidays = () => {
       : "Discover affordable and premium tour packages for every destination. Plan your next adventure with Goimomi Holidays' expertly curated itineraries.";
 
   usePageSEO(seoTitle, seoDesc);
-
-  // ===================== FILTER STATES =====================
-  const [category, setCategory] = useState("");
-  const [destination, setDestination] = useState("");
 
   useEffect(() => {
     // 1. Check Query Params (Priority)
@@ -450,7 +450,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
     const addHeader = (doc, title) => {
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, pageWidth, 25, 'F');
-      doc.addImage(goimomilogo, 'PNG', padding, 5, 40, 12);
+      doc.addImage(goimomilogo, 'PNG', padding, 4, 42, 14);
       doc.setTextColor(156, 163, 175);
       doc.setFontSize(8);
       doc.text(title, pageWidth - padding, 12, { align: "right" });
@@ -489,9 +489,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
     let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
 
     // Logo
-    try {
-      doc.addImage(goimomilogo, 'PNG', centerX - 30, 30, 60, 20);
-    } catch (e) { /* logo error */ }
+    try { doc.addImage(goimomilogo, 'PNG', centerX - 35, 25, 70, 25); } catch (e) { /* logo error */ }
 
 
     // Title

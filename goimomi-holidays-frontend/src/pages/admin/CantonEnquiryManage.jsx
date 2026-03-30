@@ -114,7 +114,7 @@ const CantonEnquiryManage = () => {
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-4">
                             <button
-                                onClick={() => navigate("/admin-dashboard")}
+                                onClick={() => navigate("/admin/dashboard")}
                                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                             >
                                 <ArrowLeft size={20} />

@@ -29,7 +29,7 @@ const AdminLogin = ({ isOpen, onClose }) => {
                 localStorage.setItem("adminUser", JSON.stringify(user));
 
                 if (onClose) onClose();
-                navigate("/admin-dashboard");
+                navigate("/admin/dashboard");
             }
         } catch (err) {
             if (err.response && err.response.data) {

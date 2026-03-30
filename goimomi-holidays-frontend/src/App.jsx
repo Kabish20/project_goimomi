@@ -171,7 +171,7 @@ const App = () => {
 
           {/* Protected Admin Routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/destinations/add" element={<DestinationAdd />} />
             <Route path="/admin/destinations/edit/:id" element={<DestinationEdit />} />
             <Route path="/admin/destinations" element={<DestinationManage />} />

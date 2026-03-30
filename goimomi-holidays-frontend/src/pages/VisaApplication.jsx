@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import api from "../api";
-import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin } from "lucide-react";
+import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin, Zap } from "lucide-react";
 import { getImageUrl } from "../utils/imageUtils";
 import usePageSEO from "../hooks/usePageSEO";
 import PhoneInput from "react-phone-input-2";
@@ -25,12 +25,6 @@ const VisaApplication = () => {
     const [appDepartureDate, setAppDepartureDate] = useState(location.state?.departureDate || getTomorrowDate(1));
     const [appReturnDate, setAppReturnDate] = useState(location.state?.returnDate || "");
     const citizenOf = location.state?.citizenOf || "India";
-
-    usePageSEO(
-        currentVisa ? `Apply for ${currentVisa.title} | Goimomi Holidays` : "Visa Application | Goimomi Holidays",
-        currentVisa ? `Submit your application for ${currentVisa.title} for ${currentVisa.country}. Fast and secure online visa processing with Goimomi Holidays.` : "Complete your international visa application with Goimomi Holidays.",
-        currentVisa?.card_image ? getImageUrl(currentVisa.card_image) : undefined
-    );
 
     // Steps for Sidebar
     const steps = [
@@ -65,7 +59,6 @@ const VisaApplication = () => {
         dob: "",
         place_of_birth: "",
         place_of_issue: "",
-        marital_status: "",
         date_of_issue: "",
         date_of_expiry: "",
         passport_front: null,
@@ -116,6 +109,12 @@ const VisaApplication = () => {
     const VISA_FEES = Number(currentVisa?.cost_price) || 0;
     const SERVICE_FEES = Number(currentVisa?.service_charge) || 0;
     const TOTAL_PRICE = (VISA_FEES + SERVICE_FEES) * (applicants?.length || 1);
+
+    usePageSEO(
+        currentVisa ? `Apply for ${currentVisa.title} | Goimomi Holidays` : "Visa Application | Goimomi Holidays",
+        currentVisa ? `Submit your application for ${currentVisa.title} for ${currentVisa.country}. Fast and secure online visa processing with Goimomi Holidays.` : "Complete your international visa application with Goimomi Holidays.",
+        currentVisa?.card_image ? getImageUrl(currentVisa.card_image) : undefined
+    );
 
 
 
@@ -252,7 +251,6 @@ const VisaApplication = () => {
             dob: "",
             place_of_birth: "",
             place_of_issue: "",
-            marital_status: "",
             date_of_issue: "",
             date_of_expiry: "",
             passport_front: null,
@@ -350,11 +348,6 @@ const VisaApplication = () => {
                 isValid = false;
             }
 
-            // Marital Status
-            if (!applicant.marital_status) {
-                newErrors[`applicant_${index}_marital_status`] = "Marital status is required";
-                isValid = false;
-            }
 
             // Date of Issue
             if (!applicant.date_of_issue) {
@@ -525,23 +518,6 @@ const VisaApplication = () => {
             {/* Main Content */}
             <main className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full">
 
-                {/* Header Actions */}
-                <div className="flex justify-end gap-3 mb-6">
-                    <button
-                        onClick={addApplicant}
-                        className="px-4 py-2 text-[#14532d] border border-[#14532d] rounded-full font-medium hover:bg-green-50 text-sm flex items-center gap-2"
-                    >
-                        <User size={16} /> + Add Another Traveler
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={submitting}
-                        className="px-6 py-2 bg-[#14532d] text-white rounded-full font-medium hover:bg-[#0f4a24] text-sm shadow-sm flex items-center gap-2"
-                        style={{ backgroundColor: '#14532d' }}
-                    >
-                        {submitting ? "Applying..." : "Apply"}
-                    </button>
-                </div>
 
                 {/* Header Section with Background Image/Video */}
                 <div
@@ -690,14 +666,24 @@ const VisaApplication = () => {
                         <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                             <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-6">
                                 <h2 className="text-xl font-bold text-gray-900">Traveler {index + 1}</h2>
-                                {applicants.length > 1 && (
-                                    <button
-                                        onClick={() => removeApplicant(index)}
-                                        className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm font-medium transition-colors"
-                                    >
-                                        <Trash2 size={16} /> Remove
-                                    </button>
-                                )}
+                                <div className="flex items-center gap-4">
+                                    {index === 0 && (
+                                        <button
+                                            onClick={addApplicant}
+                                            className="px-4 py-1.5 text-[#14532d] border border-[#14532d] rounded-full font-medium hover:bg-green-50 text-xs flex items-center gap-2 transition-all shadow-sm"
+                                        >
+                                            <User size={14} /> + Add Another Traveler
+                                        </button>
+                                    )}
+                                    {applicants.length > 1 && (
+                                        <button
+                                            onClick={() => removeApplicant(index)}
+                                            className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm font-medium transition-colors"
+                                        >
+                                            <Trash2 size={16} /> Remove
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Passport Upload */}
@@ -869,22 +855,8 @@ const VisaApplication = () => {
                                     {errors[`applicant_${index}_place_of_issue`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_place_of_issue`]}</p>}
                                 </div>
 
-                                <div className="grid grid-cols-6 gap-4 col-span-1 md:col-span-2">
-                                    <div className="col-span-2">
-                                        <label className="block text-xs font-bold text-gray-900 mb-1.5">Marital Status <span className="text-red-500">*</span></label>
-                                        <select
-                                            required
-                                            className={`w-full px-3 py-2 rounded-xl border ${errors[`applicant_${index}_marital_status`] ? 'border-red-500' : 'border-gray-200'} outline-none focus:border-[#14532d] transition-colors bg-white text-sm`}
-                                            value={applicant.marital_status}
-                                            onChange={(e) => handleApplicantChange(index, "marital_status", e.target.value)}
-                                        >
-                                            <option value="">Select...</option>
-                                            <option value="Single">Single</option>
-                                            <option value="Married">Married</option>
-                                        </select>
-                                        {errors[`applicant_${index}_marital_status`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_marital_status`]}</p>}
-                                    </div>
-                                    <div className="col-span-2">
+                                <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
+                                    <div>
                                         <label className="block text-xs font-bold text-gray-900 mb-1.5">Date of Issue <span className="text-red-500">*</span></label>
                                         <input
                                             type="date"
@@ -895,7 +867,7 @@ const VisaApplication = () => {
                                         />
                                         {errors[`applicant_${index}_date_of_issue`] && <p className="text-red-500 text-xs mt-1">{errors[`applicant_${index}_date_of_issue`]}</p>}
                                     </div>
-                                    <div className="col-span-2">
+                                    <div>
                                         <label className="block text-xs font-bold text-gray-900 mb-1.5">Date of Expiry <span className="text-red-500">*</span></label>
                                         <input
                                             type="date"
@@ -1045,9 +1017,22 @@ const VisaApplication = () => {
                             </div>
                         </div>
                     ))}
-
                 </div>
 
+                <div className="mt-12 flex justify-center pb-20 xl:hidden">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="w-full max-w-md py-4 bg-[#14532d] text-white rounded-xl font-bold hover:bg-[#0f4a24] shadow-xl transition-all flex items-center justify-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500"
+                    >
+                        {submitting ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
+                        ) : (
+                            <Zap size={20} />
+                        )}
+                        {submitting ? "Processing Application..." : "Complete & Apply Now"}
+                    </button>
+                </div>
                 {/* Right/Bottom Price Details Floating Card or Inline */}
                 <div className="fixed bottom-0 right-0 p-4 w-full md:w-auto z-50">
                     {/* Can be implemented as a sticky footer or sidebar widget. 

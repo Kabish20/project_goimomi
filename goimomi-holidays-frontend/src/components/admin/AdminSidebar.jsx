@@ -359,7 +359,7 @@ const AdminSidebar = () => {
         {/* Footer / Dash Link */}
         <div className="p-3 border-t border-white/10">
           <button
-            onClick={() => navigate("/admin-dashboard")}
+            onClick={() => navigate("/admin/dashboard")}
             className={`w-full flex items-center ${isCollapsed ? "justify-center" : "gap-2.5"} p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all group`}
             title="Dashboard"
           >
