@@ -673,3 +673,67 @@ class CabSearchAPI(APIView):
 
         return Response(list(unique_options.values()))
 
+
+import os
+import re
+from django.http import HttpResponse
+from django.utils.safestring import mark_safe
+
+@authentication_classes([])
+@permission_classes([AllowAny])
+class DynamicSEOView(APIView):
+    """
+    Experimental View to serve index.html with dynamic meta tags for crawlers.
+    This helps social media previews (WhatsApp/FB) show correct titles/descriptions.
+    """
+    def get(self, request, path=""):
+        # 1. Default fallback values
+        title = "Goimomi Holidays – Premium Travel Experiences"
+        description = "Goimomi Holidays offers premium customized vacation packages, family trips, and honeymoon tours tailored to your dreams."
+        image = "https://goimomi.com/logo-preview.png"
+        
+        # 2. Dynamic content based on path
+        # Holiday Details: /holiday/123
+        if path.startswith('holiday/'):
+            try:
+                pkg_id = path.split('/')[-1]
+                pkg = HolidayPackage.objects.get(id=pkg_id)
+                title = f"{pkg.title} | Goimomi Holidays"
+                plain_desc = re.sub('<[^<]+?>', '', pkg.description or '')
+                description = (plain_desc[:160] + '...') if len(plain_desc) > 160 else plain_desc
+                if pkg.card_image:
+                    image = request.build_absolute_uri(pkg.card_image.url)
+            except:
+                pass
+        
+        # Canton: /canton
+        elif 'canton' in path.lower():
+            title = "Canton Fair 2026 | Register Now with Goimomi Holidays"
+            description = "Complete travel solutions for Canton Fair 2026 including registration, hotel bookings, and guided tours."
+
+        # 3. Load the index.html
+        # Note: Set frontend_dist_path correctly in your settings.py or use an absolute path
+        frontend_dist_path = os.path.join(settings.BASE_DIR, '..', 'goimomi-holidays-frontend', 'dist', 'index.html')
+        
+        # Fallback for local dev or different structure
+        if not os.path.exists(frontend_dist_path):
+            frontend_dist_path = os.path.join(settings.BASE_DIR, 'dist', 'index.html')
+
+        try:
+            with open(frontend_dist_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+                # Replace meta tags using regex
+                content = re.sub(r'<title>.*?</title>', f'<title>{title}</title>', content)
+                content = re.sub(r'<meta property="og:title" content=".*?" />', f'<meta property="og:title" content="{title}" />', content)
+                content = re.sub(r'<meta property="og:description" content=".*?" />', f'<meta property="og:description" content="{description}" />', content)
+                content = re.sub(r'<meta property="og:image" content=".*?" />', f'<meta property="og:image" content="{image}" />', content)
+                content = re.sub(r'<meta name="description" content=".*?" />', f'<meta name="description" content="{description}" />', content)
+                content = re.sub(r'<meta itemprop="name" content=".*?" />', f'<meta itemprop="name" content="{title}" />', content)
+                content = re.sub(r'<meta itemprop="description" content=".*?" />', f'<meta itemprop="description" content="{description}" />', content)
+                content = re.sub(r'<meta itemprop="image" content=".*?" />', f'<meta itemprop="image" content="{image}" />', content)
+                
+                return HttpResponse(content)
+        except Exception as e:
+            # If index.html not found, return a basic error or redirect to frontend
+            return HttpResponse(f"Error loading frontend: {str(e)}", status=500)

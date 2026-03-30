@@ -44,4 +44,8 @@ urlpatterns = [
     path('admin-login/', views.AdminLoginView.as_view(), name='admin-login'),
     path('send-visa-details/', views.SendVisaDetailsAPI.as_view(), name='send-visa-details'),
     path('cab-search/', views.CabSearchAPI.as_view(), name='cab-search'),
+    
+    # Catch-all for Frontend pages to provide dynamic SEO for crawlers
+    # Warning: Only use this if you want Django to handle the initial page load
+    path('share/<path:path>/', views.DynamicSEOView.as_view(), name='dynamic-seo-share'),
 ]

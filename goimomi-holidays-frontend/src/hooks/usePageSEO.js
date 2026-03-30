@@ -18,6 +18,12 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
         metaDescription.content = description;
         document.head.appendChild(metaDescription);
       }
+
+      // Also set itemprop description for WhatsApp
+      let itemPropDescription = document.querySelector('meta[itemprop="description"]');
+      if (itemPropDescription) {
+        itemPropDescription.setAttribute('content', description);
+      }
     }
 
     // 3. Set Open Graph tags (Facebook/WhatsApp)
@@ -58,6 +64,34 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
     setMetaName('twitter:description', description);
     setMetaName('twitter:image', ogImage);
     setMetaName('twitter:card', 'summary_large_image');
+
+    // 5. Set Schema.org itemprop tags (Extra for WhatsApp/Search)
+    const setItemProp = (name, content) => {
+      if (!content) return;
+      let el = document.querySelector(`meta[itemprop="${name}"]`);
+      if (el) {
+        el.setAttribute('content', content);
+      } else {
+        el = document.createElement('meta');
+        el.setAttribute('itemprop', name);
+        el.setAttribute('content', content);
+        document.head.appendChild(el);
+      }
+    };
+    setItemProp('name', title);
+    setItemProp('description', description);
+    setItemProp('image', ogImage);
+
+    // 6. Set Canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      canonical.setAttribute('href', window.location.href);
+    } else {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      canonical.setAttribute('href', window.location.href);
+      document.head.appendChild(canonical);
+    }
 
   }, [title, description, ogImage, ogType]);
 };

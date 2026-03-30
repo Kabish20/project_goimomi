@@ -51,10 +51,26 @@ const HolidayDetails = () => {
     return pkg?.Offer_price;
   }, [slots, selectedTier, pkg?.Offer_price]);
 
+  const stripeHtml = (html) => {
+    if (!html) return "";
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
+
+  const seoDescription = useMemo(() => {
+    if (!pkg) return "Discover affordable and premium tour packages with Goimomi Holidays.";
+    const plainDesc = stripeHtml(pkg.description);
+    if (plainDesc && plainDesc.length > 10) {
+      return plainDesc.substring(0, 160) + (plainDesc.length > 160 ? "..." : "");
+    }
+    return `Book the ${pkg.title} package with Goimomi Holidays. Enjoy ${pkg.days} days and ${pkg.nights} nights in ${pkg.starting_city} and more.`;
+  }, [pkg]);
+
   usePageSEO(
     pkg ? `${pkg.title} | Goimomi Holidays` : "Holiday Details | Goimomi Holidays",
-    pkg ? (pkg.description?.substring(0, 160) || `Book the ${pkg.title} package with Goimomi Holidays. Enjoy ${pkg.days} days and ${pkg.nights} nights in ${pkg.starting_city} and more.`) : "Discover affordable and premium tour packages with Goimomi Holidays.",
-    pkg ? getImageUrl(pkg.header_image || pkg.card_image) : undefined
+    seoDescription,
+    pkg ? getImageUrl(pkg.header_image || pkg.card_image) : "https://goimomi.com/logo-preview.png"
   );
 
   const toggleDay = (index) => {
