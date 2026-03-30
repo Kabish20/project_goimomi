@@ -28,6 +28,8 @@ const AdminDashboard = () => {
     umrahDestinations: 0,
     visas: 0,
     visaApplications: 0,
+    cantonEnquiries: 0,
+    cabBookings: 0,
   });
   const [recentEnquiries, setRecentEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +63,8 @@ const AdminDashboard = () => {
         api.get(`${API_BASE_URL}/umrah-destinations/`).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
         api.get(`${API_BASE_URL}/visas/`).catch(err => ({ error: err, endpoint: 'visas' })),
         api.get(`${API_BASE_URL}/visa-applications/`).catch(err => ({ error: err, endpoint: 'visa-applications' })),
+        api.get(`${API_BASE_URL}/canton-enquiries/`).catch(err => ({ error: err, endpoint: 'canton-enquiries' })),
+        api.get(`${API_BASE_URL}/cab-bookings/`).catch(err => ({ error: err, endpoint: 'cab-bookings' })),
       ];
 
       const responses = await Promise.all(fetchPromises);
@@ -78,13 +82,23 @@ const AdminDashboard = () => {
         umrahDestinations: 0,
         visas: 0,
         visaApplications: 0,
+        cantonEnquiries: 0,
+        cabBookings: 0,
+        cabEnquiries: 0,
+        cruiseEnquiries: 0,
+        hotelEnquiries: 0,
       };
 
       const allEnquiries = [];
       const errors = [];
 
       responses.forEach((response, index) => {
-        const endpoints = ['destinations', 'packages', 'enquiries', 'holiday-enquiries', 'umrah-enquiries', 'starting-cities', 'itinerary-masters', 'nationalities', 'umrah-destinations', 'visas', 'visa-applications'];
+        const endpoints = [
+          'destinations', 'packages', 'enquiries', 'holiday-enquiries', 
+          'umrah-enquiries', 'starting-cities', 'itinerary-masters', 
+          'nationalities', 'umrah-destinations', 'visas', 'visa-applications',
+          'canton-enquiries', 'cab-bookings'
+        ];
         const endpoint = endpoints[index];
 
         if (response.error) {
@@ -135,6 +149,15 @@ const AdminDashboard = () => {
               break;
             case 'visa-applications':
               newStats.visaApplications = count;
+              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Visa' })));
+              break;
+            case 'canton-enquiries':
+              newStats.cantonEnquiries = count;
+              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Canton' })));
+              break;
+            case 'cab-bookings':
+              newStats.cabBookings = count;
+              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Cab Booking' })));
               break;
           }
         }
@@ -142,13 +165,16 @@ const AdminDashboard = () => {
 
       setStats(newStats);
 
-      // Sort enquiries by ID (most recent first) and take latest 5
+      // Sort enquiries by created_at (most recent first) and take latest 10
       const sortedEnquiries = allEnquiries
-        .sort((a, b) => (b.id || 0) - (a.id || 0))
+        .sort((a, b) => {
+          const dateA = new Date(a.created_at || a.submitted_at || 0);
+          const dateB = new Date(b.created_at || b.submitted_at || 0);
+          return dateB - dateA;
+        })
         .slice(0, 10);
 
       setRecentEnquiries(sortedEnquiries);
-      // setLastUpdated(new Date());
 
       if (errors.length > 0) {
         setError(`Partial data loaded. Errors: ${errors.join(', ')}`);
@@ -180,17 +206,41 @@ const AdminDashboard = () => {
     if (enquiry.name) return enquiry.name;
     if (enquiry.full_name) return enquiry.full_name;
     if (enquiry.first_name) return `${enquiry.first_name} ${enquiry.last_name || ""}`.trim();
+    if (enquiry.applicants && enquiry.applicants.length > 0) {
+      return `${enquiry.applicants[0].first_name} ${enquiry.applicants[0].last_name || ""}`.trim();
+    }
     return "Unknown";
   };
 
   const getEnquiryPurpose = (enquiry) => {
-    return enquiry.purpose || enquiry.message || "Regular Enquiry";
+    if (enquiry.type === 'Visa') {
+      return `Visa for ${enquiry.visa_country || 'N/A'} - ${enquiry.visa_title || 'Application'}`;
+    }
+    if (enquiry.type === 'Canton') {
+      return `Phase: ${enquiry.selected_phase} (${enquiry.business_name})`;
+    }
+    if (enquiry.type === 'Cab Booking') {
+      return `${enquiry.vehicle_name}: ${enquiry.from_city} to ${enquiry.to_city}`;
+    }
+    return enquiry.purpose || enquiry.message || enquiry.destination || "Regular Enquiry";
   };
 
   const getEnquiryContact = (enquiry) => {
+    let email = enquiry.email;
+    let phone = enquiry.phone;
+
+    if (!email && enquiry.applicants && enquiry.applicants.length > 0) {
+      email = enquiry.applicants[0].email;
+      phone = enquiry.applicants[0].phone;
+    }
+    
+    if (enquiry.type === 'Canton') {
+      phone = enquiry.whatsapp_number;
+    }
+
     return {
-      email: enquiry.email || "N/A",
-      phone: enquiry.phone || "N/A"
+      email: email || "N/A",
+      phone: phone || "N/A"
     };
   };
 
@@ -247,13 +297,15 @@ const AdminDashboard = () => {
                   <div className="h-1 w-4 bg-[#14532d] rounded-full"></div>
                   <h3 className="text-sm font-medium uppercase tracking-widest text-[#14532d]">Customer Enquiries</h3>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-2">
-                  <AdminCard title="General Enq" count={stats.enquiries} link="/admin/enquiries" icon={<HelpCircle />} />
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-8 gap-2">
+                  <AdminCard title="General Enq" count={stats.enquiries} link="/admin/general-enquiries" icon={<HelpCircle />} />
                   <AdminCard title="Cab Enq" count={stats.cabEnquiries} link="/admin/cab-enquiries" icon={<Phone />} />
                   <AdminCard title="Cruise Enq" count={stats.cruiseEnquiries} link="/admin/cruise-enquiries" icon={<Ship />} />
                   <AdminCard title="Hotel Enq" count={stats.hotelEnquiries} link="/admin/hotel-enquiries" icon={<Building2 />} />
                   <AdminCard title="Holiday Enq" count={stats.holidayEnquiries} link="/admin/holiday-enquiries" icon={<Calendar />} />
                   <AdminCard title="Umrah Enq" count={stats.umrahEnquiries} link="/admin/umrah-enquiries" icon={<Building2 />} />
+                  <AdminCard title="Visa Apps" count={stats.visaApplications} link="/admin/visa-applications" icon={<CreditCard />} />
+                  <AdminCard title="Canton Enq" count={stats.cantonEnquiries} link="/admin/canton-enquiries" icon={<Package />} />
                 </div>
               </div>
 
@@ -352,16 +404,18 @@ const AdminDashboard = () => {
                             <td className="py-2.5 px-3 border-y border-slate-50/50 group-hover:border-slate-100">
                               <span className={`px-2 py-0.5 text-[7px] font-black rounded-md uppercase border border-white shadow-sm ${enquiry.type === 'Holiday' ? 'bg-green-50 text-green-700' :
                                 enquiry.type === 'Umrah' ? 'bg-purple-50 text-purple-700' :
-                                  enquiry.type === 'Cab' ? 'bg-amber-50 text-amber-700' :
+                                  enquiry.type === 'Cab' || enquiry.type === 'Cab Booking' ? 'bg-amber-50 text-amber-700' :
                                     enquiry.type === 'Cruise' ? 'bg-sky-50 text-sky-700' :
                                       enquiry.type === 'Hotel' ? 'bg-emerald-50 text-emerald-700' :
-                                          'bg-blue-50 text-blue-700'
+                                        enquiry.type === 'Visa' ? 'bg-rose-50 text-rose-700' :
+                                          enquiry.type === 'Canton' ? 'bg-orange-50 text-orange-700' :
+                                            'bg-blue-50 text-blue-700'
                                 }`}>
                                 {enquiry.type}
                               </span>
                             </td>
-                            <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{enquiry.email || 'N/A'}</td>
-                            <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{enquiry.phone || 'N/A'}</td>
+                            <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{getEnquiryContact(enquiry).email}</td>
+                            <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{getEnquiryContact(enquiry).phone}</td>
                             <td className="py-2.5 px-3 text-[9px] font-bold text-slate-400 italic max-w-[150px] truncate border-y border-slate-50/50 group-hover:border-slate-100">
                               {getEnquiryPurpose(enquiry)}
                             </td>

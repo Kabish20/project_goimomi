@@ -71,6 +71,7 @@ import CountryAdd from "./pages/admin/CountryAdd.jsx";
 import CountryEdit from "./pages/admin/CountryEdit.jsx";
 import VisaApplicationManage from "./pages/admin/VisaApplicationManage.jsx";
 import VisaApplicationEdit from "./pages/admin/VisaApplicationEdit.jsx";
+import CantonEnquiryManage from "./pages/admin/CantonEnquiryManage.jsx";
 import CabEnquiryManage from "./pages/admin/CabEnquiryManage.jsx";
 import CabBookingManage from "./pages/admin/CabBookingManage.jsx";
 import CruiseEnquiryManage from "./pages/admin/CruiseEnquiryManage.jsx";
@@ -212,6 +213,7 @@ const App = () => {
             <Route path="/admin/visa-applications/edit/:id" element={<VisaApplicationEdit />} />
             <Route path="/admin/cab-enquiries" element={<CabEnquiryManage />} />
             <Route path="/admin/cab-bookings" element={<CabBookingManage />} />
+            <Route path="/admin/canton-enquiries" element={<CantonEnquiryManage />} />
             <Route path="/admin/cruise-enquiries" element={<CruiseEnquiryManage />} />
             <Route path="/admin/hotel-enquiries" element={<HotelEnquiryManage />} />
             <Route path="/admin/general-enquiries" element={<GeneralEnquiryManage />} />
@@ -237,6 +239,12 @@ const App = () => {
             <Route path="/admin/pickup-point-masters/add" element={<PickupPointAdd />} />
             <Route path="/admin/pickup-point-masters/edit/:id" element={<PickupPointEdit />} />
           </Route>
+
+          {/* User-friendly aliases and catch-all */}
+          <Route path="/admin-dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admindashboard" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin%20dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="*" element={<Home />} />
         </Routes>
       </main>
 

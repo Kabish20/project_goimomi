@@ -54,6 +54,7 @@ const menu = [
           { name: "Hotel Enquiries" },
           { name: "Holiday Enquiries" },
           { name: "Umrah Enquiries" },
+          { name: "Canton Enquiries" },
         ]
       },
       {
@@ -204,6 +205,7 @@ const AdminSidebar = () => {
       case "Enquiries": return handleChangeEnquiry;
       case "Holiday Enquiries": return handleChangeHolidayEnquiry;
       case "Umrah Enquiries": return handleChangeUmrahEnquiry;
+      case "Canton Enquiries": return () => navigate("/admin/canton-enquiries");
       case "Starting Cities": return handleChangeStartingCity;
       case "Itinerary Masters": return handleChangeItineraryMaster;
       case "Sightseeing Masters": return handleChangeSightseeingMaster;
