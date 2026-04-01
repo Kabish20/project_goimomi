@@ -27,7 +27,9 @@ const CustomizedHolidays = () => {
   const navigate = useNavigate();
   usePageSEO(
     "Goimomi Holidays – Customized Holiday Packages & Travel Planning",
-    "Goimomi Holidays offers fully customizable vacation packages, family trips, honeymoon tours, and adventure travel tailored to your dreams and budget. Plan your perfect getaway today!"
+    "Design your dream vacation with Goimomi Holidays' fully customized holiday packages. From luxury beach escapes and mountain adventures to cultural heritage tours, we tailor every detail—flights, hotels, and itineraries—to your unique preferences and budget.",
+    heroImg,
+    "Customized holiday packages, tailor-made travel, personalized vacation planning, Goimomi Holidays, luxury travel packages India, family holiday deals, honeymoon trip planning, adventure tour customization"
   );
 
   return (

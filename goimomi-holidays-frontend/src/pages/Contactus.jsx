@@ -10,7 +10,9 @@ import emailjs from "emailjs-com";
 const Contact = () => {
   usePageSEO(
     "Contact Goimomi Holidays | 24/7 Travel Support",
-    "Contact Goimomi Holidays for personalized travel consultations, support, and expert guidance on planning your next dream vacation. We're here 24/7."
+    "Reach out to Goimomi Holidays for expert assistance with holiday packages, VISA consulting, or custom trip planning. Our travel experts are available 24/7 to help you design your perfect journey.",
+    null,
+    "contact Goimomi Holidays, travel support India, holiday inquiry, visa consultation, trip planning help"
   );
 
   // ✅ Popup State (Placed correctly inside component)

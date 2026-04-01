@@ -10,7 +10,9 @@ const VisaSearch = () => {
     const navigate = useNavigate();
     usePageSEO(
         "Online Visa Services | Fast & Reliable Processing | Goimomi Holidays",
-        "Apply for international visas online with Goimomi Holidays. Get expert assistance and fast, hassle-free visa processing for over 100+ countries."
+        "Apply for international visas online with Goimomi Holidays. Get expert assistance and fast, hassle-free visa processing for over 100+ countries.",
+        undefined,
+        "online visa, visa application, travel visa services, fast visa processing, international visa assistance, visa office"
     );
     const [citizenOf, setCitizenOf] = useState("India");
     const [goingTo, setGoingTo] = useState("");

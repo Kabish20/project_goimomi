@@ -10,8 +10,9 @@ import sourcingImg from "../assets/images/sourcing.png";
 const Canton = () => {
   usePageSEO(
     "Canton Fair 2026 | Register Now with Goimomi Holidays",
-    "Join the Canton Fair 2026 with Goimomi Holidays. Complete travel solutions including registration, hotel bookings, and guided tours for the world's largest trade fair.",
-    cantonHero
+    "Join the prestigious Canton Fair 2026 with Goimomi Holidays. Experience the world's largest trade fair with our premium all-inclusive travel packages: luxury 4-star stays, seamless visa assistance, and expert business guidance for the ultimate sourcing experience.",
+    cantonHero,
+    "Canton Fair 2026, Canton Fair registration, Canton Fair travel package, Goimomi Holidays, Guangzhou trade fair, Business travel China, sourcing from China, Indian entrepreneurs Canton Fair"
   );
   const [activeAccordion, setActiveAccordion] = useState(null);
   // const navigate = useNavigate(); // Assuming useNavigate is needed later, but not provided in the full context to import.

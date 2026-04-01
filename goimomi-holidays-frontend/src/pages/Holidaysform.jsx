@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import usePageSEO from "../hooks/usePageSEO";
 import api from "../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -15,6 +16,10 @@ const HOLIDAY_TYPES = [
 ];
 
 const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
+  usePageSEO(
+    "Plan Your Custom Trip | Personalised Holiday Planner | Goimomi Holidays",
+    "Design your perfect holiday with Goimomi Holidays. Use our trip planner to customize your destination, accommodation, and activities for a unique travel experience."
+  );
   const [step, setStep] = useState(1);
 
   // Step 1 States (Umrah-style)

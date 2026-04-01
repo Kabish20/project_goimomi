@@ -1,6 +1,13 @@
 import React from "react";
+import usePageSEO from "../hooks/usePageSEO";
 
 const CancellationPolicy = () => {
+  usePageSEO(
+    "Cancellation Policy | Refunds & Changes | Goimomi Holidays",
+    "Understand the Goimomi Holidays cancellation and refund policy. Learn about booking changes, cancellation charges, and processing times for domestic and international tours.",
+    null,
+    "cancellation policy, refund rules, travel booking changes, Goimomi Holidays, tour cancellation"
+  );
   return (
     <div className="bg-gray-100 min-h-screen py-10">
       {/* ---------------- HEADER SECTION ---------------- */}

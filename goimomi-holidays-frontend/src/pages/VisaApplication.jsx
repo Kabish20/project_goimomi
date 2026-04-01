@@ -113,7 +113,8 @@ const VisaApplication = () => {
     usePageSEO(
         currentVisa ? `Apply for ${currentVisa.title} | Goimomi Holidays` : "Visa Application | Goimomi Holidays",
         currentVisa ? `Submit your application for ${currentVisa.title} for ${currentVisa.country}. Fast and secure online visa processing with Goimomi Holidays.` : "Complete your international visa application with Goimomi Holidays.",
-        currentVisa?.card_image ? getImageUrl(currentVisa.card_image) : undefined
+        currentVisa?.card_image ? getImageUrl(currentVisa.card_image) : undefined,
+        currentVisa ? `apply for ${currentVisa.title}, ${currentVisa.country} visa application, online visa form` : "visa application, online visa form"
     );
 
 

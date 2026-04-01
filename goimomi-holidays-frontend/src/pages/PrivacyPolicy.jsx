@@ -1,6 +1,13 @@
 import React from "react";
+import usePageSEO from "../hooks/usePageSEO";
 
 const PrivacyPolicy = () => {
+  usePageSEO(
+    "Privacy Policy | Data Security & Commitment | Goimomi Holidays",
+    "Goimomi Holidays values your privacy. Learn how we collect, protect, and use your personal data to provide exceptional travel services.",
+    null,
+    "privacy policy, data protection, travel agency privacy, secure booking"
+  );
   return (
     <div className="w-full bg-gray-50 py-16 flex justify-center">
       <div className="bg-white shadow-xl rounded-2xl p-10 md:p-16 max-w-4xl w-full">

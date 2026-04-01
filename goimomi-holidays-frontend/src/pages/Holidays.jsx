@@ -280,18 +280,24 @@ const Holidays = () => {
   const [destination, setDestination] = useState("");
 
   const seoTitle = category 
-    ? `${category} Packages | Goimomi Holidays`
+    ? `Best ${category} Packages | Luxury Travel Deals | Goimomi Holidays`
     : destination
-      ? `${destination} Tour Packages | Goimomi Holidays`
-      : "Explore Holiday Packages | Goimomi Holidays";
+      ? `${destination} Tour Packages | Handpicked Itineraries | Goimomi Holidays`
+      : "Premium Holiday Packages | Curated Travel Experiences | Goimomi Holidays";
       
   const seoDesc = category
-    ? `Browse our best ${category} travel packages. Expertly curated itineraries for a memorable experience.`
+    ? `Explore our exclusive ${category} travel packages. Immerse yourself in premium itineraries, 4-star accommodations, and seamless travel planning designed by Goimomi Holidays experts.`
     : destination
-      ? `Discover the best of ${destination} with Goimomi Holidays. Affordable and premium tour packages for every traveler.`
-      : "Discover affordable and premium tour packages for every destination. Plan your next adventure with Goimomi Holidays' expertly curated itineraries.";
+      ? `Discover the magic of ${destination} with our handpicked tour packages. Enjoy a stress-free vacation with Goimomi Holidays' luxury stays, expert local guides, and personalized travel solutions.`
+      : "Browse Goimomi Holidays' collection of premium tour packages. From exotic beach escapes to mountain adventures, our expertly curated itineraries ensure a life-changing travel experience tailored to your dreams.";
 
-  usePageSEO(seoTitle, seoDesc);
+  const seoKeywords = category
+    ? `${category} packages, ${category} travel, ${category} tour, Goimomi Holidays, holiday deals`
+    : destination
+      ? `${destination} tour packages, visit ${destination}, ${destination} travel deals, Goimomi Holidays, vacation in ${destination}`
+      : "holiday packages, tour packages, travel agency India, luxury vacations, Goimomi Holidays, premium travel experiences, custom holiday planning";
+
+  usePageSEO(seoTitle, seoDesc, null, seoKeywords);
 
   useEffect(() => {
     // 1. Check Query Params (Priority)

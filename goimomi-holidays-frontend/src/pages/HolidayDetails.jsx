@@ -70,7 +70,8 @@ const HolidayDetails = () => {
   usePageSEO(
     pkg ? `${pkg.title} | Goimomi Holidays` : "Holiday Details | Goimomi Holidays",
     seoDescription,
-    pkg ? getImageUrl(pkg.header_image || pkg.card_image) : "https://goimomi.com/logo-preview.png"
+    pkg ? getImageUrl(pkg.header_image || pkg.card_image) : "https://goimomi.com/logo-preview.png",
+    pkg ? `book ${pkg.title}, ${pkg.category} tour, ${pkg.starting_city} package, holiday details Goimomi` : "holiday details, tour package Goimomi"
   );
 
   const toggleDay = (index) => {

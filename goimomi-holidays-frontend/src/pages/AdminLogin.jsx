@@ -1,10 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import usePageSEO from "../hooks/usePageSEO";
 import api from "../api";
 import { jwtDecode } from "jwt-decode";
 import { User, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
 const AdminLogin = ({ isOpen, onClose }) => {
+    usePageSEO(
+        "Admin Login | Goimomi Holidays",
+        "Secure access for the Goimomi Holidays administrative dashboard. Manage tours, enquiries, and holiday packages with ease.",
+        null,
+        "admin login, travel portal management, Goimomi dashboard"
+    );
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");

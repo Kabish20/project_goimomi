@@ -19,7 +19,9 @@ const HolidayHome = () => {
   const navigate = useNavigate();
   usePageSEO(
     "Plan Your Perfect Holiday – Goimomi Holidays",
-    "Discover amazing domestic and international holiday packages, customized tours, European adventures, and specialized Umrah packages with Goimomi Holidays."
+    "Explore our curated collection of domestic and international holiday packages. From exotic European tours to sacred Umrah journeys, Goimomi Holidays offers customized travel experiences for every traveler.",
+    null,
+    "holiday packages India, international tours, domestic travel, Umrah packages, customized tours, Goimomi Holidays"
   );
 
   const categories = [

@@ -13,7 +13,9 @@ const BusinessHome = () => {
   const navigate = useNavigate();
   usePageSEO(
     "Elevate Your Business Travel – Goimomi Business",
-    "Tailored corporate travel solutions, Canton Fair registration, and international business sourcing trips with Goimomi Holidays."
+    "Empower your enterprise with Goimomi Business Solutions. From tailored corporate travel and logistics to global sourcing trips and Canton Fair registration, we provide strategic mobility solutions for the modern Indian business.",
+    bizHero,
+    "Corporate travel solutions India, business travel management, Goimomi Business, Canton Fair registration, sourcing trips China, strategic business mobility, corporate logistics Goimomi"
   );
 
   const businessCategories = [

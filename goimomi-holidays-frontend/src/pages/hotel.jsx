@@ -5,7 +5,9 @@ import usePageSEO from "../hooks/usePageSEO";
 const Hotel = () => {
   usePageSEO(
     "Premium Hotel Bookings | Best Luxury Stays | Goimomi Holidays",
-    "Book the best hotels and resorts worldwide with Goimomi Holidays. Competitive rates, personally vetted properties, and 24/7 concierge support for your comfort."
+    "Discover handpicked, luxury accommodations worldwide at competitive rates. From boutique hotels to international resorts, enjoy a seamless booking experience and 24/7 concierge support.",
+    null,
+    "hotel booking, luxury hotel India, international resort booking, Goimomi hotel stays, premium accommodation"
   );
   const [isFormOpen, setIsFormOpen] = useState(false);
 

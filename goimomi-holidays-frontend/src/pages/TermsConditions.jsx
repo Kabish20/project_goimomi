@@ -1,6 +1,13 @@
 import React from "react";
+import usePageSEO from "../hooks/usePageSEO";
 
 const TermsConditions = () => {
+  usePageSEO(
+    "Terms & Conditions | User Agreement | Goimomi Holidays",
+    "Read the terms and conditions for using Goimomi Holidays. Information on eligibility, membership, payments, cancellation policies, and legal jurisdiction.",
+    null,
+    "terms and conditions, user agreement, travel legal info, Goimomi terms"
+  );
   return (
     <div className="bg-gray-50 py-16 px-6">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-10">

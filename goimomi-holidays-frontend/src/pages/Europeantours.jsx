@@ -1,6 +1,13 @@
 import React, { useEffect } from 'react';
+import usePageSEO from '../hooks/usePageSEO';
 
 const Europeantours = () => {
+    usePageSEO(
+        "European Tour Packages | Explore the Best of Europe | Goimomi Holidays",
+        "Experience the magic of Europe with Goimomi Holidays. Comprehensive tour packages featuring Paris, Rome, Switzerland, and more. Premium stays and expertly guided itineraries for your dream European vacation.",
+        null, // Can add a specific Europe hero image later if available
+        "European tour packages, Europe vacation 2026, Paris Rome London tours, Switzerland holiday, Goimomi Holidays, Europe multi-country trip, Europamundo vacations"
+    );
     useEffect(() => {
         // Load the Europamundo resizing script
         const script = document.createElement('script');

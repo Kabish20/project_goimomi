@@ -688,8 +688,9 @@ class DynamicSEOView(APIView):
     """
     def get(self, request, path=""):
         # 1. Default fallback values
-        title = "Goimomi Holidays – Premium Travel Experiences"
-        description = "Goimomi Holidays offers premium customized vacation packages, family trips, and honeymoon tours tailored to your dreams."
+        title = "Goimomi Holidays – Customized Holiday Packages & Travel Experiences"
+        description = "Goimomi Holidays offers customized vacation packages, family trips, honeymoon tours, adventure travel, and premium holiday planning tailored to your preferences."
+        keywords = "goimomi holidays, travel agency, international tours, domestic holidays, visa services, holiday packages"
         image = "https://goimomi.com/logo-preview.png"
         
         # 2. Dynamic content based on path
@@ -703,13 +704,145 @@ class DynamicSEOView(APIView):
                 description = (plain_desc[:160] + '...') if len(plain_desc) > 160 else plain_desc
                 if pkg.card_image:
                     image = request.build_absolute_uri(pkg.card_image.url)
+                # Maybe add dynamic keywords if model had it
             except:
                 pass
         
         # Canton: /canton
         elif 'canton' in path.lower():
             title = "Canton Fair 2026 | Register Now with Goimomi Holidays"
-            description = "Complete travel solutions for Canton Fair 2026 including registration, hotel bookings, and guided tours."
+            description = "Join the prestigious Canton Fair 2026 with Goimomi Holidays. Experience the world's largest trade fair with our premium all-inclusive travel packages: luxury 4-star stays, seamless visa assistance, and expert business guidance."
+            keywords = "Canton Fair 2026, Canton Fair registration, Canton Fair travel package, Goimomi Holidays, Guangzhou trade fair, Business travel China"
+            
+        # Cabs: /cab
+        elif 'cab' in path.lower():
+            title = "Premium Cab & Transfer Services | Goimomi Holidays"
+            description = "Book reliable and comfortable airport transfers and intercity cabs with Goimomi Holidays. Professional drivers, clean vehicles, and 24/7 support for all your travel needs."
+            keywords = "Premium cab service, airport transfers, intercity taxi, Goimomi Holidays, Jeddah airport transfer, Makkah taxi service, Madinah cab booking"
+            
+        # Umrah: /umrah
+        elif 'umrah' in path.lower():
+            title = "Customized Umrah Packages | Sacred Spiritual Journey | Goimomi Holidays"
+            description = "Experience a blessed pilgrimage with Goimomi Holidays' customized Umrah packages. Premium accommodation, expert guidance, and seamless travel for your spiritual journey."
+            keywords = "Customized Umrah packages, Umrah pilgrimage 2026, Umrah from India, luxury Umrah stay, economy Umrah package, Makkah Madinah Ziyarat"
+            
+        # Customized Holidays: /customized-holidays
+        elif 'customized-holidays' in path.lower():
+            title = "Customized Holiday Packages | Goimomi Holidays"
+            description = "Design your perfect vacation with our fully customizable holiday packages. Tailor-made itineraries, luxury stays, and seamless travel planning for your dream getaway."
+            keywords = "Customized holiday packages, tailor-made travel, personalized vacation planning, Goimomi Holidays, luxury travel packages"
+
+        # Holidays List: /holidays
+        elif 'holidays' in path.lower() or 'packages' in path.lower():
+            title = "Premium Holiday Packages | Goimomi Holidays"
+            description = "Browse our collection of premium tour packages. From exotic beach escapes to mountain adventures, find your perfect travel experience."
+            keywords = "Goimomi Holidays, holiday packages, tour packages, travel agency, premium vacations"
+
+        # European Tours: /Europeantours
+        elif 'europe' in path.lower():
+            title = "European Tour Packages | Goimomi Holidays"
+            description = "Explore the best of Europe with Goimomi Holidays. From Paris to Rome, discover our comprehensive tour packages for your dream European vacation."
+            keywords = "European tour packages, Europe vacation, Paris Rome tours, Switzerland holiday, Goimomi Holidays"
+
+        # Cruise: /cruise
+        elif 'cruise' in path.lower():
+            title = "Luxury Cruise Holidays | Goimomi Holidays"
+            description = "Sail the high seas in style with Goimomi Holidays. Discover luxury cruise voyages with world-class dining, premium suites, and unforgettable destinations."
+            keywords = "Luxury cruise holidays, Cordelia Cruises, cruise booking India, ocean-view suites, Goimomi Holidays"
+
+        # Plan Your Trip: /form
+        elif 'form' in path.lower() or 'plan' in path.lower():
+            title = "Plan Your Trip | Custom Travel Planner | Goimomi Holidays"
+            description = "Customize your dream holiday with Goimomi Holidays. Use our trip planner to select destinations, flights, and activities tailored to your budget."
+            keywords = "Plan your trip, travel planner, custom holiday, vacation inquiry, Goimomi Holidays"
+
+        # About Us: /aboutus
+        elif 'about' in path.lower():
+            title = "About Goimomi Holidays | Our Journey & Commitment"
+            description = "Learn about Goimomi Holidays, our mission, and our decade-long journey as a trusted travel partner in India."
+            keywords = "About Goimomi Holidays, travel agency India, trusted travel partner, corporate travel services"
+
+        # Business Home: /businesshome
+        elif 'business' in path.lower():
+            title = "Elevate Your Business Travel | Goimomi Business"
+            description = "Empower your enterprise with Goimomi Business Solutions. Strategic corporate travel management and global sourcing support."
+            keywords = "Corporate travel solutions, business travel management, Goimomi Business, Canton Fair sourcing"
+
+        # Contact Us: /contactus
+        elif 'contact' in path.lower():
+            title = "Contact Goimomi Holidays | 24/7 Travel Support"
+            description = "Connect with Goimomi Holidays for expert travel guidance. Our team is available 24/7 to assist with your holiday and business travel needs."
+            keywords = "Contact Goimomi Holidays, travel support, holiday inquiry, visa consultation"
+
+        # Holiday Home: /holidayhome
+        elif 'holidayhome' in path.lower():
+            title = "Plan Your Perfect Holiday | Goimomi Holidays"
+            description = "Explore curated domestic and international holiday collections. Your gateway to extraordinary travel experiences."
+            keywords = "Holiday packages, international tours, domestic travel, Goimomi Holidays"
+
+        # Hotel: /hotel
+        elif 'hotel' in path.lower():
+            title = "Premium Hotel Bookings | Goimomi Holidays"
+            description = "Book handpicked luxury hotels and resorts worldwide with Goimomi Holidays. Best rates and 24/7 support guaranteed."
+            keywords = "Hotel booking, luxury stays, resort booking, Goimomi hotel deals"
+
+        # Privacy Policy: /privacy-policy
+        elif 'privacy' in path.lower():
+            title = "Privacy Policy | Goimomi Holidays"
+            description = "Learn about our commitment to protecting your personal data and privacy at Goimomi Holidays."
+            keywords = "Privacy policy, data protection, Goimomi Holidays"
+
+        # Terms & Conditions: /terms-and-conditions
+        elif 'terms' in path.lower():
+            title = "Terms & Conditions | Goimomi Holidays"
+            description = "Read the terms and conditions for using Goimomi Holidays services and our guest user agreement."
+            keywords = "Terms and conditions, user agreement, Goimomi Holidays"
+
+        # Cancellation Policy: /cancellation-policy
+        elif 'cancellation' in path.lower():
+            title = "Cancellation Policy | Goimomi Holidays"
+            description = "Understand the cancellation and refund rules for your travel bookings with Goimomi Holidays."
+            keywords = "Cancellation policy, refund rules, Goimomi Holidays"
+
+        # Package Enquiry: /enquiry
+        elif 'enquiry' in path.lower():
+            title = "Holiday Package Enquiry | Goimomi Holidays"
+            description = "Enquire about our international and domestic holiday packages. Get personalized quotes and travel expert advice."
+            keywords = "holiday enquiry, travel quote, package booking, vacation planning, goimomi holidays"
+
+        # Contact Success: /contact/success
+        elif 'success' in path.lower():
+            title = "Message Sent Successfully | Goimomi Holidays"
+            description = "Thank you for contacting Goimomi Holidays. Your enquiry has been received, and our travel experts will get back to you shortly."
+            keywords = "contact success, enquiry submitted, thank you, goimomi holidays"
+
+        # Visa Services: /visa
+        elif 'visa' in path.lower():
+            if 'apply' in path.lower():
+                try:
+                    visa_id = path.split('/')[-1]
+                    from .models import Visa
+                    v = Visa.objects.get(id=visa_id)
+                    title = f"Apply for {v.title} | Goimomi Holidays"
+                    description = f"Submit your application for {v.title} for {v.country}. Fast and secure online visa processing."
+                    keywords = f"apply for {v.title}, {v.country} visa, online visa form"
+                except:
+                    title = "Visa Application | Goimomi Holidays"
+                    description = "Complete your international visa application with Goimomi Holidays."
+            elif 'results' in path.lower():
+                title = "Visa Search Results | Goimomi Holidays"
+                description = "Explore visa options for your next trip. Get details on fees, processing time, and documents required."
+                keywords = "visa search, travel visa search, visa explorer"
+            else:
+                title = "Online Visa Services | Fast & Reliable Processing | Goimomi Holidays"
+                description = "Apply for international visas online with Goimomi Holidays. Get expert assistance and fast, hassle-free visa processing for over 100+ countries."
+                keywords = "online visa, visa application, travel visa services, fast visa processing, international visa assistance"
+
+        # Admin Login: /adminLogin
+        elif 'adminlogin' in path.lower():
+            title = "Admin Login | Goimomi Holidays"
+            description = "Secure portal for Goimomi Holidays administration."
+            keywords = "Admin login, Goimomi portal"
 
         # 3. Load the index.html
         # Note: Set frontend_dist_path correctly in your settings.py or use an absolute path
@@ -729,6 +862,7 @@ class DynamicSEOView(APIView):
                 content = re.sub(r'<meta property="og:description" content=".*?" />', f'<meta property="og:description" content="{description}" />', content)
                 content = re.sub(r'<meta property="og:image" content=".*?" />', f'<meta property="og:image" content="{image}" />', content)
                 content = re.sub(r'<meta name="description" content=".*?" />', f'<meta name="description" content="{description}" />', content)
+                content = re.sub(r'<meta name="keywords" content=".*?" />', f'<meta name="keywords" content="{keywords}" />', content)
                 content = re.sub(r'<meta itemprop="name" content=".*?" />', f'<meta itemprop="name" content="{title}" />', content)
                 content = re.sub(r'<meta itemprop="description" content=".*?" />', f'<meta itemprop="description" content="{description}" />', content)
                 content = re.sub(r'<meta itemprop="image" content=".*?" />', f'<meta itemprop="image" content="{image}" />', content)

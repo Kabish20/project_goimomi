@@ -18,7 +18,9 @@ const CustomizedUmrah = () => {
 
   usePageSEO(
     "Customized Umrah Packages | Sacred Spiritual Journey | Goimomi Holidays",
-    "Embark on a spiritual journey with our customized Umrah packages. Premium accommodation, guided rituals, and seamless travel arrangements for your pilgrimage."
+    "Experience a blessed pilgrimage with Goimomi Holidays' customized Umrah packages. We offer premium accommodation near Haram Sharif, expert religious guidance, seamless visa processing, and comfortable travel arrangements for a sacred spiritual journey.",
+    umrahImage,
+    "Customized Umrah packages, Umrah pilgrimage 2026, Umrah from India, luxury Umrah stay, economy Umrah package, Makkah Madinah Ziyarat, spiritual travel Goimomi, Umrah visa assistance"
   );
   return (
     <div className="w-full overflow-hidden">

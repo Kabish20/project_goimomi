@@ -13,7 +13,9 @@ import usePageSEO from "../hooks/usePageSEO";
 const Cab = () => {
   usePageSEO(
     "Premium Cab & Transfer Services | Goimomi Holidays",
-    "Book reliable and comfortable airport transfers and intercity cabs with Goimomi Holidays. Professional drivers, clean vehicles, and 24/7 support for all your travel needs."
+    "Experience seamless travel with Goimomi Holidays' premium cab and transfer services. Whether it's a luxury airport pickup, intercity travel, or specialized transfers in Saudi Arabia (Jeddah, Makkah, Madinah), we ensure professional drivers and ultimate comfort for your journey.",
+    null,
+    "Premium cab service, airport transfers, intercity taxi, Goimomi Holidays, Jeddah airport transfer, Makkah taxi service, Madinah cab booking, professional travel transfers, luxury car rental with driver"
   );
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState("");

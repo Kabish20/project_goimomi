@@ -177,7 +177,9 @@ const Home = () => {
   const navigate = useNavigate();
   usePageSEO(
     "Goimomi Holidays – Customized Holiday Packages & Travel Experiences",
-    "Goimomi Holidays offers customized vacation packages, family trips, honeymoon tours, adventure travel, and premium holiday planning tailored to your preferences."
+    "Goimomi Holidays offers customized vacation packages, family trips, honeymoon tours, adventure travel, and premium holiday planning tailored to your preferences.",
+    undefined,
+    "goimomi holidays, travel agency, international tours, domestic holidays, visa services, holiday packages"
   );
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [popularDestinations, setPopularDestinations] = useState([]);

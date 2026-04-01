@@ -9,7 +9,9 @@ const Cruise = () => {
   const [selectedCruise, setSelectedCruise] = useState("");
   usePageSEO(
     "Luxury Cruise Holidays | Plan Your Voyage | Goimomi Holidays",
-    "Discover the world's most beautiful destinations on a luxury cruise. Explore our latest sailing schedules, gourmet dining, and premium ocean-view suites."
+    "Sail the high seas in style with Goimomi Holidays' luxury cruise packages. From the vibrant shores of India to exotic international voyages, enjoy gourmet dining, world-class entertainment, and premium ocean-view suites on iconic ships like Cordelia Cruises.",
+    cruiseHeroImg,
+    "Luxury cruise holidays, Cordelia Cruises calendar 2026, cruise booking India, Mumbai to Goa cruise, international cruise packages, Goimomi Holidays, ocean-view suites, cruise vacation planning"
   );
 
   const handleBookCruise = (cruiseName) => {

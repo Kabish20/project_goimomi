@@ -6,7 +6,9 @@ import usePageSEO from '../hooks/usePageSEO'
 const About = () => {
   usePageSEO(
     "About Goimomi Holidays | Our Journey & Commitment",
-    "Learn about Goimomi Holidays, our mission to create extraordinary travel experiences, and our decade-long journey as a trusted travel partner in India."
+    "Discover Goimomi Holidays—your trusted travel partner in India since 2014. With over a decade of excellence and 50,000+ happy travelers, we are committed to creating extraordinary experiences through personalized holiday planning, expert guidance, and 24/7 support.",
+    aboutHero,
+    "About Goimomi Holidays, travel agency India, trusted travel partner, corporate travel services, family holiday planning, Goimomi mission and vision, 10 years of travel excellence"
   );
   return (
     <main className="max-w-7xl mx-auto px-6 py-12">

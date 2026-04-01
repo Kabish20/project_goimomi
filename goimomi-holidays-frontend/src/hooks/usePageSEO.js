@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-preview.png', ogType = 'website') => {
+const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-preview.png', keywords = '', ogType = 'website') => {
   useEffect(() => {
     // 1. Set document title
     if (title) {
@@ -26,7 +26,20 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
       }
     }
 
-    // 3. Set Open Graph tags (Facebook/WhatsApp)
+    // 3. Set Meta Keywords
+    if (keywords) {
+      let metaKeywords = document.querySelector('meta[name="keywords"]');
+      if (metaKeywords) {
+        metaKeywords.setAttribute('content', keywords);
+      } else {
+        metaKeywords = document.createElement('meta');
+        metaKeywords.name = 'keywords';
+        metaKeywords.content = keywords;
+        document.head.appendChild(metaKeywords);
+      }
+    }
+
+    // 4. Set Open Graph tags (Facebook/WhatsApp)
     const setMetaProperty = (property, content) => {
       if (!content) return;
       let el = document.querySelector(`meta[property="${property}"]`);
@@ -46,7 +59,7 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
     setMetaProperty('og:type', ogType);
     setMetaProperty('og:url', window.location.href);
 
-    // 4. Set Twitter tags
+    // 5. Set Twitter tags
     const setMetaName = (name, content) => {
       if (!content) return;
       let el = document.querySelector(`meta[name="${name}"]`);
@@ -65,7 +78,7 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
     setMetaName('twitter:image', ogImage);
     setMetaName('twitter:card', 'summary_large_image');
 
-    // 5. Set Schema.org itemprop tags (Extra for WhatsApp/Search)
+    // 6. Set Schema.org itemprop tags (Extra for WhatsApp/Search)
     const setItemProp = (name, content) => {
       if (!content) return;
       let el = document.querySelector(`meta[itemprop="${name}"]`);
@@ -82,7 +95,7 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
     setItemProp('description', description);
     setItemProp('image', ogImage);
 
-    // 6. Set Canonical URL
+    // 7. Set Canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
       canonical.setAttribute('href', window.location.href);
@@ -93,7 +106,7 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
       document.head.appendChild(canonical);
     }
 
-  }, [title, description, ogImage, ogType]);
+  }, [title, description, ogImage, keywords, ogType]);
 };
 
 export default usePageSEO;

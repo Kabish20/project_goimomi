@@ -36,7 +36,9 @@ const VisaResults = () => {
     const goingToParam = searchParams.get("goingTo");
     usePageSEO(
         goingToParam ? `${goingToParam} Visa Services | Goimomi Holidays` : "Visa Search Results | Goimomi Holidays",
-        goingToParam ? `Explore visa options for ${goingToParam}. Get details on fees, processing time, and documents required for your trip.` : "Find the right visa for your next international trip with Goimomi Holidays."
+        goingToParam ? `Explore visa options for ${goingToParam}. Get details on fees, processing time, and documents required for your trip.` : "Find the right visa for your next international trip with Goimomi Holidays.",
+        undefined,
+        goingToParam ? `${goingToParam} visa, visa fees, visa processing time, ${goingToParam} tourism visa` : "visa search, travel visa search, visa explorer"
     );
 
     // Dropdown and Search Logic
