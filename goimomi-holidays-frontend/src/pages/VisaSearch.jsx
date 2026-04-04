@@ -46,14 +46,35 @@ const VisaSearch = () => {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const [countriesRes, popularDestRes, popularVisasRes] = await Promise.all([
-                    api.get("/api/countries/"),
-                    api.get("/api/destinations/"),
-                    api.get("/api/visas/?is_popular=true")
-                ]);
-                setCountries(countriesRes.data);
-                setPopularDestinations(popularDestRes.data);
-                setPopularVisas(popularVisasRes.data);
+                // Fetch popular visas first
+                const popularVisasRes = await api.get("/api/visas/?is_popular=true");
+                const vData = popularVisasRes.data || [];
+                setPopularVisas(vData);
+
+                // Derive countries from the visas list
+                const uniqueCountries = [...new Set(vData.map(v => v.country).filter(Boolean))].map((name, index) => ({ id: `c-${index}`, name }));
+                
+                // Add common fallbacks if list is short
+                const fallbacks = ["India", "Sri Lanka", "Malaysian", "Singapore", "United Arab Emirates", "Thailand", "Uzbekistan", "Azerbaijan", "Schengen"];
+                fallbacks.forEach(f => {
+                    if (!uniqueCountries.find(c => c.name.toLowerCase() === f.toLowerCase())) {
+                        uniqueCountries.push({ id: `f-${f}`, name: f });
+                    }
+                });
+                
+                setCountries(uniqueCountries);
+                
+                // For popular destinations, we can reuse the visa data for now 
+                // since popular destinations for visas are essentially the countries with popular visas
+                const dests = vData.map(v => ({
+                    id: v.id,
+                    name: v.title,
+                    country: v.country,
+                    card_image: v.card_image,
+                    region: ""
+                }));
+                setPopularDestinations(dests);
+
             } catch (error) {
                 console.error("Error fetching initial data:", error);
             } finally {

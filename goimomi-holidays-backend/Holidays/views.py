@@ -19,8 +19,8 @@ from rest_framework.permissions import AllowAny
 # Local App Imports
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, Destination,
-    StartingCity, ItineraryMaster, Nationality, UmrahDestination, Visa,
-    VisaApplication, VisaApplicant, VisaAdditionalDocument, Country,
+    ItineraryMaster, Visa,
+    VisaApplication, VisaApplicant, VisaAdditionalDocument,
     Supplier, CruiseCalendar, HotelMaster, Airline, SightseeingMaster,
     SightseeingImage, MealMaster, VehicleBrand, Accommodation,
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
@@ -29,11 +29,11 @@ from .models import (
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
-    HolidayPackageSerializer, DestinationSerializer, StartingCitySerializer,
-    ItineraryMasterSerializer, UserSerializer, NationalitySerializer,
-    UmrahDestinationSerializer, VisaSerializer, VisaApplicationSerializer,
+    HolidayPackageSerializer,
+    ItineraryMasterSerializer, UserSerializer,
+    VisaSerializer, VisaApplicationSerializer,
     VisaApplicantSerializer, VisaAdditionalDocumentSerializer,
-    CountrySerializer, SupplierSerializer, CruiseCalendarSerializer,
+    SupplierSerializer, CruiseCalendarSerializer,
     HotelMasterSerializer, AirlineSerializer, SightseeingMasterSerializer,
     MealMasterSerializer, VehicleBrandSerializer, AccommodationSerializer,
     RoomTypeSerializer, VehicleMasterSerializer, DriverMasterSerializer,
@@ -155,27 +155,10 @@ class HolidayPackageViewSet(ModelViewSet):
         return queryset
 
 
-class DestinationViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    queryset = Destination.objects.all()
-    serializer_class = DestinationSerializer
-    pagination_class = None
-
-    def get_queryset(self):
-        queryset = Destination.objects.all()
-        is_popular = self.request.query_params.get('is_popular', None)
-        if is_popular is not None:
-            queryset = queryset.filter(is_popular=is_popular.lower() == 'true')
-        return queryset
 
 
-class StartingCityViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    queryset = StartingCity.objects.all()
-    serializer_class = StartingCitySerializer
-    pagination_class = None
+
+
 
 
 class ItineraryMasterViewSet(ModelViewSet):
@@ -193,21 +176,11 @@ class UserViewSet(ModelViewSet):
     pagination_class = None
 
 
-class NationalityViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    queryset = Nationality.objects.all()
-    serializer_class = NationalitySerializer
-    pagination_class = None
 
 
 
-class UmrahDestinationViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    queryset = UmrahDestination.objects.all()
-    serializer_class = UmrahDestinationSerializer
-    pagination_class = None
+
+
 
 
 class VisaViewSet(ModelViewSet):
@@ -309,12 +282,7 @@ class VisaAdditionalDocumentViewSet(ModelViewSet):
     pagination_class = None
 
 
-class CountryViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    queryset = Country.objects.all()
-    serializer_class = CountrySerializer
-    pagination_class = None
+
 
 class SupplierViewSet(ModelViewSet):
     authentication_classes = []

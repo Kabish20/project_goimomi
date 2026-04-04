@@ -14,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
-    destinations: 0,
     packages: 0,
     enquiries: 0,
     cabEnquiries: 0,
@@ -22,10 +21,7 @@ const AdminDashboard = () => {
     hotelEnquiries: 0,
     holidayEnquiries: 0,
     umrahEnquiries: 0,
-    startingCities: 0,
     itineraryMasters: 0,
-    nationalities: 0,
-    umrahDestinations: 0,
     visas: 0,
     visaApplications: 0,
     cantonEnquiries: 0,
@@ -52,15 +48,11 @@ const AdminDashboard = () => {
 
       // Fetch all data in parallel with error handling for each endpoint
       const fetchPromises = [
-        api.get(`${API_BASE_URL}/destinations/`).catch(err => ({ error: err, endpoint: 'destinations' })),
         api.get(`${API_BASE_URL}/packages/`).catch(err => ({ error: err, endpoint: 'packages' })),
         api.get(`${API_BASE_URL}/enquiry-form/`).catch(err => ({ error: err, endpoint: 'enquiries' })),
         api.get(`${API_BASE_URL}/holiday-form/`).catch(err => ({ error: err, endpoint: 'holiday-enquiries' })),
         api.get(`${API_BASE_URL}/umrah-form/`).catch(err => ({ error: err, endpoint: 'umrah-enquiries' })),
-        api.get(`${API_BASE_URL}/starting-cities/`).catch(err => ({ error: err, endpoint: 'starting-cities' })),
         api.get(`${API_BASE_URL}/itinerary-masters/`).catch(err => ({ error: err, endpoint: 'itinerary-masters' })),
-        api.get(`${API_BASE_URL}/nationalities/`).catch(err => ({ error: err, endpoint: 'nationalities' })),
-        api.get(`${API_BASE_URL}/umrah-destinations/`).catch(err => ({ error: err, endpoint: 'umrah-destinations' })),
         api.get(`${API_BASE_URL}/visas/`).catch(err => ({ error: err, endpoint: 'visas' })),
         api.get(`${API_BASE_URL}/visa-applications/`).catch(err => ({ error: err, endpoint: 'visa-applications' })),
         api.get(`${API_BASE_URL}/canton-enquiries/`).catch(err => ({ error: err, endpoint: 'canton-enquiries' })),
@@ -71,15 +63,11 @@ const AdminDashboard = () => {
 
       // Process responses and handle errors
       const newStats = {
-        destinations: 0,
         packages: 0,
         enquiries: 0,
         holidayEnquiries: 0,
         umrahEnquiries: 0,
-        startingCities: 0,
         itineraryMasters: 0,
-        nationalities: 0,
-        umrahDestinations: 0,
         visas: 0,
         visaApplications: 0,
         cantonEnquiries: 0,
@@ -94,9 +82,9 @@ const AdminDashboard = () => {
 
       responses.forEach((response, index) => {
         const endpoints = [
-          'destinations', 'packages', 'enquiries', 'holiday-enquiries', 
-          'umrah-enquiries', 'starting-cities', 'itinerary-masters', 
-          'nationalities', 'umrah-destinations', 'visas', 'visa-applications',
+          'packages', 'enquiries', 'holiday-enquiries',
+          'umrah-enquiries', 'itinerary-masters',
+          'visas', 'visa-applications',
           'canton-enquiries', 'cab-bookings'
         ];
         const endpoint = endpoints[index];
@@ -108,9 +96,6 @@ const AdminDashboard = () => {
           const count = Array.isArray(response.data) ? response.data.length : 0;
 
           switch (endpoint) {
-            case 'destinations':
-              newStats.destinations = count;
-              break;
             case 'packages':
               newStats.packages = count;
               break;
@@ -132,17 +117,8 @@ const AdminDashboard = () => {
               newStats.umrahEnquiries = count;
               allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Umrah' })));
               break;
-            case 'starting-cities':
-              newStats.startingCities = count;
-              break;
             case 'itinerary-masters':
               newStats.itineraryMasters = count;
-              break;
-            case 'nationalities':
-              newStats.nationalities = count;
-              break;
-            case 'umrah-destinations':
-              newStats.umrahDestinations = count;
               break;
             case 'visas':
               newStats.visas = count;
@@ -233,7 +209,7 @@ const AdminDashboard = () => {
       email = enquiry.applicants[0].email;
       phone = enquiry.applicants[0].phone;
     }
-    
+
     if (enquiry.type === 'Canton') {
       phone = enquiry.whatsapp_number;
     }
@@ -281,12 +257,8 @@ const AdminDashboard = () => {
             <>
               {/* Core Inventory Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
-                <AdminCard title="Destinations" count={stats.destinations} link="/admin/destinations" icon={<MapPin />} />
                 <AdminCard title="Packages" count={stats.packages} link="/admin/packages" icon={<Package />} />
-                <AdminCard title="Cities" count={stats.startingCities} link="/admin/starting-cities" icon={<Building2 />} />
                 <AdminCard title="Itinerary" count={stats.itineraryMasters} link="/admin/itinerary-masters" icon={<ClipboardList />} />
-                <AdminCard title="Countries" count={stats.nationalities} link="/admin/nationalities" icon={<Flag />} />
-                <AdminCard title="Umrah Dest" count={stats.umrahDestinations} link="/admin/umrah-destinations" icon={<Map />} />
                 <AdminCard title="Visas" count={stats.visas} link="/admin/visas" icon={<Globe />} />
                 <AdminCard title="Visa Apps" count={stats.visaApplications} link="/admin/visa-applications" icon={<CreditCard />} />
               </div>

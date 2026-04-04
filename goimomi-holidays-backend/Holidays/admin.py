@@ -5,17 +5,8 @@ from .models import *
 
 
 class HolidayPackageAdminForm(forms.ModelForm):
-    """Custom form for HolidayPackage admin with dropdown for starting_city"""
+    """Custom form for HolidayPackage admin"""
     
-    starting_city = forms.ChoiceField(
-        choices=[],
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    ending_city = forms.ChoiceField(
-        choices=[],
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
     package_categories = forms.MultipleChoiceField(
         choices=[
             ('Budget', 'Budget'),
@@ -31,41 +22,7 @@ class HolidayPackageAdminForm(forms.ModelForm):
     class Meta:
         model = HolidayPackage
         fields = ['title', 'description', 'category', 'supplier', 'fixed_departure', 'package_categories', 'starting_city', 'ending_city', 'days', 'start_date', 'group_size', 'Offer_price', 'price', 'header_image', 'card_image']
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Populate starting_city choices from StartingCity model
-        starting_city_choices = [('', '---------')]  # Empty choice
-        starting_cities = StartingCity.objects.all().order_by('region', 'name')
-        
-        # Group by region
-        current_region = None
-        region_group = []
-        
-        for city in starting_cities:
-            if current_region != city.region and region_group:
-                starting_city_choices.append((current_region, region_group))
-                region_group = []
-            current_region = city.region
-            region_group.append((city.name, city.name))
-        
-        # Add the last group
-        if region_group:
-            starting_city_choices.append((current_region, region_group))
-        
-        self.fields['starting_city'].choices = starting_city_choices
-        self.fields['ending_city'].choices = starting_city_choices
-        
-        # Add custom attributes to enable the "add another" link
-        self.fields['starting_city'].widget.attrs.update({
-            'data-model': 'startingcity',
-            'data-app': 'Holidays',
-        })
-        self.fields['ending_city'].widget.attrs.update({
-            'data-model': 'startingcity',
-            'data-app': 'Holidays',
-        })
+
 
 
 @admin.register(HolidayEnquiry)
@@ -146,12 +103,7 @@ class DestinationAdmin(admin.ModelAdmin):
     ordering = ("country", "name")
 
 
-@admin.register(StartingCity)
-class StartingCityAdmin(admin.ModelAdmin):
-    list_display = ("name", "region")
-    list_filter = ("region",)
-    search_fields = ("name", "region")
-    ordering = ("region", "name")
+
 
 
 @admin.register(ItineraryMaster)
@@ -160,22 +112,6 @@ class ItineraryMasterAdmin(admin.ModelAdmin):
     search_fields = ("name", "title", "description")
 
 
-@admin.register(Nationality)
-class NationalityAdmin(admin.ModelAdmin):
-    list_display = ('country', 'nationality', 'continent')
-    list_filter = ('continent',)
-    search_fields = ('country', 'nationality')
-
-@admin.register(UmrahDestination)
-class UmrahDestinationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'country')
-    list_filter = ('country',)
-    search_fields = ('name', 'country')
-
-@admin.register(Country)
-class CountryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code')
-    search_fields = ('name', 'code')
 
 @admin.register(Visa)
 class VisaAdmin(admin.ModelAdmin):

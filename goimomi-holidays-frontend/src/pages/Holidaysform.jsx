@@ -15,6 +15,19 @@ const HOLIDAY_TYPES = [
   "Ayurveda", "Yoga", "Medical Tourism", "Business", "MICE", "Educational", "Festival Tour"
 ];
 
+const POPULAR_DESTINATIONS = [
+  "Bali", "Thailand", "Dubai", "Singapore", "Maldives", "Vietnam", "Europe",
+  "Kashmir", "Kerala", "Rajasthan", "Goa", "Himachal", "Andaman", "Sikkim"
+];
+
+const POPULAR_STARTING_CITIES = [
+  "Chennai", "Bangalore", "Mumbai", "Delhi", "Hyderabad", "Kochi", "Madurai", "Trichy"
+];
+
+const POPULAR_NATIONALITIES = [
+  "Indian", "Sri Lankan", "Malaysian", "Singaporean", "American", "British", "Australian"
+];
+
 const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
   usePageSEO(
     "Plan Your Custom Trip | Personalised Holiday Planner | Goimomi Holidays",
@@ -46,10 +59,10 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
   const [otherInclusions, setOtherInclusions] = useState("");
   const [budget, setBudget] = useState("");
 
-  // Data from Backend
-  const [destinationsList, setDestinationsList] = useState([]);
-  const [startingCitiesList, setStartingCitiesList] = useState([]);
-  const [nationalitiesList, setNationalitiesList] = useState([]);
+  // Data for Dropdowns
+  const [destinationsList, setDestinationsList] = useState(POPULAR_DESTINATIONS.map((d, i) => ({ id: i, name: d })));
+  const [startingCitiesList, setStartingCitiesList] = useState(POPULAR_STARTING_CITIES.map((c, i) => ({ id: i, name: c })));
+  const [nationalitiesList, setNationalitiesList] = useState(POPULAR_NATIONALITIES.map((n, i) => ({ id: i, nationality: n, country: n })));
 
   // Dropdown States
   const [activeCityIndex, setActiveCityIndex] = useState(null); // Which row in 'cities' is open
@@ -59,21 +72,8 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
   const [isNationalityOpen, setIsNationalityOpen] = useState(false);
   const [nationalitySearch, setNationalitySearch] = useState("");
 
-  // Fetch Data
+  // Fetch Data - Removed as modules are decommissioned
   React.useEffect(() => {
-    if (isOpen) {
-      api.get("/api/destinations/")
-        .then(res => setDestinationsList(res.data))
-        .catch(err => console.error("Error fetching destinations:", err));
-
-      api.get("/api/starting-cities/")
-        .then(res => setStartingCitiesList(res.data))
-        .catch(err => console.error("Error fetching starting cities:", err));
-
-      api.get("/api/nationalities/")
-        .then(res => setNationalitiesList(res.data))
-        .catch(err => console.error("Error fetching nationalities:", err));
-    }
   }, [isOpen]);
 
   // Click Outside

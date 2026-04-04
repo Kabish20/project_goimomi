@@ -12,9 +12,8 @@ from django.contrib.auth.models import User
 # Local App Imports
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, PackageDestination,
-    ItineraryDay, Inclusion, Exclusion, Highlight, CancellationPolicy,
-    Destination, StartingCity, ItineraryMaster, Nationality,
-    UmrahDestination, Country, Visa, VisaApplication, VisaApplicant,
+    ItineraryDay, ItineraryMaster, Inclusion, Exclusion, Highlight, CancellationPolicy,
+    Visa, VisaApplication, VisaApplicant,
     VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster,
     Accommodation, AccommodationImage, Airline, HolidayVehicle,
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
@@ -42,10 +41,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 
-class NationalitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Nationality
-        fields = "__all__"
+
 
 
 class HolidayEnquirySerializer(serializers.ModelSerializer):
@@ -463,22 +459,13 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         
         package.save()
 
-class DestinationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Destination
-        fields = "__all__"
 
 
-class StartingCitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StartingCity
-        fields = "__all__"
 
 
-class UmrahDestinationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UmrahDestination
-        fields = "__all__"
+
+
+
 
 
 class ItineraryMasterSerializer(serializers.ModelSerializer):
@@ -513,14 +500,10 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CountrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Country
-        fields = "__all__"
+
 
 
 class VisaSerializer(serializers.ModelSerializer):
-    country_details = serializers.SerializerMethodField()
     supplier_details = serializers.SerializerMethodField()
 
     class Meta:
@@ -530,17 +513,10 @@ class VisaSerializer(serializers.ModelSerializer):
             'processing_time', 'cost_price', 'service_charge', 'selling_price', 
             'documents_required', 'photography_required', 
             'visa_type', 'card_image', 'is_active', 'is_popular', 'supplier', 'supplier_details',
-            'created_at', 'country_details'
+            'created_at'
         ]
 
-    def get_country_details(self, obj):
-        try:
-            country = Country.objects.filter(name=obj.country).first()
-            if country:
-                return CountrySerializer(country).data
-        except Exception:
-            pass
-        return None
+
 
     def get_supplier_details(self, obj):
         if obj.supplier:

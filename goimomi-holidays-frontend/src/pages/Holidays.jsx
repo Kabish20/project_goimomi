@@ -363,19 +363,28 @@ const Holidays = () => {
     setLoading(true);
     // Fetch packages
     api.get("/api/packages/")
-      .then((res) => setPackages(res.data))
+      .then((res) => {
+        setPackages(res.data);
+        
+        // Derive destinations and starting cities list from available packages
+        if (res.data && Array.isArray(res.data)) {
+          const uniqueStartingCities = [...new Set(res.data.map(p => p.starting_city).filter(Boolean))].map((name, index) => ({ id: `sc-${index}`, name }));
+          setStartingCitiesList(uniqueStartingCities);
+          
+          const uniqueDestNames = new Set();
+          res.data.forEach(p => {
+            if (p.destinations && Array.isArray(p.destinations)) {
+              p.destinations.forEach(d => {
+                if (d.name) uniqueDestNames.add(d.name);
+              });
+            }
+          });
+          const uniqueDestList = [...uniqueDestNames].map((name, index) => ({ id: `dest-${index}`, name }));
+          setDestinationsList(uniqueDestList);
+        }
+      })
       .catch((err) => console.error("Error fetching packages:", err))
       .finally(() => setLoading(false));
-
-    // Fetch destinations
-    api.get("/api/destinations/")
-      .then((res) => setDestinationsList(res.data))
-      .catch((err) => console.error("Error fetching destinations:", err));
-
-    // Fetch starting cities
-    api.get("/api/starting-cities/")
-      .then((res) => setStartingCitiesList(res.data))
-      .catch((err) => console.error("Error fetching starting cities:", err));
   }, []);
 
   // Close dropdowns when clicking outside

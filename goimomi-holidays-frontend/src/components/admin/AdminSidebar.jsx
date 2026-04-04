@@ -32,18 +32,6 @@ const menu = [
     title: "Holidays",
     items: [
       {
-        name: "Countries",
-        icon: <Globe size={18} />,
-        isDropdown: true,
-        children: [
-          { name: "Manage Countries", key: "Countries" },
-          { name: "Holiday Destinations", key: "Destinations" },
-          { name: "Umrah Destinations" },
-          { name: "Starting Cities" },
-          { name: "Nationalities" },
-        ]
-      },
-      {
         name: "Enquiries",
         icon: <MessageSquare size={18} />,
         isDropdown: true,
@@ -132,8 +120,6 @@ const AdminSidebar = () => {
     }));
   };
 
-  const handleAddDestination = () => navigate("/admin/destinations/add");
-  const handleChangeDestination = () => navigate("/admin/destinations");
   const handleAddPackage = () => navigate("/admin/packages/add");
   const handleAddUser = () => navigate("/admin/users/add");
   const handleAddHolidayEnquiry = () => navigate("/admin/holiday-enquiries/add");
@@ -145,21 +131,15 @@ const AdminSidebar = () => {
   const handleChangeUmrahEnquiry = () => navigate("/admin/umrah-enquiries");
   const handleChangeVisa = () => navigate("/admin/visas");
   const handleChangeVisaApplication = () => navigate("/admin/visa-applications");
-  const handleChangeStartingCity = () => navigate("/admin/starting-cities");
   const handleChangeItineraryMaster = () => navigate("/admin/itinerary-masters");
   const handleChangeSightseeingMaster = () => navigate("/admin/sightseeing-masters");
-  const handleChangeNationalities = () => navigate("/admin/nationalities");
   const handleChangeUsers = () => navigate("/admin/users");
-  const handleChangeUmrahDestinations = () => navigate("/admin/umrah-destinations");
   const handleChangeCabEnquiry = () => navigate("/admin/cab-enquiries");
   const handleChangeCabBooking = () => navigate("/admin/cab-bookings");
   const handleChangeCruiseEnquiry = () => navigate("/admin/cruise-enquiries");
   const handleChangeHotelEnquiry = () => navigate("/admin/hotel-enquiries");
-  const handleAddUmrahDestinations = () => navigate("/admin/umrah-destinations/add");
-  const handleAddStartingCity = () => navigate("/admin/starting-cities/add");
   const handleAddItineraryMaster = () => navigate("/admin/itinerary-masters/add");
   const handleAddSightseeingMaster = () => navigate("/admin/sightseeing-masters/add");
-  const handleAddNationality = () => navigate("/admin/nationalities/add");
   const handleAddCruiseCalendar = () => navigate("/admin/cruise-calendar/add");
   const handleAddVehicleMaster = () => navigate("/admin/vehicle-masters/add");
   const handleChangeVehicleMaster = () => navigate("/admin/vehicle-masters");
@@ -174,17 +154,12 @@ const AdminSidebar = () => {
     const key = typeof item === 'string' ? item : (item.key || item.name);
     switch (key) {
       case "Users": return handleAddUser;
-      case "Destinations": return handleAddDestination;
       case "Holiday Packages": return handleAddPackage;
-      case "Starting Cities": return handleAddStartingCity;
       case "Itinerary Masters": return handleAddItineraryMaster;
       case "Sightseeing Masters": return handleAddSightseeingMaster;
-      case "Nationalities": return handleAddNationality;
       case "Holiday Enquiries": return handleAddHolidayEnquiry;
       case "Umrah Enquiries": return handleAddUmrahEnquiry;
-      case "Umrah Destinations": return handleAddUmrahDestinations;
       case "Visas": return handleAddVisa;
-      case "Countries": return () => navigate("/admin/countries/add");
       case "Suppliers": return () => navigate("/admin/suppliers/add");
       case "Cruise Calendar": return handleAddCruiseCalendar;
       case "Accommodations": return () => navigate("/admin/accommodations/add");
@@ -200,24 +175,19 @@ const AdminSidebar = () => {
     const key = typeof item === 'string' ? item : (item.key || item.name);
     switch (key) {
       case "Users": return handleChangeUsers;
-      case "Destinations": return handleChangeDestination;
       case "Holiday Packages": return handleChangePackage;
       case "Enquiries": return handleChangeEnquiry;
       case "Holiday Enquiries": return handleChangeHolidayEnquiry;
       case "Umrah Enquiries": return handleChangeUmrahEnquiry;
       case "Canton Enquiries": return () => navigate("/admin/canton-enquiries");
-      case "Starting Cities": return handleChangeStartingCity;
       case "Itinerary Masters": return handleChangeItineraryMaster;
       case "Sightseeing Masters": return handleChangeSightseeingMaster;
-      case "Nationalities": return handleChangeNationalities;
-      case "Umrah Destinations": return handleChangeUmrahDestinations;
       case "Cab Enquiries": return handleChangeCabEnquiry;
       case "Cruise Enquiries": return handleChangeCruiseEnquiry;
       case "Hotel Enquiries": return handleChangeHotelEnquiry;
       case "Visas": return handleChangeVisa;
       case "Visa bookings": return handleChangeVisaApplication;
       case "Cab Bookings": return handleChangeCabBooking;
-      case "Countries": return () => navigate("/admin/countries");
       case "Suppliers": return () => navigate("/admin/suppliers");
       case "Cruise Calendar": return () => navigate("/admin/cruise-calendar");
       case "Accommodations": return () => navigate("/admin/accommodations");

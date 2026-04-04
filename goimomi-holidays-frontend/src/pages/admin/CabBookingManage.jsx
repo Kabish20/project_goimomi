@@ -115,7 +115,7 @@ const CabBookingManage = () => {
         // Clean White Background
         doc.setFillColor(255, 255, 255);
         doc.rect(0, 0, pageWidth, pageHeight, 'F');
-        
+
         // Modern Sidebar Accent (Emerald Green)
         doc.setFillColor(20, 83, 45);
         doc.rect(0, 0, 8, pageHeight, 'F');
@@ -123,7 +123,7 @@ const CabBookingManage = () => {
         // Decorative Background Pattern (Subtle circles and lines)
         doc.setDrawColor(240, 253, 244);
         doc.setLineWidth(0.1);
-        for(let i=0; i<pageWidth; i+=20) {
+        for (let i = 0; i < pageWidth; i += 20) {
             doc.line(i, 0, i, pageHeight);
         }
         doc.setFillColor(240, 253, 244);
@@ -142,7 +142,7 @@ const CabBookingManage = () => {
         doc.setFontSize(28);
         doc.setFont("helvetica", "bold");
         doc.text("SERVICE VOUCHER", pageWidth - padding, y + 10, { align: "right" });
-        
+
         doc.setTextColor(107, 114, 128);
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
@@ -152,12 +152,12 @@ const CabBookingManage = () => {
         doc.setDrawColor(229, 231, 235);
         doc.setLineWidth(0.5);
         doc.line(padding + 5, y, pageWidth - padding, y);
-        
+
         // --- 3. TRIP HIGHLIGHTS (CREATIVE GRID) ---
         y += 12;
         doc.setFillColor(20, 83, 45);
         doc.roundedRect(padding + 5, y, pageWidth - (padding * 2) - 5, 28, 3, 3, 'F');
-        
+
         // Labels in Highlight Box
         doc.setFontSize(8);
         doc.setTextColor(220, 252, 231);
@@ -171,22 +171,22 @@ const CabBookingManage = () => {
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold");
         doc.text(formatDate(booking.pickup_date), padding + 10, y + 18);
-        
+
         // --- DRAW CREATIVE ROUTE ICONS ---
         const routeStartX = padding + 55;
         const routeY = y + 17;
-        
+
         // 1. Pickup Icon
         doc.setDrawColor(255, 255, 255);
         doc.setLineWidth(0.4);
         doc.circle(routeStartX, routeY, 1.2, 'D');
         doc.setFillColor(255, 255, 255);
         doc.circle(routeStartX, routeY, 0.4, 'F');
-        
+
         // 2. Connecting Dashed Line
         doc.setDrawColor(220, 252, 231);
         doc.setLineWidth(0.2);
-        for(let i=0; i<6; i+=2) {
+        for (let i = 0; i < 6; i += 2) {
             doc.line(routeStartX + 2 + i, routeY, routeStartX + 3 + i, routeY);
         }
 
@@ -196,19 +196,19 @@ const CabBookingManage = () => {
         doc.setFillColor(255, 255, 255);
         doc.circle(dropX, routeY - 0.8, 1, 'FD');
         doc.line(dropX, routeY - 0.8, dropX, routeY + 1.2);
-        
+
         // 4. Route Text (Cleaned up alignment)
         const fromCity = (booking.from_city || "").toUpperCase();
         const toCity = (booking.to_city || "").toUpperCase();
         const routeDisplay = `${fromCity} > ${toCity}`;
-        
+
         // Use a character limit to ensure it doesn't spill into the next column
         const truncatedRoute = routeDisplay.length > 25 ? routeDisplay.substring(0, 22) + "..." : routeDisplay;
         doc.text(truncatedRoute, routeStartX + 15, y + 18);
-        
+
         // Vehicle Text (Shifted right)
         doc.text(booking.vehicle_name?.toUpperCase() || "N/A", padding + 145, y + 18);
-        
+
         y += 45;
 
         // --- 4. DETAILS SECTION (2 COLUMNS) ---
@@ -218,7 +218,7 @@ const CabBookingManage = () => {
         // Visual Section Header Decor
         const drawHeader = (title, x, yPos) => {
             doc.setFillColor(240, 253, 244);
-            doc.rect(x, yPos - 5, (pageWidth/2) - 20, 8, 'F');
+            doc.rect(x, yPos - 5, (pageWidth / 2) - 20, 8, 'F');
             doc.setTextColor(20, 83, 45);
             doc.setFontSize(11);
             doc.setFont("helvetica", "bold");
@@ -259,15 +259,15 @@ const CabBookingManage = () => {
         doc.roundedRect(padding + 5, y, pageWidth - (padding * 2) - 5, 22, 2, 2, 'D');
         doc.setFillColor(20, 83, 45);
         doc.roundedRect(padding + 5, y, 40, 22, 2, 2, 'F');
-        
+
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(9);
         doc.text("DRIVER / REP", padding + 10, y + 12);
-        
+
         doc.setTextColor(20, 83, 45);
         doc.setFontSize(12);
         doc.text(booking.driver || "WILL BE SHARED ON WHATSAPP", padding + 50, y + 13);
-        
+
         y += 35;
 
         // --- 6. TERMS & SPECIAL INSTRUCTIONS ---
@@ -293,15 +293,15 @@ const CabBookingManage = () => {
 
         // --- 7. FOOTER ---
         const footerY = pageHeight - 40;
-        
+
         doc.setDrawColor(229, 231, 235);
         doc.line(padding + 5, footerY + 25, pageWidth - padding, footerY + 25);
-        
+
         doc.setTextColor(20, 83, 45);
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
         doc.text("GOIMOMI HOLIDAYS", padding + 5, footerY + 32);
-        
+
         doc.setTextColor(156, 163, 175);
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
@@ -402,6 +402,23 @@ const CabBookingManage = () => {
         }
     };
 
+    const handleDriverUpdate = async (bookingId, driverName) => {
+        try {
+            const formData = new FormData();
+            formData.append('driver', driverName);
+            await api.put(`${API_BASE_URL}/cab-bookings/${bookingId}/`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            // Update local state to reflect change immediately
+            setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, driver: driverName } : b));
+            setFilteredBookings(prev => prev.map(b => b.id === bookingId ? { ...b, driver: driverName } : b));
+        } catch (err) {
+            console.error("Error updating driver:", err);
+            setError("Failed to update driver. Please try again.");
+        }
+    };
+
     return (
         <div className="flex bg-gray-100 h-full overflow-hidden">
             <AdminSidebar />
@@ -447,6 +464,7 @@ const CabBookingManage = () => {
                                 <option value="All">All Status</option>
                                 <option value="Booking Requested">Booking Requested</option>
                                 <option value="Tentative Confirmation">Tentative Confirmation</option>
+                                <option value="defined">defined</option>
                                 <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
                             </select>
@@ -529,10 +547,28 @@ const CabBookingManage = () => {
                                                         <div className="text-[10px] text-[#14532d] font-black uppercase tracking-widest mt-1">
                                                             {booking.vehicle_name}
                                                         </div>
-                                                        {booking.driver && (
-                                                            <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold text-gray-500 italic">
-                                                                Driver: {booking.driver}
+                                                        {booking.status === 'defined' ? (
+                                                            <div className="mt-1.5 flex items-center gap-1.5 animate-in fade-in slide-in-from-left-1">
+                                                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gray-50 rounded border border-gray-100">
+                                                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">Dr:</span>
+                                                                    <select
+                                                                        value={booking.driver || ""}
+                                                                        onChange={(e) => handleDriverUpdate(booking.id, e.target.value)}
+                                                                        className="text-[10px] font-black text-[#14532d] bg-transparent focus:outline-none cursor-pointer appearance-none uppercase"
+                                                                    >
+                                                                        <option value="">Select Driver</option>
+                                                                        {drivers.map(d => (
+                                                                            <option key={d.value} value={d.value} className="text-gray-900 font-bold">{d.label}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
                                                             </div>
+                                                        ) : (
+                                                            booking.driver && (
+                                                                <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold text-gray-500 italic">
+                                                                    Driver: {booking.driver}
+                                                                </div>
+                                                            )
                                                         )}
                                                     </td>
                                                     <td className="py-3 px-4">
@@ -559,14 +595,16 @@ const CabBookingManage = () => {
                                                                 value={booking.status || 'Booking Requested'}
                                                                 onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
                                                                 className={`text-[10px] font-black uppercase tracking-widest inline-block px-2.5 py-1.5 rounded-full cursor-pointer border-none outline-none appearance-none text-center ${booking.status === 'Tentative Confirmation' ? 'bg-green-100 text-green-700' :
-                                                                    booking.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                                                                        booking.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
-                                                                            'bg-blue-100 text-blue-700'
+                                                                    booking.status === 'defined' ? 'bg-indigo-100 text-indigo-700' :
+                                                                        booking.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                                            booking.status === 'Completed' ? 'bg-emerald-100 text-emerald-700' :
+                                                                                'bg-blue-100 text-blue-700'
                                                                     }`}
                                                                 style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
                                                             >
                                                                 <option value="Booking Requested" className="bg-white text-gray-900 text-xs">Booking Requested</option>
                                                                 <option value="Tentative Confirmation" className="bg-white text-gray-900 text-xs">Tentative Confirmation</option>
+                                                                <option value="defined" className="bg-white text-gray-900 text-xs">defined</option>
                                                                 <option value="Completed" className="bg-white text-gray-900 text-xs">Completed</option>
                                                                 <option value="Cancelled" className="bg-white text-gray-900 text-xs">Cancelled</option>
                                                             </select>
@@ -624,7 +662,7 @@ const CabBookingManage = () => {
             {
                 editingBooking && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden animate-in fade-in zoom-in duration-200">
                             <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-[#14532d] text-white">
                                 <h2 className="text-sm font-black uppercase tracking-tight">View / Edit Cab Booking</h2>
                                 <div className="flex items-center gap-2">
@@ -646,20 +684,20 @@ const CabBookingManage = () => {
                                 </div>
                             </div>
 
-                            <form onSubmit={(e) => handleEditSave(e)} className="overflow-y-auto max-h-[70vh] p-3 space-y-4">
+                            <form onSubmit={(e) => handleEditSave(e)} className="overflow-y-auto max-h-[85vh] p-4 space-y-6">
                                 {/* Guest Info */}
                                 <div className="space-y-2 group">
                                     <div className="flex justify-between items-center border-b border-green-100 pb-0.5">
                                         <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Guest Information</p>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => editSections.guest ? handleEditSave(null, 'guest') : toggleSection('guest')}
                                             className={`text-[8px] font-bold px-2 py-0.5 rounded transition-colors ${editSections.guest ? 'bg-[#14532d] text-white' : 'text-blue-600 hover:bg-blue-50'}`}
                                         >
                                             {editSections.guest ? (isSaving ? 'Saving...' : 'Save') : 'Edit'}
                                         </button>
                                     </div>
-                                    
+
                                     {editSections.guest ? (
                                         <div className="animate-in fade-in duration-200">
                                             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -746,8 +784,8 @@ const CabBookingManage = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center border-b border-green-100 pb-0.5">
                                         <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Trip Details</p>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => editSections.trip ? handleEditSave(null, 'trip') : toggleSection('trip')}
                                             className={`text-[8px] font-bold px-2 py-0.5 rounded transition-colors ${editSections.trip ? 'bg-[#14532d] text-white' : 'text-blue-600 hover:bg-blue-50'}`}
                                         >
@@ -835,8 +873,8 @@ const CabBookingManage = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center border-b border-green-100 pb-0.5">
                                         <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Vehicle Information</p>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => editSections.vehicle ? handleEditSave(null, 'vehicle') : toggleSection('vehicle')}
                                             className={`text-[8px] font-bold px-2 py-0.5 rounded transition-colors ${editSections.vehicle ? 'bg-[#14532d] text-white' : 'text-blue-600 hover:bg-blue-50'}`}
                                         >
@@ -885,8 +923,8 @@ const CabBookingManage = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center border-b border-green-100 pb-0.5">
                                         <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Transfer Information</p>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => editSections.transfer ? handleEditSave(null, 'transfer') : toggleSection('transfer')}
                                             className={`text-[8px] font-bold px-2 py-0.5 rounded transition-colors ${editSections.transfer ? 'bg-[#14532d] text-white' : 'text-blue-600 hover:bg-blue-50'}`}
                                         >
@@ -1026,8 +1064,8 @@ const CabBookingManage = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center border-b border-green-100 pb-0.5">
                                         <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Assignment & Status</p>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => editSections.assignment ? handleEditSave(null, 'assignment') : toggleSection('assignment')}
                                             className={`text-[8px] font-bold px-2 py-0.5 rounded transition-colors ${editSections.assignment ? 'bg-[#14532d] text-white' : 'text-blue-600 hover:bg-blue-50'}`}
                                         >
@@ -1047,6 +1085,7 @@ const CabBookingManage = () => {
                                                 >
                                                     <option value="Booking Requested">Booking Requested</option>
                                                     <option value="Tentative Confirmation">Tentative Confirmation</option>
+                                                    <option value="defined">defined</option>
                                                     <option value="Completed">Completed</option>
                                                     <option value="Cancelled">Cancelled</option>
                                                 </select>
@@ -1079,8 +1118,8 @@ const CabBookingManage = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center border-b border-green-100 pb-0.5">
                                         <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Documents</p>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => editSections.docs ? handleEditSave(null, 'docs') : toggleSection('docs')}
                                             className={`text-[8px] font-bold px-2 py-0.5 rounded transition-colors ${editSections.docs ? 'bg-[#14532d] text-white' : 'text-blue-600 hover:bg-blue-50'}`}
                                         >
@@ -1197,15 +1236,15 @@ const CabBookingManage = () => {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center border-b border-green-100 pb-0.5">
                                         <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Special Requirements</p>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => editSections.requirements ? handleEditSave(null, 'requirements') : toggleSection('requirements')}
                                             className={`text-[8px] font-bold px-2 py-0.5 rounded transition-colors ${editSections.requirements ? 'bg-[#14532d] text-white' : 'text-blue-600 hover:bg-blue-50'}`}
                                         >
                                             {editSections.requirements ? (isSaving ? 'Saving...' : 'Save') : 'Edit'}
                                         </button>
                                     </div>
-                                    
+
                                     {editSections.requirements ? (
                                         <textarea
                                             name="special_requirements"

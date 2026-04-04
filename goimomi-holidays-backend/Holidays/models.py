@@ -70,6 +70,13 @@ class Enquiry(models.Model):
     phone = models.CharField(max_length=20)
     destination = models.CharField(max_length=200, blank=True, null=True)
     purpose = models.TextField(blank=True, null=True)
+    
+    # New fields for Cab/Cruise structured enquiry
+    vehicle = models.CharField(max_length=100, blank=True, null=True)
+    from_city = models.CharField(max_length=100, blank=True, null=True)
+    to_city = models.CharField(max_length=100, blank=True, null=True)
+    travel_date = models.DateField(blank=True, null=True)
+    
     enquiry_type = models.CharField(
         max_length=50, 
         choices=[
@@ -255,12 +262,7 @@ class Destination(models.Model):
         return self.name
 
 
-class StartingCity(models.Model):
-    name = models.CharField(max_length=100)
-    region = models.CharField(max_length=100, blank=True, null=True)
 
-    def __str__(self):
-        return self.name
 
 
 class ItineraryMaster(models.Model):
@@ -281,44 +283,15 @@ class ItineraryMaster(models.Model):
         return f"{self.destination.name if self.destination else 'Global'} - {self.name}"
 
 
-class Nationality(models.Model):
-    country = models.CharField(max_length=100)
-    nationality = models.CharField(max_length=100)
-    continent = models.CharField(max_length=50)
-
-    class Meta:
-        verbose_name_plural = "Nationalities"
-        ordering = ['continent', 'country']
-
-    def __str__(self):
-        return f"{self.country} ({self.nationality})"
 
 
-class UmrahDestination(models.Model):
-    name = models.CharField(max_length=100)
-    country = models.CharField(max_length=100)
 
-    class Meta:
-        ordering = ['country', 'name']
 
-    def __str__(self):
-        return f"{self.name} - {self.country}"
 
 
 
 # Country Master for Visa
-class Country(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    code = models.CharField(max_length=3, blank=True, null=True)
-    # header_image = models.ImageField(upload_to="countries/headers/", blank=True, null=True)
-    # video = models.FileField(upload_to="countries/videos/", blank=True, null=True, help_text="Upload a video for the country header")
-    
-    class Meta:
-        verbose_name_plural = "Countries"
-        ordering = ['name']
-    
-    def __str__(self):
-        return self.name
+
 
 
 # Visa Models
@@ -680,6 +653,7 @@ class CabBooking(models.Model):
         choices=[
             ('Booking Requested', 'Booking Requested'),
             ('Tentative Confirmation', 'Tentative Confirmation'),
+            ('Confirmed', 'Confirmed'),
             ('Completed', 'Completed'),
             ('Cancelled', 'Cancelled')
         ], 

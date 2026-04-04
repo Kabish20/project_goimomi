@@ -42,7 +42,10 @@ const CabEnquiryManage = () => {
             enquiry.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             enquiry.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             enquiry.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            enquiry.destination?.toLowerCase().includes(searchTerm.toLowerCase())
+            enquiry.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            enquiry.from_city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            enquiry.to_city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            enquiry.vehicle?.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredEnquiries(filtered);
     }, [searchTerm, enquiries]);
@@ -154,15 +157,16 @@ const CabEnquiryManage = () => {
                                             <tr className="bg-[#14532d] text-white">
                                                 <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest">Name</th>
                                                 <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest">Contact</th>
-                                                <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest">Destination</th>
-                                                <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest">Date</th>
+                                                <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest">Vehicle</th>
+                                                <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest">Route (From - To)</th>
+                                                <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest">Travel Date</th>
                                                 <th className="px-4 py-2 text-[8px] font-black uppercase tracking-widest text-center">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50">
                                             {filteredEnquiries.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan="5" className="px-4 py-16 text-center text-gray-300">
+                                                    <td colSpan="6" className="px-4 py-16 text-center text-gray-300">
                                                         <div className="flex flex-col items-center gap-2">
                                                             <MapPin size={24} />
                                                             <p className="text-[8px] font-black uppercase tracking-[0.2em]">
@@ -192,13 +196,16 @@ const CabEnquiryManage = () => {
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-1.5">
+                                                            <p className="text-[10px] font-bold text-gray-700">{enquiry.vehicle || "N/A"}</p>
+                                                        </td>
+                                                        <td className="px-4 py-1.5">
                                                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-700">
                                                                 <MapPin size={10} className="text-red-400" />
-                                                                {enquiry.destination}
+                                                                {enquiry.from_city && enquiry.to_city ? `${enquiry.from_city} → ${enquiry.to_city}` : (enquiry.destination || "N/A")}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-1.5 text-[9px] text-gray-400 whitespace-nowrap font-bold">
-                                                            {formatDate(enquiry.created_at)}
+                                                            {enquiry.travel_date || "N/A"}
                                                         </td>
                                                         <td className="px-4 py-1.5">
                                                             <div className="flex justify-center gap-1.5">
@@ -257,7 +264,18 @@ const CabEnquiryManage = () => {
                             </button>
                         </div>
 
-                        <div className="p-4 space-y-3">
+                        <div className="p-4 space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Enquiry Date</p>
+                                    <p className="text-[10px] font-bold text-gray-700">{formatDate(selectedEnquiry.created_at)}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Travel Date</p>
+                                    <p className="text-[10px] font-bold text-[#14532d]">{selectedEnquiry.travel_date || "N/A"}</p>
+                                </div>
+                            </div>
+
                             <div className="space-y-1.5">
                                 <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Contact Details</p>
                                 <div className="space-y-1">
@@ -274,16 +292,32 @@ const CabEnquiryManage = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Requirements</p>
-                                <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-gray-600 text-[11px] leading-relaxed min-h-[40px]">
-                                    {selectedEnquiry.purpose || "No specific requirements mentioned."}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Vehicle Preference</p>
+                                    <p className="text-[10px] font-bold text-gray-700 bg-gray-50 p-2 rounded-lg border border-gray-100">{selectedEnquiry.vehicle || "N/A"}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Legacy Destination</p>
+                                    <p className="text-[10px] font-bold text-gray-700 bg-gray-50 p-2 rounded-lg border border-gray-100">{selectedEnquiry.destination || "N/A"}</p>
                                 </div>
                             </div>
 
-                            <p className="text-center text-[8px] font-bold text-gray-300 uppercase tracking-widest">
-                                Received on {formatDate(selectedEnquiry.created_at)}
-                            </p>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Route (From → To)</p>
+                                <div className="bg-gray-50 p-2 rounded-lg border border-gray-100 text-[10px] font-bold text-gray-700 flex items-center gap-2">
+                                    <span className="text-[#14532d]">{selectedEnquiry.from_city || "---"}</span>
+                                    <span className="text-gray-300">→</span>
+                                    <span className="text-[#14532d]">{selectedEnquiry.to_city || "---"}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Special Requirements</p>
+                                <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-gray-600 text-[11px] leading-relaxed min-h-[50px]">
+                                    {selectedEnquiry.purpose || "No specific requirements mentioned."}
+                                </div>
+                            </div>
                         </div>
 
                         <div className="px-4 pb-4 flex gap-2">
@@ -355,8 +389,54 @@ const CabEnquiryManage = () => {
                                 </div>
                             </div>
 
+                             <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Vehicle</label>
+                                    <input
+                                        type="text"
+                                        name="vehicle"
+                                        value={editingEnquiry.vehicle || ""}
+                                        onChange={handleEditChange}
+                                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Travel Date</label>
+                                    <input
+                                        type="date"
+                                        name="travel_date"
+                                        value={editingEnquiry.travel_date || ""}
+                                        onChange={handleEditChange}
+                                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">From City</label>
+                                    <input
+                                        type="text"
+                                        name="from_city"
+                                        value={editingEnquiry.from_city || ""}
+                                        onChange={handleEditChange}
+                                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">To City</label>
+                                    <input
+                                        type="text"
+                                        name="to_city"
+                                        value={editingEnquiry.to_city || ""}
+                                        onChange={handleEditChange}
+                                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+
                             <div>
-                                <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Destination</label>
+                                <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Legacy Destination</label>
                                 <input
                                     type="text"
                                     name="destination"
@@ -367,12 +447,12 @@ const CabEnquiryManage = () => {
                             </div>
 
                             <div>
-                                <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Purpose / Requirements</label>
+                                <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Requirements</label>
                                 <textarea
                                     name="purpose"
                                     value={editingEnquiry.purpose || ""}
                                     onChange={handleEditChange}
-                                    rows="3"
+                                    rows="2"
                                     className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[11px] focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none resize-none"
                                 ></textarea>
                             </div>

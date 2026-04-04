@@ -49,21 +49,24 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
   const [isNationalityOpen, setIsNationalityOpen] = useState(false);
   const [nationalitySearch, setNationalitySearch] = useState("");
 
-  // Fetch Data
+  // Fetch Data - Removed as modules are decommissioned
   React.useEffect(() => {
-    if (isOpen) {
-      api.get("/api/nationalities/")
-        .then(res => setNationalitiesList(res.data))
-        .catch(err => console.error("Error fetching nationalities:", err));
-
-      api.get("/api/starting-cities/")
-        .then(res => setStartingCitiesList(res.data))
-        .catch(err => console.error("Error fetching starting cities:", err));
-
-      api.get("/api/umrah-destinations/")
-        .then(res => setUmrahDestinationsList(res.data))
-        .catch(err => console.error("Error fetching umrah destinations:", err));
-    }
+    // Set static defaults for common values
+    setNationalitiesList([
+      { id: 1, nationality: "Indian", country: "India" },
+      { id: 2, nationality: "British", country: "United Kingdom" },
+      { id: 3, nationality: "American", country: "United States" },
+      { id: 4, nationality: "Malaysian", country: "Malaysia" }
+    ]);
+    setStartingCitiesList([
+      { id: 1, name: "Chennai" }, { id: 2, name: "Mumbai" }, { id: 3, name: "Delhi" }, { id: 4, name: "Bangalore" }
+    ]);
+    setUmrahDestinationsList([
+      { id: 1, name: "Makkah", country: "Saudi Arabia" },
+      { id: 2, name: "Madinah", country: "Saudi Arabia" },
+      { id: 3, name: "Jeddah", country: "Saudi Arabia" },
+      { id: 4, name: "Taif", country: "Saudi Arabia" }
+    ]);
   }, [isOpen]);
 
   // Helpers

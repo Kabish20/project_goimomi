@@ -34,9 +34,6 @@ import HolidayHome from "./pages/holidayhome.jsx";
 import PackageEnquiryPage from "./pages/PackageEnquiryPage.jsx";
 import BusinessHome from "./pages/businesshome.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
-import DestinationAdd from "./pages/admin/DestinationAdd.jsx";
-import DestinationManage from "./pages/admin/DestinationManage.jsx";
-import DestinationEdit from "./pages/admin/DestinationEdit.jsx";
 import HolidayPackageAdd from "./pages/admin/HolidayPackageAdd.jsx";
 import HolidayPackageEdit from "./pages/admin/HolidayPackageEdit.jsx";
 import HolidayPackageManage from "./pages/admin/HolidayPackageManage.jsx";
@@ -45,9 +42,6 @@ import HolidayEnquiryManage from "./pages/admin/HolidayEnquiryManage.jsx";
 import HolidayEnquiryAdd from "./pages/admin/HolidayEnquiryAdd.jsx";
 import UmrahEnquiryAdd from "./pages/admin/UmrahEnquiryAdd.jsx";
 import UmrahEnquiryManage from "./pages/admin/UmrahEnquiryManage.jsx";
-import StartingCityManage from "./pages/admin/StartingCityManage.jsx";
-import StartingCityAdd from "./pages/admin/StartingCityAdd.jsx";
-import StartingCityEdit from "./pages/admin/StartingCityEdit.jsx";
 import ItineraryMasterManage from "./pages/admin/ItineraryMasterManage.jsx";
 import ItineraryMasterEdit from "./pages/admin/ItineraryMasterEdit.jsx";
 import ItineraryMasterAdd from "./pages/admin/ItineraryMasterAdd.jsx";
@@ -57,18 +51,9 @@ import SightseeingMasterEdit from "./pages/admin/SightseeingMasterEdit.jsx";
 import UsersList from "./pages/admin/UsersList.jsx";
 import UserAdd from "./pages/admin/UserAdd.jsx";
 import UserEdit from "./pages/admin/UserEdit.jsx";
-import NationalityManage from "./pages/admin/NationalityManage.jsx";
-import NationalityAdd from "./pages/admin/NationalityAdd.jsx";
-import NationalityEdit from "./pages/admin/NationalityEdit.jsx";
-import UmrahDestinationManage from "./pages/admin/UmrahDestinationManage.jsx";
-import UmrahDestinationAdd from "./pages/admin/UmrahDestinationAdd.jsx";
-import UmrahDestinationEdit from "./pages/admin/UmrahDestinationEdit.jsx";
 import AdminVisaManage from "./pages/admin/AdminVisaManage.jsx";
 import AdminVisaAdd from "./pages/admin/AdminVisaAdd.jsx";
 import AdminVisaEdit from "./pages/admin/AdminVisaEdit.jsx";
-import CountryManage from "./pages/admin/CountryManage.jsx";
-import CountryAdd from "./pages/admin/CountryAdd.jsx";
-import CountryEdit from "./pages/admin/CountryEdit.jsx";
 import VisaApplicationManage from "./pages/admin/VisaApplicationManage.jsx";
 import VisaApplicationEdit from "./pages/admin/VisaApplicationEdit.jsx";
 import CantonEnquiryManage from "./pages/admin/CantonEnquiryManage.jsx";
@@ -173,9 +158,6 @@ const App = () => {
           {/* Protected Admin Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/destinations/add" element={<DestinationAdd />} />
-            <Route path="/admin/destinations/edit/:id" element={<DestinationEdit />} />
-            <Route path="/admin/destinations" element={<DestinationManage />} />
             <Route path="/admin/packages/add" element={<HolidayPackageAdd />} />
             <Route path="/admin/packages/edit/:id" element={<HolidayPackageEdit />} />
             <Route path="/admin/packages" element={<HolidayPackageManage />} />
@@ -185,9 +167,6 @@ const App = () => {
             <Route path="/admin/holiday-enquiries" element={<HolidayEnquiryManage />} />
             <Route path="/admin/umrah-enquiries/add" element={<UmrahEnquiryAdd />} />
             <Route path="/admin/umrah-enquiries" element={<UmrahEnquiryManage />} />
-            <Route path="/admin/starting-cities" element={<StartingCityManage />} />
-            <Route path="/admin/starting-cities/add" element={<StartingCityAdd />} />
-            <Route path="/admin/starting-cities/edit/:id" element={<StartingCityEdit />} />
             <Route path="/admin/itinerary-masters" element={<ItineraryMasterManage />} />
             <Route path="/admin/itinerary-masters/add" element={<ItineraryMasterAdd />} />
             <Route path="/admin/itinerary-masters/edit/:id" element={<ItineraryMasterEdit />} />
@@ -197,18 +176,9 @@ const App = () => {
             <Route path="/admin/users" element={<UsersList />} />
             <Route path="/admin/users/add" element={<UserAdd />} />
             <Route path="/admin/users/edit/:id" element={<UserEdit />} />
-            <Route path="/admin/nationalities" element={<NationalityManage />} />
-            <Route path="/admin/nationalities/add" element={<NationalityAdd />} />
-            <Route path="/admin/nationalities/edit/:id" element={<NationalityEdit />} />
-            <Route path="/admin/umrah-destinations" element={<UmrahDestinationManage />} />
-            <Route path="/admin/umrah-destinations/add" element={<UmrahDestinationAdd />} />
-            <Route path="/admin/umrah-destinations/edit/:id" element={<UmrahDestinationEdit />} />
             <Route path="/admin/visas" element={<AdminVisaManage />} />
             <Route path="/admin/visas/add" element={<AdminVisaAdd />} />
             <Route path="/admin/visas/edit/:id" element={<AdminVisaEdit />} />
-            <Route path="/admin/countries" element={<CountryManage />} />
-            <Route path="/admin/countries/add" element={<CountryAdd />} />
-            <Route path="/admin/countries/edit/:id" element={<CountryEdit />} />
             <Route path="/admin/visa-applications" element={<VisaApplicationManage />} />
             <Route path="/admin/visa-applications/edit/:id" element={<VisaApplicationEdit />} />
             <Route path="/admin/cab-enquiries" element={<CabEnquiryManage />} />

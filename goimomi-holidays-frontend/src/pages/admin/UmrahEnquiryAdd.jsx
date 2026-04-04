@@ -35,12 +35,16 @@ const UmrahEnquiryAdd = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [scRes, natRes] = await Promise.all([
-                    api.get(`${API_BASE_URL}/starting-cities/`),
-                    api.get(`${API_BASE_URL}/nationalities/`)
+                // Use static fallback data after module decommissioning
+                setStartingCities([
+                    { id: 1, name: "Chennai" }, { id: 2, name: "Mumbai" }, { id: 3, name: "Delhi" }, { id: 4, name: "Bangalore" }
                 ]);
-                setStartingCities(scRes.data);
-                setNationalities(natRes.data);
+                setNationalities([
+                    { id: 1, nationality: "Indian", country: "India" },
+                    { id: 2, nationality: "British", country: "United Kingdom" },
+                    { id: 3, nationality: "American", country: "United States" },
+                    { id: 4, nationality: "Malaysian", country: "Malaysia" }
+                ]);
             } catch (err) {
                 console.error("Error fetching form data:", err);
             }

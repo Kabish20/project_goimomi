@@ -35,14 +35,19 @@ const HolidayEnquiryAdd = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [scRes, natRes, destRes] = await Promise.all([
-                    api.get(`${API_BASE_URL}/starting-cities/`),
-                    api.get(`${API_BASE_URL}/nationalities/`),
-                    api.get(`${API_BASE_URL}/destinations/`)
+                // Use static fallback data after module decommissioning
+                setStartingCities([
+                    { id: 1, name: "Chennai" }, { id: 2, name: "Mumbai" }, { id: 3, name: "Delhi" }, { id: 4, name: "Bangalore" }
                 ]);
-                setStartingCities(Array.isArray(scRes.data) ? scRes.data : (scRes.data?.results || []));
-                setNationalities(Array.isArray(natRes.data) ? natRes.data : (natRes.data?.results || []));
-                setUmrahDestinations(Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []));
+                setNationalities([
+                    { id: 1, nationality: "Indian", country: "India" },
+                    { id: 2, nationality: "British", country: "United Kingdom" },
+                    { id: 3, nationality: "American", country: "United States" },
+                    { id: 4, nationality: "Malaysian", country: "Malaysia" }
+                ]);
+                setUmrahDestinations([
+                    { id: 1, name: "Bali" }, { id: 2, name: "Thailand" }, { id: 3, name: "Dubai" }, { id: 4, name: "Singapore" }
+                ]);
             } catch (err) {
                 console.error("Error fetching form data:", err);
             }

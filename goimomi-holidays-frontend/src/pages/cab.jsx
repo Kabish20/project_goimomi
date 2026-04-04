@@ -201,7 +201,16 @@ const Cab = () => {
       });
       setSearchResults(response.data);
       if (response.data.length === 0) {
-        setSelectedCar(`Transfer Enquiry: From ${searchParams.fromName} to ${searchParams.toName} on ${searchParams.pickupDate} for ${searchParams.guests} guests.`);
+        // Prepare structured data for the fallback enquiry form
+        const fallbackMsg = `Transfer Enquiry: From ${searchParams.fromName} to ${searchParams.toName} on ${searchParams.pickupDate} for ${searchParams.guests} guests.`;
+        setSelectedCar(fallbackMsg);
+        // Pre-fill structured data
+        setBookingFormData(prev => ({
+          ...prev,
+          pickupPoint: searchParams.fromName,
+          dropPoint: searchParams.toName,
+          pickupDate: searchParams.pickupDate
+        }));
         setTimeout(() => setIsFormOpen(true), 100);
       }
     } catch (err) {
@@ -1193,6 +1202,11 @@ const Cab = () => {
         }}
         type="Cab"
         initialDescription={selectedCar}
+        initialData={{
+          from: searchParams.fromName,
+          to: searchParams.toName,
+          date: searchParams.pickupDate
+        }}
       />
 
       <CabTermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
