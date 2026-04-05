@@ -131,7 +131,7 @@ class VisaApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(VisaApplicant)
 class VisaApplicantAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'passport_number', 'nationality')
+    list_display = ('first_name', 'last_name', 'passport_number')
     search_fields = ('first_name', 'last_name', 'passport_number')
 
 @admin.register(Supplier)
@@ -150,4 +150,38 @@ class SightseeingMasterAdmin(admin.ModelAdmin):
     list_filter = ('destination', 'city')
     search_fields = ('name', 'city', 'description')
     inlines = [SightseeingImageInline]
+
+@admin.register(CruiseTerminal)
+class CruiseTerminalAdmin(admin.ModelAdmin):
+    list_display = ("terminal_name", "cruise_name", "cruise_code")
+    search_fields = ("terminal_name", "cruise_name", "cruise_code")
+
+@admin.register(Airport)
+class AirportAdmin(admin.ModelAdmin):
+    list_display = ("name", "iata_code")
+    search_fields = ("name", "iata_code")
+
+@admin.register(Country)
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+@admin.register(Nationality)
+class NationalityAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ("name", "country")
+    search_fields = ("name", "country")
+
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ("name", "region_name", "country")
+    list_filter = ("country", "region")
+    search_fields = ("name", "region__name")
+
+    def region_name(self, obj):
+        return obj.region.name if obj.region else "-"
 

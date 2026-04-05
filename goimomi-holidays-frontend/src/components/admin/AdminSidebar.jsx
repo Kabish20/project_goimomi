@@ -23,14 +23,23 @@ import { useNavigate } from "react-router-dom";
 
 const menu = [
   {
-    title: "Auth",
+    title: "Menu",
     items: [
-      { name: "Users", icon: <Users size={18} /> }
-    ],
-  },
-  {
-    title: "Holidays",
-    items: [
+      { name: "Users", icon: <Users size={18} /> },
+      {
+        name: "Management Country",
+        icon: <Globe size={18} />,
+        isDropdown: true,
+        children: [
+          { name: "Countries", key: "Country" },
+          { name: "Nationalities", key: "Nationality" },
+          { name: "Regions", key: "Region" },
+          { name: "Cities", key: "City" },
+          { name: "Airports", key: "Airport" },
+          { name: "Pickup Points", key: "PickupPoints" },
+          { name: "Cruise Terminals", key: "CruiseTerminal" },
+        ]
+      },
       {
         name: "Enquiries",
         icon: <MessageSquare size={18} />,
@@ -76,7 +85,6 @@ const menu = [
           { name: "Cab Bookings" },
         ]
       },
-
       {
         name: "Visas",
         icon: <FileText size={18} />,
@@ -150,6 +158,15 @@ const AdminSidebar = () => {
   const handleAddPickupPoint = () => navigate("/admin/pickup-point-masters/add");
   const handleChangePickupPoint = () => navigate("/admin/pickup-point-masters");
 
+  // Management Country Handlers
+  const handleManagementCountry = () => navigate("/admin/management-country");
+  const handleManagementNationality = () => navigate("/admin/management-country/nationalities");
+  const handleManagementRegion = () => navigate("/admin/management-country/regions");
+  const handleManagementCity = () => navigate("/admin/management-country/cities");
+  const handleManagementAirport = () => navigate("/admin/management-country/airports");
+  const handleManagementPickupPoints = () => navigate("/admin/management-country/pickup-points");
+  const handleManagementCruiseTerminal = () => navigate("/admin/management-country/cruise-terminals");
+
   const getAddHandler = (item) => {
     const key = typeof item === 'string' ? item : (item.key || item.name);
     switch (key) {
@@ -167,6 +184,13 @@ const AdminSidebar = () => {
       case "Driver Masters": return handleAddDriverMaster;
       case "Route rate card": return handleAddRateCard;
       case "Pickup Point Masters": return handleAddPickupPoint;
+      case "Country": return () => navigate("/admin/management-country/add");
+      case "Nationality": return () => navigate("/admin/management-country/nationalities/add");
+      case "Region": return () => navigate("/admin/management-country/regions/add");
+      case "City": return () => navigate("/admin/management-country/cities/add");
+      case "Airport": return () => navigate("/admin/management-country/airports/add");
+      case "PickupPoints": return () => navigate("/admin/management-country/pickup-points/add");
+      case "CruiseTerminal": return () => navigate("/admin/management-country/cruise-terminals/add");
       default: return undefined;
     }
   };
@@ -195,6 +219,13 @@ const AdminSidebar = () => {
       case "Driver Masters": return handleChangeDriverMaster;
       case "Route rate card": return handleChangeRateCard;
       case "Pickup Point Masters": return handleChangePickupPoint;
+      case "Country": return handleManagementCountry;
+      case "Nationality": return handleManagementNationality;
+      case "Region": return handleManagementRegion;
+      case "City": return handleManagementCity;
+      case "Airport": return handleManagementAirport;
+      case "PickupPoints": return handleManagementPickupPoints;
+      case "CruiseTerminal": return handleManagementCruiseTerminal;
       default: return undefined;
     }
   };
@@ -314,11 +345,11 @@ const AdminSidebar = () => {
         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
           {menu.map((section, idx) => (
             <div key={idx} className="mt-4 mb-1">
-              {!isCollapsed && (
+              {/* {!isCollapsed && (
                 <h3 className="px-4 py-1.5 text-sm font-medium text-gray-200 uppercase tracking-widest opacity-60">
                   {section.title}
                 </h3>
-              )}
+              )} */}
               {isCollapsed && <div className="h-[1px] bg-white/5 mx-4 my-2" />}
 
               <ul className="mt-2">

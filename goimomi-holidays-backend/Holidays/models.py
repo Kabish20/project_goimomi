@@ -262,7 +262,70 @@ class Destination(models.Model):
         return self.name
 
 
+class Country(models.Model):
+    name = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Countries"
+
+
+class Nationality(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='nationalities', null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Region(models.Model):
+    name = models.CharField(max_length=100)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='regions')
+
+    def __str__(self):
+        return f"{self.name} ({self.country.name})"
+
+    class Meta:
+        unique_together = ('name', 'country')
+
+
+class City(models.Model):
+    name = models.CharField(max_length=100)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name='cities', null=True, blank=True)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='cities')
+
+    def __str__(self):
+        if self.region:
+            return f"{self.name}, {self.region.name} ({self.country.name})"
+        return f"{self.name} ({self.country.name})"
+
+    class Meta:
+        unique_together = ('name', 'region', 'country')
+
+
+class Airport(models.Model):
+    name = models.CharField(max_length=200)
+    iata_code = models.CharField(max_length=10)
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True, related_name='airports')
+
+    def __str__(self):
+        return f"{self.name} ({self.iata_code})"
+
+
+
+
+
+class CruiseTerminal(models.Model):
+    terminal_name = models.CharField(max_length=255)
+    cruise_name = models.CharField(max_length=255, null=True, blank=True)
+    cruise_code = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        if self.cruise_name:
+            return f"{self.terminal_name} - {self.cruise_name} ({self.cruise_code})"
+        return self.terminal_name
 
 
 class ItineraryMaster(models.Model):
@@ -392,7 +455,6 @@ class VisaApplicant(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     passport_number = models.CharField(max_length=50)
-    nationality = models.CharField(max_length=50)
     sex = models.CharField(max_length=10, choices=SEX_CHOICES)
     dob = models.DateField()
     place_of_birth = models.CharField(max_length=100)

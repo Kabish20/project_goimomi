@@ -18,12 +18,47 @@ from .models import (
     Accommodation, AccommodationImage, Airline, HolidayVehicle,
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
-    PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry
+    PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal
 )
 
 class CantonEnquirySerializer(serializers.ModelSerializer):
     class Meta:
         model = CantonEnquiry
+        fields = "__all__"
+
+class CruiseTerminalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CruiseTerminal
+        fields = "__all__"
+
+class AirportSerializer(serializers.ModelSerializer):
+    city_name = serializers.ReadOnlyField(source='city.name')
+    class Meta:
+        model = Airport
+        fields = "__all__"
+
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = "__all__"
+
+class NationalitySerializer(serializers.ModelSerializer):
+    country_name = serializers.ReadOnlyField(source='country.name')
+    class Meta:
+        model = Nationality
+        fields = "__all__"
+
+class RegionSerializer(serializers.ModelSerializer):
+    country_name = serializers.ReadOnlyField(source='country.name')
+    class Meta:
+        model = Region
+        fields = "__all__"
+
+class CitySerializer(serializers.ModelSerializer):
+    region_name = serializers.ReadOnlyField(source='region.name')
+    country_name = serializers.ReadOnlyField(source='country.name')
+    class Meta:
+        model = City
         fields = "__all__"
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

@@ -11,6 +11,12 @@ router.register("holiday-form", views.HolidayEnquiryAPI, basename="holiday-enqui
 router.register("umrah-form", views.UmrahEnquiryAPI, basename="umrah-enquiry")
 router.register("enquiry-form", views.EnquiryAPI, basename="enquiry")
 router.register("canton-enquiries", views.CantonEnquiryAPI, basename="canton-enquiry")
+router.register("cruise-terminals", views.CruiseTerminalViewSet, basename="cruise-terminal")
+router.register("airports", views.AirportViewSet, basename="airport")
+router.register("countries", views.CountryViewSet, basename="country")
+router.register("nationalities", views.NationalityViewSet, basename="nationality")
+router.register("regions", views.RegionViewSet, basename="region")
+router.register("cities", views.CityViewSet, basename="city")
 router.register("packages", views.HolidayPackageViewSet, basename="package")
 router.register("itinerary-masters", views.ItineraryMasterViewSet, basename="itinerary-master")
 router.register("users", views.UserViewSet, basename="user")
@@ -39,6 +45,7 @@ urlpatterns = [
     path('admin-login/', views.AdminLoginView.as_view(), name='admin-login'),
     path('send-visa-details/', views.SendVisaDetailsAPI.as_view(), name='send-visa-details'),
     path('cab-search/', views.CabSearchAPI.as_view(), name='cab-search'),
+    path('destination-hierarchy/', views.DestinationHierarchyAPI.as_view(), name='destination-hierarchy'),
     
     # Catch-all for Frontend pages to provide dynamic SEO for crawlers
     # Warning: Only use this if you want Django to handle the initial page load

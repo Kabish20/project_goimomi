@@ -16,7 +16,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 
-# Local App Imports
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, Destination,
     ItineraryMaster, Visa,
@@ -25,7 +24,7 @@ from .models import (
     SightseeingImage, MealMaster, VehicleBrand, Accommodation,
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
-    CancellationPolicy, CantonEnquiry
+    CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -39,7 +38,8 @@ from .serializers import (
     RoomTypeSerializer, VehicleMasterSerializer, DriverMasterSerializer,
     VehicleRateCardSerializer, PickupPointMasterSerializer,
     CabBookingSerializer, CabAdditionalDocumentSerializer,
-    CancellationPolicySerializer, CantonEnquirySerializer
+    CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
+    RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer
 )
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -47,6 +47,69 @@ class CantonEnquiryAPI(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = CantonEnquiry.objects.all().order_by('-created_at')
     serializer_class = CantonEnquirySerializer
+
+class AirportViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Airport.objects.all().order_by('name')
+    serializer_class = AirportSerializer
+    pagination_class = None
+
+class CruiseTerminalViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = CruiseTerminal.objects.all().order_by('terminal_name')
+    serializer_class = CruiseTerminalSerializer
+    pagination_class = None
+
+class CountryViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Country.objects.all().order_by('name')
+    serializer_class = CountrySerializer
+    pagination_class = None
+
+class NationalityViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    serializer_class = NationalitySerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Nationality.objects.all().order_by('name')
+        country_id = self.request.query_params.get('country_id')
+        if country_id:
+            queryset = queryset.filter(country_id=country_id)
+        return queryset
+
+class RegionViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    serializer_class = RegionSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Region.objects.all().order_by('name')
+        country_id = self.request.query_params.get('country_id')
+        if country_id:
+            queryset = queryset.filter(country_id=country_id)
+        return queryset
+
+class CityViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    serializer_class = CitySerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = City.objects.all().order_by('name')
+        region_id = self.request.query_params.get('region_id')
+        country_id = self.request.query_params.get('country_id')
+        if region_id:
+            queryset = queryset.filter(region_id=region_id)
+        if country_id:
+            queryset = queryset.filter(country_id=country_id)
+        return queryset
 
 @authentication_classes([])
 @permission_classes([AllowAny])
@@ -240,7 +303,6 @@ class VisaApplicationViewSet(ModelViewSet):
                 first_name=applicant_data.get('first_name', ''),
                 last_name=applicant_data.get('last_name', ''),
                 passport_number=applicant_data.get('passport_number', ''),
-                nationality=applicant_data.get('nationality', ''),
                 sex=applicant_data.get('sex', 'Male'),
                 dob=applicant_data.get('dob'),
                 place_of_birth=applicant_data.get('place_of_birth', ''),
@@ -839,3 +901,70 @@ class DynamicSEOView(APIView):
         except Exception as e:
             # If index.html not found, return a basic error or redirect to frontend
             return HttpResponse(f"Error loading frontend: {str(e)}", status=500)
+
+class DestinationHierarchyAPI(APIView):
+    """
+    API to return the full hierarchy for Country Management.
+    Structure: Country -> Nationality -> Region -> City -> [Airports, PickupPoints, CruiseTerminals]
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    def get(self, request):
+        hierarchy = []
+        # Safer prefetch - only using confirmed relations
+        countries = Country.objects.prefetch_related('nationalities', 'regions__cities__airports').all().order_by('name')
+        
+        for country in countries:
+            nationalities = list(country.nationalities.values_list('name', flat=True))
+            regions = country.regions.all()
+            
+            if not regions.exists():
+                cities = country.cities.filter(region__isnull=True)
+                if not cities.exists():
+                    # Country has no regions and no cities - show as standalone entry
+                    hierarchy.append(self._build_row(country, nationalities, None, None))
+                else:
+                    for city in cities:
+                        hierarchy.append(self._build_row(country, nationalities, None, city))
+            else:
+                for region in regions:
+                    cities = region.cities.all()
+                    if not cities.exists():
+                        # Region has no cities - show as standalone region
+                        hierarchy.append(self._build_row(country, nationalities, region, None))
+                    else:
+                        for city in cities:
+                            hierarchy.append(self._build_row(country, nationalities, region, city))
+                        
+        return Response(hierarchy)
+
+    def _build_row(self, country, nationalities, region, city):
+        airports = []
+        pickup_points = []
+        cruise_terminals = []
+        
+        if city:
+            # Fetch detailed sub-items
+            airports = list(city.airports.values('id', 'name', 'iata_code'))
+            
+            from .models import PickupPointMaster, Destination
+            pickup_points = list(PickupPointMaster.objects.filter(city__name__icontains=city.name).values('id', 'name'))
+            
+            cruise_terminals = list(CruiseTerminal.objects.filter(terminal_name__icontains=city.name).values('id', 'terminal_name', 'cruise_name', 'cruise_code'))
+
+        row = {
+            "country_id": country.id,
+            "country_name": country.name,
+            "nationality": ", ".join(nationalities) if nationalities else "—",
+            "region_id": region.id if region else None,
+            "region_name": region.name if region else "—",
+            "city_id": city.id if city else None,
+            "city_name": city.name if city else "—",
+            "airports": airports,
+            "airports_count": len(airports),
+            "pickup_points": pickup_points,
+            "pickup_points_count": len(pickup_points),
+            "cruise_terminals": cruise_terminals,
+            "cruise_terminals_count": len(cruise_terminals)
+        }
+        return row

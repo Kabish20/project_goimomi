@@ -83,6 +83,20 @@ import VehicleRateCardEdit from "./pages/admin/VehicleRateCardEdit.jsx";
 import PickupPointManage from "./pages/admin/PickupPointManage.jsx";
 import PickupPointAdd from "./pages/admin/PickupPointAdd.jsx";
 import PickupPointEdit from "./pages/admin/PickupPointEdit.jsx";
+import CountryManagement from "./pages/admin/CountryManagement.jsx";
+import CountryAdd from "./pages/admin/CountryAdd.jsx";
+import CountryEdit from "./pages/admin/CountryEdit.jsx";
+import NationalityManage from "./pages/admin/NationalityManage.jsx";
+import NationalityAdd from "./pages/admin/NationalityAdd.jsx";
+import NationalityEdit from "./pages/admin/NationalityEdit.jsx";
+import RegionManage from "./pages/admin/RegionManage.jsx";
+import RegionAdd from "./pages/admin/RegionAdd.jsx";
+import RegionEdit from "./pages/admin/RegionEdit.jsx";
+import CityManage from "./pages/admin/CityManage.jsx";
+import CityAdd from "./pages/admin/CityAdd.jsx";
+import CityEdit from "./pages/admin/CityEdit.jsx";
+import AirportManage from "./pages/admin/AirportManage.jsx";
+import CruiseTerminalManage from "./pages/admin/CruiseTerminalManage.jsx";
 
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -208,6 +222,27 @@ const App = () => {
             <Route path="/admin/pickup-point-masters" element={<PickupPointManage />} />
             <Route path="/admin/pickup-point-masters/add" element={<PickupPointAdd />} />
             <Route path="/admin/pickup-point-masters/edit/:id" element={<PickupPointEdit />} />
+
+            {/* Management Country Routes */}
+            <Route path="/admin/management-country" element={<CountryManagement />} />
+            <Route path="/admin/management-country/countries/add" element={<CountryAdd />} />
+            <Route path="/admin/management-country/countries/edit/:id" element={<CountryEdit />} />
+            
+            <Route path="/admin/management-country/nationalities" element={<NationalityManage />} />
+            <Route path="/admin/management-country/nationalities/add" element={<NationalityAdd />} />
+            <Route path="/admin/management-country/nationalities/edit/:id" element={<NationalityEdit />} />
+            
+            <Route path="/admin/management-country/regions" element={<RegionManage />} />
+            <Route path="/admin/management-country/regions/add" element={<RegionAdd />} />
+            <Route path="/admin/management-country/regions/edit/:id" element={<RegionEdit />} />
+            
+            <Route path="/admin/management-country/cities" element={<CityManage />} />
+            <Route path="/admin/management-country/cities/add" element={<CityAdd />} />
+            <Route path="/admin/management-country/cities/edit/:id" element={<CityEdit />} />
+            
+            <Route path="/admin/management-country/airports" element={<AirportManage />} />
+            <Route path="/admin/management-country/pickup-points" element={<PickupPointManage />} />
+            <Route path="/admin/management-country/cruise-terminals" element={<CruiseTerminalManage />} />
           </Route>
 
           {/* User-friendly aliases and catch-all */}
