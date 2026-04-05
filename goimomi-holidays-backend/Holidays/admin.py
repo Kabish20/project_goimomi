@@ -185,3 +185,45 @@ class CityAdmin(admin.ModelAdmin):
     def region_name(self, obj):
         return obj.region.name if obj.region else "-"
 
+
+@admin.register(PickupPointMaster)
+class PickupPointMasterAdmin(admin.ModelAdmin):
+    list_display = ("name", "city")
+    list_filter = ("city",)
+    search_fields = ("name", "city__name")
+
+
+class CabAdditionalDocumentInline(admin.TabularInline):
+    model = CabAdditionalDocument
+    extra = 0
+
+
+@admin.register(CabBooking)
+class CabBookingAdmin(admin.ModelAdmin):
+    list_display = ("id", "first_name", "last_name", "from_city", "to_city", "pickup_date", "status", "created_at")
+    list_filter = ("status", "transfer_type", "pickup_date")
+    search_fields = ("first_name", "last_name", "phone", "email", "from_city", "to_city", "airport_name")
+    inlines = [CabAdditionalDocumentInline]
+    readonly_fields = ("created_at",)
+    fieldsets = (
+        ('Customer Details', {
+            'fields': (('title', 'first_name', 'last_name'), ('phone', 'email'))
+        }),
+        ('Travel Information', {
+            'fields': (('transfer_type', 'pickup_date', 'guests'), ('from_city', 'to_city'), 'luggage_count')
+        }),
+        ('Airport Transfer Details', {
+            'fields': ('airport_name', 'flight_number', 'terminal', 'arrival_time', 'departure_time'),
+            'classes': ('collapse',),
+            'description': 'Fields relevant for Airport Transfers'
+        }),
+        ('Inter-city Details', {
+            'fields': ('pickup_location_details', 'pickup_time'),
+            'classes': ('collapse',),
+            'description': 'Fields relevant for Inter-city Transfers'
+        }),
+        ('Booking Status', {
+            'fields': ('status', 'driver', 'invoice_number', 'special_requirements', 'created_at')
+        }),
+    )
+

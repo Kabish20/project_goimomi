@@ -702,6 +702,7 @@ class CabBooking(models.Model):
     # Airport Specific
     flight_number = models.CharField(max_length=50, blank=True, null=True)
     terminal = models.CharField(max_length=50, blank=True, null=True)
+    airport_name = models.CharField(max_length=255, blank=True, null=True)
     arrival_time = models.CharField(max_length=50, blank=True, null=True)
     departure_time = models.CharField(max_length=50, blank=True, null=True)
     
