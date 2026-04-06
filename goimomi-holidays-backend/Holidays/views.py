@@ -41,8 +41,23 @@ from .serializers import (
     VehicleRateCardSerializer, PickupPointMasterSerializer,
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
-    RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer
+    RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
+    DestinationSerializer
 )
+
+class DestinationViewSet(ModelViewSet):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    queryset = Destination.objects.all()
+    serializer_class = DestinationSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Destination.objects.all()
+        is_popular = self.request.query_params.get('is_popular', None)
+        if is_popular is not None:
+            queryset = queryset.filter(is_popular=is_popular.lower() == 'true')
+        return queryset
 
 class CantonEnquiryAPI(ModelViewSet):
     authentication_classes = []
@@ -183,7 +198,10 @@ class HolidayPackageViewSet(ModelViewSet):
     serializer_class = HolidayPackageSerializer
 
     def get_queryset(self):
-        queryset = HolidayPackage.objects.all()
+        queryset = HolidayPackage.objects.prefetch_related(
+            'inclusions', 'exclusions', 'highlights', 'cancellation_policies', 
+            'extra_destinations', 'extra_destinations__destination', 'itinerary', 'vehicles'
+        ).select_related('supplier').all()
         
         # Admin can pass ?all=true to see both active and inactive in lists
         is_all = self.request.query_params.get('all', 'false').lower() == 'true'
@@ -222,7 +240,6 @@ class HolidayPackageViewSet(ModelViewSet):
                 else:
                     # Regular packages are already filtered by is_active
                     active_ids.append(pkg.id)
-            
             queryset = queryset.filter(id__in=active_ids)
 
         with_flight = self.request.query_params.get('with_flight', None)
@@ -233,6 +250,12 @@ class HolidayPackageViewSet(ModelViewSet):
                  queryset = queryset.filter(with_flight=False)
                  
         return queryset
+        
+    def paginate_queryset(self, queryset):
+        # Disable pagination for home page 'popular' requests to avoid breaking frontend arrays
+        if self.request.query_params.get('is_popular') == 'true':
+            return None
+        return super().paginate_queryset(queryset)
 
 
 
@@ -271,7 +294,7 @@ class VisaViewSet(ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        queryset = Visa.objects.all()
+        queryset = Visa.objects.select_related('supplier').all()
         is_all = self.request.query_params.get('all', 'false').lower() == 'true'
         
         # Admin view or explicit 'all' param

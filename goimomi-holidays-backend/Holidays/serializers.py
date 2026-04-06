@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 
 # Local App Imports
 from .models import (
-    HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, PackageDestination,
+    HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, PackageDestination, Destination,
     ItineraryDay, ItineraryMaster, Inclusion, Exclusion, Highlight, CancellationPolicy,
     Visa, VisaApplication, VisaApplicant,
     VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster,
@@ -62,6 +62,11 @@ class CitySerializer(serializers.ModelSerializer):
     country_name = serializers.ReadOnlyField(source='country.name')
     class Meta:
         model = City
+        fields = "__all__"
+
+class DestinationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Destination
         fields = "__all__"
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

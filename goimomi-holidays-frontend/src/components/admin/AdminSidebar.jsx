@@ -72,7 +72,6 @@ const menu = [
         children: [
           { name: "Manage Vehicles", key: "Vehicle Masters" },
           { name: "Driver Masters" },
-          { name: "Pickup Point Masters" },
           { name: "Route rate card" },
         ]
       },
@@ -155,8 +154,7 @@ const AdminSidebar = () => {
   const handleChangeDriverMaster = () => navigate("/admin/driver-masters");
   const handleAddRateCard = () => navigate("/admin/vehicle-rate-cards/add");
   const handleChangeRateCard = () => navigate("/admin/vehicle-rate-cards");
-  const handleAddPickupPoint = () => navigate("/admin/pickup-point-masters/add");
-  const handleChangePickupPoint = () => navigate("/admin/pickup-point-masters");
+
 
   // Management Country Handlers
   const handleManagementCountry = () => navigate("/admin/management-country");
@@ -183,7 +181,7 @@ const AdminSidebar = () => {
       case "Vehicle Masters": return handleAddVehicleMaster;
       case "Driver Masters": return handleAddDriverMaster;
       case "Route rate card": return handleAddRateCard;
-      case "Pickup Point Masters": return handleAddPickupPoint;
+      case "Pickup Point Masters": return () => navigate("/admin/management-country/pickup-points");
       case "Country": return () => navigate("/admin/management-country/add");
       case "Nationality": return () => navigate("/admin/management-country/nationalities/add");
       case "Region": return () => navigate("/admin/management-country/regions/add");
@@ -218,7 +216,7 @@ const AdminSidebar = () => {
       case "Vehicle Masters": return handleChangeVehicleMaster;
       case "Driver Masters": return handleChangeDriverMaster;
       case "Route rate card": return handleChangeRateCard;
-      case "Pickup Point Masters": return handleChangePickupPoint;
+      case "Pickup Point Masters": return () => navigate("/admin/management-country/pickup-points");
       case "Country": return handleManagementCountry;
       case "Nationality": return handleManagementNationality;
       case "Region": return handleManagementRegion;
