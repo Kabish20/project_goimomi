@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Q
+
 
 # Rest Framework Imports
 from rest_framework import status, serializers
@@ -904,67 +906,210 @@ class DynamicSEOView(APIView):
 
 class DestinationHierarchyAPI(APIView):
     """
-    API to return the full hierarchy for Country Management.
-    Structure: Country -> Nationality -> Region -> City -> [Airports, PickupPoints, CruiseTerminals]
+    Optimized API to return the hierarchy for Country Management with pagination and search.
+    Supports tabs: all, countries, nationalities, regions, cities, airports, pickup-points, terminals
     """
     authentication_classes = []
     permission_classes = [AllowAny]
+
     def get(self, request):
-        hierarchy = []
-        # Safer prefetch - only using confirmed relations
-        countries = Country.objects.prefetch_related('nationalities', 'regions__cities__airports').all().order_by('name')
+        tab = request.query_params.get('tab', 'all')
+        search = request.query_params.get('search', '')
+        page = int(request.query_params.get('page', 1))
+        page_size = int(request.query_params.get('page_size', 50))
+
+        # 1. Determine base queryset based on tab
+        if tab == 'countries':
+            queryset = Country.objects.prefetch_related('nationalities').all().order_by('name')
+            if search:
+                queryset = queryset.filter(name__icontains=search)
+        elif tab == 'nationalities':
+            queryset = Nationality.objects.select_related('country').all().order_by('name')
+            if search:
+                queryset = queryset.filter(Q(name__icontains=search) | Q(country__name__icontains=search))
+        elif tab == 'regions':
+            queryset = Region.objects.select_related('country').all().order_by('name')
+            if search:
+                queryset = queryset.filter(Q(name__icontains=search) | Q(country__name__icontains=search))
+        elif tab == 'cities':
+            queryset = City.objects.select_related('region', 'country').prefetch_related('country__nationalities').all().order_by('name')
+            if search:
+                queryset = queryset.filter(Q(name__icontains=search) | Q(region__name__icontains=search) | Q(country__name__icontains=search))
+        elif tab == 'airports':
+            queryset = Airport.objects.select_related('city__region', 'city__country').all().order_by('name')
+            if search:
+                queryset = queryset.filter(Q(name__icontains=search) | Q(iata_code__icontains=search) | Q(city__name__icontains=search))
+        elif tab == 'pickup-points':
+            queryset = PickupPointMaster.objects.select_related('city').all().order_by('name')
+            if search:
+                queryset = queryset.filter(Q(name__icontains=search) | Q(city__name__icontains=search))
+        elif tab == 'terminals':
+            queryset = CruiseTerminal.objects.all().order_by('terminal_name')
+            if search:
+                queryset = queryset.filter(Q(terminal_name__icontains=search) | Q(cruise_name__icontains=search))
+        else: # 'all'
+            queryset = City.objects.select_related('region', 'country').prefetch_related('country__nationalities').all().order_by('country__name', 'region__name', 'name')
+            if search:
+                queryset = queryset.filter(Q(name__icontains=search) | Q(region__name__icontains=search) | Q(country__name__icontains=search))
+
+        # 2. Pagination
+        total_count = queryset.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        paged_queryset = queryset[start:end]
+
+        # 3. Build Response Hierarchy
+        results = []
         
-        for country in countries:
-            nationalities = list(country.nationalities.values_list('name', flat=True))
-            regions = country.regions.all()
-            
-            if not regions.exists():
-                cities = country.cities.filter(region__isnull=True)
-                if not cities.exists():
-                    # Country has no regions and no cities - show as standalone entry
-                    hierarchy.append(self._build_row(country, nationalities, None, None))
-                else:
-                    for city in cities:
-                        hierarchy.append(self._build_row(country, nationalities, None, city))
+        # Pre-fetch sub-items for the current page to avoid N+1
+        city_ids = [c.id for c in paged_queryset if isinstance(c, City)]
+        city_list = [c for c in paged_queryset if isinstance(c, City)]
+        
+        airports_map = {}
+        pickup_map = {}
+        terminal_map = {}
+        
+        if city_ids:
+            # Efficiently batch fetch airports
+            for a in Airport.objects.filter(city_id__in=city_ids).values('id', 'name', 'iata_code', 'city_id'):
+                cid = a['city_id']
+                if cid not in airports_map: airports_map[cid] = []
+                airports_map[cid].append(a)
+
+            # Batch fetch pickups by city names
+            city_names = [c.name for c in city_list]
+            for p in PickupPointMaster.objects.filter(city__name__in=city_names).values('id', 'name', 'city__name'):
+                cn = p['city__name']
+                if cn not in pickup_map: pickup_map[cn] = []
+                pickup_map[cn].append(p)
+
+            # Batch fetch terminals by city names
+            for cn in city_names:
+                terminals = list(CruiseTerminal.objects.filter(terminal_name__icontains=cn).values('id', 'terminal_name', 'cruise_name', 'cruise_code'))
+                if terminals:
+                    terminal_map[cn] = terminals
+
+        # Construct rows
+        for item in paged_queryset:
+            if isinstance(item, Country):
+                row = self._build_country_row(item)
+            elif isinstance(item, Nationality):
+                row = self._build_nationality_row(item)
+            elif isinstance(item, Region):
+                row = self._build_region_row(item)
+            elif isinstance(item, City):
+                row = self._build_city_row(item, airports_map, pickup_map, terminal_map)
+            elif isinstance(item, Airport):
+                row = self._build_airport_row(item)
+            elif isinstance(item, PickupPointMaster):
+                row = self._build_pickup_row(item)
+            elif isinstance(item, CruiseTerminal):
+                row = self._build_terminal_row(item)
             else:
-                for region in regions:
-                    cities = region.cities.all()
-                    if not cities.exists():
-                        # Region has no cities - show as standalone region
-                        hierarchy.append(self._build_row(country, nationalities, region, None))
-                    else:
-                        for city in cities:
-                            hierarchy.append(self._build_row(country, nationalities, region, city))
-                        
-        return Response(hierarchy)
-
-    def _build_row(self, country, nationalities, region, city):
-        airports = []
-        pickup_points = []
-        cruise_terminals = []
-        
-        if city:
-            # Fetch detailed sub-items
-            airports = list(city.airports.values('id', 'name', 'iata_code'))
+                row = {}
             
-            from .models import PickupPointMaster, Destination
-            pickup_points = list(PickupPointMaster.objects.filter(city__name__icontains=city.name).values('id', 'name'))
-            
-            cruise_terminals = list(CruiseTerminal.objects.filter(terminal_name__icontains=city.name).values('id', 'terminal_name', 'cruise_name', 'cruise_code'))
+            results.append(row)
 
-        row = {
+        return Response({
+            "count": total_count,
+            "next_page": page + 1 if end < total_count else None,
+            "prev_page": page - 1 if page > 1 else None,
+            "results": results,
+            "total_pages": (total_count + page_size - 1) // page_size if page_size > 0 else 1
+        })
+
+    def _build_country_row(self, country):
+        return {
             "country_id": country.id,
             "country_name": country.name,
-            "nationality": ", ".join(nationalities) if nationalities else "—",
-            "region_id": region.id if region else None,
-            "region_name": region.name if region else "—",
-            "city_id": city.id if city else None,
-            "city_name": city.name if city else "—",
+            "nationality": ", ".join([n.name for n in country.nationalities.all()]) if hasattr(country, 'nationalities') else "—",
+            "region_name": "—",
+            "city_name": "—",
+            "airports_count": 0,
+            "pickup_points_count": 0,
+            "cruise_terminals_count": 0
+        }
+
+    def _build_nationality_row(self, nationality):
+        return {
+            "country_id": nationality.country.id if nationality.country else None,
+            "country_name": nationality.country.name if nationality.country else "—",
+            "nationality": nationality.name,
+            "region_name": "—",
+            "city_name": "—",
+            "airports_count": 0,
+            "pickup_points_count": 0,
+            "cruise_terminals_count": 0
+        }
+
+    def _build_region_row(self, region):
+        return {
+            "country_id": region.country.id,
+            "country_name": region.country.name,
+            "nationality": "—",
+            "region_id": region.id,
+            "region_name": region.name,
+            "city_name": "—",
+            "airports_count": 0,
+            "pickup_points_count": 0,
+            "cruise_terminals_count": 0
+        }
+
+    def _build_city_row(self, city, airports_map, pickup_map, terminal_map):
+        airports = airports_map.get(city.id, [])
+        pickups = pickup_map.get(city.name, [])
+        terminals = terminal_map.get(city.name, [])
+        
+        # Get nationalities from country
+        nationalities = "—"
+        if city.country and hasattr(city.country, 'nationalities'):
+            nationalities_list = [n.name for n in city.country.nationalities.all()]
+            if nationalities_list:
+                nationalities = ", ".join(nationalities_list)
+                
+        return {
+            "country_id": city.country.id,
+            "country_name": city.country.name,
+            "nationality": nationalities,
+            "region_id": city.region.id if city.region else None,
+            "region_name": city.region.name if city.region else "—",
+            "city_id": city.id,
+            "city_name": city.name,
             "airports": airports,
             "airports_count": len(airports),
-            "pickup_points": pickup_points,
-            "pickup_points_count": len(pickup_points),
-            "cruise_terminals": cruise_terminals,
-            "cruise_terminals_count": len(cruise_terminals)
+            "pickup_points": pickups,
+            "pickup_points_count": len(pickups),
+            "cruise_terminals": terminals,
+            "cruise_terminals_count": len(terminals)
         }
-        return row
+
+
+    def _build_airport_row(self, airport):
+        city = airport.city
+        return {
+            "country_name": city.country.name if city else "—",
+            "region_name": city.region.name if city and city.region else "—",
+            "city_name": city.name if city else "—",
+            "displayed_name": f"{airport.name} ({airport.iata_code})",
+            "airports_count": 1
+        }
+
+    def _build_pickup_row(self, pickup):
+        dest = pickup.city
+        return {
+            "country_name": getattr(dest, 'country', "—"),
+            "region_name": getattr(dest, 'region', "—"),
+            "city_name": getattr(dest, 'city', "—"),
+            "displayed_name": pickup.name,
+            "pickup_points_count": 1
+        }
+
+    def _build_terminal_row(self, terminal):
+        return {
+            "country_name": "—",
+            "region_name": "—",
+            "city_name": "—",
+            "displayed_name": f"{terminal.terminal_name} - {terminal.cruise_name}",
+            "cruise_terminals_count": 1
+        }
+

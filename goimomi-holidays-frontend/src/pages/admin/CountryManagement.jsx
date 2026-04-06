@@ -14,18 +14,48 @@ const CountryManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all"); // all, countries, nationalities, etc.
+  const [activeTab, setActiveTab] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ count: 0, total_pages: 1 });
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Reset to page 1 when tab or search changes
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchData();
+    }, 300); // 300ms debounce for search
+    return () => clearTimeout(timer);
+  }, [activeTab, searchTerm]);
+
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [page]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/api/destination-hierarchy/");
-      setData(response.data || []);
+      const response = await api.get("/api/destination-hierarchy/", {
+        params: {
+          tab: activeTab,
+          search: searchTerm,
+          page: page,
+          page_size: 50
+        }
+      });
+      
+      const responseData = response.data;
+      if (responseData && responseData.results) {
+        setData(responseData.results);
+        setPagination({
+          count: responseData.count,
+          total_pages: responseData.total_pages,
+          next_page: responseData.next_page,
+          prev_page: responseData.prev_page
+        });
+      } else {
+        setData([]);
+      }
       setError("");
     } catch (err) {
       console.error("Error fetching hierarchy data:", err);
@@ -35,82 +65,15 @@ const CountryManagement = () => {
     }
   };
 
-  const filteredData = React.useMemo(() => {
-    let raw = data.filter(item => {
-      const matchesSearch = 
-        item.country_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.city_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.region_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.nationality?.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesSearch;
-    });
-
-    if (activeTab === "all") return raw;
-
-    const seen = new Set();
-    if (activeTab === "countries") {
-      return raw.filter(item => {
-        if (!item.country_id || seen.has(item.country_id)) return false;
-        seen.add(item.country_id);
-        return true;
-      });
-    }
-    if (activeTab === "regions") {
-      return raw.filter(item => {
-        if (!item.region_id || seen.has(item.region_id)) return false;
-        seen.add(item.region_id);
-        return true;
-      });
-    }
-    if (activeTab === "cities") {
-      return raw.filter(item => !!item.city_id);
-    }
-    if (activeTab === "nationalities") {
-      return raw.filter(item => item.nationality && item.nationality !== "—");
-    }
-    if (activeTab === "airports") {
-      let expanded = [];
-      raw.forEach(item => {
-        if (item.airports && item.airports.length > 0) {
-          item.airports.forEach(airport => {
-            expanded.push({ ...item, displayed_name: `${airport.name} (${airport.iata_code})`, sub_type: "Airport" });
-          });
-        }
-      });
-      return expanded;
-    }
-    if (activeTab === "pickup-points") {
-      let expanded = [];
-      raw.forEach(item => {
-        if (item.pickup_points && item.pickup_points.length > 0) {
-          item.pickup_points.forEach(pp => {
-            expanded.push({ ...item, displayed_name: pp.name, sub_type: "Pickup Point" });
-          });
-        }
-      });
-      return expanded;
-    }
-    if (activeTab === "terminals") {
-      let expanded = [];
-      raw.forEach(item => {
-        if (item.cruise_terminals && item.cruise_terminals.length > 0) {
-          item.cruise_terminals.forEach(terminal => {
-            expanded.push({ ...item, displayed_name: `${terminal.terminal_name} - ${terminal.cruise_name}`, sub_type: "Terminal" });
-          });
-        }
-      });
-      return expanded;
-    }
-    
-    return raw;
-  }, [data, searchTerm, activeTab]);
+  const displayData = data;
 
   const stats = [
-    { label: "Total Countries", value: data.length, icon: <Globe size={18} />, color: "bg-blue-500" },
-    { label: "Active Regions", value: "24", icon: <Layers size={18} />, color: "bg-purple-500" },
-    { label: "Total Cities", value: "148", icon: <MapPin size={18} />, color: "bg-green-500" },
-    { label: "Airports", value: "12", icon: <Plane size={18} />, color: "bg-amber-500" },
+    { label: "Total Matches", value: pagination.count, icon: <Globe size={18} />, color: "bg-blue-500" },
+    { label: "Active Regions", value: "24+", icon: <Layers size={18} />, color: "bg-purple-500" },
+    { label: "Total Cities", value: "148+", icon: <MapPin size={18} />, color: "bg-green-500" },
+    { label: "Airports", value: "12+", icon: <Plane size={18} />, color: "bg-amber-500" },
   ];
+
 
   return (
     <div className="flex bg-[#fcfdfc] h-screen overflow-hidden font-outfit">
@@ -215,7 +178,7 @@ const CountryManagement = () => {
                           </div>
                         </td>
                       </tr>
-                    ) : filteredData.length === 0 ? (
+                    ) : displayData.length === 0 ? (
                       <tr>
                         <td colSpan="5" className="px-6 py-20 text-center">
                            <div className="flex flex-col items-center gap-3 grayscale opacity-30">
@@ -225,7 +188,8 @@ const CountryManagement = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredData.map((row, idx) => (
+                      displayData.map((row, idx) => (
+
                         <tr key={idx} className="group hover:bg-[#fcfdfc] transition-all">
                           <td className="px-6 py-3">
                             <div className="flex items-center gap-3">
@@ -300,13 +264,36 @@ const CountryManagement = () => {
               </div>
               
               {/* Pagination Placeholder */}
-              <div className="px-6 py-3 bg-gray-50/30 border-t border-gray-100 flex items-center justify-between">
-                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Showing {filteredData.length} records</p>
+               <div className="px-6 py-3 bg-gray-50/30 border-t border-gray-100 flex items-center justify-between">
+                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">
+                  Showing {displayData.length} of {pagination.count} records (Page {page} of {pagination.total_pages})
+                </p>
                 <div className="flex gap-2">
-                   <button className="px-3 py-1 rounded-md border border-gray-200 text-gray-400 text-[8px] font-black uppercase tracking-widest cursor-not-allowed">Prev</button>
-                   <button className="px-3 py-1 rounded-md border border-gray-200 text-gray-400 text-[8px] font-black uppercase tracking-widest cursor-not-allowed">Next</button>
+                   <button 
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={!pagination.prev_page || loading}
+                    className={`px-3 py-1 rounded-md border text-[8px] font-black uppercase tracking-widest transition-all ${
+                      pagination.prev_page && !loading
+                        ? "border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95" 
+                        : "border-gray-100 text-gray-300 cursor-not-allowed"
+                    }`}
+                   >
+                     Prev
+                   </button>
+                   <button 
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={!pagination.next_page || loading}
+                    className={`px-3 py-1 rounded-md border text-[8px] font-black uppercase tracking-widest transition-all ${
+                      pagination.next_page && !loading
+                        ? "border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95" 
+                        : "border-gray-100 text-gray-300 cursor-not-allowed"
+                    }`}
+                   >
+                     Next
+                   </button>
                 </div>
               </div>
+
             </div>
 
           </div>
