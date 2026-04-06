@@ -53,16 +53,31 @@ class CantonEnquiryAPI(ModelViewSet):
 class AirportViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]
-    queryset = Airport.objects.all().order_by('name')
     serializer_class = AirportSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        queryset = Airport.objects.all().order_by('name')
+        city_id = self.request.query_params.get('city_id')
+        country_id = self.request.query_params.get('country_id')
+        if city_id and city_id != 'undefined':
+            queryset = queryset.filter(city_id=city_id)
+        if country_id and country_id != 'undefined':
+            queryset = queryset.filter(city__country_id=country_id)
+        return queryset
 
 class CruiseTerminalViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]
-    queryset = CruiseTerminal.objects.all().order_by('terminal_name')
     serializer_class = CruiseTerminalSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        queryset = CruiseTerminal.objects.all().order_by('terminal_name')
+        country_id = self.request.query_params.get('country_id')
+        if country_id and country_id != 'undefined':
+            queryset = queryset.filter(city__country_id=country_id)
+        return queryset
 
 class CountryViewSet(ModelViewSet):
     authentication_classes = []
@@ -93,7 +108,7 @@ class RegionViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = Region.objects.all().order_by('name')
         country_id = self.request.query_params.get('country_id')
-        if country_id:
+        if country_id and country_id != 'undefined':
             queryset = queryset.filter(country_id=country_id)
         return queryset
 
@@ -107,9 +122,9 @@ class CityViewSet(ModelViewSet):
         queryset = City.objects.all().order_by('name')
         region_id = self.request.query_params.get('region_id')
         country_id = self.request.query_params.get('country_id')
-        if region_id:
+        if region_id and region_id != 'undefined':
             queryset = queryset.filter(region_id=region_id)
-        if country_id:
+        if country_id and country_id != 'undefined':
             queryset = queryset.filter(country_id=country_id)
         return queryset
 
@@ -546,8 +561,15 @@ class VehicleRateCardViewSet(ModelViewSet):
 class PickupPointMasterViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]
-    queryset = PickupPointMaster.objects.all()
     serializer_class = PickupPointMasterSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = PickupPointMaster.objects.all().order_by('name')
+        country_id = self.request.query_params.get('country_id')
+        if country_id and country_id != 'undefined':
+            queryset = queryset.filter(city__country_id=country_id)
+        return queryset
 
 class CabBookingViewSet(ModelViewSet):
     authentication_classes = []
@@ -976,18 +998,17 @@ class DestinationHierarchyAPI(APIView):
                 if cid not in airports_map: airports_map[cid] = []
                 airports_map[cid].append(a)
 
-            # Batch fetch pickups by city names
-            city_names = [c.name for c in city_list]
-            for p in PickupPointMaster.objects.filter(city__name__in=city_names).values('id', 'name', 'city__name'):
-                cn = p['city__name']
-                if cn not in pickup_map: pickup_map[cn] = []
-                pickup_map[cn].append(p)
+            # Batch fetch pickups by city ID
+            for p in PickupPointMaster.objects.filter(city_id__in=city_ids).values('id', 'name', 'city_id'):
+                cid = p['city_id']
+                if cid not in pickup_map: pickup_map[cid] = []
+                pickup_map[cid].append(p)
 
-            # Batch fetch terminals by city names
-            for cn in city_names:
-                terminals = list(CruiseTerminal.objects.filter(terminal_name__icontains=cn).values('id', 'terminal_name', 'cruise_name', 'cruise_code'))
-                if terminals:
-                    terminal_map[cn] = terminals
+            # Batch fetch terminals by city ID
+            for t in CruiseTerminal.objects.filter(city_id__in=city_ids).values('id', 'terminal_name', 'cruise_name', 'cruise_code', 'city_id'):
+                cid = t['city_id']
+                if cid not in terminal_map: terminal_map[cid] = []
+                terminal_map[cid].append(t)
 
         # Construct rows
         for item in paged_queryset:
@@ -1018,11 +1039,31 @@ class DestinationHierarchyAPI(APIView):
             "total_pages": (total_count + page_size - 1) // page_size if page_size > 0 else 1
         })
 
+    def _get_country_info(self, country):
+        if not country:
+            return None, "—", "—"
+        
+        # Get nationalities from country if prefetched/pre-related
+        # In many cases, we can't do .nationalities.all() easily without hits, 
+        # but the view already prefetches country__nationalities
+        nationalities = "—"
+        if hasattr(country, 'nationalities'):
+            # This handles both prefetch_related and related_name.all()
+            try:
+                nats = [n.name for n in country.nationalities.all()]
+                if nats:
+                    nationalities = ", ".join(nats)
+            except:
+                pass
+        
+        return country.id, country.name, nationalities
+
     def _build_country_row(self, country):
+        cid, cname, nat = self._get_country_info(country)
         return {
-            "country_id": country.id,
-            "country_name": country.name,
-            "nationality": ", ".join([n.name for n in country.nationalities.all()]) if hasattr(country, 'nationalities') else "—",
+            "country_id": cid,
+            "country_name": cname,
+            "nationality": nat,
             "region_name": "—",
             "city_name": "—",
             "airports_count": 0,
@@ -1031,9 +1072,10 @@ class DestinationHierarchyAPI(APIView):
         }
 
     def _build_nationality_row(self, nationality):
+        cid, cname, _ = self._get_country_info(nationality.country)
         return {
-            "country_id": nationality.country.id if nationality.country else None,
-            "country_name": nationality.country.name if nationality.country else "—",
+            "country_id": cid,
+            "country_name": cname,
             "nationality": nationality.name,
             "region_name": "—",
             "city_name": "—",
@@ -1043,10 +1085,11 @@ class DestinationHierarchyAPI(APIView):
         }
 
     def _build_region_row(self, region):
+        cid, cname, nat = self._get_country_info(region.country)
         return {
-            "country_id": region.country.id,
-            "country_name": region.country.name,
-            "nationality": "—",
+            "country_id": cid,
+            "country_name": cname,
+            "nationality": nat,
             "region_id": region.id,
             "region_name": region.name,
             "city_name": "—",
@@ -1056,21 +1099,16 @@ class DestinationHierarchyAPI(APIView):
         }
 
     def _build_city_row(self, city, airports_map, pickup_map, terminal_map):
-        airports = airports_map.get(city.id, [])
-        pickups = pickup_map.get(city.name, [])
-        terminals = terminal_map.get(city.name, [])
+        cid, cname, nat = self._get_country_info(city.country)
         
-        # Get nationalities from country
-        nationalities = "—"
-        if city.country and hasattr(city.country, 'nationalities'):
-            nationalities_list = [n.name for n in city.country.nationalities.all()]
-            if nationalities_list:
-                nationalities = ", ".join(nationalities_list)
-                
+        airports = airports_map.get(city.id, [])
+        pickups = pickup_map.get(city.id, [])
+        terminals = terminal_map.get(city.id, [])
+        
         return {
-            "country_id": city.country.id,
-            "country_name": city.country.name,
-            "nationality": nationalities,
+            "country_id": cid,
+            "country_name": cname,
+            "nationality": nat,
             "region_id": city.region.id if city.region else None,
             "region_name": city.region.name if city.region else "—",
             "city_id": city.id,
@@ -1083,33 +1121,48 @@ class DestinationHierarchyAPI(APIView):
             "cruise_terminals_count": len(terminals)
         }
 
-
     def _build_airport_row(self, airport):
         city = airport.city
+        cid, cname, nat = self._get_country_info(city.country if city else None)
         return {
-            "country_name": city.country.name if city else "—",
+            "country_id": cid,
+            "country_name": cname,
+            "nationality": nat,
+            "region_id": city.region.id if city and city.region else None,
             "region_name": city.region.name if city and city.region else "—",
+            "city_id": city.id if city else None,
             "city_name": city.name if city else "—",
             "displayed_name": f"{airport.name} ({airport.iata_code})",
             "airports_count": 1
         }
 
     def _build_pickup_row(self, pickup):
-        dest = pickup.city
+        city = pickup.city
+        cid, cname, nat = self._get_country_info(city.country if city else None)
         return {
-            "country_name": getattr(dest, 'country', "—"),
-            "region_name": getattr(dest, 'region', "—"),
-            "city_name": getattr(dest, 'city', "—"),
+            "country_id": cid,
+            "country_name": cname,
+            "nationality": nat,
+            "region_id": city.region.id if city and city.region else None,
+            "region_name": city.region.name if city and city.region else "—",
+            "city_id": city.id if city else None,
+            "city_name": city.name if city else "—",
             "displayed_name": pickup.name,
             "pickup_points_count": 1
         }
 
     def _build_terminal_row(self, terminal):
+        city = terminal.city
+        cid, cname, nat = self._get_country_info(city.country if city else None)
         return {
-            "country_name": "—",
-            "region_name": "—",
-            "city_name": "—",
-            "displayed_name": f"{terminal.terminal_name} - {terminal.cruise_name}",
+            "country_id": cid,
+            "country_name": cname,
+            "nationality": nat,
+            "region_id": city.region.id if city and city.region else None,
+            "region_name": city.region.name if city and city.region else "—",
+            "city_id": city.id if city else None,
+            "city_name": city.name if city else "—",
+            "displayed_name": f"{terminal.terminal_name} - {terminal.cruise_name}" if terminal.cruise_name else terminal.terminal_name,
             "cruise_terminals_count": 1
         }
 

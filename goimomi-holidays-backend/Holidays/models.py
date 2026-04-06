@@ -321,11 +321,13 @@ class CruiseTerminal(models.Model):
     terminal_name = models.CharField(max_length=255)
     cruise_name = models.CharField(max_length=255, null=True, blank=True)
     cruise_code = models.CharField(max_length=50, null=True, blank=True)
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='cruise_terminals', null=True, blank=True)
 
     def __str__(self):
+        city_name = self.city.name if self.city else "Global"
         if self.cruise_name:
-            return f"{self.terminal_name} - {self.cruise_name} ({self.cruise_code})"
-        return self.terminal_name
+            return f"{self.terminal_name} - {self.cruise_name} ({self.cruise_code}) - {city_name}"
+        return f"{self.terminal_name} - {city_name}"
 
 
 class ItineraryMaster(models.Model):
@@ -677,7 +679,7 @@ class VehicleRateCard(models.Model):
         return self.name
 
 class PickupPointMaster(models.Model):
-    city = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name='pickup_points')
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name='pickup_points')
     name = models.CharField(max_length=255)
 
     def __str__(self):

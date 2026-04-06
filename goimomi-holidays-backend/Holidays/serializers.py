@@ -27,12 +27,15 @@ class CantonEnquirySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class CruiseTerminalSerializer(serializers.ModelSerializer):
+    city_name = serializers.ReadOnlyField(source='city.name')
+    region_name = serializers.ReadOnlyField(source='city.region.name')
     class Meta:
         model = CruiseTerminal
         fields = "__all__"
 
 class AirportSerializer(serializers.ModelSerializer):
     city_name = serializers.ReadOnlyField(source='city.name')
+    region_name = serializers.ReadOnlyField(source='city.region.name')
     class Meta:
         model = Airport
         fields = "__all__"
@@ -668,6 +671,7 @@ class VehicleRateCardSerializer(serializers.ModelSerializer):
         fields = "__all__"
 class PickupPointMasterSerializer(serializers.ModelSerializer):
     city_name = serializers.ReadOnlyField(source='city.name')
+    region_name = serializers.ReadOnlyField(source='city.region.name')
     class Meta:
         model = PickupPointMaster
         fields = "__all__"

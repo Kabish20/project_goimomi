@@ -255,14 +255,6 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <>
-              {/* Core Inventory Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
-                <AdminCard title="Packages" count={stats.packages} link="/admin/packages" icon={<Package />} />
-                <AdminCard title="Itinerary" count={stats.itineraryMasters} link="/admin/itinerary-masters" icon={<ClipboardList />} />
-                <AdminCard title="Visas" count={stats.visas} link="/admin/visas" icon={<Globe />} />
-                <AdminCard title="Visa Apps" count={stats.visaApplications} link="/admin/visa-applications" icon={<CreditCard />} />
-              </div>
-
               {/* Enquiry Stats - Horizontal Section */}
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-2 px-1">
@@ -279,6 +271,14 @@ const AdminDashboard = () => {
                   <AdminCard title="Visa Apps" count={stats.visaApplications} link="/admin/visa-applications" icon={<CreditCard />} />
                   <AdminCard title="Canton Enq" count={stats.cantonEnquiries} link="/admin/canton-enquiries" icon={<Package />} />
                 </div>
+              </div>
+
+              {/* Core Inventory Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
+                <AdminCard title="Packages" count={stats.packages} link="/admin/packages" icon={<Package />} />
+                <AdminCard title="Itinerary" count={stats.itineraryMasters} link="/admin/itinerary-masters" icon={<ClipboardList />} />
+                <AdminCard title="Visas" count={stats.visas} link="/admin/visas" icon={<Globe />} />
+                <AdminCard title="Visa Apps" count={stats.visaApplications} link="/admin/visa-applications" icon={<CreditCard />} />
               </div>
 
               {/* Create Booking Section */}

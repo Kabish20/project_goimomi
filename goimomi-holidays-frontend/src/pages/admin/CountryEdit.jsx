@@ -78,6 +78,12 @@ const CountryEdit = () => {
   const [newAirport, setNewAirport] = useState({});        // { [cityId]: { name, iata_code } }
   const [showAirportForm, setShowAirportForm] = useState({}); // { [cityId]: bool }
 
+  const [newPickupPoint, setNewPickupPoint] = useState({});   // { [cityId]: { name } }
+  const [showPickupForm, setShowPickupForm] = useState({});   // { [cityId]: bool }
+
+  const [newTerminal, setNewTerminal] = useState({});         // { [cityId]: { terminal_name, cruise_name, cruise_code } }
+  const [showTerminalForm, setShowTerminalForm] = useState({}); // { [cityId]: bool }
+
   /* ── toast helper ── */
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -90,21 +96,28 @@ const CountryEdit = () => {
   const fetchAll = async () => {
     try {
       setFetching(true);
-      const [cRes, natRes, regRes, citRes, airRes] = await Promise.all([
+      const [cRes, natRes, regRes, citRes, airRes, pickRes, termRes] = await Promise.all([
         api.get(`/api/countries/${id}/`),
         api.get(`/api/nationalities/?country_id=${id}`),
         api.get(`/api/regions/?country_id=${id}`),
         api.get(`/api/cities/?country_id=${id}`),
-        api.get(`/api/airports/`),
+        api.get(`/api/airports/?country_id=${id}`),
+        api.get(`/api/pickup-point-masters/?country_id=${id}`),
+        api.get(`/api/cruise-terminals/?country_id=${id}`),
       ]);
 
       setCountryName(cRes.data.name);
       setNationalities(natRes.data);
 
       const airports = airRes.data;
+      const pickups = pickRes.data;
+      const terminals = termRes.data;
+
       const cities = citRes.data.map(c => ({
         ...c,
         airports: airports.filter(a => a.city === c.id),
+        pickup_points: pickups.filter(p => p.city === c.id),
+        cruise_terminals: terminals.filter(t => t.city === c.id),
       }));
 
       const regs = regRes.data.map(r => ({
@@ -259,6 +272,63 @@ const CountryEdit = () => {
             ? { ...c, airports: c.airports.filter(a => a.id !== airportId) } : c) } : r));
       showToast("Airport deleted.");
     } catch { showToast("Could not delete airport.", "error"); }
+  };
+
+  /* ═══════════ PICKUP POINT ═══════════ */
+  const addPickupPoint = async (cityId, regionId) => {
+    const draft = newPickupPoint[cityId] || {};
+    const name = (draft.name || "").trim();
+    if (!name) return showToast("Pickup point name is required.", "error");
+    try {
+      const res = await api.post("/api/pickup-point-masters/", { name, city: cityId });
+      setRegions(p => p.map(r => r.id === regionId
+        ? { ...r, cities: r.cities.map(c => c.id === cityId ? { ...c, pickup_points: [...(c.pickup_points || []), res.data] } : c) } : r));
+      setNewPickupPoint(p => ({ ...p, [cityId]: { name: "" } }));
+      setShowPickupForm(p => ({ ...p, [cityId]: false }));
+      showToast("Pickup point added!");
+    } catch { showToast("Could not add pickup point.", "error"); }
+  };
+
+  const deletePickupPoint = async (pointId, cityId, regionId) => {
+    if (!window.confirm("Delete this pickup point?")) return;
+    try {
+      await api.delete(`/api/pickup-point-masters/${pointId}/`);
+      setRegions(p => p.map(r => r.id === regionId
+        ? { ...r, cities: r.cities.map(c => c.id === cityId
+            ? { ...c, pickup_points: c.pickup_points.filter(p => p.id !== pointId) } : c) } : r));
+      showToast("Pickup point deleted.");
+    } catch { showToast("Could not delete pickup point.", "error"); }
+  };
+
+  /* ═══════════ CRUISE TERMINAL ═══════════ */
+  const addTerminal = async (cityId, regionId) => {
+    const draft = newTerminal[cityId] || {};
+    const name = (draft.terminal_name || "").trim();
+    if (!name) return showToast("Terminal name is required.", "error");
+    try {
+      const res = await api.post("/api/cruise-terminals/", { 
+        terminal_name: name, 
+        cruise_name: draft.cruise_name || "", 
+        cruise_code: draft.cruise_code || "", 
+        city: cityId 
+      });
+      setRegions(p => p.map(r => r.id === regionId
+        ? { ...r, cities: r.cities.map(c => c.id === cityId ? { ...c, cruise_terminals: [...(c.cruise_terminals || []), res.data] } : c) } : r));
+      setNewTerminal(p => ({ ...p, [cityId]: { terminal_name: "", cruise_name: "", cruise_code: "" } }));
+      setShowTerminalForm(p => ({ ...p, [cityId]: false }));
+      showToast("Cruise terminal added!");
+    } catch { showToast("Could not add terminal.", "error"); }
+  };
+
+  const deleteTerminal = async (termId, cityId, regionId) => {
+    if (!window.confirm("Delete this cruise terminal?")) return;
+    try {
+      await api.delete(`/api/cruise-terminals/${termId}/`);
+      setRegions(p => p.map(r => r.id === regionId
+        ? { ...r, cities: r.cities.map(c => c.id === cityId
+            ? { ...c, cruise_terminals: c.cruise_terminals.filter(t => t.id !== termId) } : c) } : r));
+      showToast("Cruise terminal deleted.");
+    } catch { showToast("Could not delete terminal.", "error"); }
   };
 
   const toggleRegion = (regId) => {
@@ -563,6 +633,7 @@ const CountryEdit = () => {
                               regionId={region.id}
                               onUpdateCity={updateCity}
                               onDeleteCity={deleteCity}
+                              
                               onAddAirport={addAirport}
                               onDeleteAirport={deleteAirport}
                               airportDraft={newAirport[city.id] || { name: "", iata_code: "" }}
@@ -572,6 +643,27 @@ const CountryEdit = () => {
                               showForm={!!showAirportForm[city.id]}
                               onToggleForm={() => setShowAirportForm(p => ({ ...p, [city.id]: !p[city.id] }))}
                               onCloseForm={() => setShowAirportForm(p => ({ ...p, [city.id]: false }))}
+
+                              onAddPickup={addPickupPoint}
+                              onDeletePickup={deletePickupPoint}
+                              pickupDraft={newPickupPoint[city.id] || { name: "" }}
+                              onPickupDraftChange={(field, val) =>
+                                setNewPickupPoint(p => ({ ...p, [city.id]: { ...(p[city.id] || {}), [field]: val } }))
+                              }
+                              showPickupForm={!!showPickupForm[city.id]}
+                              onTogglePickupForm={() => setShowPickupForm(p => ({ ...p, [city.id]: !p[city.id] }))}
+                              onClosePickupForm={() => setShowPickupForm(p => ({ ...p, [city.id]: false }))}
+
+                              onAddTerminal={addTerminal}
+                              onDeleteTerminal={deleteTerminal}
+                              terminalDraft={newTerminal[city.id] || { terminal_name: "", cruise_name: "", cruise_code: "" }}
+                              onTerminalDraftChange={(field, val) =>
+                                setNewTerminal(p => ({ ...p, [city.id]: { ...(p[city.id] || {}), [field]: val } }))
+                              }
+                              showTerminalForm={!!showTerminalForm[city.id]}
+                              onToggleTerminalForm={() => setShowTerminalForm(p => ({ ...p, [city.id]: !p[city.id] }))}
+                              onCloseTerminalForm={() => setShowTerminalForm(p => ({ ...p, [city.id]: false }))}
+
                               navigate={navigate}
                             />
                           ))}
@@ -671,6 +763,15 @@ const CityCard = ({
   onAddAirport, onDeleteAirport,
   airportDraft, onAirportDraftChange,
   showForm, onToggleForm, onCloseForm,
+  
+  onAddPickup, onDeletePickup,
+  pickupDraft, onPickupDraftChange,
+  showPickupForm, onTogglePickupForm, onClosePickupForm,
+
+  onAddTerminal, onDeleteTerminal,
+  terminalDraft, onTerminalDraftChange,
+  showTerminalForm, onToggleTerminalForm, onCloseTerminalForm,
+
   navigate,
 }) => {
   return (
@@ -686,101 +787,132 @@ const CityCard = ({
           </div>
           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-0.5">City · ID #{city.id}</p>
         </div>
-        {city.airports?.length > 0 && (
-          <span className="flex items-center gap-1 text-[9px] font-black text-blue-400 mr-1">
-            <Plane size={9} /> {city.airports.length} airport{city.airports.length !== 1 ? "s" : ""}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+            {city.airports?.length > 0 && <span className="flex items-center gap-1 text-[8px] font-black text-blue-400"> <Plane size={9} /> {city.airports.length}</span>}
+            {city.pickup_points?.length > 0 && <span className="flex items-center gap-1 text-[8px] font-black text-amber-500"> <Truck size={9} /> {city.pickup_points.length}</span>}
+            {city.cruise_terminals?.length > 0 && <span className="flex items-center gap-1 text-[8px] font-black text-cyan-500"> <Anchor size={9} /> {city.cruise_terminals.length}</span>}
+        </div>
         <button
           onClick={() => onDeleteCity(city.id, regionId)}
-          className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+          className="ml-2 opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all"
         >
           <Trash2 size={10} />
         </button>
       </div>
 
-      {/* Airports section */}
-      <div className="p-3 space-y-1.5">
-        {/* section label */}
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-1.5">
-            <Plane size={10} className="text-blue-400" />
-            <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.15em]">Airports</span>
+      <div className="p-3 space-y-4">
+        {/* ── AIRPORTS ── */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Plane size={10} className="text-blue-400" />
+              <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.15em]">Airports</span>
+            </div>
+            <button
+              onClick={onToggleForm}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-wider hover:bg-blue-500 hover:text-white transition-all"
+            >
+              <Plus size={9} /> Add
+            </button>
           </div>
-          <button
-            onClick={onToggleForm}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-wider hover:bg-blue-500 hover:text-white transition-all"
-          >
-            <Plus size={9} /> Add
-          </button>
+          {city.airports?.length === 0 && !showForm ? (
+            <p className="text-[10px] text-gray-300 font-bold italic pl-1">No airports</p>
+          ) : (
+            city.airports?.map(airport => (
+              <div key={airport.id} className="group/ap flex items-center gap-2 bg-blue-50/40 rounded-xl px-2.5 py-1.5 border border-blue-100/40">
+                <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[8px] font-black rounded tracking-wider">{airport.iata_code}</span>
+                <span className="flex-1 text-[11px] font-bold text-gray-700 truncate">{airport.name}</span>
+                <button onClick={() => onDeleteAirport(airport.id, city.id, regionId)} className="opacity-0 group-hover/ap:opacity-100 text-red-400 hover:text-red-500"><Trash2 size={9} /></button>
+              </div>
+            ))
+          )}
+          {showForm && (
+            <div className="flex items-center gap-2 pt-1">
+              <input autoFocus value={airportDraft.name} onChange={e => onAirportDraftChange("name", e.target.value)} placeholder="Name" className="flex-1 border text-[11px] rounded-lg px-2 py-1" />
+              <input value={airportDraft.iata_code} onChange={e => onAirportDraftChange("iata_code", e.target.value.toUpperCase())} placeholder="IATA" maxLength={4} className="w-12 border text-[11px] rounded-lg px-2 py-1 text-center font-black" />
+              <button onClick={() => onAddAirport(city.id, regionId)} className="bg-blue-500 text-white p-1 rounded-lg"><Check size={12} /></button>
+              <button onClick={onCloseForm} className="bg-gray-100 text-gray-400 p-1 rounded-lg"><X size={12} /></button>
+            </div>
+          )}
         </div>
 
-        {/* airport list */}
-        {city.airports?.length === 0 && !showForm ? (
-          <p className="text-[10px] text-gray-300 font-bold italic pl-1">No airports</p>
-        ) : (
-          city.airports?.map(airport => (
-            <div key={airport.id} className="group/ap flex items-center gap-2.5 bg-blue-50/40 rounded-xl px-3 py-2 border border-blue-100/40">
-              <span className="px-2 py-0.5 bg-blue-600 text-white text-[9px] font-black rounded-md tracking-wider shadow-sm">
-                {airport.iata_code}
-              </span>
-              <span className="flex-1 text-[11px] font-bold text-gray-700">{airport.name}</span>
-              <button
-                onClick={() => onDeleteAirport(airport.id, city.id, regionId)}
-                className="opacity-0 group-hover/ap:opacity-100 w-5 h-5 flex items-center justify-center rounded-md bg-white text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-100"
-              >
-                <Trash2 size={9} />
-              </button>
+        {/* ── PICKUP POINTS ── */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Truck size={10} className="text-amber-500" />
+              <span className="text-[9px] font-black text-amber-600 uppercase tracking-[0.15em]">Pickup Points</span>
             </div>
-          ))
-        )}
-
-        {/* add airport form */}
-        {showForm && (
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              autoFocus
-              value={airportDraft.name}
-              onChange={e => onAirportDraftChange("name", e.target.value)}
-              placeholder="Airport name"
-              className="flex-1 border border-blue-200 rounded-xl px-2.5 py-1.5 text-[11px] font-bold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 bg-white"
-            />
-            <input
-              value={airportDraft.iata_code}
-              onChange={e => onAirportDraftChange("iata_code", e.target.value.toUpperCase())}
-              placeholder="IATA"
-              maxLength={4}
-              className="w-16 border border-blue-200 rounded-xl px-2.5 py-1.5 text-[11px] font-black uppercase focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 bg-white text-center tracking-wider"
-            />
             <button
-              onClick={() => onAddAirport(city.id, regionId)}
-              className="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-all shadow-sm"
+              onClick={onTogglePickupForm}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-wider hover:bg-amber-600 hover:text-white transition-all"
             >
-              <Check size={13} />
-            </button>
-            <button
-              onClick={onCloseForm}
-              className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 hover:bg-gray-200 transition-all"
-            >
-              <X size={13} />
+              <Plus size={9} /> Add
             </button>
           </div>
-        )}
+          {city.pickup_points?.length === 0 && !showPickupForm ? (
+            <p className="text-[10px] text-gray-300 font-bold italic pl-1">No pickup points</p>
+          ) : (
+            city.pickup_points?.map(point => (
+              <div key={point.id} className="group/pp flex items-center gap-2 bg-amber-50/40 rounded-xl px-2.5 py-1.5 border border-amber-100/40">
+                <Truck size={10} className="text-amber-400 shrink-0" />
+                <span className="flex-1 text-[11px] font-bold text-gray-700 truncate">{point.name}</span>
+                <button onClick={() => onDeletePickup(point.id, city.id, regionId)} className="opacity-0 group-hover/pp:opacity-100 text-red-400 hover:text-red-500"><Trash2 size={9} /></button>
+              </div>
+            ))
+          )}
+          {showPickupForm && (
+            <div className="flex items-center gap-2 pt-1">
+              <input autoFocus value={pickupDraft.name} onChange={e => onPickupDraftChange("name", e.target.value)} placeholder="Pickup point name..." className="flex-1 border text-[11px] rounded-lg px-2 py-1" />
+              <button onClick={() => onAddPickup(city.id, regionId)} className="bg-amber-600 text-white p-1 rounded-lg"><Check size={12} /></button>
+              <button onClick={onClosePickupForm} className="bg-gray-100 text-gray-400 p-1 rounded-lg"><X size={12} /></button>
+            </div>
+          )}
+        </div>
 
-        {/* Quick links – Pickup Points & Cruise Terminals */}
-        <div className="flex gap-2 pt-1">
-          <button
-            onClick={() => navigate("/admin/management-country/pickup-points")}
-            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl border border-amber-100 bg-amber-50/40 text-amber-600 text-[9px] font-black uppercase tracking-wide hover:bg-amber-100 transition-colors"
-          >
-            <Truck size={10} /> Pickup Points
-          </button>
-          <button
-            onClick={() => navigate("/admin/management-country/cruise-terminals")}
-            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl border border-cyan-100 bg-cyan-50/40 text-cyan-600 text-[9px] font-black uppercase tracking-wide hover:bg-cyan-100 transition-colors"
-          >
-            <Anchor size={10} /> Cruise Terminals
-          </button>
+        {/* ── CRUISE TERMINALS ── */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Anchor size={10} className="text-cyan-500" />
+              <span className="text-[9px] font-black text-cyan-600 uppercase tracking-[0.15em]">Cruise Terminals</span>
+            </div>
+            <button
+              onClick={onToggleTerminalForm}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-cyan-50 text-cyan-600 text-[8px] font-black uppercase tracking-wider hover:bg-cyan-600 hover:text-white transition-all"
+            >
+              <Plus size={9} /> Add
+            </button>
+          </div>
+          {city.cruise_terminals?.length === 0 && !showTerminalForm ? (
+            <p className="text-[10px] text-gray-300 font-bold italic pl-1">No cruise terminals</p>
+          ) : (
+            city.cruise_terminals?.map(term => (
+              <div key={term.id} className="group/ct flex flex-col bg-cyan-50/40 rounded-xl px-2.5 py-1.5 border border-cyan-100/40">
+                <div className="flex items-center gap-2">
+                    <Anchor size={10} className="text-cyan-400 shrink-0" />
+                    <span className="flex-1 text-[11px] font-bold text-gray-700 truncate">{term.terminal_name}</span>
+                    <button onClick={() => onDeleteTerminal(term.id, city.id, regionId)} className="opacity-0 group-hover/ct:opacity-100 text-red-400 hover:text-red-500"><Trash2 size={9} /></button>
+                </div>
+                {term.cruise_name && (
+                    <p className="text-[8px] font-black text-cyan-600 uppercase tracking-widest mt-0.5 ml-4 opacity-70">
+                        {term.cruise_name} {term.cruise_code && `(${term.cruise_code})`}
+                    </p>
+                )}
+              </div>
+            ))
+          )}
+          {showTerminalForm && (
+            <div className="space-y-2 pt-1 border-t border-dashed border-cyan-100 mt-1">
+              <input autoFocus value={terminalDraft.terminal_name} onChange={e => onTerminalDraftChange("terminal_name", e.target.value)} placeholder="Terminal name..." className="w-full border text-[11px] rounded-lg px-2 py-1" />
+              <div className="flex gap-2">
+                <input value={terminalDraft.cruise_name} onChange={e => onTerminalDraftChange("cruise_name", e.target.value)} placeholder="Cruise name (opt)" className="flex-1 border text-[11px] rounded-lg px-2 py-1" />
+                <input value={terminalDraft.cruise_code} onChange={e => onTerminalDraftChange("cruise_code", e.target.value)} placeholder="Code" className="w-16 border text-[11px] rounded-lg px-2 py-1" />
+                <button onClick={() => onAddTerminal(city.id, regionId)} className="bg-cyan-600 text-white px-2 rounded-lg hover:bg-cyan-700"><Check size={12} /></button>
+                <button onClick={onCloseTerminalForm} className="bg-gray-100 text-gray-400 px-2 rounded-lg"><X size={12} /></button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
