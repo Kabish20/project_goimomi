@@ -49,8 +49,17 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
   const [isNationalityOpen, setIsNationalityOpen] = useState(false);
   const [nationalitySearch, setNationalitySearch] = useState("");
 
-  // Fetch Data - Removed as modules are decommissioned
+  // Fetch Data
   React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const regionsRes = await api.get("/api/regions/");
+        setUmrahDestinationsList(regionsRes.data);
+      } catch (err) {
+        console.error("Error fetching regions:", err);
+      }
+    };
+
     // Set static defaults for common values
     setNationalitiesList([
       { id: 1, nationality: "Indian", country: "India" },
@@ -61,12 +70,10 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
     setStartingCitiesList([
       { id: 1, name: "Chennai" }, { id: 2, name: "Mumbai" }, { id: 3, name: "Delhi" }, { id: 4, name: "Bangalore" }
     ]);
-    setUmrahDestinationsList([
-      { id: 1, name: "Makkah", country: "Saudi Arabia" },
-      { id: 2, name: "Madinah", country: "Saudi Arabia" },
-      { id: 3, name: "Jeddah", country: "Saudi Arabia" },
-      { id: 4, name: "Taif", country: "Saudi Arabia" }
-    ]);
+    
+    if (isOpen) {
+      fetchData();
+    }
   }, [isOpen]);
 
   // Helpers
@@ -92,7 +99,7 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
 
   const filteredUmrahDestinations = umrahDestinationsList.filter(d =>
     d.name.toLowerCase().includes(citySearch.toLowerCase()) ||
-    d.country.toLowerCase().includes(citySearch.toLowerCase())
+    (d.country_name && d.country_name.toLowerCase().includes(citySearch.toLowerCase()))
   );
 
   const filteredNationalities = nationalitiesList.filter(n =>
@@ -382,7 +389,9 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
                                 >
                                   <div className="flex flex-col">
                                     <span>{dest.name}</span>
-                                    <span className="text-[10px] text-gray-400 uppercase">{dest.country}</span>
+                                    {dest.country_name && (
+                                      <span className="text-[10px] text-gray-400 uppercase">{dest.country_name}</span>
+                                    )}
                                   </div>
                                 </li>
                               ))

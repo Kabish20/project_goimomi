@@ -191,7 +191,7 @@ const CabCruiseForm = ({ isOpen, onClose, type, initialDescription = "", initial
                             </div>
 
                             {/* Contact and Vehicle */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className={`grid grid-cols-1 ${type === 'Cab' ? 'md:grid-cols-2' : ''} gap-3`}>
                                 <div className="space-y-1">
                                     <label htmlFor="phone" className="text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">
                                         Mobile Number *
@@ -206,29 +206,31 @@ const CabCruiseForm = ({ isOpen, onClose, type, initialDescription = "", initial
                                         buttonClass="!rounded-l-lg !border-gray-100 !bg-gray-50 hover:!bg-gray-100"
                                     />
                                 </div>
-                                <div className="space-y-1">
-                                    <label htmlFor="vehicle" className="text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">
-                                        Select Vehicle *
-                                    </label>
-                                    <select
-                                        id="vehicle"
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-800 focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d]/40 transition-all appearance-none cursor-pointer"
-                                        value={vehicle}
-                                        onChange={(e) => setVehicle(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Choose Vehicle</option>
-                                        <option value="Sedan">Sedan (4+1 Passengers)</option>
-                                        <option value="SUV">SUV (6+1 Passengers)</option>
-                                        <option value="Innova Crysta">Innova Crysta (Premium)</option>
-                                        <option value="Traveller">Tempo Traveller (9-17 Seat)</option>
-                                        {vehicles.map((v) => (
-                                            <option key={v.id} value={v.brand_name || v.name}>
-                                                {v.brand_name} {v.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                {type === 'Cab' && (
+                                    <div className="space-y-1">
+                                        <label htmlFor="vehicle" className="text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">
+                                            Select Vehicle *
+                                        </label>
+                                        <select
+                                            id="vehicle"
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-800 focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d]/40 transition-all appearance-none cursor-pointer"
+                                            value={vehicle}
+                                            onChange={(e) => setVehicle(e.target.value)}
+                                            required
+                                        >
+                                            <option value="">Choose Vehicle</option>
+                                            <option value="Sedan">Sedan (4+1 Passengers)</option>
+                                            <option value="SUV">SUV (6+1 Passengers)</option>
+                                            <option value="Innova Crysta">Innova Crysta (Premium)</option>
+                                            <option value="Traveller">Tempo Traveller (9-17 Seat)</option>
+                                            {vehicles.map((v) => (
+                                                <option key={v.id} value={v.brand_name || v.name}>
+                                                    {v.brand_name} {v.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
 
                             {/* From and To */}

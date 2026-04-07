@@ -72,8 +72,19 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
   const [isNationalityOpen, setIsNationalityOpen] = useState(false);
   const [nationalitySearch, setNationalitySearch] = useState("");
 
-  // Fetch Data - Removed as modules are decommissioned
+  // Fetch Data
   React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const regionsRes = await api.get("/api/regions/");
+        setDestinationsList(regionsRes.data);
+      } catch (err) {
+        console.error("Error fetching regions:", err);
+      }
+    };
+    if (isOpen) {
+      fetchData();
+    }
   }, [isOpen]);
 
   // Click Outside
@@ -91,7 +102,7 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
 
   const filteredDestinations = (destinationsList || []).filter(d =>
     d?.name?.toLowerCase().includes(citySearch.toLowerCase()) ||
-    (d?.country && d.country.toLowerCase().includes(citySearch.toLowerCase()))
+    (d?.country_name && d.country_name.toLowerCase().includes(citySearch.toLowerCase()))
   );
 
   const filteredStartingCities = (startingCitiesList || []).filter(c =>
@@ -408,11 +419,9 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
                                 >
                                   <div className="flex flex-col">
                                     <span>{dest.name}</span>
-                                    {(dest.region || dest.country) && (
+                                    {dest.country_name && (
                                       <span className="text-[10px] text-gray-400 uppercase">
-                                        {dest.region && dest.country
-                                          ? `${dest.region} (${dest.country})`
-                                          : dest.region || dest.country}
+                                        {dest.country_name}
                                       </span>
                                     )}
                                   </div>
