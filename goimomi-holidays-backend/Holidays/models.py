@@ -592,7 +592,7 @@ class SightseeingMaster(models.Model):
     map_link = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.destination.name} - {self.name}"
+        return f"{self.city_link.name if self.city_link else (self.city or 'No City')} - {self.name}"
 
 class SightseeingImage(models.Model):
     sightseeing = models.ForeignKey(SightseeingMaster, related_name="images", on_delete=models.CASCADE)

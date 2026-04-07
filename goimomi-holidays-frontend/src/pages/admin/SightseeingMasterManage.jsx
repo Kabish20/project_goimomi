@@ -13,23 +13,23 @@ const SightseeingMasterManage = () => {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [destinations, setDestinations] = useState([]);
-    const [selectedDestination, setSelectedDestination] = useState("");
+    const [regions, setRegions] = useState([]);
+    const [selectedRegion, setSelectedRegion] = useState("");
 
     const navigate = useNavigate();
     const API_BASE_URL = "/api";
 
     useEffect(() => {
         fetchSightseeings();
-        fetchDestinations();
+        fetchRegions();
     }, []);
 
-    const fetchDestinations = async () => {
+    const fetchRegions = async () => {
         try {
-            const response = await api.get(`${API_BASE_URL}/destinations/`);
-            setDestinations(Array.isArray(response.data) ? response.data : (response.data?.results || []));
+            const response = await api.get(`${API_BASE_URL}/regions/`);
+            setRegions(Array.isArray(response.data) ? response.data : (response.data?.results || []));
         } catch (err) {
-            console.error("Error fetching destinations:", err);
+            console.error("Error fetching regions:", err);
         }
     };
 
@@ -55,13 +55,13 @@ const SightseeingMasterManage = () => {
                 s.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 s.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-            const matchesDestination = !selectedDestination ||
-                s.destination?.toString() === selectedDestination.toString();
+            const matchesRegion = !selectedRegion ||
+                s.region_id?.toString() === selectedRegion.toString();
 
-            return matchesSearch && matchesDestination;
+            return matchesSearch && matchesRegion;
         });
         setFilteredSightseeings(filtered);
-    }, [searchTerm, sightseeings, selectedDestination]);
+    }, [searchTerm, sightseeings, selectedRegion]);
 
     const handleEdit = (id) => {
         navigate(`/admin/sightseeing-masters/edit/${id}`);
@@ -123,21 +123,21 @@ const SightseeingMasterManage = () => {
                             />
                         </div>
 
-                        <div className="w-48">
+                        <div className="w-56">
                             <SearchableSelect
-                                options={destinations.map(d => ({ value: d.id, label: d.name }))}
-                                value={selectedDestination}
-                                onChange={(val) => setSelectedDestination(val)}
-                                placeholder="All Destinations"
+                                options={regions.map(r => ({ value: r.id, label: `${r.name} (${r.country_name})` }))}
+                                value={selectedRegion}
+                                onChange={(val) => setSelectedRegion(val)}
+                                placeholder="Search by Region..."
                             />
                         </div>
 
-                        {(searchTerm || selectedDestination) && (
+                        {(searchTerm || selectedRegion) && (
                             <button
-                                onClick={() => { setSearchTerm(""); setSelectedDestination(""); }}
-                                className="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-wider"
+                                onClick={() => { setSearchTerm(""); setSelectedRegion(""); }}
+                                className="text-xs font-black text-red-600 hover:text-red-800 uppercase tracking-[0.2em]"
                             >
-                                Clear Filters
+                                Clear
                             </button>
                         )}
                     </div>
@@ -193,56 +193,56 @@ const SightseeingMasterManage = () => {
                                     ) : (
                                         filteredSightseeings.map((s) => (
                                             <tr key={s.id} className="group hover:bg-[#fcfdfc] transition-colors border-b border-gray-50 last:border-0">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-12 h-10 rounded-xl bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-105 transition-transform flex items-center justify-center text-gray-300">
+                                                <td className="px-4 py-2.5">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="w-10 h-8 rounded-lg bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-110 transition-transform flex items-center justify-center text-gray-300">
                                                             {s.image ? (
                                                                 <img src={s.image} alt={s.name} className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <MapPin size={16} />
+                                                                <MapPin size={14} />
                                                             )}
                                                         </div>
                                                         <div className="overflow-hidden">
-                                                            <p className="text-xs font-black text-gray-900 tracking-tight truncate uppercase">{s.name}</p>
-                                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                                                                {destinations.find(d => d.id === s.destination)?.name || "N/A"}
+                                                            <p className="text-[11px] font-black text-gray-900 tracking-tight truncate uppercase leading-none">{s.name}</p>
+                                                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                                                                {s.country_name || "N/A"}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-1">
+                                                <td className="px-4 py-2.5">
+                                                    <div className="flex flex-col gap-0.5">
                                                         <div className="flex items-center gap-1.5 text-gray-500">
-                                                            <MapPin size={10} />
-                                                            <span className="text-[10px] font-bold uppercase tracking-tighter">{s.city || 'Location N/A'}</span>
+                                                            <MapPin size={10} className="text-[#14532d]" />
+                                                            <span className="text-[10px] font-black uppercase tracking-tighter">{s.city_name || s.city || 'Location N/A'}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-gray-400">
                                                             <Clock size={10} />
-                                                            <span className="text-[9px] font-medium uppercase tracking-widest">{s.duration || 'N/A'}</span>
+                                                            <span className="text-[9px] font-bold uppercase tracking-widest">{s.duration || 'N/A'}</span>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-black text-gray-900 text-sm">
+                                                <td className="px-4 py-2.5 text-right font-black text-gray-900 text-xs">
                                                     <div className="flex items-center justify-end gap-1 text-[#14532d]">
-                                                        <IndianRupee size={11} strokeWidth={3} />
+                                                        <IndianRupee size={10} strokeWidth={3} />
                                                         <span>{Number(s.price || 0).toLocaleString('en-IN')}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                <td className="px-4 py-2.5 text-right">
+                                                    <div className="flex items-center justify-end gap-1.5">
                                                         <button
                                                             onClick={() => handleEdit(s.id)}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
+                                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
                                                             title="Edit"
                                                         >
-                                                            <Edit2 size={14} />
+                                                            <Edit2 size={13} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(s.id)}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group/btn"
+                                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group/btn"
                                                             title="Delete"
                                                         >
-                                                            <Trash2 size={14} />
+                                                            <Trash2 size={13} />
                                                         </button>
                                                     </div>
                                                 </td>

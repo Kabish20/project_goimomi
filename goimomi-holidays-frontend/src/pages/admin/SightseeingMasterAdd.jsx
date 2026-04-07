@@ -22,12 +22,12 @@ const Input = (props) => (
 
 const SightseeingMasterAdd = () => {
     const navigate = useNavigate();
-    const [regions, setRegions] = useState([]);
+    const [cities, setCities] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [destSearching, setDestSearching] = useState(false);
+    const [citiesLoading, setCitiesLoading] = useState(false);
 
     const [formData, setFormData] = useState({
-        destination: "",
+        city_link: "",
         name: "",
         description: "",
         address: "",
@@ -44,17 +44,37 @@ const SightseeingMasterAdd = () => {
     const [previews, setPreviews] = useState({ main: null, gallery: [] });
 
     useEffect(() => {
-        fetchRegions();
+        fetchCities();
     }, []);
 
-    const fetchRegions = async () => {
+    const fetchCities = async () => {
         try {
-            const response = await api.get('/api/regions/');
-            if (Array.isArray(response.data)) {
-                setRegions(response.data);
-            }
+            setCitiesLoading(true);
+            const response = await api.get('/api/cities/');
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            
+            // Group by region/country for SearchableSelect
+            const grouped = data.reduce((acc, city) => {
+                const groupName = `${city.region_name} (${city.country_name})`;
+                if (!acc[groupName]) acc[groupName] = [];
+                acc[groupName].push({
+                    value: city.id,
+                    label: city.name,
+                    subtitle: groupName
+                });
+                return acc;
+            }, {});
+
+            const options = Object.entries(grouped).map(([label, opts]) => ({
+                label,
+                options: opts
+            }));
+
+            setCities(options);
         } catch (err) {
-            console.error("Error fetching regions:", err);
+            console.error("Error fetching cities:", err);
+        } finally {
+            setCitiesLoading(false);
         }
     };
 
@@ -85,8 +105,8 @@ const SightseeingMasterAdd = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.name || !formData.destination) {
-            alert("Please fill in the Name and select a Destination.");
+        if (!formData.name || !formData.city_link) {
+            alert("Please fill in the Name and select a City.");
             return;
         }
 
@@ -162,12 +182,12 @@ const SightseeingMasterAdd = () => {
                                         </div>
 
                                         <div className="md:col-span-2">
-                                            <FormLabel label="Destination / City Group" required />
+                                            <FormLabel label="City / Region" required />
                                             <SearchableSelect
-                                                options={regions.map(r => ({ value: r.name, label: r.name, subtitle: r.country_name || r.country }))}
-                                                value={formData.destination}
-                                                onChange={(val) => setFormData(prev => ({ ...prev, destination: val }))}
-                                                placeholder="Select Destination..."
+                                                options={cities}
+                                                value={formData.city_link}
+                                                onChange={(val) => setFormData(prev => ({ ...prev, city_link: val }))}
+                                                placeholder={citiesLoading ? "Loading cities..." : "Search City..."}
                                             />
                                         </div>
 

@@ -118,6 +118,10 @@ class SightseeingImageSerializer(serializers.ModelSerializer):
 
 class SightseeingMasterSerializer(serializers.ModelSerializer):
     images = SightseeingImageSerializer(many=True, read_only=True)
+    city_name = serializers.ReadOnlyField(source='city_link.name')
+    country_name = serializers.ReadOnlyField(source='city_link.country.name')
+    region_name = serializers.ReadOnlyField(source='city_link.region.name')
+    region_id = serializers.ReadOnlyField(source='city_link.region.id')
     class Meta:
         model = SightseeingMaster
         fields = "__all__"
