@@ -63,7 +63,7 @@ const AccommodationAdd = () => {
     useEffect(() => {
         const fetchDestinations = async () => {
             try {
-                const res = await api.get("/api/destinations/");
+                const res = await api.get("/api/cities/");
                 setDestinations(res.data);
             } catch (err) {
                 console.error("Error fetching destinations:", err);
@@ -195,7 +195,10 @@ const AccommodationAdd = () => {
                                             </div>
                                             <div className="pl-6 w-full">
                                                 <SearchableSelect
-                                                    options={destinations.map(d => ({ value: d.name, label: d.name }))}
+                                                    options={destinations.map(d => ({ 
+                                                        value: d.name, 
+                                                        label: d.region_name ? `${d.name}, ${d.region_name} (${d.country_name})` : `${d.name} (${d.country_name})` 
+                                                    }))}
                                                     value={formData.city}
                                                     onChange={(val) => handleInputChange({ target: { name: 'city', value: val } })}
                                                     placeholder="Select city..."

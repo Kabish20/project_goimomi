@@ -182,9 +182,7 @@ const Home = () => {
     "goimomi holidays, travel agency, international tours, domestic holidays, visa services, holiday packages"
   );
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
-  const [popularDestinations, setPopularDestinations] = useState([]);
   const [popularVisas, setPopularVisas] = useState([]);
-  const [loadingDestinations, setLoadingDestinations] = useState(true);
   const [loadingVisas, setLoadingVisas] = useState(true);
 
   const heroContent = [
@@ -198,16 +196,11 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const destRes = await api.get("/api/destinations/?is_popular=true");
-        setPopularDestinations(destRes.data);
-        setLoadingDestinations(false);
-
         const visaRes = await api.get("/api/visas/?is_popular=true");
         setPopularVisas(visaRes.data);
         setLoadingVisas(false);
       } catch (err) {
         console.error("Error fetching home data:", err);
-        setLoadingDestinations(false);
         setLoadingVisas(false);
       }
     };

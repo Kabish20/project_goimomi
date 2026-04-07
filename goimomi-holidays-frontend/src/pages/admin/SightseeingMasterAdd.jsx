@@ -22,7 +22,7 @@ const Input = (props) => (
 
 const SightseeingMasterAdd = () => {
     const navigate = useNavigate();
-    const [destinations, setDestinations] = useState([]);
+    const [regions, setRegions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [destSearching, setDestSearching] = useState(false);
 
@@ -44,15 +44,17 @@ const SightseeingMasterAdd = () => {
     const [previews, setPreviews] = useState({ main: null, gallery: [] });
 
     useEffect(() => {
-        fetchDestinations();
+        fetchRegions();
     }, []);
 
-    const fetchDestinations = async () => {
+    const fetchRegions = async () => {
         try {
-            const res = await api.get("/api/destinations/");
-            setDestinations(res.data);
+            const response = await api.get('/api/regions/');
+            if (Array.isArray(response.data)) {
+                setRegions(response.data);
+            }
         } catch (err) {
-            console.error("Error fetching destinations:", err);
+            console.error("Error fetching regions:", err);
         }
     };
 
@@ -162,7 +164,7 @@ const SightseeingMasterAdd = () => {
                                         <div className="md:col-span-2">
                                             <FormLabel label="Destination / City Group" required />
                                             <SearchableSelect
-                                                options={destinations.map(d => ({ value: d.id, label: d.name }))}
+                                                options={regions.map(r => ({ value: r.name, label: r.name, subtitle: r.country_name || r.country }))}
                                                 value={formData.destination}
                                                 onChange={(val) => setFormData(prev => ({ ...prev, destination: val }))}
                                                 placeholder="Select Destination..."

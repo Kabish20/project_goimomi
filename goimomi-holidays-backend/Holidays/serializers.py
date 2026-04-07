@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 
 # Local App Imports
 from .models import (
-    HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, PackageDestination, Destination,
+    HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, PackageDestination,
     ItineraryDay, ItineraryMaster, Inclusion, Exclusion, Highlight, CancellationPolicy,
     Visa, VisaApplication, VisaApplicant,
     VisaAdditionalDocument, Supplier, CruiseCalendar, HotelMaster,
@@ -64,10 +64,7 @@ class CitySerializer(serializers.ModelSerializer):
         model = City
         fields = "__all__"
 
-class DestinationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Destination
-        fields = "__all__"
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -353,7 +350,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
         if package_destinations_data is not None and isinstance(package_destinations_data, list):
             for dest_data in package_destinations_data:
                 if isinstance(dest_data, dict) and dest_data.get('destination'):
-                    dest_obj = Destination.objects.filter(name=dest_data.get('destination')).first()
+                    dest_obj = City.objects.filter(name=dest_data.get('destination')).first()
                     if dest_obj:
                         PackageDestination.objects.create(
                             package=package,
@@ -370,7 +367,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
             if package_destinations_data and len(package_destinations_data) > 0:
                 first_dest = package_destinations_data[0]
                 dest_name = first_dest.get('destination') if isinstance(first_dest, dict) else first_dest
-                primary_dest = Destination.objects.filter(name=dest_name).first()
+                primary_dest = City.objects.filter(name=dest_name).first()
             if not primary_dest:
                 p_dest_obj = package.extra_destinations.first()
                 if p_dest_obj: primary_dest = p_dest_obj.destination

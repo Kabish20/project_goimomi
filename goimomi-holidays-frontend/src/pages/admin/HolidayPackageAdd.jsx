@@ -246,6 +246,7 @@ const HolidayPackageAdd = () => {
   });
 
   const [startingCities, setStartingCities] = useState([]);
+  const [regions, setRegions] = useState([]);
   const [destinations, setDestinations] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [itineraryMasters, setItineraryMasters] = useState([]);
@@ -290,6 +291,7 @@ const HolidayPackageAdd = () => {
   // Fetch data on mount
   useEffect(() => {
     fetchStartingCities();
+    fetchRegions();
     fetchDestinations();
     fetchItineraryMasters(); // Fetch templates
     fetchSightseeingMasters();
@@ -320,14 +322,48 @@ const HolidayPackageAdd = () => {
 
   const fetchStartingCities = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/starting-cities/`);
-      if (Array.isArray(response.data)) {
-        setStartingCities(response.data);
+      const response = await api.get('/api/cities/');
+      const data = response.data?.results || response.data;
+      if (Array.isArray(data)) {
+        setStartingCities(data);
       }
     } catch (err) {
       console.error("Error fetching starting cities:", err);
     }
   };
+
+  const fetchRegions = async () => {
+    try {
+      const response = await api.get('/api/regions/');
+      if (Array.isArray(response.data)) {
+        setRegions(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching regions:", err);
+    }
+  };
+
+  const cityOptions = useMemo(() => {
+    if (!startingCities || startingCities.length === 0) return [];
+
+    const groups = startingCities.reduce((acc, city) => {
+      const country = (city.country_name || city.country || "Other").toString().toUpperCase();
+      if (!acc[country]) acc[country] = [];
+      acc[country].push({
+        value: city.name || "Unknown",
+        label: city.name || "Unknown",
+        subtitle: city.region_name || city.region || ""
+      });
+      return acc;
+    }, {});
+
+    return Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([country, options]) => ({
+        label: country,
+        options: options.sort((a, b) => a.label.localeCompare(b.label))
+      }));
+  }, [startingCities]);
 
   const fetchRoomTypes = async () => {
     try {
@@ -1176,7 +1212,7 @@ const HolidayPackageAdd = () => {
                         <SearchableSelect
                           options={[
                             { value: "Any City", label: "Any City" },
-                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                            ...cityOptions
                           ]}
                           value={formData.starting_city}
                           onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
@@ -1189,7 +1225,7 @@ const HolidayPackageAdd = () => {
                         <SearchableSelect
                           options={[
                             { value: "Any City", label: "Any City" },
-                            ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                            ...cityOptions
                           ]}
                           value={formData.ending_city}
                           onChange={(val) => setFormData(prev => ({ ...prev, ending_city: val }))}
@@ -1339,9 +1375,9 @@ const HolidayPackageAdd = () => {
                             ))}
                           </div>
                         </div>
+                      </div>
                     </div>
-                  </div>
-                    
+
                     {/* Travel Date For Non-Fixed Departure */}
                     {!formData.fixed_departure && (
                       <div className="bg-amber-50/30 border border-amber-100 p-4 rounded-xl flex items-center gap-4 animate-in slide-in-from-left-2 mt-4">
@@ -1350,12 +1386,12 @@ const HolidayPackageAdd = () => {
                         </div>
                         <div className="flex-1">
                           <FormLabel label="Main Start Date" optional />
-                          <Input 
-                            type="date" 
-                            name="start_date" 
-                            value={formData.start_date || ""} 
-                            onChange={handleInputChange} 
-                            className="!bg-white border-amber-100 focus:border-amber-400" 
+                          <Input
+                            type="date"
+                            name="start_date"
+                            value={formData.start_date || ""}
+                            onChange={handleInputChange}
+                            className="!bg-white border-amber-100 focus:border-amber-400"
                           />
                         </div>
                         <p className="text-[9px] text-amber-400 font-bold uppercase tracking-widest leading-tight max-w-[150px]">
@@ -1402,14 +1438,14 @@ const HolidayPackageAdd = () => {
                           <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 bg-white/50 p-2 rounded-2xl border border-gray-50" style={{ animationDelay: `${i * 100}ms` }}>
                             <div className="flex-1">
                               <SearchableSelect
-                                options={destinations.map(d => ({ value: d.name, label: d.name, subtitle: d.country }))}
+                                options={regions.map(r => ({ value: r.name, label: r.name, subtitle: r.country_name || r.country }))}
                                 value={row.destination}
                                 onChange={(val) => {
                                   const copy = [...packageDestinations];
                                   copy[i].destination = val;
                                   setPackageDestinations(copy);
                                 }}
-                                placeholder="🔍 Select city..."
+                                placeholder="🔍 Select region..."
                                 error={errors[`dest_${i}`]}
                               />
                             </div>
@@ -1887,16 +1923,16 @@ const HolidayPackageAdd = () => {
 
                             const allowedHotels = validDests.length > 0
                               ? hotelMasters.filter(hm => {
-                                  const c1 = hm.city ? hm.city.trim().toLowerCase() : "";
-                                  const c2 = hm.destination_name ? hm.destination_name.trim().toLowerCase() : "";
-                                  
-                                  return validDests.some(dest => {
-                                    if (!dest) return false;
-                                    const matchC1 = c1 && (c1 === dest || c1.includes(dest) || dest.includes(c1));
-                                    const matchC2 = c2 && (c2 === dest || c2.includes(dest) || dest.includes(c2));
-                                    return matchC1 || matchC2;
-                                  });
-                                })
+                                const c1 = hm.city ? hm.city.trim().toLowerCase() : "";
+                                const c2 = hm.destination_name ? hm.destination_name.trim().toLowerCase() : "";
+
+                                return validDests.some(dest => {
+                                  if (!dest) return false;
+                                  const matchC1 = c1 && (c1 === dest || c1.includes(dest) || dest.includes(c1));
+                                  const matchC2 = c2 && (c2 === dest || c2.includes(dest) || dest.includes(c2));
+                                  return matchC1 || matchC2;
+                                });
+                              })
                               : hotelMasters;
 
                             return (
@@ -1917,9 +1953,9 @@ const HolidayPackageAdd = () => {
                                       onChange={(val) => {
                                         const master = hotelMasters.find(h => h.id.toString() === val);
                                         if (master) {
-                                          const updated = [...dayAccs, { 
-                                            hotelId: master.id, 
-                                            hotelName: master.name, 
+                                          const updated = [...dayAccs, {
+                                            hotelId: master.id,
+                                            hotelName: master.name,
                                             stars: master.stars,
                                             roomType: 'Standard Room',
                                             mealPlan: 'MAP (Breakfast & Dinner)'
@@ -2014,7 +2050,7 @@ const HolidayPackageAdd = () => {
                                         <div>
                                           <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Stars</p>
                                           <select value={newHotelForm.stars} onChange={e => setNewHotelForm(p => ({ ...p, stars: e.target.value }))} className="w-full border border-gray-300 rounded-sm px-2 py-1 text-[10px] focus:outline-none focus:border-blue-400 bg-white">
-                                            {[1,2,3,4,5].map(s => <option key={s} value={s}>{s} Star</option>)}
+                                            {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>{s} Star</option>)}
                                           </select>
                                         </div>
                                         <div>
@@ -2044,11 +2080,11 @@ const HolidayPackageAdd = () => {
                                       <div>
                                         <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Hotel Image</p>
                                         <div className="border border-dashed border-gray-300 rounded-sm p-2 flex items-center justify-center min-h-[44px] relative">
-                                          <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { if (e.target.files?.[0]) setNewHotelForm(p => ({...p, image: e.target.files[0]})); }} />
+                                          <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { if (e.target.files?.[0]) setNewHotelForm(p => ({ ...p, image: e.target.files[0] })); }} />
                                           {newHotelForm.image ? (
                                             <div className="relative w-full h-16 rounded overflow-hidden">
                                               <img src={URL.createObjectURL(newHotelForm.image)} alt="Preview" className="w-full h-full object-cover" />
-                                              <button type="button" onClick={(e) => { e.stopPropagation(); setNewHotelForm(p => ({...p, image: null})); }} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
+                                              <button type="button" onClick={(e) => { e.stopPropagation(); setNewHotelForm(p => ({ ...p, image: null })); }} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
                                             </div>
                                           ) : (
                                             <div className="text-center text-gray-400">
@@ -2087,7 +2123,7 @@ const HolidayPackageAdd = () => {
                                             setHotelPanelDayIndex(null);
                                           } catch (err) {
                                             console.error('Error saving hotel:', err.response?.data || err);
-                                            const msg = err.response?.data ? Object.entries(err.response.data).map(([k,v]) => `${k}: ${v}`).join('\n') : err.message;
+                                            const msg = err.response?.data ? Object.entries(err.response.data).map(([k, v]) => `${k}: ${v}`).join('\n') : err.message;
                                             alert(`Failed to save hotel.\n${msg}`);
                                           }
                                         }}
@@ -2103,8 +2139,8 @@ const HolidayPackageAdd = () => {
                                   )}
                                 </div>
                               </div>
-                             );
-                           })()}
+                            );
+                          })()}
 
                           {/* VEHICLE TAB */}
                           {row.details_json?.active_tab === 'vehicle' && (() => {

@@ -152,10 +152,10 @@ const VehicleMasterAdd = () => {
 
     const fetchDestinations = async () => {
         try {
-            const res = await api.get("/api/destinations/");
+            const res = await api.get("/api/cities/");
             setDestinations(res.data || []);
         } catch (err) {
-            console.error("Error fetching destinations:", err);
+            console.error("Error fetching cities:", err);
         }
     };
 
@@ -491,7 +491,7 @@ const VehicleMasterAdd = () => {
 
     const cityList = destinations.length > 0
         ? destinations
-            .filter(d => !rateCard.country || d.country === rateCard.country)
+            .filter(d => !rateCard.country || d.country_name === rateCard.country)
             .map(d => d.name)
             .sort()
         : startingCities.length > 0

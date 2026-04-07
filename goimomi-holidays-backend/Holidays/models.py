@@ -83,6 +83,7 @@ class Enquiry(models.Model):
             ('General', 'General'), 
             ('Cab', 'Cab'), 
             ('Cruise', 'Cruise'), 
+            ('Hotel', 'Hotel'),
             ('Business Travel', 'Business Travel')
         ], 
         default="General"
@@ -168,7 +169,7 @@ class PackageDestination(models.Model):
         related_name="extra_destinations",
         on_delete=models.CASCADE
     )
-    destination = models.ForeignKey('Destination', on_delete=models.CASCADE)
+    destination = models.ForeignKey('City', on_delete=models.CASCADE, null=True, blank=True)
     nights = models.PositiveIntegerField(default=1)
 
     def __str__(self):
@@ -250,16 +251,7 @@ class CancellationPolicy(models.Model):
 
 
 
-class Destination(models.Model):
-    name = models.CharField(max_length=100)
-    region = models.CharField(max_length=100, blank=True, null=True)
-    city = models.CharField(max_length=100, blank=True, null=True)
-    country = models.CharField(max_length=100, blank=True, null=True)
-    card_image = models.ImageField(upload_to="destinations/cards/", null=True, blank=True)
-    is_popular = models.BooleanField(default=False)
-    
-    def __str__(self):
-        return self.name
+
 
 
 class Country(models.Model):
@@ -331,8 +323,8 @@ class CruiseTerminal(models.Model):
 
 
 class ItineraryMaster(models.Model):
-    destination = models.ForeignKey(
-        'Destination',
+    city = models.ForeignKey(
+        'City',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -535,7 +527,7 @@ class HotelMaster(models.Model):
         return self.name
 
 class Accommodation(models.Model):
-    destination = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name="accommodation_templates", null=True, blank=True)
+    city_link = models.ForeignKey('City', on_delete=models.CASCADE, related_name="accommodation_templates", null=True, blank=True)
     name = models.CharField(max_length=255)
     star_category = models.CharField(max_length=20, default="3 Star")
     address = models.TextField(blank=True, null=True)
@@ -587,7 +579,7 @@ class HolidayVehicle(models.Model):
     def __str__(self):
         return f"{self.vehicle_type} for {self.package.title}"
 class SightseeingMaster(models.Model):
-    destination = models.ForeignKey(Destination, on_delete=models.CASCADE, related_name="sightseeing_templates")
+    city_link = models.ForeignKey('City', on_delete=models.CASCADE, related_name="sightseeing_templates", null=True, blank=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)

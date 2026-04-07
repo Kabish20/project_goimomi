@@ -28,6 +28,8 @@ const VisaApplicationManage = () => {
   const [editingApplicantId, setEditingApplicantId] = useState(null);
   const [editApplicantData, setEditApplicantData] = useState({});
   const [isUpdatingApplicant, setIsUpdatingApplicant] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [availableCountries, setAvailableCountries] = useState([]);
   
   // Application editing states
   const [isEditingApp, setIsEditingApp] = useState(false);
@@ -41,7 +43,18 @@ const VisaApplicationManage = () => {
 
   useEffect(() => {
     fetchApplications();
+    fetchCountries();
   }, []);
+
+  const fetchCountries = async () => {
+    try {
+      const response = await api.get(`${API_BASE_URL}/countries/`);
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setAvailableCountries(data);
+    } catch (err) {
+      console.error("Error fetching countries:", err);
+    }
+  };
 
   // Disable body scroll when modal is open
   useEffect(() => {
@@ -73,13 +86,18 @@ const VisaApplicationManage = () => {
   };
 
   useEffect(() => {
-    const filtered = applications.filter(app =>
-      app.visa_country?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.visa_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.group_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.internal_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.status?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = applications.filter(app => {
+      const matchesSearch = searchTerm === "" || 
+        app.visa_country?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.visa_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.group_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.internal_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.status?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCountry = selectedCountry === "" || app.visa_country === selectedCountry;
+      
+      return matchesSearch && matchesCountry;
+    });
     setFilteredApplications(filtered);
   }, [searchTerm, applications]);
 
@@ -326,18 +344,45 @@ const VisaApplicationManage = () => {
             </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative max-w-xs">
+          {/* Search & Filter Bar */}
+          <div className="mb-4 flex flex-wrap gap-3">
+            <div className="relative max-w-xs flex-1 min-w-[200px]">
               <Search size={16} className="absolute left-3 top-2 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white"
+                className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm"
               />
             </div>
+            
+            <div className="relative w-48">
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full pl-3 pr-8 py-1.5 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white appearance-none cursor-pointer transition-all shadow-sm font-medium"
+              >
+                <option value="">All Countries</option>
+                {availableCountries.map(country => (
+                  <option key={country.id} value={country.name}>{country.name}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            { (searchTerm !== "" || selectedCountry !== "") && (
+              <button 
+                onClick={() => { setSearchTerm(""); setSelectedCountry(""); }}
+                className="text-xs font-bold text-red-600 hover:text-red-800 transition-colors px-2 py-1.5 hover:bg-red-50 rounded-lg"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
 
           {error && (

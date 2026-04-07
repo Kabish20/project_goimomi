@@ -172,17 +172,17 @@ const Cab = () => {
 
   const fetchDestinations = async () => {
     try {
-      const response = await api.get("/api/destinations/");
+      const response = await api.get("/api/cities/");
       if (Array.isArray(response.data)) {
         const options = response.data.map(d => ({
           label: d.name,
           value: d.id.toString(),
-          subtitle: d.country || ""
+          subtitle: d.region_name ? `${d.region_name}, ${d.country_name}` : d.country_name
         }));
         setDestinations(options);
       }
     } catch (err) {
-      console.error("Error fetching destinations:", err);
+      console.error("Error fetching cities:", err);
     }
   };
 

@@ -13,7 +13,7 @@ router.register("enquiry-form", views.EnquiryAPI, basename="enquiry")
 router.register("canton-enquiries", views.CantonEnquiryAPI, basename="canton-enquiry")
 router.register("cruise-terminals", views.CruiseTerminalViewSet, basename="cruise-terminal")
 router.register("airports", views.AirportViewSet, basename="airport")
-router.register("destinations", views.DestinationViewSet, basename="destination")
+
 router.register("countries", views.CountryViewSet, basename="country")
 router.register("nationalities", views.NationalityViewSet, basename="nationality")
 router.register("regions", views.RegionViewSet, basename="region")
@@ -44,6 +44,7 @@ router.register("cab-additional-documents", views.CabAdditionalDocumentViewSet, 
 urlpatterns = [
     path('', include(router.urls)),
     path('admin-login/', views.AdminLoginView.as_view(), name='admin-login'),
+    path('dashboard-stats/', views.DashboardStatsAPI.as_view(), name='dashboard-stats'),
     path('send-visa-details/', views.SendVisaDetailsAPI.as_view(), name='send-visa-details'),
     path('cab-search/', views.CabSearchAPI.as_view(), name='cab-search'),
     path('destination-hierarchy/', views.DestinationHierarchyAPI.as_view(), name='destination-hierarchy'),

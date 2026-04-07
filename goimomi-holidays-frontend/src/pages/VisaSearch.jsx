@@ -29,6 +29,7 @@ const VisaSearch = () => {
     // Country Data State
     const [countries, setCountries] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [countriesLoading, setCountriesLoading] = useState(false);
 
     // Dropdown States
     const [showCitizenDropdown, setShowCitizenDropdown] = useState(false);
@@ -51,18 +52,14 @@ const VisaSearch = () => {
                 const vData = popularVisasRes.data || [];
                 setPopularVisas(vData);
 
-                // Derive countries from the visas list
-                const uniqueCountries = [...new Set(vData.map(v => v.country).filter(Boolean))].map((name, index) => ({ id: `c-${index}`, name }));
-                
-                // Add common fallbacks if list is short
-                const fallbacks = ["India", "Sri Lanka", "Malaysian", "Singapore", "United Arab Emirates", "Thailand", "Uzbekistan", "Azerbaijan", "Schengen"];
-                fallbacks.forEach(f => {
-                    if (!uniqueCountries.find(c => c.name.toLowerCase() === f.toLowerCase())) {
-                        uniqueCountries.push({ id: `f-${f}`, name: f });
-                    }
-                });
-                
-                setCountries(uniqueCountries);
+                // Fetch countries from dedicated API
+                setCountriesLoading(true);
+                const countriesRes = await api.get("/api/countries/");
+                const countriesList = Array.isArray(countriesRes.data) 
+                    ? countriesRes.data.filter(c => c && c.name)
+                    : [];
+                setCountries(countriesList);
+                setCountriesLoading(false);
                 
                 // For popular destinations, we can reuse the visa data for now 
                 // since popular destinations for visas are essentially the countries with popular visas
@@ -172,7 +169,12 @@ const VisaSearch = () => {
 
                                 {showCitizenDropdown && (
                                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 max-h-60 overflow-y-auto z-50">
-                                        {filteredCitizenCountries.length > 0 ? (
+                                        {countriesLoading ? (
+                                            <div className="px-4 py-3 text-gray-500 text-center flex items-center justify-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-[#14532d] border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Loading...</span>
+                                            </div>
+                                        ) : filteredCitizenCountries.length > 0 ? (
                                             filteredCitizenCountries.map((country) => (
                                                 <div
                                                     key={country.id}
@@ -223,7 +225,12 @@ const VisaSearch = () => {
 
                                 {showGoingToDropdown && (
                                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 max-h-60 overflow-y-auto z-50">
-                                        {filteredGoingToCountries.length > 0 ? (
+                                        {countriesLoading ? (
+                                            <div className="px-4 py-3 text-gray-500 text-center flex items-center justify-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-[#14532d] border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Loading...</span>
+                                            </div>
+                                        ) : filteredGoingToCountries.length > 0 ? (
                                             filteredGoingToCountries.map((country) => (
                                                 <div
                                                     key={country.id}

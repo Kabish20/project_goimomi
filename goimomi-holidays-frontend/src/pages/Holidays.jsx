@@ -32,11 +32,15 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
   const uniqueHotels = React.useMemo(() => {
     const hotels = [];
     (pkg.itinerary || []).forEach(day => {
-      const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
-      (details?.accommodations || []).forEach(acc => {
-        const name = acc.hotelName || acc.hotel_name;
-        if (name && !hotels.includes(name)) hotels.push(name);
-      });
+      try {
+        const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
+        (details?.accommodations || []).forEach(acc => {
+          const name = acc.hotelName || acc.hotel_name;
+          if (name && !hotels.includes(name)) hotels.push(name);
+        });
+      } catch (e) {
+        console.error("Error parsing details_json in uniqueHotels:", e);
+      }
     });
     return hotels;
   }, [pkg.itinerary]);
@@ -44,10 +48,14 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
   const sightseeings = React.useMemo(() => {
     const s = [];
     (pkg.itinerary || []).forEach(day => {
-      const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
-      (details?.sightseeing || []).forEach(item => {
-        if (item && !s.includes(item)) s.push(item);
-      });
+      try {
+        const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
+        (details?.sightseeing || []).forEach(item => {
+          if (item && !s.includes(item)) s.push(item);
+        });
+      } catch (e) {
+        console.error("Error parsing details_json in sightseeings:", e);
+      }
     });
     return s;
   }, [pkg.itinerary]);
@@ -357,30 +365,38 @@ const Holidays = () => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [destinationsList, setDestinationsList] = useState([]);
+  const [regionsLoading, setRegionsLoading] = useState(false);
   const [startingCitiesList, setStartingCitiesList] = useState([]);
 
   useEffect(() => {
+    // Fetch regions for destination filter
+    const fetchRegions = async () => {
+      try {
+        setRegionsLoading(true);
+        const res = await api.get("/api/regions/");
+        if (Array.isArray(res.data)) {
+          setDestinationsList(res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching regions:", err);
+      } finally {
+        setRegionsLoading(false);
+      }
+    };
+    
+    fetchRegions();
+
     setLoading(true);
     // Fetch packages
     api.get("/api/packages/")
       .then((res) => {
-        setPackages(res.data);
+        const data = Array.isArray(res.data) ? res.data : [];
+        setPackages(data);
         
-        // Derive destinations and starting cities list from available packages
-        if (res.data && Array.isArray(res.data)) {
-          const uniqueStartingCities = [...new Set(res.data.map(p => p.starting_city).filter(Boolean))].map((name, index) => ({ id: `sc-${index}`, name }));
+        // Derive starting cities list from available packages
+        if (data && Array.isArray(data)) {
+          const uniqueStartingCities = [...new Set(data.map(p => p.starting_city).filter(Boolean))].map((name, index) => ({ id: `sc-${index}`, name }));
           setStartingCitiesList(uniqueStartingCities);
-          
-          const uniqueDestNames = new Set();
-          res.data.forEach(p => {
-            if (p.destinations && Array.isArray(p.destinations)) {
-              p.destinations.forEach(d => {
-                if (d.name) uniqueDestNames.add(d.name);
-              });
-            }
-          });
-          const uniqueDestList = [...uniqueDestNames].map((name, index) => ({ id: `dest-${index}`, name }));
-          setDestinationsList(uniqueDestList);
         }
       })
       .catch((err) => console.error("Error fetching packages:", err))
@@ -701,7 +717,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
 
     // Destination match
     const destinationMatch = !destination ? true : (
-      pkg.destinations && pkg.destinations.some(d => d.name === destination)
+      Array.isArray(pkg.destinations) && pkg.destinations.some(d => d.name === destination)
     );
 
     // Ensure price is a number
@@ -788,7 +804,12 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                   >
                     Any Destination
                   </li>
-                  {filteredDestinationsList.length > 0 ? (
+                  {regionsLoading ? (
+                    <div className="px-3 py-4 flex flex-col items-center justify-center gap-2">
+                       <div className="w-4 h-4 border-2 border-[#14532d] border-t-transparent rounded-full animate-spin"></div>
+                       <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Loading...</span>
+                    </div>
+                  ) : filteredDestinationsList.length > 0 ? (
                     filteredDestinationsList.map((dest) => (
                       <li
                         key={dest.id}
@@ -801,11 +822,11 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                       >
                         <div className="flex flex-col">
                           <span>{dest.name}</span>
-                          {(dest.region || dest.country) && (
+                          {(dest.region || dest.country_name || dest.country) && (
                             <span className="text-[8px] text-gray-400 font-medium uppercase tracking-tight">
-                              {dest.region && dest.country
-                                ? `${dest.region} (${dest.country})`
-                                : dest.region || dest.country}
+                              {dest.region && (dest.country_name || dest.country)
+                                ? `${dest.region} (${dest.country_name || dest.country})`
+                                : dest.region || dest.country_name || dest.country}
                             </span>
                           )}
                         </div>
@@ -1071,7 +1092,16 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                       const p = viewDetailsPkg;
                       const tier = p.selectedTier || "Standard";
                       let slots = [];
-                      try { slots = p.fixed_departure_data ? (typeof p.fixed_departure_data === 'string' ? JSON.parse(p.fixed_departure_data) : p.fixed_departure_data) : []; } catch (e) { /* invalid JSON */ }
+                      try {
+                        slots = p.fixed_departure_data
+                          ? typeof p.fixed_departure_data === "string"
+                            ? JSON.parse(p.fixed_departure_data)
+                            : p.fixed_departure_data
+                          : [];
+                      } catch (e) {
+                        /* invalid JSON */
+                        console.error("Error parsing fixed_departure_data in preview:", e);
+                      }
 
                       if (slots.length > 0) {
                         const slot = slots[0];

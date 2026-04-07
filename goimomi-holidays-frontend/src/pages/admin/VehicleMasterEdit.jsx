@@ -155,10 +155,10 @@ const VehicleMasterEdit = () => {
 
     const fetchDestinations = async () => {
         try {
-            const res = await api.get("/api/destinations/");
+            const res = await api.get("/api/cities/");
             setDestinations(Array.isArray(res.data) ? res.data : (res.data?.results || []));
         } catch (err) {
-            console.error("Error fetching destinations:", err);
+            console.error("Error fetching cities:", err);
         }
     };
 
@@ -557,7 +557,7 @@ const VehicleMasterEdit = () => {
     const filteredPickupPoints = (city) => city ? pickupPoints.filter(p => p.city_name === city) : pickupPoints;
     const cityList = destinations.length > 0
         ? destinations
-            .filter(d => !rateCard.country || d.country === rateCard.country)
+            .filter(d => !rateCard.country || d.country_name === rateCard.country)
             .map(d => d.name)
             .sort()
         : startingCities.length > 0

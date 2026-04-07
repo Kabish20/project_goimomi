@@ -43,6 +43,7 @@ const VisaResults = () => {
 
     // Dropdown and Search Logic
     const [countries, setCountries] = useState([]);
+    const [countriesLoading, setCountriesLoading] = useState(false);
     const [showCitizenDropdown, setShowCitizenDropdown] = useState(false);
     const [showGoingToDropdown, setShowGoingToDropdown] = useState(false);
     const [citizenSearch, setCitizenSearch] = useState(searchParams.get("citizenOf") || "India");
@@ -75,6 +76,7 @@ const VisaResults = () => {
 
     const fetchCountries = async () => {
         try {
+            setCountriesLoading(true);
             const response = await api.get("/api/countries/");
             // Ensure response.data is an array and filter out any invalid entries
             const validCountries = Array.isArray(response.data) ? response.data.filter(c => c && c.name) : [];
@@ -82,6 +84,8 @@ const VisaResults = () => {
         } catch (error) {
             console.error("Error fetching countries:", error);
             setCountries([]);
+        } finally {
+            setCountriesLoading(false);
         }
     };
 
@@ -318,7 +322,12 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
                             {showCitizenDropdown && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-48 overflow-y-auto z-50">
-                                    {filteredCitizenCountries.length > 0 ? (
+                                    {countriesLoading ? (
+                                        <div className="px-3 py-2 text-[10px] text-gray-400 text-center flex items-center justify-center gap-2 italic">
+                                            <div className="w-3 h-3 border border-[#14532d] border-t-transparent rounded-full animate-spin"></div>
+                                            Loading...
+                                        </div>
+                                    ) : filteredCitizenCountries.length > 0 ? (
                                         filteredCitizenCountries.map((country) => (
                                             <div
                                                 key={country.id}
@@ -365,7 +374,12 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
                             {showGoingToDropdown && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-48 overflow-y-auto z-50">
-                                    {filteredGoingToCountries.length > 0 ? (
+                                    {countriesLoading ? (
+                                        <div className="px-3 py-2 text-[10px] text-gray-400 text-center flex items-center justify-center gap-2 italic">
+                                            <div className="w-3 h-3 border border-[#14532d] border-t-transparent rounded-full animate-spin"></div>
+                                            Loading...
+                                        </div>
+                                    ) : filteredGoingToCountries.length > 0 ? (
                                         filteredGoingToCountries.map((country) => (
                                             <div
                                                 key={country.id}

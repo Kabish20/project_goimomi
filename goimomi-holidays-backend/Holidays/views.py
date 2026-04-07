@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, F
 
 
 # Rest Framework Imports
@@ -19,7 +19,7 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny
 
 from .models import (
-    HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage, Destination,
+    HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage,
     ItineraryMaster, Visa,
     VisaApplication, VisaApplicant, VisaAdditionalDocument,
     Supplier, CruiseCalendar, HotelMaster, Airline, SightseeingMaster,
@@ -42,28 +42,16 @@ from .serializers import (
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
-    DestinationSerializer
 )
 
-class DestinationViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    queryset = Destination.objects.all()
-    serializer_class = DestinationSerializer
-    pagination_class = None
 
-    def get_queryset(self):
-        queryset = Destination.objects.all()
-        is_popular = self.request.query_params.get('is_popular', None)
-        if is_popular is not None:
-            queryset = queryset.filter(is_popular=is_popular.lower() == 'true')
-        return queryset
 
 class CantonEnquiryAPI(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]
     queryset = CantonEnquiry.objects.all().order_by('-created_at')
     serializer_class = CantonEnquirySerializer
+    pagination_class = None
 
 class AirportViewSet(ModelViewSet):
     authentication_classes = []
@@ -143,6 +131,106 @@ class CityViewSet(ModelViewSet):
             queryset = queryset.filter(country_id=country_id)
         return queryset
 
+    def list(self, request, *args, **kwargs):
+        # Optimization: Use values() to avoid model instantiation and fast serialization
+        # for large datasets (32,000+ cities)
+        queryset = self.get_queryset().select_related('country', 'region').values(
+            'id', 'name', 
+            country_name=F('country__name'), 
+            region_name=F('region__name')
+        )
+        return Response(list(queryset))
+
+class DashboardStatsAPI(APIView):
+    """
+    Optimized endpoint for the Admin Dashboard Hub.
+    Returns all counts and the recent consolidated enquiries list in ONE request.
+    """
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        # 1. Counts (Cheap operations)
+        stats = {
+            "packages": HolidayPackage.objects.count(),
+            "enquiries": Enquiry.objects.count(),
+            "holidayEnquiries": HolidayEnquiry.objects.count(),
+            "umrahEnquiries": UmrahEnquiry.objects.count(),
+            "itineraryMasters": ItineraryMaster.objects.count(),
+            "visas": Visa.objects.count(),
+            "visaApplications": VisaApplication.objects.count(),
+            "cantonEnquiries": CantonEnquiry.objects.count(),
+            "cabBookings": CabBooking.objects.count(),
+            "cabEnquiries": Enquiry.objects.filter(enquiry_type='Cab').count(),
+            "cruiseEnquiries": Enquiry.objects.filter(enquiry_type='Cruise').count(),
+            "hotelEnquiries": Enquiry.objects.filter(enquiry_type='Hotel').count(),
+        }
+
+        # 2. Recent Enquiries (Limited to 10 latest across types to avoid heavy load)
+        recent = []
+        
+        # General/Other Enquiries (Enquiry model handles Cab, Cruise, Hotel, Business)
+        for e in Enquiry.objects.all().order_by('-created_at')[:8]:
+            purpose = e.purpose
+            if e.enquiry_type == 'Cab':
+                purpose = f"Cab: {e.vehicle or 'N/A'} - {e.from_city or 'N/A'} to {e.to_city or 'N/A'}"
+            elif e.enquiry_type == 'Cruise':
+                purpose = f"Cruise: {e.destination or 'N/A'} at {e.from_city or 'N/A'}"
+            
+            recent.append({
+                "id": e.id, "type": e.enquiry_type or "General", "name": e.name, 
+                "email": e.email, "phone": e.phone, "created_at": e.created_at, "purpose": purpose or "No details provided"
+            })
+        
+        # Holiday Enquiries
+        for e in HolidayEnquiry.objects.all().order_by('-created_at')[:5]:
+            recent.append({
+                "id": e.id, "type": "Holiday", "name": e.full_name, "email": e.email, "phone": e.phone,
+                "created_at": e.created_at, "purpose": f"Package: {e.package_type or 'N/A'}"
+            })
+
+        # Umrah Enquiries
+        for e in UmrahEnquiry.objects.all().order_by('-created_at')[:5]:
+            recent.append({
+                "id": e.id, "type": "Umrah", "name": e.full_name, "email": e.email, "phone": e.phone, 
+                "created_at": e.created_at, "purpose": "Umrah Journey"
+            })
+
+        # Visa Applications
+        for e in VisaApplication.objects.select_related('visa').prefetch_related('applicants').all().order_by('-created_at')[:5]:
+            # Get primary applicant details
+            app = e.applicants.first()
+            name = f"{app.first_name} {app.last_name}" if app else "No Applicant"
+            phone = app.phone if app else "—"
+            recent.append({
+                "id": e.id, "type": "Visa", "name": name, "email": "—", "phone": phone,
+                "created_at": e.created_at, "purpose": f"Visa for {e.visa.country or 'N/A'}"
+            })
+
+        # Canton Enquiries
+        for e in CantonEnquiry.objects.all().order_by('-created_at')[:5]:
+            recent.append({
+                "id": e.id, "type": "Canton", "name": e.full_name, "email": "—", "phone": e.whatsapp_number,
+                "created_at": e.created_at, "purpose": f"Phase: {e.selected_phase} ({e.business_name or 'N/A'})"
+            })
+
+        # Cab Bookings
+        for e in CabBooking.objects.all().order_by('-created_at')[:5]:
+            recent.append({
+                "id": e.id, "type": "Cab Booking", "name": f"{e.first_name} {e.last_name}", "email": e.email or "—",
+                "phone": e.phone, "created_at": e.created_at, "purpose": f"{e.from_city} to {e.to_city} ({e.vehicle_name})"
+            })
+
+        # Sort combined list and take top 10
+        # Convert all to list then sort securely
+        recent.sort(key=lambda x: x['created_at'], reverse=True)
+        recent = recent[:10]
+
+        return Response({
+            "stats": stats,
+            "recentEnquiries": recent
+        })
+
 @authentication_classes([])
 @permission_classes([AllowAny])
 class AdminLoginView(APIView):
@@ -175,6 +263,7 @@ class HolidayEnquiryAPI(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = HolidayEnquiry.objects.all()
     serializer_class = HolidayEnquirySerializer
+    pagination_class = None
 
 
 class UmrahEnquiryAPI(ModelViewSet):
@@ -182,6 +271,7 @@ class UmrahEnquiryAPI(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = UmrahEnquiry.objects.all()
     serializer_class = UmrahEnquirySerializer
+    pagination_class = None
 
 
 class EnquiryAPI(ModelViewSet):
@@ -189,6 +279,7 @@ class EnquiryAPI(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = Enquiry.objects.all()
     serializer_class = EnquirySerializer
+    pagination_class = None
 
 
 class HolidayPackageViewSet(ModelViewSet):
@@ -321,6 +412,7 @@ class VisaApplicationViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = VisaApplication.objects.all().order_by('-created_at')
     serializer_class = VisaApplicationSerializer
+    pagination_class = None
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -445,14 +537,14 @@ class SightseeingMasterViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         
-        # Handle 'destination' name to ID mapping if ID is not provided
-        dest_id = data.get('destination')
+        # Handle 'city_link' name to ID mapping if ID is not provided
+        dest_id = data.get('city_link')
         if not dest_id or dest_id == "":
             dest_name = data.get('city')
             if dest_name:
-                dest = Destination.objects.filter(name=dest_name).first()
+                dest = City.objects.filter(name=dest_name).first()
                 if dest:
-                    data['destination'] = dest.id
+                    data['city_link'] = dest.id
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -469,13 +561,13 @@ class SightseeingMasterViewSet(ModelViewSet):
         instance = self.get_object()
         data = request.data.copy()
         
-        dest_id = data.get('destination')
+        dest_id = data.get('city_link')
         if not dest_id or dest_id == "":
             dest_name = data.get('city')
             if dest_name:
-                dest = Destination.objects.filter(name=dest_name).first()
+                dest = City.objects.filter(name=dest_name).first()
                 if dest:
-                    data['destination'] = dest.id
+                    data['city_link'] = dest.id
 
         serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)

@@ -15,7 +15,7 @@ const ItineraryMasterAdd = () => {
         image: null,
         destination: "",
     });
-    const [destinations, setDestinations] = useState([]);
+    const [regions, setRegions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -23,15 +23,17 @@ const ItineraryMasterAdd = () => {
     const API_BASE_URL = "/api";
 
     React.useEffect(() => {
-        fetchDestinations();
+        fetchRegions();
     }, []);
 
-    const fetchDestinations = async () => {
+    const fetchRegions = async () => {
         try {
-            const response = await api.get(`${API_BASE_URL}/destinations/`);
-            setDestinations(response.data);
+            const response = await api.get('/api/regions/');
+            if (Array.isArray(response.data)) {
+                setRegions(response.data);
+            }
         } catch (err) {
-            console.error("Error fetching destinations:", err);
+            console.error("Error fetching regions:", err);
         }
     };
 
@@ -154,7 +156,7 @@ const ItineraryMasterAdd = () => {
                                             Destination Category
                                         </label>
                                         <SearchableSelect
-                                            options={destinations.map(d => ({ value: d.id, label: d.name }))}
+                                            options={regions.map(r => ({ value: r.name, label: r.name, subtitle: r.country_name || r.country }))}
                                             value={form.destination}
                                             onChange={(val) => setForm({ ...form, destination: val })}
                                             placeholder="Global/Generic"

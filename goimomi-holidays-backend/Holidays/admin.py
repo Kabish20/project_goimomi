@@ -95,12 +95,7 @@ class HolidayPackageAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Destination)
-class DestinationAdmin(admin.ModelAdmin):
-    list_display = ("name", "country", "region")
-    list_filter = ("country", "region")
-    search_fields = ("name", "country", "region")
-    ordering = ("country", "name")
+
 
 
 
@@ -146,8 +141,8 @@ class SightseeingImageInline(admin.TabularInline):
 
 @admin.register(SightseeingMaster)
 class SightseeingMasterAdmin(admin.ModelAdmin):
-    list_display = ('name', 'destination', 'city', 'price')
-    list_filter = ('destination', 'city')
+    list_display = ('name', 'city_link', 'city', 'price')
+    list_filter = ('city_link', 'city')
     search_fields = ('name', 'city', 'description')
     inlines = [SightseeingImageInline]
 
@@ -180,7 +175,7 @@ class RegionAdmin(admin.ModelAdmin):
 class CityAdmin(admin.ModelAdmin):
     list_display = ("name", "region_name", "country")
     list_filter = ("country", "region")
-    search_fields = ("name", "region__name")
+    search_fields = ("name", "region__name", "country__name")
 
     def region_name(self, obj):
         return obj.region.name if obj.region else "-"

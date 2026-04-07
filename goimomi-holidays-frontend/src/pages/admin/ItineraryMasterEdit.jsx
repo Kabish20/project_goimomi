@@ -17,7 +17,7 @@ const ItineraryMasterEdit = () => {
         image: null,
         destination: "",
     });
-    const [destinations, setDestinations] = useState([]);
+    const [regions, setRegions] = useState([]);
     const [existingImage, setExistingImage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -58,19 +58,21 @@ const ItineraryMasterEdit = () => {
         }
     }, [id]);
 
-    const fetchDestinations = useCallback(async () => {
+    const fetchRegions = useCallback(async () => {
         try {
-            const response = await api.get(`${API_BASE_URL}/destinations/`);
-            setDestinations(response.data);
+            const response = await api.get('/api/regions/');
+            if (Array.isArray(response.data)) {
+                setRegions(response.data);
+            }
         } catch (err) {
-            console.error("Error fetching destinations:", err);
+            console.error("Error fetching regions:", err);
         }
     }, []);
 
     useEffect(() => {
         fetchItinerary();
-        fetchDestinations();
-    }, [fetchItinerary, fetchDestinations]);
+        fetchRegions();
+    }, [fetchItinerary, fetchRegions]);
 
     const handleChange = (e) => {
         if (e.target.name === "image") {
@@ -181,7 +183,7 @@ const ItineraryMasterEdit = () => {
                                             Destination Category
                                         </label>
                                         <SearchableSelect
-                                            options={destinations.map(d => ({ value: d.id, label: d.name }))}
+                                            options={regions.map(r => ({ value: r.name, label: r.name, subtitle: r.country_name || r.country }))}
                                             value={form.destination}
                                             onChange={(val) => setForm({ ...form, destination: val })}
                                             placeholder="Global/Generic"

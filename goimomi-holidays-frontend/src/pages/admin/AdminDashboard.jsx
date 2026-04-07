@@ -44,128 +44,22 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      console.log("Fetching dashboard data from Django API...");
+      console.log("Fetching consolidated dashboard data...");
 
-      // Fetch all data in parallel with error handling for each endpoint
-      const fetchPromises = [
-        api.get(`${API_BASE_URL}/packages/`).catch(err => ({ error: err, endpoint: 'packages' })),
-        api.get(`${API_BASE_URL}/enquiry-form/`).catch(err => ({ error: err, endpoint: 'enquiries' })),
-        api.get(`${API_BASE_URL}/holiday-form/`).catch(err => ({ error: err, endpoint: 'holiday-enquiries' })),
-        api.get(`${API_BASE_URL}/umrah-form/`).catch(err => ({ error: err, endpoint: 'umrah-enquiries' })),
-        api.get(`${API_BASE_URL}/itinerary-masters/`).catch(err => ({ error: err, endpoint: 'itinerary-masters' })),
-        api.get(`${API_BASE_URL}/visas/`).catch(err => ({ error: err, endpoint: 'visas' })),
-        api.get(`${API_BASE_URL}/visa-applications/`).catch(err => ({ error: err, endpoint: 'visa-applications' })),
-        api.get(`${API_BASE_URL}/canton-enquiries/`).catch(err => ({ error: err, endpoint: 'canton-enquiries' })),
-        api.get(`${API_BASE_URL}/cab-bookings/`).catch(err => ({ error: err, endpoint: 'cab-bookings' })),
-      ];
-
-      const responses = await Promise.all(fetchPromises);
-
-      // Process responses and handle errors
-      const newStats = {
-        packages: 0,
-        enquiries: 0,
-        holidayEnquiries: 0,
-        umrahEnquiries: 0,
-        itineraryMasters: 0,
-        visas: 0,
-        visaApplications: 0,
-        cantonEnquiries: 0,
-        cabBookings: 0,
-        cabEnquiries: 0,
-        cruiseEnquiries: 0,
-        hotelEnquiries: 0,
-      };
-
-      const allEnquiries = [];
-      const errors = [];
-
-      responses.forEach((response, index) => {
-        const endpoints = [
-          'packages', 'enquiries', 'holiday-enquiries',
-          'umrah-enquiries', 'itinerary-masters',
-          'visas', 'visa-applications',
-          'canton-enquiries', 'cab-bookings'
-        ];
-        const endpoint = endpoints[index];
-
-        if (response.error) {
-          console.error(`Error fetching ${endpoint}:`, response.error);
-          errors.push(`${endpoint}: ${response.error.message}`);
-        } else if (response.data) {
-          const count = Array.isArray(response.data) ? response.data.length : 0;
-
-          switch (endpoint) {
-            case 'packages':
-              newStats.packages = count;
-              break;
-            case 'enquiries':
-              newStats.enquiries = count;
-              newStats.cabEnquiries = response.data.filter(e => e.enquiry_type === 'Cab').length;
-              newStats.cruiseEnquiries = response.data.filter(e => e.enquiry_type === 'Cruise').length;
-              newStats.hotelEnquiries = response.data.filter(e => e.enquiry_type === 'Hotel').length;
-              allEnquiries.push(...response.data.map(item => ({
-                ...item,
-                type: item.enquiry_type || 'General'
-              })));
-              break;
-            case 'holiday-enquiries':
-              newStats.holidayEnquiries = count;
-              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Holiday' })));
-              break;
-            case 'umrah-enquiries':
-              newStats.umrahEnquiries = count;
-              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Umrah' })));
-              break;
-            case 'itinerary-masters':
-              newStats.itineraryMasters = count;
-              break;
-            case 'visas':
-              newStats.visas = count;
-              break;
-            case 'visa-applications':
-              newStats.visaApplications = count;
-              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Visa' })));
-              break;
-            case 'canton-enquiries':
-              newStats.cantonEnquiries = count;
-              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Canton' })));
-              break;
-            case 'cab-bookings':
-              newStats.cabBookings = count;
-              allEnquiries.push(...response.data.map(item => ({ ...item, type: 'Cab Booking' })));
-              break;
-          }
-        }
-      });
-
-      setStats(newStats);
-
-      // Sort enquiries by created_at (most recent first) and take latest 10
-      const sortedEnquiries = allEnquiries
-        .sort((a, b) => {
-          const dateA = new Date(a.created_at || a.submitted_at || 0);
-          const dateB = new Date(b.created_at || b.submitted_at || 0);
-          return dateB - dateA;
-        })
-        .slice(0, 10);
-
-      setRecentEnquiries(sortedEnquiries);
-
-      if (errors.length > 0) {
-        setError(`Partial data loaded. Errors: ${errors.join(', ')}`);
-      } else {
+      const response = await api.get(`${API_BASE_URL}/dashboard-stats/`);
+      
+      if (response.data) {
+        setStats(response.data.stats);
+        setRecentEnquiries(response.data.recentEnquiries);
         setError(null);
       }
-
-      console.log("Dashboard data loaded successfully:", { stats: newStats, enquiriesCount: sortedEnquiries.length });
 
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
       if (err.response && err.response.status === 401) {
         setError("Authentication failed. Please log in again.");
       } else {
-        setError(`Failed to load dashboard data: ${err.message}. Please check if the Django backend is running on ${API_BASE_URL}`);
+        setError(`Failed to load dashboard data: ${err.message}.`);
       }
     } finally {
       setLoading(false);

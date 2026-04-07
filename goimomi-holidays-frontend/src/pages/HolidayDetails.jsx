@@ -351,7 +351,12 @@ const HolidayDetails = () => {
             {activeTab === "Itinerary" && (
               <div className="space-y-16">
                 {pkg.itinerary?.map((item, index) => {
-                  const details = typeof item.details_json === 'string' ? JSON.parse(item.details_json || '{}') : item.details_json;
+                  let details = {};
+                  try {
+                    details = typeof item.details_json === 'string' ? JSON.parse(item.details_json || '{}') : item.details_json;
+                  } catch (e) {
+                    console.error("Error parsing details_json in itinerary map:", e);
+                  }
                   return (
                     <div key={index} className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${index * 100}ms` }}>
                       {/* Day Header */}
@@ -493,13 +498,17 @@ const HolidayDetails = () => {
                 {(() => {
                   const allAccs = [];
                   pkg.itinerary?.forEach(day => {
-                    const d = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
-                    if (Array.isArray(d?.accommodations)) {
+                    try {
+                      const d = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
+                      if (Array.isArray(d?.accommodations)) {
                       d.accommodations.forEach(acc => {
                         if (acc && !allAccs.find(a => (a?.hotelId && a.hotelId === acc?.hotelId) || (a?.hotelName && a.hotelName === acc?.hotelName))) {
                           allAccs.push(acc);
                         }
                       });
+                      }
+                    } catch (e) {
+                      console.error("Error parsing details_json in hotels map:", e);
                     }
                   });
 
@@ -566,8 +575,13 @@ const HolidayDetails = () => {
 
                 {(() => {
                   const activities = pkg.itinerary?.flatMap(day => {
-                    const details = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
-                    return (details?.sightseeing || []).filter(s => s && s.trim()).map(s => ({ text: s, dayNum: day.day_number }));
+                    let d = {};
+                    try {
+                      d = typeof day.details_json === 'string' ? JSON.parse(day.details_json || '{}') : day.details_json;
+                    } catch (e) {
+                      console.error("Error parsing details_json in sightseeing flatMap:", e);
+                    }
+                    return (d?.sightseeing || []).filter(s => s && s.trim()).map(s => ({ text: s, dayNum: day.day_number }));
                   }) || [];
 
                   if (activities.length > 0) {
