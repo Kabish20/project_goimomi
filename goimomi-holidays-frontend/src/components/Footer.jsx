@@ -126,7 +126,7 @@ const Footer = () => {
 
       {/* -------------------- BOTTOM LINE -------------------- */}
       <div className="border-t border-white/10 mt-12 pt-6 text-center">
-        <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest mb-3">© 2025 Goimomi Holidays. All rights reserved.</p>
+        <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest mb-3">© 2026 Goimomi Holidays. All rights reserved.</p>
 
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-[11px] font-black uppercase tracking-widest text-white/60">
           <Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
