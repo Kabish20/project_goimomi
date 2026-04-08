@@ -44,7 +44,8 @@ const AdminVisaAdd = () => {
     const fetchCountries = async () => {
         try {
             const response = await api.get("/api/countries/");
-            setCountries(response.data);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            setCountries(data);
         } catch (error) {
             console.error("Error fetching countries:", error);
         }
@@ -53,8 +54,9 @@ const AdminVisaAdd = () => {
     const fetchSuppliers = async () => {
         try {
             const response = await api.get("/api/suppliers/");
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
             // Filter suppliers who provide Visa services
-            const visaSuppliers = response.data.filter(supplier =>
+            const visaSuppliers = data.filter(supplier =>
                 supplier.services && supplier.services.includes("Visa")
             );
             setSuppliers(visaSuppliers);

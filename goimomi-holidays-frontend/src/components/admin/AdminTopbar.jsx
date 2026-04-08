@@ -4,8 +4,17 @@ import { ArrowLeft, ExternalLink, Key, LogOut, Menu } from "lucide-react";
 
 const AdminTopbar = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("adminUser"));
-  const username = user ? user.username : "Admin";
+  
+  let username = "Admin";
+  try {
+    const userStr = localStorage.getItem("adminUser");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      username = user?.username || "Admin";
+    }
+  } catch (err) {
+    console.error("Error parsing adminUser from localStorage:", err);
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("adminUser");

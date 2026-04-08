@@ -49,8 +49,21 @@ const AdminDashboard = () => {
       const response = await api.get(`${API_BASE_URL}/dashboard-stats/`);
       
       if (response.data) {
-        setStats(response.data.stats);
-        setRecentEnquiries(response.data.recentEnquiries);
+        setStats(response.data.stats || {
+          packages: 0,
+          enquiries: 0,
+          cabEnquiries: 0,
+          cruiseEnquiries: 0,
+          hotelEnquiries: 0,
+          holidayEnquiries: 0,
+          umrahEnquiries: 0,
+          itineraryMasters: 0,
+          visas: 0,
+          visaApplications: 0,
+          cantonEnquiries: 0,
+          cabBookings: 0,
+        });
+        setRecentEnquiries(response.data.recentEnquiries || []);
         setError(null);
       }
 

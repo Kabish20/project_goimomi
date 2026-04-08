@@ -61,8 +61,9 @@ const CruiseEnquiryManage = () => {
         try {
             setLoading(true);
             const response = await api.get(`${API_BASE_URL}/enquiry-form/`);
+            const allEnquiries = Array.isArray(response.data) ? response.data : (response.data?.results || []);
             // Filter for Cruise enquiries
-            const cruiseEnquiries = response.data.filter(e => e.enquiry_type === "Cruise");
+            const cruiseEnquiries = allEnquiries.filter(e => e.enquiry_type === "Cruise");
             setEnquiries(cruiseEnquiries);
             setFilteredEnquiries(cruiseEnquiries);
             setError("");

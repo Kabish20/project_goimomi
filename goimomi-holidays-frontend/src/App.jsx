@@ -99,6 +99,8 @@ const CruiseTerminalManage = lazy(() => import("./pages/admin/CruiseTerminalMana
 const AdminLogin = lazy(() => import("./pages/AdminLogin.jsx"));
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+
 // Loading component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -132,10 +134,11 @@ const App = () => {
       {!isAdminPath && <Navbar />}
 
       <main className={`flex-1 ${isAdminPath ? 'flex flex-col min-h-0 overflow-hidden' : ''}`}>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/canton" element={<Canton />} />
-            <Route path="/" element={<Home />} />
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/canton" element={<Canton />} />
+              <Route path="/" element={<Home />} />
             <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
             <Route path="/aboutus" element={<About />} />
             <Route path="/contactus" element={<Contact />} />
@@ -256,9 +259,10 @@ const App = () => {
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
-      </main>
+      </ErrorBoundary>
+    </main>
 
-      {!isAdminPath && <Footer />}
+    {!isAdminPath && <Footer />}
       <EnquiryForm isOpen={isEnquiryOpen} onClose={() => setIsEnquiryOpen(false)} />
     </div>
   );

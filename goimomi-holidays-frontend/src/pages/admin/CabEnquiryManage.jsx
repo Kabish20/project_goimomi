@@ -24,8 +24,9 @@ const CabEnquiryManage = () => {
         try {
             setLoading(true);
             const response = await api.get(`${API_BASE_URL}/enquiry-form/`);
+            const allEnquiries = Array.isArray(response.data) ? response.data : (response.data?.results || []);
             // Filter for Cab enquiries
-            const cabEnquiries = response.data.filter(e => e.enquiry_type === "Cab");
+            const cabEnquiries = allEnquiries.filter(e => e.enquiry_type === "Cab");
             setEnquiries(cabEnquiries);
             setFilteredEnquiries(cabEnquiries);
             setError("");

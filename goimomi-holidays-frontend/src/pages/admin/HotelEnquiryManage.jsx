@@ -61,8 +61,9 @@ const HotelEnquiryManage = () => {
         try {
             setLoading(true);
             const response = await api.get(`${API_BASE_URL}/enquiry-form/`);
+            const allEnquiries = Array.isArray(response.data) ? response.data : (response.data?.results || []);
             // Filter for Hotel enquiries
-            const hotelEnquiries = response.data.filter(e => e.enquiry_type === "Hotel");
+            const hotelEnquiries = allEnquiries.filter(e => e.enquiry_type === "Hotel");
             setEnquiries(hotelEnquiries);
             setFilteredEnquiries(hotelEnquiries);
             setError("");

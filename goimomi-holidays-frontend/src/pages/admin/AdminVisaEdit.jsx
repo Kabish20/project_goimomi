@@ -50,7 +50,8 @@ const AdminVisaEdit = () => {
     const fetchCountries = useCallback(async () => {
         try {
             const response = await api.get("/api/countries/");
-            setCountries(response.data);
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            setCountries(data);
         } catch (error) {
             console.error("Error fetching countries:", error);
         }
@@ -59,7 +60,8 @@ const AdminVisaEdit = () => {
     const fetchSuppliers = useCallback(async () => {
         try {
             const response = await api.get("/api/suppliers/");
-            const visaSuppliers = response.data.filter(supplier =>
+            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+            const visaSuppliers = data.filter(supplier =>
                 supplier.services && supplier.services.includes("Visa")
             );
             setSuppliers(visaSuppliers);

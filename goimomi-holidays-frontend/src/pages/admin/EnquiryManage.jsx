@@ -33,9 +33,9 @@ const EnquiryManage = () => {
         api.get(`${API_BASE_URL}/umrah-form/`)
       ]);
 
-      const generalData = generalRes.data || [];
-      const holidayData = holidayRes.data || [];
-      const umrahData = umrahRes.data || [];
+      const generalData = Array.isArray(generalRes.data) ? generalRes.data : (generalRes.data?.results || []);
+      const holidayData = Array.isArray(holidayRes.data) ? holidayRes.data : (holidayRes.data?.results || []);
+      const umrahData = Array.isArray(umrahRes.data) ? umrahRes.data : (umrahRes.data?.results || []);
 
       setCounts({
         general: generalData.filter(e => !e.enquiry_type || e.enquiry_type === 'General').length,
