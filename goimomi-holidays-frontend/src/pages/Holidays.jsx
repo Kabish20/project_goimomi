@@ -390,7 +390,7 @@ const Holidays = () => {
     // Fetch packages
     api.get("/api/packages/")
       .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : [];
+        const data = res.data.results || (Array.isArray(res.data) ? res.data : []);
         setPackages(data);
         
         // Derive starting cities list from available packages
