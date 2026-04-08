@@ -422,8 +422,9 @@ const Holidays = () => {
   }, []);
 
   const filteredDestinationsList = (destinationsList || []).filter(dest =>
-  (dest?.name?.toLowerCase().includes(destSearch.toLowerCase()) ||
-    (dest?.country && dest.country.toLowerCase().includes(destSearch.toLowerCase())))
+    (dest?.name?.toLowerCase().includes(destSearch.toLowerCase()) ||
+     dest?.country_name?.toLowerCase().includes(destSearch.toLowerCase()) ||
+     dest?.country?.toString().toLowerCase().includes(destSearch.toLowerCase()))
   );
 
   const filteredStartingCitiesList = (startingCitiesList || []).filter(city =>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 
-const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select...", disabled = false, allowCustom = false, error, size = "default", className = "" }) => {
+const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select...", searchPlaceholder = "Search...", disabled = false, allowCustom = false, error, size = "default", className = "" }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [searchTerm, setSearchTerm] = useState("");
@@ -95,13 +95,22 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
         const rect = wrapperRef.current.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
         const spaceBelow = viewportHeight - rect.bottom;
-        const dropdownHeight = 400;
-        const openUpward = spaceBelow < dropdownHeight && rect.top > spaceBelow;
+        const spaceAbove = rect.top;
+        const minDropdownHeight = 350;
+        
+        // Decide whether to open upward or downward based on available space
+        const openUpward = spaceBelow < minDropdownHeight && spaceAbove > spaceBelow;
+        
+        // Calculate dynamic max height to prevent cutting off
+        const availableSpace = openUpward ? spaceAbove - 20 : spaceBelow - 20;
+        const maxHeight = Math.min(minDropdownHeight, availableSpace);
+
         setDropdownStyle({
             position: "fixed",
             left: rect.left,
             width: rect.width,
-            zIndex: 99999,
+            zIndex: 999999,
+            maxHeight: maxHeight,
             ...(openUpward ? { bottom: viewportHeight - rect.top + 4, top: "auto" } : { top: rect.bottom + 4, bottom: "auto" }),
         });
     }, []);
@@ -134,7 +143,7 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
 
     const renderedItems = useMemo(() => {
         const itemClass = (isMatch, idx, val, active) => `
-            px-3 py-1 text-[10px] cursor-pointer transition-all flex flex-col gap-0
+            px-3 py-1.5 text-[10px] cursor-pointer transition-all flex flex-col gap-0
             ${val === value ? "bg-green-50 text-[#14532d]" : (idx === active ? "bg-gray-100 text-black border-l-4 border-[#14532d]" : "text-gray-900 hover:bg-gray-50 hover:text-black")}
         `;
 
@@ -191,7 +200,7 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
     const selectedOption = allOptionsFlat.find(opt => opt.value === value);
 
     const dropdown = isOpen && !disabled ? (
-        <div ref={dropdownRef} style={dropdownStyle} className="bg-white border-2 border-gray-100 rounded-xl shadow-[0_30px_70px_-10px_rgba(0,0,0,0.3)] max-h-[350px] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div ref={dropdownRef} style={dropdownStyle} className="bg-white border-2 border-gray-100 rounded-xl shadow-[0_30px_70px_-10px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="sticky top-0 z-[100] bg-white border-b border-gray-100 p-1.5 shadow-sm">
                 <div className="relative group">
                     <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300 group-focus-within:text-[#14532d] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +210,7 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
                         ref={searchInputRef}
                         type="text" 
                         className="w-full bg-gray-50/50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-lg pl-8 pr-2.5 py-1.5 text-[11px] font-black text-gray-900 placeholder:text-gray-300 placeholder:italic transition-all outline-none" 
-                        placeholder="Search cities..." 
+                        placeholder={searchPlaceholder} 
                         value={searchTerm} 
                         onChange={(e) => setSearchTerm(e.target.value)} 
                         onKeyDown={handleKeyDown} 

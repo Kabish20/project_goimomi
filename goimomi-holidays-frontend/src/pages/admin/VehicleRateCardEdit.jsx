@@ -201,7 +201,7 @@ const VehicleRateCardEdit = () => {
                     const content = evt.target.result;
                     const lines = content.split('\n').filter(line => line.trim() !== "");
                     if (lines.length < 2) { alert("Invalid CSV format."); return; }
-                    
+
                     const parseLine = (line) => {
                         const res = []; let cur = ''; let q = false;
                         for (let c of line) {
@@ -216,15 +216,15 @@ const VehicleRateCardEdit = () => {
                         const cols = parseLine(line);
                         if (cols.length < 4) return null;
                         const vRates = Array(vehicleCount).fill("");
-                        for (let i = 0; i < vehicleCount; i++) { 
-                            if (cols[4 + i] !== undefined) vRates[i] = cols[4 + i]; 
+                        for (let i = 0; i < vehicleCount; i++) {
+                            if (cols[4 + i] !== undefined) vRates[i] = cols[4 + i];
                         }
-                        return { 
-                            start_city: cols[0], 
-                            start_from: cols[1], 
-                            drop_city: cols[2], 
-                            drop_to: cols[3], 
-                            vehicles: vRates 
+                        return {
+                            start_city: cols[0],
+                            start_from: cols[1],
+                            drop_city: cols[2],
+                            drop_to: cols[3],
+                            vehicles: vRates
                         };
                     }).filter(Boolean);
 
@@ -232,13 +232,13 @@ const VehicleRateCardEdit = () => {
                         setRateCard(prev => ({ ...prev, routes: newRoutes }));
                         setShowErrors(true);
                     }
-                } catch (err) { 
-                    console.error("CSV Import Error:", err); 
+                } catch (err) {
+                    console.error("CSV Import Error:", err);
                 }
             };
             reader.readAsText(file);
         }
-        
+
         // Clear input value so same file can be selected again
         e.target.value = '';
     };
@@ -296,8 +296,8 @@ const VehicleRateCardEdit = () => {
         }
 
         if (currentStep === 2) {
-            const hasEmpty = rateCard.routes.some(r => 
-                !r.start_city || !r.start_from || !r.drop_city || !r.drop_to || 
+            const hasEmpty = rateCard.routes.some(r =>
+                !r.start_city || !r.start_from || !r.drop_city || !r.drop_to ||
                 r.vehicles.some((v, idx) => columnVehicles[idx] && !v)
             );
             if (hasEmpty) {
@@ -317,7 +317,7 @@ const VehicleRateCardEdit = () => {
             fd.append("validity_start", rateCard.validity_start);
             fd.append("validity_end", rateCard.validity_end);
             fd.append("column_vehicles", JSON.stringify(columnVehicles));
-            
+
             const routes = rateCard.routes.map(r => {
                 const route = {
                     start_city: r.start_city,
@@ -421,6 +421,7 @@ const VehicleRateCardEdit = () => {
                                                 value={rateCard.country}
                                                 onChange={(val) => setRateCard(prev => ({ ...prev, country: val }))}
                                                 placeholder="Select Country..."
+                                                searchPlaceholder="Search for country..."
                                             />
                                         </div>
 
@@ -431,6 +432,7 @@ const VehicleRateCardEdit = () => {
                                                 value={rateCard.supplier}
                                                 onChange={(val) => setRateCard(prev => ({ ...prev, supplier: val }))}
                                                 placeholder="Select Supplier..."
+                                                searchPlaceholder="Search for supplier..."
                                             />
                                         </div>
 
@@ -490,22 +492,22 @@ const VehicleRateCardEdit = () => {
                                                 </p>
                                             </div>
                                             {rateCard.rate_card_file && (
-                                                <button 
-                                                    onClick={(e) => { 
-                                                        e.preventDefault(); 
-                                                        e.stopPropagation(); 
-                                                        setRateCard(prev => ({ ...prev, rate_card_file: null })); 
-                                                    }} 
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setRateCard(prev => ({ ...prev, rate_card_file: null }));
+                                                    }}
                                                     className="relative z-10 text-red-500 hover:text-red-700 p-1 bg-white rounded-md shadow-sm border border-red-50 group/remove"
                                                 >
                                                     <Trash2 size={10} className="group-hover/remove:scale-110 transition-transform" />
                                                 </button>
                                             )}
-                                            <input 
-                                                type="file" 
-                                                accept=".csv,.pdf" 
+                                            <input
+                                                type="file"
+                                                accept=".csv,.pdf"
                                                 onChange={handleFileExtraction}
-                                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
                                             />
                                         </div>
 
