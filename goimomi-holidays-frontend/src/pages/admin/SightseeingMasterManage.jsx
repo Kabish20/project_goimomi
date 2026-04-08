@@ -51,9 +51,9 @@ const SightseeingMasterManage = () => {
 
     useEffect(() => {
         const filtered = sightseeings.filter(s => {
-            const matchesSearch = s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                s.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                s.description?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = s.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+                s.city?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+                s.description?.toLowerCase()?.includes(searchTerm.toLowerCase());
 
             const matchesRegion = !selectedRegion ||
                 s.region_id?.toString() === selectedRegion.toString();
@@ -116,7 +116,7 @@ const SightseeingMasterManage = () => {
                             <Search size={14} className="absolute left-3 top-2 text-gray-400" />
                             <input
                                 type="text"
-                                value={searchTerm}
+                                value={searchTerm || ""}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search sightseeing..."
                                 className="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg text-[11px] focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 shadow-sm"
@@ -125,9 +125,9 @@ const SightseeingMasterManage = () => {
 
                         <div className="w-56">
                             <SearchableSelect
-                                options={regions.map(r => ({ value: r.id, label: `${r.name} (${r.country_name})` }))}
-                                value={selectedRegion}
-                                onChange={(val) => setSelectedRegion(val)}
+                                options={(regions || []).filter(r => r).map(r => ({ value: r.id, label: `${r.name || 'Unknown'} (${r.country_name || 'N/A'})` }))}
+                                value={selectedRegion || ""}
+                                onChange={(val) => setSelectedRegion(val || "")}
                                 placeholder="Search by Region..."
                             />
                         </div>
@@ -158,7 +158,7 @@ const SightseeingMasterManage = () => {
                     {loading && (
                         <div className="text-center py-8">
                             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
-                            <p className="mt-2 text-gray-600">Loading sightseeings...</p>
+                            <p className="mt-2 text-gray-600 text-xs font-bold uppercase tracking-widest animate-pulse">Loading sightseeings...</p>
                         </div>
                     )}
 
@@ -175,37 +175,28 @@ const SightseeingMasterManage = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
-                                    {loading && filteredSightseeings.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="4" className="px-8 py-20 text-center">
-                                                <div className="flex flex-col items-center gap-4">
-                                                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#14532d]/10 border-t-[#14532d]"></div>
-                                                    <p className="text-gray-400 font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">Syncing Database...</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : filteredSightseeings.length === 0 ? (
+                                    {!loading && (!filteredSightseeings || filteredSightseeings.length === 0) ? (
                                         <tr>
                                             <td colSpan="4" className="px-8 py-20 text-center text-gray-400 italic text-sm">
-                                                {searchTerm || selectedDestination ? `No sightseeing matching your filters...` : "No sightseeing masters created yet."}
+                                                {searchTerm || selectedRegion ? `No sightseeing matching your filters...` : "No sightseeing masters created yet."}
                                             </td>
                                         </tr>
                                     ) : (
-                                        filteredSightseeings.map((s) => (
-                                            <tr key={s.id} className="group hover:bg-[#fcfdfc] transition-colors border-b border-gray-50 last:border-0">
+                                        (filteredSightseeings || []).map((s) => (
+                                            <tr key={s?.id || Math.random()} className="group hover:bg-[#fcfdfc] transition-colors border-b border-gray-50 last:border-0">
                                                 <td className="px-4 py-2.5">
                                                     <div className="flex items-center gap-2.5">
                                                         <div className="w-10 h-8 rounded-lg bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-110 transition-transform flex items-center justify-center text-gray-300">
-                                                            {s.image ? (
+                                                            {s?.image ? (
                                                                 <img src={s.image} alt={s.name} className="w-full h-full object-cover" />
                                                             ) : (
                                                                 <MapPin size={14} />
                                                             )}
                                                         </div>
                                                         <div className="overflow-hidden">
-                                                            <p className="text-[11px] font-black text-gray-900 tracking-tight truncate uppercase leading-none">{s.name}</p>
+                                                            <p className="text-[11px] font-black text-gray-900 tracking-tight truncate uppercase leading-none">{s?.name || 'Untitled'}</p>
                                                             <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                                                                {s.country_name || "N/A"}
+                                                                {s?.country_name || "N/A"}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -214,31 +205,31 @@ const SightseeingMasterManage = () => {
                                                     <div className="flex flex-col gap-0.5">
                                                         <div className="flex items-center gap-1.5 text-gray-500">
                                                             <MapPin size={10} className="text-[#14532d]" />
-                                                            <span className="text-[10px] font-black uppercase tracking-tighter">{s.city_name || s.city || 'Location N/A'}</span>
+                                                            <span className="text-[10px] font-black uppercase tracking-tighter">{s?.city_name || s?.city || 'Location N/A'}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-gray-400">
                                                             <Clock size={10} />
-                                                            <span className="text-[9px] font-bold uppercase tracking-widest">{s.duration || 'N/A'}</span>
+                                                            <span className="text-[9px] font-bold uppercase tracking-widest">{s?.duration || 'N/A'}</span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-2.5 text-right font-black text-gray-900 text-xs">
                                                     <div className="flex items-center justify-end gap-1 text-[#14532d]">
                                                         <IndianRupee size={10} strokeWidth={3} />
-                                                        <span>{Number(s.price || 0).toLocaleString('en-IN')}</span>
+                                                        <span>{Number(s?.price || 0).toLocaleString('en-IN')}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-2.5 text-right">
                                                     <div className="flex items-center justify-end gap-1.5">
                                                         <button
-                                                            onClick={() => handleEdit(s.id)}
+                                                            onClick={() => handleEdit(s?.id)}
                                                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
                                                             title="Edit"
                                                         >
                                                             <Edit2 size={13} />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleDelete(s.id)}
+                                                            onClick={() => handleDelete(s?.id)}
                                                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group/btn"
                                                             title="Delete"
                                                         >
