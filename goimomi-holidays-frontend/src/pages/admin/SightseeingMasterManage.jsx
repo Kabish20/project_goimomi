@@ -168,10 +168,10 @@ const SightseeingMasterManage = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50/50">
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Sightseeing Info</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Location & Duration</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Pricing</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Actions</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 min-w-[200px]">Sightseeing Info</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 min-w-[150px]">Location & Duration</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right min-w-[100px]">Pricing</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
@@ -184,56 +184,56 @@ const SightseeingMasterManage = () => {
                                     ) : (
                                         (filteredSightseeings || []).map((s) => (
                                             <tr key={s?.id || Math.random()} className="group hover:bg-[#fcfdfc] transition-colors border-b border-gray-50 last:border-0">
-                                                <td className="px-4 py-2.5">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="w-10 h-8 rounded-lg bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-110 transition-transform flex items-center justify-center text-gray-300">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3.5">
+                                                        <div className="w-11 h-9 rounded-xl bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-110 transition-transform flex items-center justify-center text-gray-400">
                                                             {s?.image ? (
                                                                 <img src={s.image} alt={s.name} className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <MapPin size={14} />
+                                                                <MapPin size={18} />
                                                             )}
                                                         </div>
-                                                        <div className="overflow-hidden">
-                                                            <p className="text-[11px] font-black text-gray-900 tracking-tight truncate uppercase leading-none">{s?.name || 'Untitled'}</p>
-                                                            <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                                                        <div className="min-w-0 overflow-hidden">
+                                                            <p className="text-[13px] font-black text-gray-900 tracking-tight truncate uppercase leading-none mb-1.5" title={s?.name}>{s?.name || 'Untitled'}</p>
+                                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                                                                 {s?.country_name || "N/A"}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-2.5">
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <div className="flex items-center gap-1.5 text-gray-500">
-                                                            <MapPin size={10} className="text-[#14532d]" />
-                                                            <span className="text-[10px] font-black uppercase tracking-tighter">{s?.city_name || s?.city || 'Location N/A'}</span>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <div className="flex items-center gap-1.5 text-gray-600">
+                                                            <MapPin size={11} className="text-[#14532d]" />
+                                                            <span className="text-[11px] font-black uppercase tracking-tighter">{s?.city_name || s?.city || 'Location N/A'}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-gray-400">
-                                                            <Clock size={10} />
-                                                            <span className="text-[9px] font-bold uppercase tracking-widest">{s?.duration || 'N/A'}</span>
+                                                            <Clock size={11} />
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest">{s?.duration || 'N/A'}</span>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-2.5 text-right font-black text-gray-900 text-xs">
+                                                <td className="px-6 py-4 text-right font-black text-gray-900 text-[14px]">
                                                     <div className="flex items-center justify-end gap-1 text-[#14532d]">
-                                                        <IndianRupee size={10} strokeWidth={3} />
+                                                        <IndianRupee size={12} strokeWidth={3} />
                                                         <span>{Number(s?.price || 0).toLocaleString('en-IN')}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-2.5 text-right">
-                                                    <div className="flex items-center justify-end gap-1.5">
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
                                                         <button
                                                             onClick={() => handleEdit(s?.id)}
-                                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
                                                             title="Edit"
                                                         >
-                                                            <Edit2 size={13} />
+                                                            <Edit2 size={13} strokeWidth={2.5} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(s?.id)}
-                                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group/btn"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group/btn"
                                                             title="Delete"
                                                         >
-                                                            <Trash2 size={13} />
+                                                            <Trash2 size={13} strokeWidth={2.5} />
                                                         </button>
                                                     </div>
                                                 </td>

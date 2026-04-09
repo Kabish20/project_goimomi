@@ -169,14 +169,14 @@ const CruiseTerminalManage = () => {
             </div>
 
             <div className="bg-white rounded-[2rem] border border-gray-100 shadow-2xl overflow-hidden min-h-[500px]">
-              <div className="table-responsive">
+              <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/50">
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 whitespace-nowrap">Terminal & Cruise Info</th>
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 whitespace-nowrap">Location & Identity</th>
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 whitespace-nowrap">Regional Info</th>
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 text-right whitespace-nowrap">Actions</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[200px]">Terminal & Cruise Info</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[180px]">Location & Identity</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[180px]">Admin Region</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -201,33 +201,33 @@ const CruiseTerminalManage = () => {
                     ) : (
                       filtered.map((item) => (
                         <tr key={item.id} className="group hover:bg-[#fcfdfc] transition-all">
-                          <td className="px-6 py-3">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-3.5">
-                              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 flex items-center justify-center text-blue-600 border border-cyan-100/50 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
-                                <Ship size={14} />
+                              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 flex items-center justify-center text-blue-600 border border-cyan-100/50 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                                <Ship size={15} />
                               </div>
                               <div className="min-w-0">
-                                <p className="text-[12px] font-black text-gray-900 tracking-tight leading-none mb-1.5 truncate uppercase">{item.terminal_name}</p>
-                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest opacity-60 truncate">{item.cruise_name || "Merchant Hub"}</p>
+                                <p className="text-[13px] font-black text-gray-900 tracking-tight leading-none mb-1.5 truncate uppercase" title={item.terminal_name}>{item.terminal_name}</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest opacity-60 truncate">{item.cruise_name || "Merchant Hub"}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-3">
+                          <td className="px-6 py-4">
                             <div className="flex flex-col gap-1.5">
                               <div className="flex items-center gap-1.5">
-                                <MapPin size={10} className="text-orange-400" />
-                                <span className="text-[11px] font-bold text-gray-800">{item.city_name || "Unassigned"}</span>
+                                <MapPin size={12} className="text-orange-400 shrink-0" />
+                                <span className="text-[12px] font-bold text-gray-800">{item.city_name || "Unassigned"}</span>
                               </div>
                               <div className="flex items-center gap-1.5">
-                                <Anchor size={10} className="text-cyan-400 shrink-0" />
-                                <span className="px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-600 text-[8px] font-black border border-cyan-100/50 uppercase tracking-tight">{item.cruise_code || "PORT"}</span>
+                                <Anchor size={12} className="text-cyan-400 shrink-0" />
+                                <span className="px-1.5 py-0.5 rounded-md bg-cyan-50 text-cyan-600 text-[9px] font-black border border-cyan-100/50 uppercase tracking-tight">{item.cruise_code || "PORT"}</span>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-3">
+                          <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Administrative Region</span>
-                              <span className="text-[11px] font-bold text-gray-700 uppercase">{item.region_name || "Primary Region"}</span>
+                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5 whitespace-nowrap">Admin Region</span>
+                              <span className="text-[12px] font-bold text-gray-700 uppercase truncate">{item.region_name || "Primary Region"}</span>
                             </div>
                           </td>
                           <td className="px-6 py-3 text-right">

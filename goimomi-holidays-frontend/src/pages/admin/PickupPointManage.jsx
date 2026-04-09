@@ -189,43 +189,43 @@ const PickupPointManage = () => {
                             </div>
                         ) : filteredPoints.length > 0 ? (
                             <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mb-12">
-                                <div className="table-responsive">
+                                <div className="overflow-x-auto custom-scrollbar">
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="bg-gray-50/50">
-                                                <th className="px-6 py-4 text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">Discovery & Info</th>
-                                                <th className="px-6 py-4 text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">City / Location</th>
-                                                <th className="px-6 py-4 text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50">Regional Context</th>
-                                                <th className="px-6 py-4 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 text-right">Actions</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[200px]">Discovery & Info</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[180px]">City / Location</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[180px]">Admin Region</th>
+                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 text-right">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50">
                                             {filteredPoints.map((point) => (
                                                 <tr key={point.id} className="group hover:bg-[#f8faf8] transition-all last:border-0">
-                                                    <td className="px-6 py-3.5">
+                                                    <td className="px-6 py-4">
                                                         <div className="flex items-center gap-4">
                                                             <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-[#14532d] group-hover:bg-[#14532d] group-hover:text-white transition-all duration-500 shadow-sm border border-gray-100 group-hover:scale-105 group-hover:rotate-3">
                                                                 <MapPin size={16} />
                                                             </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-[13px] font-black text-gray-900 group-hover:text-[#14532d] transition-colors leading-none mb-1">{point.name}</span>
-                                                                <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-1.5 py-0.5 rounded w-fit border border-gray-100 group-hover:bg-white transition-colors">ID: #{point.id}</span>
+                                                            <div className="min-w-0">
+                                                                <span className="text-[13px] font-black text-gray-900 group-hover:text-[#14532d] transition-colors leading-none mb-1.5 block truncate uppercase">{point.name}</span>
+                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-1.5 py-0.5 rounded w-fit border border-gray-100 group-hover:bg-white transition-colors">ID: #{point.id}</span>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-3.5">
-                                                        <div className="flex flex-col gap-1">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex flex-col gap-1.5">
                                                             <div className="flex items-center gap-1.5">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                                                                <span className="text-[11px] font-bold text-gray-700 uppercase tracking-tight">{point.city_name}</span>
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0"></div>
+                                                                <span className="text-[12px] font-bold text-gray-700 uppercase tracking-tight">{point.city_name}</span>
                                                             </div>
-                                                            <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest ml-3">Standardized Hub</span>
+                                                            <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest ml-3">Standardized Hub</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-3.5">
+                                                    <td className="px-6 py-4">
                                                         <div className="flex flex-col">
-                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Assigned Region</span>
-                                                            <span className="text-[11px] font-bold text-gray-700 uppercase">{point.region_name || "Primary Region"}</span>
+                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5 whitespace-nowrap">Assigned Region</span>
+                                                            <span className="text-[12px] font-bold text-gray-700 uppercase truncate">{point.region_name || "Primary Region"}</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-3.5 text-right">

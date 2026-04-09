@@ -192,7 +192,7 @@ const HolidayPackageAdd = () => {
     starting_city: "",
     ending_city: "",
     days: "",
-    start_date: "",
+
     group_size: 0,
     offer_price: "",
     price: "",
@@ -803,7 +803,7 @@ const HolidayPackageAdd = () => {
       formDataToSend.append("ending_city", formData.ending_city);
       // Ensure 'days' matches the actual number of itinerary rows
       formDataToSend.append("days", itineraryDays.length);
-      if (formData.start_date) formDataToSend.append("start_date", formData.start_date);
+
       formDataToSend.append("group_size", formData.group_size);
 
       // Calculate the lowest possible price across all slots/tiers
@@ -946,7 +946,7 @@ const HolidayPackageAdd = () => {
           starting_city: "",
           ending_city: "",
           days: "",
-          start_date: "",
+
           group_size: 0,
           offer_price: "",
           price: "",
@@ -1378,27 +1378,7 @@ const HolidayPackageAdd = () => {
                       </div>
                     </div>
 
-                    {/* Travel Date For Non-Fixed Departure */}
-                    {!formData.fixed_departure && (
-                      <div className="bg-amber-50/30 border border-amber-100 p-4 rounded-xl flex items-center gap-4 animate-in slide-in-from-left-2 mt-4">
-                        <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
-                          <Calendar size={18} />
-                        </div>
-                        <div className="flex-1">
-                          <FormLabel label="Main Start Date" optional />
-                          <Input
-                            type="date"
-                            name="start_date"
-                            value={formData.start_date || ""}
-                            onChange={handleInputChange}
-                            className="!bg-white border-amber-100 focus:border-amber-400"
-                          />
-                        </div>
-                        <p className="text-[9px] text-amber-400 font-bold uppercase tracking-widest leading-tight max-w-[150px]">
-                          Set the default start date for this package
-                        </p>
-                      </div>
-                    )}
+
 
                     {/* Trip Highlights Integrated into Overview */}
                     <div className="mt-8">

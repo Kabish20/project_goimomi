@@ -118,10 +118,10 @@ const AccommodationManage = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50/30">
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50">Property Information</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50">Location</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50">Contact info</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 text-right">Actions</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[200px]">Property Information</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[150px]">Location</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[150px]">Contact info</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
@@ -151,52 +151,52 @@ const AccommodationManage = () => {
                                             <tr key={a.id} className="group hover:bg-[#fcfdfc] transition-all duration-300 border-b border-gray-50 last:border-0">
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-10 rounded-xl bg-gray-50 overflow-hidden shrink-0 border-2 border-white shadow-sm transition-all group-hover:scale-110 flex items-center justify-center text-gray-300 relative">
+                                                        <div className="w-12 h-10 rounded-xl bg-gray-50 overflow-hidden shrink-0 border-2 border-white shadow-sm transition-all group-hover:scale-110 flex items-center justify-center text-gray-400 relative">
                                                             {a.images && a.images.length > 0 ? (
                                                                 <img src={a.images[0].image} alt={a.name} className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <ImageIcon size={16} />
+                                                                <ImageIcon size={18} />
                                                             )}
-                                                            <div className="absolute bottom-0.5 right-0.5 bg-[#14532d] text-white text-[7px] font-black px-1 py-0.5 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <div className="absolute bottom-0.5 right-0.5 bg-[#14532d] text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 {a.star_category?.split(' ')[0]}★
                                                             </div>
                                                         </div>
-                                                        <div className="overflow-hidden">
-                                                            <h3 className="text-[12px] font-black text-gray-900 tracking-tight truncate uppercase leading-none mb-1">{a.name}</h3>
+                                                        <div className="min-w-0 overflow-hidden">
+                                                            <h3 className="text-[13px] font-black text-gray-900 tracking-tight truncate uppercase leading-none mb-1.5">{a.name}</h3>
                                                             <div className="flex items-center gap-1.5">
                                                                 <div className="flex text-amber-400">
                                                                     {Array.from({ length: parseInt(a.star_category) || 0 }).map((_, i) => (
-                                                                        <Star key={i} size={7} fill="currentColor" strokeWidth={0} />
+                                                                        <Star key={i} size={8} fill="currentColor" strokeWidth={0} />
                                                                     ))}
                                                                 </div>
-                                                                <span className="text-[8px] font-black text-gray-400 uppercase bg-gray-100 px-1 py-0.5 rounded">{a.star_category || 'N/A'}</span>
+                                                                <span className="text-[9px] font-black text-gray-400 uppercase bg-gray-100 px-1.5 py-0.5 rounded">{a.star_category || 'N/A'}</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-1">
+                                                    <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center gap-1.5 text-gray-600">
-                                                            <MapPin size={9} className="text-[#14532d]" />
-                                                            <span className="text-[10px] font-black uppercase">{a.city}</span>
+                                                            <MapPin size={11} className="text-[#14532d]" />
+                                                            <span className="text-[11px] font-black uppercase">{a.city}</span>
                                                         </div>
-                                                        <p className="text-[8px] font-bold text-gray-400 uppercase overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]" title={a.address}>
+                                                        <p className="text-[9px] font-bold text-gray-400 uppercase overflow-hidden text-ellipsis whitespace-nowrap max-w-[140px]" title={a.address}>
                                                             {a.address || 'No address'}
                                                         </p>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-1">
+                                                    <div className="flex flex-col gap-1.5">
                                                         {a.phone && (
                                                             <div className="flex items-center gap-1.5">
-                                                                <Phone size={9} className="text-blue-500" />
-                                                                <span className="text-[9px] font-bold text-gray-600">{a.phone}</span>
+                                                                <Phone size={11} className="text-blue-500" />
+                                                                <span className="text-[10px] font-bold text-gray-600">{a.phone}</span>
                                                             </div>
                                                         )}
                                                         {a.email && (
                                                             <div className="flex items-center gap-1.5">
-                                                                <Mail size={9} className="text-purple-500" />
-                                                                <span className="text-[9px] font-bold text-gray-500 truncate max-w-[120px]">{a.email}</span>
+                                                                <Mail size={11} className="text-purple-500" />
+                                                                <span className="text-[10px] font-bold text-gray-500 truncate max-w-[120px]">{a.email}</span>
                                                             </div>
                                                         )}
                                                     </div>

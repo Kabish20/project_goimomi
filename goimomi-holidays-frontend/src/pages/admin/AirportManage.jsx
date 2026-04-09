@@ -172,14 +172,14 @@ const AirportManage = () => {
 
             {/* Table Card */}
             <div className="bg-white rounded-[2rem] border border-gray-100 shadow-2xl overflow-hidden min-h-[500px]">
-              <div className="table-responsive">
+              <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/50">
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50">Airport & Code</th>
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50">City / Location</th>
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50">Region</th>
-                      <th className="px-6 py-3.5 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 text-right">Actions</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[200px]">Airport & Code</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[180px]">City / Location</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 min-w-[180px]">Region</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-gray-50 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -204,32 +204,32 @@ const AirportManage = () => {
                     ) : (
                       filtered.map((item) => (
                         <tr key={item.id} className="group hover:bg-[#fcfdfc] transition-all">
-                          <td className="px-6 py-3">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-3.5">
-                              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 flex items-center justify-center text-blue-600 border border-blue-100/50 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
-                                <Plane size={14} />
+                              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 flex items-center justify-center text-blue-600 border border-blue-100/50 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                                <Plane size={15} />
                               </div>
                               <div className="min-w-0">
-                                <p className="text-[12px] font-black text-gray-900 tracking-tight leading-none mb-1 truncate uppercase">{item.name}</p>
-                                <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[8px] font-black tracking-widest border border-blue-100/50 uppercase">IATA: {item.iata_code}</span>
+                                <p className="text-[13px] font-black text-gray-900 tracking-tight leading-none mb-1.5 truncate uppercase" title={item.name}>{item.name}</p>
+                                <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[9px] font-black tracking-widest border border-blue-100/50 uppercase">IATA: {item.iata_code}</span>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 border border-orange-100/50">
-                                <MapPin size={10} />
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 border border-orange-100/50">
+                                <MapPin size={12} />
                               </div>
                               <div className="min-w-0">
-                                <span className="text-[11px] font-bold text-gray-800 truncate block">{item.city_name || "Unassigned"}</span>
-                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider">{item.country_name || "Unknown"}</span>
+                                <span className="text-[12px] font-bold text-gray-800 truncate block">{item.city_name || "Unassigned"}</span>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{item.country_name || "Unknown"}</span>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-3">
+                          <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Administrative Region</span>
-                              <span className="text-[11px] font-bold text-gray-700 uppercase">{item.region_name || "Global Region"}</span>
+                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5 whitespace-nowrap">Admin Region</span>
+                              <span className="text-[12px] font-bold text-gray-700 uppercase truncate">{item.region_name || "Global Region"}</span>
                             </div>
                           </td>
                           <td className="px-6 py-3 text-right">

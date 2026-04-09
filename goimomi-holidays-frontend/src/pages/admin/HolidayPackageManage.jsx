@@ -158,11 +158,11 @@ const HolidayPackageManage = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/50">
-                      <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Package Info</th>
-                      <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">Details</th>
-                      <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Pricing</th>
-                      <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-center">Status</th>
-                      <th className="px-6 py-4 text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Actions</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 min-w-[200px]">Package Info</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 min-w-[150px]">Details</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right min-w-[100px]">Pricing</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-center min-w-[100px]">Status</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -180,29 +180,29 @@ const HolidayPackageManage = () => {
                         <tr key={pkg.id} className="group hover:bg-[#fcfdfc] transition-colors border-b border-gray-50 last:border-0">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-11 h-11 rounded-xl bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-105 transition-transform flex items-center justify-center text-gray-300">
-                                <Package size={18} />
+                              <div className="w-11 h-11 rounded-xl bg-gray-50 overflow-hidden shrink-0 border border-gray-100 group-hover:scale-105 transition-transform flex items-center justify-center text-gray-400">
+                                <Package size={20} />
                               </div>
-                              <div className="overflow-hidden">
-                                <p className="text-xs font-black text-gray-900 tracking-tight truncate">{pkg.title || pkg.name}</p>
-                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">ID: #{pkg.h_id || pkg.id}</p>
+                              <div className="min-w-0 overflow-hidden">
+                                <p className="text-[13px] font-black text-gray-900 tracking-tight truncate uppercase" title={pkg.title || pkg.name}>{pkg.title || pkg.name}</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">ID: #{pkg.h_id || pkg.id}</p>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col gap-1.5">
                               <div className="flex items-center gap-2">
-                                <span className="px-2 py-0.5 rounded-md bg-green-50 text-[#14532d] text-[8px] font-black uppercase tracking-wider border border-green-100/50">
+                                <span className="px-2 py-0.5 rounded bg-green-50 text-[#14532d] text-[9px] font-black uppercase tracking-wider border border-green-100/50">
                                   {pkg.category || 'Global'}
                                 </span>
-                                <span className="text-[9px] font-bold text-gray-500 whitespace-nowrap">
+                                <span className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
                                   {pkg.days} Days / {pkg.starting_city}
                                 </span>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <p className="text-xs font-black text-gray-900 leading-none">₹{Number(pkg.Offer_price || pkg.offer_price || pkg.price || 0).toLocaleString('en-IN')}</p>
+                            <p className="text-[14px] font-black text-gray-900 leading-none">₹{Number(pkg.Offer_price || pkg.offer_price || pkg.price || 0).toLocaleString('en-IN')}</p>
                           </td>
                           <td className="px-6 py-4 text-center">
                             <button
