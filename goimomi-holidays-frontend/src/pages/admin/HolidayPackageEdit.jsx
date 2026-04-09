@@ -323,7 +323,7 @@ const HolidayPackageEdit = () => {
                 const [citiesRes, regionsRes, destRes, suppliersRes, mastersRes, sightseeingMastersRes, mealMastersRes, hotelMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pickupPointsRes, pkgRes] = await Promise.all([
                     api.get('/api/cities/'),
                     api.get('/api/regions/'),
-                    api.get(`${API_BASE_URL}/destinations/`),
+                    api.get(`${API_BASE_URL}/regions/`),
                     api.get(`${API_BASE_URL}/suppliers/`),
                     api.get(`${API_BASE_URL}/itinerary-masters/`),
                     api.get(`${API_BASE_URL}/sightseeing-masters/`),
@@ -342,6 +342,7 @@ const HolidayPackageEdit = () => {
 
                 if (Array.isArray(citiesRes.data?.results || citiesRes.data)) setStartingCities(citiesRes.data?.results || citiesRes.data);
                 if (Array.isArray(destRes.data)) setDestinations(destRes.data);
+                else if (Array.isArray(regionsRes.data)) setDestinations(regionsRes.data);
                 if (Array.isArray(suppliersRes.data)) {
                     const filteredSuppliers = suppliersRes.data.filter(supplier =>
                         supplier.services && supplier.services.some(service => service.toLowerCase() === 'holidays')
@@ -489,14 +490,28 @@ const HolidayPackageEdit = () => {
                 if (pkg.itinerary && Array.isArray(pkg.itinerary)) {
                     setItineraryDays(pkg.itinerary.map(day => ({
                         day: day.day_number,
-                        title: day.title,
-                        description: day.description,
+                        title: day.title || "",
+                        description: day.description || "",
                         master_template: day.master_template || "",
-                        image: null, // We generally don't pre-fill file inputs. 
-                        existing_image: getImageUrl(day.image), // Can show preview if needed
+                        image: null, 
+                        existing_image: getImageUrl(day.image),
                         save_to_master: false,
                         details_json: day.details_json || { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] }
                     })));
+                } else {
+                    // Fallback: Create empty days based on package duration if itinerary is missing
+                    const dayCount = parseInt(pkg.days || 1, 10);
+                    const defaultDays = Array.from({ length: dayCount }, (_, i) => ({
+                        day: (i + 1).toString(),
+                        title: "",
+                        description: "",
+                        master_template: "",
+                        image: null,
+                        existing_image: "",
+                        save_to_master: false,
+                        details_json: { active_tab: 'day_itinerary', sightseeing: [""], transfers: [""], accommodations: [], meals: [""], vehicles: [""] }
+                    }));
+                    setItineraryDays(defaultDays);
                 }
 
                 // Inclusions

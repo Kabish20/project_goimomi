@@ -380,7 +380,7 @@ const HolidayPackageAdd = () => {
     try {
       const [hotelsRes, destsRes] = await Promise.all([
         api.get(`${API_BASE_URL}/hotel-masters/`),
-        api.get(`${API_BASE_URL}/destinations/`),
+        api.get(`${API_BASE_URL}/regions/`),
       ]);
       if (Array.isArray(hotelsRes.data)) {
         const destList = Array.isArray(destsRes.data) ? destsRes.data : [];
@@ -412,7 +412,7 @@ const HolidayPackageAdd = () => {
 
   const fetchDestinations = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/destinations/`);
+      const response = await api.get(`${API_BASE_URL}/regions/`);
       if (Array.isArray(response.data)) {
         setDestinations(response.data);
       }
