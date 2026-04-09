@@ -4,7 +4,10 @@ import json
 import sys
 
 # Add project root to sys.path
-sys.path.append('d:\\G\\goimomi-holidays-backend')
+if os.name == 'nt':
+    sys.path.append('d:\\G\\goimomi-holidays-backend')
+else:
+    sys.path.append('/home/ubuntu/project_goimomi/goimomi-holidays-backend')
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 django.setup()
@@ -12,7 +15,12 @@ django.setup()
 from Holidays.models import HolidayPackage, ItineraryDay, Inclusion, Exclusion, Highlight
 
 def restore_full():
-    json_path = 'd:/G/full_restoration_data.json'
+    # Detect if on Windows or Linux
+    if os.name == 'nt':
+        json_path = 'd:/G/full_restoration_data.json'
+    else:
+        json_path = '/home/ubuntu/project_goimomi/full_restoration_data.json'
+    
     if not os.path.exists(json_path):
         print(f"Error: {json_path} not found.")
         return
