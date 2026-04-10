@@ -527,12 +527,14 @@ class AirlineViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = Airline.objects.all().order_by('name')
     serializer_class = AirlineSerializer
+    pagination_class = None
 
 class SightseeingMasterViewSet(ModelViewSet):
     authentication_classes = []
     permission_classes = [AllowAny]
     queryset = SightseeingMaster.objects.all()
     serializer_class = SightseeingMasterSerializer
+    pagination_class = None
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -606,6 +608,7 @@ class AccommodationViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = Accommodation.objects.all().order_by('-created_at')
     serializer_class = AccommodationSerializer
+    pagination_class = None
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -642,6 +645,7 @@ class RoomTypeViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = RoomType.objects.all()
     serializer_class = RoomTypeSerializer
+    pagination_class = None
 
 class VehicleMasterViewSet(ModelViewSet):
     authentication_classes = []

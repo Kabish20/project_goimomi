@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react"; // casing fix
 import api from "../../api";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/admin/AdminSidebar";
@@ -338,46 +338,46 @@ const HolidayPackageEdit = () => {
                     api.get(`${API_BASE_URL}/packages/${id}/?all=true`),
                 ]);
 
-                if (Array.isArray(regionsRes.data)) setRegions(regionsRes.data);
+                setRegions(Array.isArray(regionsRes.data) ? regionsRes.data : (regionsRes.data?.results || []));
 
-                if (Array.isArray(citiesRes.data?.results || citiesRes.data)) setStartingCities(citiesRes.data?.results || citiesRes.data);
-                if (Array.isArray(destRes.data)) setDestinations(destRes.data);
-                else if (Array.isArray(regionsRes.data)) setDestinations(regionsRes.data);
-                if (Array.isArray(suppliersRes.data)) {
-                    const filteredSuppliers = suppliersRes.data.filter(supplier =>
-                        supplier.services && supplier.services.some(service => service.toLowerCase() === 'holidays')
-                    );
-                    setSuppliers(filteredSuppliers);
-                }
-                if (Array.isArray(mastersRes.data)) {
-                    const destList = Array.isArray(destRes.data) ? destRes.data : [];
-                    const enriched = mastersRes.data.map(m => ({
-                        ...m,
-                        destination_name: m.destination_name ||
-                            destList.find(d => d.id === m.destination)?.name || ''
-                    }));
-                    setItineraryMasters(enriched);
-                }
-                if (Array.isArray(sightseeingMastersRes.data)) setSightseeingMasters(sightseeingMastersRes.data);
-                if (Array.isArray(mealMastersRes.data)) setMealMasters(mealMastersRes.data);
-                if (Array.isArray(hotelMastersRes.data)) {
-                    const destList = Array.isArray(destRes.data) ? destRes.data : [];
-                    const enrichedHotels = hotelMastersRes.data.map(hm => ({
-                        ...hm,
-                        destination_name: hm.destination_name ||
-                            destList.find(d =>
-                                d.city?.toLowerCase() === hm.city?.toLowerCase() ||
-                                d.name?.toLowerCase() === hm.city?.toLowerCase()
-                            )?.name || ''
-                    }));
-                    setHotelMasters(enrichedHotels);
-                }
-                if (Array.isArray(airlinesRes.data)) setAirlines(airlinesRes.data);
-                if (Array.isArray(vehicleBrandsRes.data)) setVehicleBrands(vehicleBrandsRes.data);
-                if (Array.isArray(vehicleMastersRes.data)) setVehicleMasters(vehicleMastersRes.data);
-                if (Array.isArray(driverMastersRes.data)) setDriverMasters(driverMastersRes.data);
-                if (Array.isArray(roomTypesRes.data)) setRoomTypes(roomTypesRes.data);
-                if (Array.isArray(pickupPointsRes.data)) setPickupPoints(pickupPointsRes.data);
+                const citiesData = Array.isArray(citiesRes.data) ? citiesRes.data : (citiesRes.data?.results || []);
+                setStartingCities(citiesData);
+                
+                const destinationsData = Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []);
+                setDestinations(destinationsData);
+                const suppliersData = Array.isArray(suppliersRes.data) ? suppliersRes.data : (suppliersRes.data?.results || []);
+                const filteredSuppliers = suppliersData.filter(supplier =>
+                    supplier.services && supplier.services.some(service => service.toLowerCase() === 'holidays')
+                );
+                setSuppliers(filteredSuppliers);
+                const mastersData = Array.isArray(mastersRes.data) ? mastersRes.data : (mastersRes.data?.results || []);
+                const destList = Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []);
+                const enriched = mastersData.map(m => ({
+                    ...m,
+                    destination_name: m.destination_name ||
+                        destList.find(d => d.id === m.destination)?.name || ''
+                }));
+                setItineraryMasters(enriched);
+                setSightseeingMasters(Array.isArray(sightseeingMastersRes.data) ? sightseeingMastersRes.data : (sightseeingMastersRes.data?.results || []));
+                setMealMasters(Array.isArray(mealMastersRes.data) ? mealMastersRes.data : (mealMastersRes.data?.results || []));
+
+                const hotelsData = Array.isArray(hotelMastersRes.data) ? hotelMastersRes.data : (hotelMastersRes.data?.results || []);
+                const destListForHotels = Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []);
+                const enrichedHotels = hotelsData.map(hm => ({
+                    ...hm,
+                    destination_name: hm.destination_name ||
+                        destListForHotels.find(d =>
+                            d.city?.toLowerCase() === hm.city?.toLowerCase() ||
+                            d.name?.toLowerCase() === hm.city?.toLowerCase()
+                        )?.name || ''
+                }));
+                setHotelMasters(enrichedHotels);
+                setAirlines(Array.isArray(airlinesRes.data) ? airlinesRes.data : (airlinesRes.data?.results || []));
+                setVehicleBrands(Array.isArray(vehicleBrandsRes.data) ? vehicleBrandsRes.data : (vehicleBrandsRes.data?.results || []));
+                setVehicleMasters(Array.isArray(vehicleMastersRes.data) ? vehicleMastersRes.data : (vehicleMastersRes.data?.results || []));
+                setDriverMasters(Array.isArray(driverMastersRes.data) ? driverMastersRes.data : (driverMastersRes.data?.results || []));
+                setRoomTypes(Array.isArray(roomTypesRes.data) ? roomTypesRes.data : (roomTypesRes.data?.results || []));
+                setPickupPoints(Array.isArray(pickupPointsRes.data) ? pickupPointsRes.data : (pickupPointsRes.data?.results || []));
 
                 // Populate Form Data
                 const pkg = pkgRes.data;

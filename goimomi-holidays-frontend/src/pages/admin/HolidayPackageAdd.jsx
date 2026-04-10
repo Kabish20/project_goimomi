@@ -309,12 +309,11 @@ const HolidayPackageAdd = () => {
   const fetchSuppliers = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/suppliers/`);
-      if (Array.isArray(response.data)) {
-        const filteredSuppliers = response.data.filter(supplier =>
-          supplier.services && supplier.services.some(service => service.toLowerCase() === 'holidays')
-        );
-        setSuppliers(filteredSuppliers);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      const filteredSuppliers = data.filter(supplier =>
+        supplier.services && supplier.services.some(service => service.toLowerCase() === 'holidays')
+      );
+      setSuppliers(filteredSuppliers);
     } catch (err) {
       console.error("Error fetching suppliers:", err);
     }
@@ -335,9 +334,8 @@ const HolidayPackageAdd = () => {
   const fetchRegions = async () => {
     try {
       const response = await api.get('/api/regions/');
-      if (Array.isArray(response.data)) {
-        setRegions(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setRegions(data);
     } catch (err) {
       console.error("Error fetching regions:", err);
     }
@@ -368,9 +366,8 @@ const HolidayPackageAdd = () => {
   const fetchRoomTypes = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/room-types/`);
-      if (Array.isArray(response.data)) {
-        setRoomTypes(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setRoomTypes(data);
     } catch (err) {
       console.error("Error fetching room types:", err);
     }
@@ -382,18 +379,18 @@ const HolidayPackageAdd = () => {
         api.get(`${API_BASE_URL}/hotel-masters/`),
         api.get(`${API_BASE_URL}/regions/`),
       ]);
-      if (Array.isArray(hotelsRes.data)) {
-        const destList = Array.isArray(destsRes.data) ? destsRes.data : [];
-        const enriched = hotelsRes.data.map(hm => ({
-          ...hm,
-          destination_name: hm.destination_name ||
-            destList.find(d =>
-              d.city?.toLowerCase() === hm.city?.toLowerCase() ||
-              d.name?.toLowerCase() === hm.city?.toLowerCase()
-            )?.name || ''
-        }));
-        setHotelMasters(enriched);
-      }
+      const hotelsData = Array.isArray(hotelsRes.data) ? hotelsRes.data : (hotelsRes.data?.results || []);
+      const destList = Array.isArray(destsRes.data) ? destsRes.data : (destsRes.data?.results || []);
+      
+      const enriched = hotelsData.map(hm => ({
+        ...hm,
+        destination_name: hm.destination_name ||
+          destList.find(d =>
+            d.city?.toLowerCase() === hm.city?.toLowerCase() ||
+            d.name?.toLowerCase() === hm.city?.toLowerCase()
+          )?.name || ''
+      }));
+      setHotelMasters(enriched);
     } catch (err) {
       console.error("Error fetching hotel masters:", err);
     }
@@ -402,9 +399,8 @@ const HolidayPackageAdd = () => {
   const fetchPickupPoints = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/pickup-point-masters/`);
-      if (Array.isArray(response.data)) {
-        setPickupPoints(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setPickupPoints(data);
     } catch (err) {
       console.error("Error fetching pickup points:", err);
     }
@@ -413,9 +409,8 @@ const HolidayPackageAdd = () => {
   const fetchDestinations = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/regions/`);
-      if (Array.isArray(response.data)) {
-        setDestinations(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setDestinations(data);
     } catch (err) {
       console.error("Error fetching destinations:", err);
     }
@@ -425,9 +420,8 @@ const HolidayPackageAdd = () => {
   const fetchItineraryMasters = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/itinerary-masters/`);
-      if (Array.isArray(response.data)) {
-        setItineraryMasters(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setItineraryMasters(data);
     } catch (err) {
       console.error("Error fetching itinerary masters:", err);
     }
@@ -436,9 +430,8 @@ const HolidayPackageAdd = () => {
   const fetchSightseeingMasters = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/sightseeing-masters/`);
-      if (Array.isArray(response.data)) {
-        setSightseeingMasters(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setSightseeingMasters(data);
     } catch (err) {
       console.error("Error fetching sightseeing masters:", err);
     }
@@ -447,9 +440,8 @@ const HolidayPackageAdd = () => {
   const fetchAirlines = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/airlines/`);
-      if (Array.isArray(response.data)) {
-        setAirlines(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setAirlines(data);
     } catch (err) {
       console.error("Error fetching airlines:", err);
     }
@@ -458,9 +450,8 @@ const HolidayPackageAdd = () => {
   const fetchMealMasters = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/meal-masters/`);
-      if (Array.isArray(response.data)) {
-        setMealMasters(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setMealMasters(data);
     } catch (err) {
       console.error("Error fetching meal masters:", err);
     }
@@ -469,9 +460,8 @@ const HolidayPackageAdd = () => {
   const fetchVehicleMasters = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/vehicle-masters/`);
-      if (Array.isArray(response.data)) {
-        setVehicleMasters(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setVehicleMasters(data);
     } catch (err) {
       console.error("Error fetching vehicle masters:", err);
     }
@@ -480,9 +470,8 @@ const HolidayPackageAdd = () => {
   const fetchDriverMasters = async () => {
     try {
       const response = await api.get(`${API_BASE_URL}/driver-masters/`);
-      if (Array.isArray(response.data)) {
-        setDriverMasters(response.data);
-      }
+      const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+      setDriverMasters(data);
     } catch (err) {
       console.error("Error fetching driver masters:", err);
     }

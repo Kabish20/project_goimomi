@@ -374,9 +374,8 @@ const Holidays = () => {
       try {
         setRegionsLoading(true);
         const res = await api.get("/api/regions/");
-        if (Array.isArray(res.data)) {
-          setDestinationsList(res.data);
-        }
+        const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
+        setDestinationsList(data);
       } catch (err) {
         console.error("Error fetching regions:", err);
       } finally {

@@ -197,7 +197,7 @@ const Home = () => {
     const fetchHomeData = async () => {
       try {
         const visaRes = await api.get("/api/visas/?is_popular=true");
-        setPopularVisas(visaRes.data);
+        setPopularVisas(Array.isArray(visaRes.data) ? visaRes.data : (visaRes.data.results || []));
         setLoadingVisas(false);
       } catch (err) {
         console.error("Error fetching home data:", err);

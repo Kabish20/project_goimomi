@@ -32,7 +32,7 @@ const AirportManage = () => {
     try {
       setLoading(true);
       const response = await api.get("/api/airports/");
-      setAirports(response.data || []);
+      setAirports(Array.isArray(response.data) ? response.data : (response.data?.results || []));
     } catch (err) {
       console.error("Error fetching airports:", err);
     } finally {
@@ -43,7 +43,7 @@ const AirportManage = () => {
   const fetchCities = async (search = "") => {
     try {
       const response = await api.get(`/api/cities/${search ? `?search=${search}` : ""}`);
-      setCities(response.data || []);
+      setCities(Array.isArray(response.data) ? response.data : (response.data?.results || []));
     } catch (err) {
       console.error("Error fetching cities:", err);
     }

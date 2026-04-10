@@ -84,11 +84,11 @@ const HolidayDetails = () => {
       .catch((err) => console.error("Error fetching package details:", err));
 
     api.get("/api/hotel-masters/")
-      .then((res) => setAccommodations(res.data))
+      .then((res) => setAccommodations(Array.isArray(res.data) ? res.data : (res.data.results || [])))
       .catch((err) => console.error("Error fetching hotel masters:", err));
 
     api.get("/api/sightseeing-masters/")
-      .then((res) => setSightseeingMasters(res.data))
+      .then((res) => setSightseeingMasters(Array.isArray(res.data) ? res.data : (res.data.results || [])))
       .catch((err) => console.error("Error fetching sightseeing masters:", err));
 
     const handleClickOutside = (event) => {

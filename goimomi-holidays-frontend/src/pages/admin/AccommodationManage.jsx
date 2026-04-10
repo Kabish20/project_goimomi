@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; // casing fix
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { Edit2, Trash2, Plus, Search, MapPin, Star, Phone, Mail, Globe, Image as ImageIcon, X } from "lucide-react";
