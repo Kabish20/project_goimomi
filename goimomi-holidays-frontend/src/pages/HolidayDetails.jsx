@@ -3,6 +3,7 @@ import { Hotel, Star, MapPin, Info, Utensils, MessageCircle, FileDown, Eye, Arro
 import { useParams, useLocation } from "react-router-dom";
 import api from "../api";
 import FormModal from "../components/FormModal";
+import DownloadPDFModal from "../components/DownloadPDFModal";
 import usePageSEO from "../hooks/usePageSEO";
 import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
@@ -32,6 +33,7 @@ const HolidayDetails = () => {
   const [accommodations, setAccommodations] = useState([]);
   const [sightseeingMasters, setSightseeingMasters] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [pricePopupOpen, setPricePopupOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Itinerary");
   const [selectedTier, setSelectedTier] = useState(location.state?.selectedTier || "Standard");
@@ -83,9 +85,16 @@ const HolidayDetails = () => {
       .then((res) => setPkg(res.data))
       .catch((err) => console.error("Error fetching package details:", err));
 
-    api.get("/api/hotel-masters/")
-      .then((res) => setAccommodations(Array.isArray(res.data) ? res.data : (res.data.results || [])))
-      .catch((err) => console.error("Error fetching hotel masters:", err));
+    api.get("/api/accommodations/")
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
+        const enriched = data.map(acc => ({
+            ...acc,
+            stars: acc.star_category ? acc.star_category.split(' ')[0] : '3'
+        }));
+        setAccommodations(enriched);
+      })
+      .catch((err) => console.error("Error fetching accommodations:", err));
 
     api.get("/api/sightseeing-masters/")
       .then((res) => setSightseeingMasters(Array.isArray(res.data) ? res.data : (res.data.results || [])))
@@ -107,13 +116,36 @@ const HolidayDetails = () => {
     const sidebarWidth = 50;
     const padding = 15;
 
+    const addWrappedText = (text, x, currentY, maxWidth, fontSize = 10, fontStyle = "normal", color = [75, 85, 99]) => {
+      doc.setFont("helvetica", fontStyle);
+      doc.setFontSize(fontSize);
+      doc.setTextColor(color[0], color[1], color[2]);
+      const lines = doc.splitTextToSize(text, maxWidth);
+      let tempY = currentY;
+      
+      lines.forEach(line => {
+        if (tempY > pageHeight - 25) {
+          addFooter(doc, doc.internal.getNumberOfPages(), doc.internal.getNumberOfPages());
+          doc.addPage();
+          addHeader(doc, pkg.title);
+          tempY = 55;
+          doc.setFont("helvetica", fontStyle);
+          doc.setFontSize(fontSize);
+          doc.setTextColor(color[0], color[1], color[2]);
+        }
+        doc.text(line, x, tempY);
+        tempY += fontSize * 0.5;
+      });
+      return tempY;
+    };
+
     const addHeader = (doc, title) => {
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, pageWidth, 50, 'F');
-      doc.addImage(goimomilogo, 'PNG', padding, 5, 42, 40);
+      try { doc.addImage(goimomilogo, 'PNG', padding, 5, 42, 40); } catch(e){}
       doc.setTextColor(156, 163, 175);
       doc.setFontSize(8);
-      doc.text(title, pageWidth - padding, 12, { align: "right" });
+      doc.text(title || "Package Details", pageWidth - padding, 12, { align: "right" });
       doc.setDrawColor(243, 244, 246);
       doc.line(padding, 45, pageWidth - padding, 45);
     };
@@ -121,11 +153,11 @@ const HolidayDetails = () => {
     const addFooter = (doc, pageNum, totalPages) => {
       doc.setTextColor(156, 163, 175);
       doc.setFontSize(8);
-      doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - padding, pageHeight - 10, { align: "right" });
+      doc.text(`Page ${pageNum}`, pageWidth - padding, pageHeight - 10, { align: "right" });
       doc.text("© goimomi.com | +91 6382220393 | hello@goimomi.com", padding, pageHeight - 10);
     };
 
-    // PAGE 1: COVER - 2-column image sidebar
+    // PAGE 1: COVER
     doc.setFillColor(248, 250, 252);
     doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
     const baseImgs = [pdfImg1, pdfImg2, pdfImg3, pdfImg4, pdfImg5, pdfImg6, pdfImg7, pdfImg8, pdfImg9, pdfImg10, pdfImg11, pdfImg12, pdfImg13, pdfImg14, pdfImg15, pdfImg16];
@@ -137,20 +169,18 @@ const HolidayDetails = () => {
       try {
         doc.addImage(baseImgs[imgIndex % baseImgs.length], 'JPEG', 0, sidebarY, colW, imgSize, undefined, 'FAST');
         doc.addImage(baseImgs[(imgIndex + 1) % baseImgs.length], 'JPEG', colW, sidebarY, colW, imgSize, undefined, 'FAST');
-      } catch (e) { /* image not loaded */ }
-
+      } catch (e) { }
       sidebarY += imgSize;
       imgIndex += 2;
     }
 
     let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
-    try { doc.addImage(goimomilogo, 'PNG', centerX - 35, 30, 70, 70); } catch (e) { /* Logo error */ }
-
+    try { doc.addImage(goimomilogo, 'PNG', centerX - 35, 30, 70, 70); } catch (e) { }
 
     doc.setTextColor(31, 41, 55);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(24);
-    const titleLines = doc.splitTextToSize(pkg.title.toUpperCase(), pageWidth - sidebarWidth - 30);
+    const titleLines = doc.splitTextToSize((pkg.title || "").toUpperCase(), pageWidth - sidebarWidth - 30);
     doc.text(titleLines, centerX, 100, { align: "center" });
 
     doc.setTextColor(107, 114, 128);
@@ -158,68 +188,75 @@ const HolidayDetails = () => {
     doc.setFont("helvetica", "normal");
     doc.text(`${pkg.starting_city} (${pkg.days}D / ${pkg.nights || pkg.days - 1}N)`, centerX, 125, { align: "center" });
 
-
-
-
-    // PAGE 2
-    doc.addPage(); addHeader(doc, pkg.title);
-    let y = 35; doc.setTextColor(31, 41, 55); doc.setFontSize(16); doc.setFont("helvetica", "bold");
-    doc.text("Trip Overview", padding, y); y += 10;
-    doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(75, 85, 99);
+    // PAGE 2: Overview
+    doc.addPage(); 
+    addHeader(doc, pkg.title);
+    let y = 55; 
+    doc.setTextColor(20, 83, 45); doc.setFontSize(16); doc.setFont("helvetica", "bold");
+    doc.text("Trip Overview", padding, y); y += 12;
+    
     if (pkg.description) {
-      const descLines = doc.splitTextToSize(pkg.description, pageWidth - (padding * 2));
-      doc.text(descLines, padding, y); y += (descLines.length * 5) + 15;
+      y = addWrappedText(pkg.description, padding, y, pageWidth - (padding * 2), 10);
+      y += 10;
     }
+
     if (pkg.highlights && pkg.highlights.length > 0) {
-      doc.setTextColor(31, 41, 55); doc.setFontSize(14); doc.setFont("helvetica", "bold");
-      doc.text("Trip Highlights", padding, y); y += 8;
+      if (y > pageHeight - 40) { doc.addPage(); addHeader(doc, pkg.title); y = 55; }
+      doc.setTextColor(20, 83, 45); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("Trip Highlights", padding, y); y += 10;
+      
       pkg.highlights.forEach(h => {
-        doc.setFillColor(20, 83, 45); doc.circle(padding + 2, y - 1, 1, 'F');
-        doc.setTextColor(75, 85, 99); doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        doc.text(h.text, padding + 7, y); y += 7;
-        if (y > pageHeight - 30) { addFooter(doc, 2, 4); doc.addPage(); addHeader(doc, pkg.title); y = 35; }
+        doc.setFillColor(20, 83, 45); 
+        doc.circle(padding + 2, y - 1, 1, 'F');
+        y = addWrappedText(h.text, padding + 7, y, pageWidth - (padding * 2) - 10, 10);
+        y += 2;
       });
     }
-    addFooter(doc, 2, 4);
+    addFooter(doc, 2, 2);
 
-    // PAGE 3
-    doc.addPage(); addHeader(doc, "Day Wise Itinerary"); y = 35;
+    // PAGE 3: Itinerary
+    doc.addPage(); addHeader(doc, "Day Wise Itinerary"); y = 55;
     if (pkg.itinerary && pkg.itinerary.length > 0) {
       pkg.itinerary.forEach((day) => {
-        doc.setFillColor(243, 244, 246); doc.rect(padding, y, pageWidth - (padding * 2), 10, 'F');
-        doc.setTextColor(20, 83, 45); doc.setFontSize(11); doc.setFont("helvetica", "bold");
-        doc.text(`DAY ${day.day_number}: ${day.title}`, padding + 5, y + 7); y += 15;
-        if (day.description) {
-          doc.setTextColor(75, 85, 99); doc.setFontSize(9); doc.setFont("helvetica", "normal");
-          const splitDesc = doc.splitTextToSize(day.description, pageWidth - (padding * 2) - 10);
-          doc.text(splitDesc, padding + 5, y); y += (splitDesc.length * 4.5) + 10;
+        if (y > pageHeight - 50) { 
+           addFooter(doc, doc.internal.getNumberOfPages(), doc.internal.getNumberOfPages());
+           doc.addPage(); addHeader(doc, "Day Wise Itinerary"); y = 55; 
         }
-        if (y > pageHeight - 40) { addFooter(doc, 3, 4); doc.addPage(); addHeader(doc, "Day Wise Itinerary (Contd.)"); y = 35; }
+        doc.setFillColor(243, 244, 246); doc.rect(padding, y - 5, pageWidth - (padding * 2), 10, 'F');
+        doc.setTextColor(20, 83, 45); doc.setFontSize(11); doc.setFont("helvetica", "bold");
+        doc.text(`DAY ${day.day_number}: ${day.title}`, padding + 5, y + 2); y += 10;
+        
+        if (day.description) {
+          y = addWrappedText(day.description, padding + 5, y, pageWidth - (padding * 2) - 10, 9);
+          y += 5;
+        }
       });
     }
-    addFooter(doc, 3, 4);
+    addFooter(doc, 3, 3);
 
-    // PAGE 4
-    doc.addPage(); addHeader(doc, "Policies & Details"); y = 35;
+    // PAGE 4: Policies
+    doc.addPage(); addHeader(doc, "Policies & Details"); y = 55;
     if (pkg.inclusions && pkg.inclusions.length > 0) {
       doc.setTextColor(20, 83, 45); doc.setFontSize(14); doc.setFont("helvetica", "bold");
       doc.text("Inclusions", padding, y); y += 10;
       pkg.inclusions.forEach(inc => {
-        doc.setTextColor(75, 85, 99); doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        doc.text(`• ${inc.text}`, padding + 5, y); y += 7;
+        y = addWrappedText(`• ${inc.text}`, padding + 5, y, pageWidth - (padding * 2) - 10, 10);
+        y += 2;
       });
-      y += 15;
+      y += 5;
     }
+    
     if (pkg.exclusions && pkg.exclusions.length > 0) {
+      if (y > pageHeight - 40) { doc.addPage(); addHeader(doc, pkg.title); y = 55; }
       doc.setTextColor(220, 38, 38); doc.setFontSize(14); doc.setFont("helvetica", "bold");
       doc.text("Exclusions", padding, y); y += 10;
       pkg.exclusions.forEach(exc => {
-        doc.setTextColor(75, 85, 99); doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        doc.text(`• ${exc.text}`, padding + 5, y); y += 7;
+        y = addWrappedText(`• ${exc.text}`, padding + 5, y, pageWidth - (padding * 2) - 10, 10);
+        y += 2;
       });
     }
     addFooter(doc, 4, 4);
-    doc.save(`GoImomi_${pkg.title.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`GoImomi_${(pkg.title || "Package").replace(/\s+/g, '_')}.pdf`);
   };
 
   if (!pkg) return <div className="text-center mt-20">Loading...</div>;
@@ -530,8 +567,8 @@ const HolidayDetails = () => {
 
                     return (
                       <div key={`hotel-${i}`} className="border border-gray-100 rounded-xl p-3 bg-white mb-2 shadow-sm w-full transition-all hover:border-green-100">
-                        <h4 className="text-[13px] font-black text-gray-900 mb-1 leading-tight">
-                          {(h.hotelName || master?.name || "Premium Hotel").substring(0, 25)}
+                        <h4 className="text-[13px] font-bold text-gray-900 mb-1 leading-tight">
+                          {h.hotelName || master?.name || "Premium Hotel"}
                         </h4>
 
                         <div className="flex items-center gap-1 mb-1.5 pb-1.5 border-b border-gray-50">
@@ -759,7 +796,7 @@ const HolidayDetails = () => {
 
           {/* Download Button */}
           <button
-            onClick={() => downloadPackagePDF(pkg)}
+            onClick={() => setIsDownloadModalOpen(true)}
             className="w-full bg-white text-[#16a34a] border border-[#16a34a] py-2 rounded-lg mt-2 text-[11px] font-black hover:bg-green-50 transition-all uppercase tracking-widest flex items-center justify-center gap-1.5"
           >
             <FileDown size={14} />
@@ -767,6 +804,16 @@ const HolidayDetails = () => {
           </button>
         </div>
       </div>
+
+      <DownloadPDFModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        packageName={pkg?.title}
+        onDownload={(formData) => {
+          console.log("PDF Lead collected:", formData);
+          downloadPackagePDF(pkg);
+        }}
+      />
 
       <FormModal
         isOpen={isModalOpen}

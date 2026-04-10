@@ -6,6 +6,7 @@ import usePageSEO from "../hooks/usePageSEO";
 import { getImageUrl } from "../utils/imageUtils";
 import jsPDF from "jspdf";
 import FormModal from "../components/FormModal";
+import DownloadPDFModal from "../components/DownloadPDFModal";
 import goimomilogo from "../assets/goimomilogo.png";
 import pdfImg1 from "../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
 import pdfImg2 from "../assets/pdf/Egypt.jpeg";
@@ -341,6 +342,13 @@ const Holidays = () => {
   const [selectedPkgTitle, setSelectedPkgTitle] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewDetailsPkg, setViewDetailsPkg] = useState(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [downloadingPkg, setDownloadingPkg] = useState(null);
+
+  const openDownloadModal = (pkg) => {
+    setDownloadingPkg(pkg);
+    setIsDownloadModalOpen(true);
+  };
 
   const handleOpenPreview = async (pkg, tier = "Standard") => {
     setSelectedPkgTitle(pkg.title);
@@ -579,18 +587,19 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
       y += 10;
 
       pkg.highlights.forEach(h => {
-        doc.setFillColor(20, 83, 45); // Goimomi Green
+        const splitText = doc.splitTextToSize(h.text, pageWidth - (padding * 2) - 10);
+        doc.setFillColor(20, 83, 45); 
         doc.circle(padding + 2, y - 1, 1, 'F');
-        doc.setTextColor(75, 85, 99);
-        doc.setFontSize(10);
+        doc.setTextColor(75, 85, 99); 
+        doc.setFontSize(10); 
         doc.setFont("helvetica", "normal");
-        doc.text(h.text, padding + 7, y);
-        y += 7;
-        if (y > pageHeight - 30) {
-          addFooter(doc, 2, 4);
-          doc.addPage();
-          addHeader(doc, pkg.title);
-          y = 35;
+        doc.text(splitText, padding + 7, y); 
+        y += (splitText.length * 5) + 2; 
+        if (y > pageHeight - 30) { 
+          addFooter(doc, 2, 4); 
+          doc.addPage(); 
+          addHeader(doc, pkg.title); 
+          y = 35; 
         }
       });
     }
@@ -649,9 +658,20 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       pkg.inclusions.forEach(inc => {
-        doc.text(`• ${inc.text}`, padding + 5, y);
-        y += 7;
-        if (y > pageHeight - 30) { doc.addPage(); y = 35; }
+        const splitInc = doc.splitTextToSize(`• ${inc.text}`, pageWidth - (padding * 2) - 10);
+        doc.setTextColor(75, 85, 99); 
+        doc.setFontSize(10); 
+        doc.setFont("helvetica", "normal");
+        doc.text(splitInc, padding + 5, y); 
+        y += (splitInc.length * 5) + 2;
+        if (y > pageHeight - 30) { 
+          addFooter(doc, 4, 4);
+          doc.addPage(); 
+          addHeader(doc, "Package Details (Contd.)"); 
+          y = 35; 
+          doc.setTextColor(20, 83, 45); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+          doc.text("What's Included (Contd.)", padding, y); y += 10;
+        }
       });
       y += 15;
     }
@@ -668,9 +688,20 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       pkg.exclusions.forEach(exc => {
-        doc.text(`• ${exc.text}`, padding + 5, y);
-        y += 7;
-        if (y > pageHeight - 30) { doc.addPage(); y = 35; }
+        const splitExc = doc.splitTextToSize(`• ${exc.text}`, pageWidth - (padding * 2) - 10);
+        doc.setTextColor(75, 85, 99); 
+        doc.setFontSize(10); 
+        doc.setFont("helvetica", "normal");
+        doc.text(splitExc, padding + 5, y); 
+        y += (splitExc.length * 5) + 2;
+        if (y > pageHeight - 30) { 
+          addFooter(doc, 4, 4);
+          doc.addPage(); 
+          addHeader(doc, "Package Details (Contd.)"); 
+          y = 35; 
+          doc.setTextColor(220, 38, 38); doc.setFontSize(14); doc.setFont("helvetica", "bold");
+          doc.text("What's Excluded (Contd.)", padding, y); y += 10;
+        }
       });
     }
 
@@ -1028,13 +1059,23 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 navigate={navigate}
                 generateShareText={generateShareText}
                 setEmailModalPkg={setEmailModalPkg}
-                downloadPackagePDF={downloadPackagePDF}
+                downloadPackagePDF={openDownloadModal}
                 setViewDetailsPkg={handleOpenPreview}
               />
             ))}
           </div>
         )}
       </div>
+
+      <DownloadPDFModal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        packageName={downloadingPkg?.title}
+        onDownload={(formData) => {
+          console.log("PDF Lead collected:", formData);
+          downloadPackagePDF(downloadingPkg);
+        }}
+      />
 
       <FormModal 
         isOpen={isModalOpen} 

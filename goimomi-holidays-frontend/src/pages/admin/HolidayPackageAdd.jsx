@@ -376,7 +376,7 @@ const HolidayPackageAdd = () => {
   const fetchAccommodations = async () => {
     try {
       const [hotelsRes, destsRes] = await Promise.all([
-        api.get(`${API_BASE_URL}/hotel-masters/`),
+        api.get(`${API_BASE_URL}/accommodations/`),
         api.get(`${API_BASE_URL}/regions/`),
       ]);
       const hotelsData = Array.isArray(hotelsRes.data) ? hotelsRes.data : (hotelsRes.data?.results || []);
@@ -384,6 +384,7 @@ const HolidayPackageAdd = () => {
       
       const enriched = hotelsData.map(hm => ({
         ...hm,
+        stars: hm.star_category ? hm.star_category.split(' ')[0] : (hm.stars || '3'), // Map star_category or fallback
         destination_name: hm.destination_name ||
           destList.find(d =>
             d.city?.toLowerCase() === hm.city?.toLowerCase() ||
@@ -2067,19 +2068,29 @@ const HolidayPackageAdd = () => {
                                       <button
                                         type="button"
                                         onClick={async () => {
-                                          if (!newHotelForm.name.trim() || !newHotelForm.city.trim()) { alert('Hotel Name and City are required.'); return; }
+                                          if (!newHotelForm.name.trim() || !newHotelForm.city.trim()) { 
+                                            alert('Hotel Name and City are required.'); 
+                                            return; 
+                                          }
                                           try {
                                             const fd = new FormData();
                                             fd.append('name', newHotelForm.name);
-                                            fd.append('stars', newHotelForm.stars);
+                                            fd.append('star_category', newHotelForm.stars + " Star"); // Map to Accommodation field
                                             fd.append('city', newHotelForm.city);
                                             if (newHotelForm.address) fd.append('address', newHotelForm.address);
                                             if (newHotelForm.latitude) fd.append('latitude', newHotelForm.latitude);
                                             if (newHotelForm.longitude) fd.append('longitude', newHotelForm.longitude);
-                                            if (newHotelForm.image) fd.append('image', newHotelForm.image);
-                                            const res = await api.post('/api/hotel-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                            setHotelMasters(prev => [...prev, res.data]);
-                                            const master = res.data;
+                                            if (newHotelForm.image) fd.append('accommodation_images', newHotelForm.image); // Map to Accommodation field
+
+                                            const res = await api.post('/api/accommodations/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                            
+                                            // Enrich for local state
+                                            const master = {
+                                              ...res.data,
+                                              stars: res.data.star_category ? res.data.star_category.split(' ')[0] : '3'
+                                            };
+                                            
+                                            setHotelMasters(prev => [...prev, master]);
                                             const updated = [...dayAccs, {
                                               hotelId: master.id,
                                               hotelName: master.name,

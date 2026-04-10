@@ -77,8 +77,8 @@ const AccommodationManage = () => {
                 <div className="flex-1 overflow-y-auto p-4 md:p-5">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
                         <div>
-                            <h1 className="text-xl font-black tracking-tight leading-none mb-1">Accommodations</h1>
-                            <p className="text-gray-400 text-[8px] font-bold uppercase tracking-[0.15em]">Manage stay properties</p>
+                            <h1 className="text-lg font-black tracking-tight leading-none mb-0.5">Accommodations</h1>
+                            <p className="text-gray-400 text-[7px] font-bold uppercase tracking-[0.15em]">Manage stay properties</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="relative group">
@@ -118,10 +118,10 @@ const AccommodationManage = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50/30">
-                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[200px]">Property Information</th>
-                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[150px]">Location</th>
-                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[150px]">Contact info</th>
-                                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 text-right">Actions</th>
+                                        <th className="px-4 py-3 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[200px]">Property Information</th>
+                                        <th className="px-4 py-3 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[150px]">Location</th>
+                                        <th className="px-4 py-3 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 min-w-[150px]">Contact info</th>
+                                        <th className="px-4 py-3 text-[9px] font-black text-gray-400 uppercase tracking-[0.1em] border-b border-gray-100/50 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
@@ -138,11 +138,11 @@ const AccommodationManage = () => {
                                         <tr>
                                             <td colSpan="4" className="px-8 py-32 text-center">
                                                 <div className="flex flex-col items-center gap-3 opacity-30">
-                                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                                                        <Search size={32} />
+                                                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-1">
+                                                        <Search size={24} />
                                                     </div>
-                                                    <p className="font-black text-[12px] uppercase tracking-widest text-gray-500">No properties found</p>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase">Try a different search term or add a new stay</p>
+                                                    <p className="font-black text-[11px] uppercase tracking-widest text-gray-500">No properties found</p>
+                                                    <p className="text-[9px] font-bold text-gray-400 uppercase">Try a different search term or add a new stay</p>
                                                 </div>
                                             </td>
                                         </tr>
@@ -162,7 +162,7 @@ const AccommodationManage = () => {
                                                             </div>
                                                         </div>
                                                         <div className="min-w-0 overflow-hidden">
-                                                            <h3 className="text-[13px] font-black text-gray-900 tracking-tight truncate uppercase leading-none mb-1.5">{a.name}</h3>
+                                                            <h3 className="text-[11px] font-black text-gray-900 tracking-tight uppercase leading-snug mb-1">{a.name}</h3>
                                                             <div className="flex items-center gap-1.5">
                                                                 <div className="flex text-amber-400">
                                                                     {Array.from({ length: parseInt(a.star_category) || 0 }).map((_, i) => (

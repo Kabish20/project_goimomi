@@ -351,6 +351,32 @@ const HolidayPackageEdit = () => {
                 );
                 setSuppliers(filteredSuppliers);
                 const mastersData = Array.isArray(mastersRes.data) ? mastersRes.data : (mastersRes.data?.results || []);
+                
+                const fetchAccommodations = async () => {
+                    try {
+                      const [hotelsRes, destsRes] = await Promise.all([
+                        api.get(`${API_BASE_URL}/accommodations/`),
+                        api.get(`${API_BASE_URL}/regions/`),
+                      ]);
+                      const hotelsData = Array.isArray(hotelsRes.data) ? hotelsRes.data : (hotelsRes.data?.results || []);
+                      const destList = Array.isArray(destsRes.data) ? destsRes.data : (destsRes.data?.results || []);
+                
+                      const enriched = hotelsData.map(hm => ({
+                        ...hm,
+                        stars: hm.star_category ? hm.star_category.split(' ')[0] : (hm.stars || '3'), // Map star_category or fallback
+                        destination_name: hm.destination_name ||
+                          destList.find(d =>
+                            d.city?.toLowerCase() === hm.city?.toLowerCase() ||
+                            d.name?.toLowerCase() === hm.city?.toLowerCase()
+                          )?.name || ''
+                      }));
+                      setHotelMasters(enriched);
+                    } catch (err) {
+                      console.error("Error fetching hotel masters:", err);
+                    }
+                  };
+                  fetchAccommodations();
+
                 const destList = Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []);
                 const enriched = mastersData.map(m => ({
                     ...m,
@@ -361,17 +387,6 @@ const HolidayPackageEdit = () => {
                 setSightseeingMasters(Array.isArray(sightseeingMastersRes.data) ? sightseeingMastersRes.data : (sightseeingMastersRes.data?.results || []));
                 setMealMasters(Array.isArray(mealMastersRes.data) ? mealMastersRes.data : (mealMastersRes.data?.results || []));
 
-                const hotelsData = Array.isArray(hotelMastersRes.data) ? hotelMastersRes.data : (hotelMastersRes.data?.results || []);
-                const destListForHotels = Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []);
-                const enrichedHotels = hotelsData.map(hm => ({
-                    ...hm,
-                    destination_name: hm.destination_name ||
-                        destListForHotels.find(d =>
-                            d.city?.toLowerCase() === hm.city?.toLowerCase() ||
-                            d.name?.toLowerCase() === hm.city?.toLowerCase()
-                        )?.name || ''
-                }));
-                setHotelMasters(enrichedHotels);
                 setAirlines(Array.isArray(airlinesRes.data) ? airlinesRes.data : (airlinesRes.data?.results || []));
                 setVehicleBrands(Array.isArray(vehicleBrandsRes.data) ? vehicleBrandsRes.data : (vehicleBrandsRes.data?.results || []));
                 setVehicleMasters(Array.isArray(vehicleMastersRes.data) ? vehicleMastersRes.data : (vehicleMastersRes.data?.results || []));
@@ -776,7 +791,7 @@ const HolidayPackageEdit = () => {
         const currentVal = lines.join('\n');
         // Find start of current line
         const lineStart = currentVal.lastIndexOf('\n', start - 1) + 1;
-        const insertText = start === 0 || currentVal[start - 1] === '\n' ? 'â€¢ ' : '\nâ€¢ ';
+        const insertText = start === 0 || currentVal[start - 1] === '\n' ? '• ' : '\n• ';
         const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(start);
         setter(newVal.split('\n'));
         setTimeout(() => {
@@ -2490,9 +2505,9 @@ const HolidayPackageEdit = () => {
                                                                                         const masterData = hotelMasters.find(h => h.id === acc.hotelId || h.name === acc.hotelName);
                                                                                         return (
                                                                                             <div key={accIdx} className="border border-gray-200 rounded-sm bg-white p-3 flex gap-3 group relative">
-                                                                                                {masterData?.image && (
+                                                                                                {(masterData?.images?.length > 0 || masterData?.image) && (
                                                                                                     <div className="w-10 h-10 rounded-sm overflow-hidden shrink-0 bg-gray-100">
-                                                                                                        <img src={masterData.image} alt={acc.hotelName} className="w-full h-full object-cover" />
+                                                                                                        <img src={masterData.images?.length > 0 ? getImageUrl(masterData.images[0].image) : getImageUrl(masterData.image)} alt={acc.hotelName} className="w-full h-full object-cover" />
                                                                                                     </div>
                                                                                                 )}
                                                                                                 <div className="flex-1 min-w-0">
@@ -2611,19 +2626,29 @@ const HolidayPackageEdit = () => {
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={async () => {
-                                                                                            if (!newHotelForm.name.trim() || !newHotelForm.city.trim()) { alert('Hotel Name and City are required.'); return; }
+                                                                                            if (!newHotelForm.name.trim() || !newHotelForm.city.trim()) { 
+                                                                                                alert('Hotel Name and City are required.'); 
+                                                                                                return; 
+                                                                                            }
                                                                                             try {
                                                                                                 const fd = new FormData();
                                                                                                 fd.append('name', newHotelForm.name);
-                                                                                                fd.append('stars', newHotelForm.stars);
+                                                                                                fd.append('star_category', newHotelForm.stars + " Star"); // Map to Accommodation field
                                                                                                 fd.append('city', newHotelForm.city);
                                                                                                 if (newHotelForm.address) fd.append('address', newHotelForm.address);
                                                                                                 if (newHotelForm.latitude) fd.append('latitude', newHotelForm.latitude);
                                                                                                 if (newHotelForm.longitude) fd.append('longitude', newHotelForm.longitude);
-                                                                                                if (newHotelForm.image) fd.append('image', newHotelForm.image);
-                                                                                                const res = await api.post('/api/hotel-masters/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                                                                                setHotelMasters(prev => [...prev, res.data]);
-                                                                                                const master = res.data;
+                                                                                                if (newHotelForm.image) fd.append('accommodation_images', newHotelForm.image); // Map to Accommodation field
+                                                                                                
+                                                                                                const res = await api.post('/api/accommodations/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                                                                                                
+                                                                                                // Enrich the new hotel master data for local state
+                                                                                                const master = {
+                                                                                                    ...res.data,
+                                                                                                    stars: res.data.star_category ? res.data.star_category.split(' ')[0] : '3'
+                                                                                                };
+                                                                                                
+                                                                                                setHotelMasters(prev => [...prev, master]);
                                                                                                 const updated = [...dayAccs, {
                                                                                                     hotelId: master.id,
                                                                                                     hotelName: master.name,

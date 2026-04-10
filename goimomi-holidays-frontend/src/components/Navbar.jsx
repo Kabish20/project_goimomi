@@ -135,11 +135,6 @@ const Navbar = () => {
                     setDesktopUmrah(false);
                     setDesktopHoliday(false);
                   }}
-                  onMouseEnter={() => {
-                    setDesktopBusiness(true);
-                    setDesktopUmrah(false);
-                    setDesktopHoliday(false);
-                  }}
                 >
                   <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-9 h-9 mb-1 object-contain" />
                   <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5"
@@ -158,7 +153,6 @@ const Navbar = () => {
 
                 {desktopBusiness && (
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl"
-                    onMouseLeave={() => setDesktopBusiness(false)}
                   >
                     <NavLink
                       to="/businesshome"
