@@ -88,11 +88,11 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
 
   const handleZohoSubmit = (e) => {
     const form = formRef.current;
-    const mndFileds = ['First Name', 'Last Name', 'Email', 'Mobile'];
+    const mndFields = ['First Name', 'Last Name', 'Email', 'Mobile'];
     const fldLangVal = ['FIRST NAME', 'LAST NAME', 'EMAIL ADDRESS', 'PHONE NUMBER'];
 
-    for (let i = 0; i < mndFileds.length; i++) {
-        const fieldObj = form[mndFileds[i]];
+    for (let i = 0; i < mndFields.length; i++) {
+        const fieldObj = form[mndFields[i]];
         if (fieldObj) {
             if (fieldObj.value.trim().length === 0) {
                 alert(fldLangVal[i] + ' cannot be empty.');

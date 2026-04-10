@@ -127,47 +127,47 @@ const Navbar = () => {
 
             {/* Business Travel Dropdown */}
             <div className="relative" ref={businessRef}>
-                <button 
-                  type="button"
-                  className={animatedButton}
-                  onClick={() => {
-                    setDesktopBusiness(!desktopBusiness);
-                    setDesktopUmrah(false);
-                    setDesktopHoliday(false);
-                  }}
+              <button
+                type="button"
+                className={animatedButton}
+                onClick={() => {
+                  setDesktopBusiness(!desktopBusiness);
+                  setDesktopUmrah(false);
+                  setDesktopHoliday(false);
+                }}
+              >
+                <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-9 h-9 mb-1 object-contain" />
+                <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5"
                 >
-                  <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-9 h-9 mb-1 object-contain" />
-                  <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5"
+                  Business Travel
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-3 w-3 transition-transform duration-300 ${desktopBusiness ? "rotate-180" : "rotate-0"}`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </span>
+              </button>
+
+              {desktopBusiness && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl"
+                >
+                  <NavLink
+                    to="/businesshome"
+                    onClick={() => setDesktopBusiness(false)}
+                    className="block px-4 py-2 text-xs font-black text-[#14532d] hover:bg-goimomi-light text-left w-full uppercase tracking-widest border-b"
+                  >
+                    Business Packages
+                  </NavLink>
+                  <NavLink
+                    to="/holidays?category=Business Travel"
+                    onClick={() => setDesktopBusiness(false)}
+                    className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
                   >
                     Business Travel
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-3 w-3 transition-transform duration-300 ${desktopBusiness ? "rotate-180" : "rotate-0"}`}
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </span>
-                </button>
-
-                {desktopBusiness && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl"
-                  >
-                    <NavLink
-                      to="/businesshome"
-                      onClick={() => setDesktopBusiness(false)}
-                      className="block px-4 py-2 text-xs font-black text-[#14532d] hover:bg-goimomi-light text-left w-full uppercase tracking-widest border-b"
-                    >
-                      Business Packages
-                    </NavLink>
-                    <NavLink
-                      to="/holidays?category=Business Travel"
-                      onClick={() => setDesktopBusiness(false)}
-                      className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
-                    >
-                      Business Travel
-                    </NavLink>
+                  </NavLink>
                   <NavLink
                     to="/canton"
                     onClick={() => setDesktopBusiness(false)}
@@ -441,7 +441,7 @@ const Navbar = () => {
                       Umrah Packages Home
                     </NavLink>
                     <NavLink to="/holidays?category=Umrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
-                      Umrah 
+                      Umrah
                     </NavLink>
                     <NavLink to="/customizedumrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
                       Customized Umrah

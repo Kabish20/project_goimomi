@@ -81,97 +81,7 @@ import Bahrain from "../assets/Visa Deals/Bahrain.png";
 import Azerbaijan from "../assets/Visa Deals/Azerbaijan.png";
 import Antigua from "../assets/Visa Deals/Antigua & Barbuda.png";
 
-// WhatsApp Chat Widget Component
-const WhatsAppWidget = ({ isOpen, onClose }) => {
-  const widgetRef = useRef(null);
-  const phoneNumber = '916382220393';
-  const defaultMessage = 'Hello! I have a question about your services.';
 
-  // Close when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (widgetRef.current && !widgetRef.current.contains(event.target)) {
-        // Check if the click is not on the WhatsApp button
-        const whatsappButton = document.querySelector('.whatsapp-button');
-        if (whatsappButton && !whatsappButton.contains(event.target)) {
-          onClose();
-        }
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      ref={widgetRef}
-      className="fixed bottom-24 right-8 w-80 bg-white rounded-t-2xl shadow-2xl overflow-hidden z-50 border border-gray-200"
-    >
-      {/* Header */}
-      <div className="bg-green-500 text-white p-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="mr-2" viewBox="0 0 16 16">
-            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.92-3.558 7.94-7.93A7.898 7.898 0 0 0 13.6 2.326z" />
-          </svg>
-          <span className="font-semibold">WhatsApp Chat</span>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-white hover:text-gray-200"
-          aria-label="Close chat"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Chat Content */}
-      <div className="p-4 bg-gray-50 h-64 overflow-y-auto">
-        <div className="mb-4">
-          <div className="bg-green-100 rounded-lg p-3 inline-block max-w-xs">
-            <p className="text-sm">Hello! How can we help you today?</p>
-            <p className="text-xs text-gray-500 mt-1">Goimomi Holidays Support</p>
-          </div>
-        </div>
-        <p className="text-xs text-center text-gray-500 my-2">--- Start of conversation ---</p>
-      </div>
-
-      {/* Input Area */}
-      <div className="p-3 border-t border-gray-200 bg-white">
-        <div className="flex items-center">
-          <input
-            type="text"
-            className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-            placeholder="Type a message..."
-            value={defaultMessage}
-            readOnly
-          />
-          <a
-            href={`https://wa.me/${phoneNumber}?text=${encodeURIComponent(defaultMessage)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-r-lg"
-            aria-label="Send message on WhatsApp"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l5-14zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z" />
-            </svg>
-          </a>
-        </div>
-        <p className="text-xs text-gray-500 mt-2 text-center">Click the send button to open WhatsApp</p>
-      </div>
-    </div>
-  );
-};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -181,7 +91,7 @@ const Home = () => {
     undefined,
     "goimomi holidays, travel agency, international tours, domestic holidays, visa services, holiday packages"
   );
-  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+
   const [popularVisas, setPopularVisas] = useState([]);
   const [loadingVisas, setLoadingVisas] = useState(true);
 
@@ -1019,28 +929,9 @@ const Home = () => {
               many more interesting features.
             </p>
           </div>
-
         </div>
       </section>
-
-
-      {/* WhatsApp Widget */}
-      <WhatsAppWidget
-        isOpen={isWhatsAppOpen}
-        onClose={() => setIsWhatsAppOpen(false)}
-      />
-
-      {/* WhatsApp Floating Button */}
-      <button
-        onClick={() => setIsWhatsAppOpen(!isWhatsAppOpen)}
-        className="whatsapp-button fixed bottom-8 right-8 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 z-40"
-        aria-label="Open WhatsApp chat"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
-          <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.92-3.558 7.94-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.608-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.944-.044-.079-.163-.124-.344-.223z" />
-        </svg>
-      </button>
-    </div >
+    </div>
   );
 };
 
