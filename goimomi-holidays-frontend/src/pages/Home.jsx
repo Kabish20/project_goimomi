@@ -80,6 +80,11 @@ import Bhutan from "../assets/Visa Deals/Bhutan.png";
 import Bahrain from "../assets/Visa Deals/Bahrain.png";
 import Azerbaijan from "../assets/Visa Deals/Azerbaijan.png";
 import Antigua from "../assets/Visa Deals/Antigua & Barbuda.png";
+import BahrainDeal from "../assets/Visa Deals/Bahrain.png";
+import KenyaDeal from "../assets/Visa Deals/Kenya.png";
+import JordanDeal from "../assets/Visa Deals/Jordan.png";
+import IndonesiaDeal from "../assets/Visa Deals/Indonesia.png";
+import TurkeyDeal from "../assets/Visa Deals/Turkey.png";
 
 
 
@@ -517,65 +522,50 @@ const Home = () => {
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#14532d]"></div>
           </div>
-        ) : Array.isArray(popularVisas) && popularVisas.length > 0 ? (
-          <div className="grid md:grid-cols-3 gap-8 mt-10">
-            {popularVisas.map((item, i) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-2xl shadow-xl overflow-hidden border fade-up zoom-hover group"
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <div className="relative h-40 overflow-hidden">
-                  <img
-                    src={getImageUrl(item.card_image) || singaporeVisa}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    alt={item.title}
-                  />
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
-                    <span className="text-[10px] font-black uppercase tracking-tighter text-[#14532d]">{item.country}</span>
-                  </div>
-                </div>
-                <div className="p-4 space-y-2">
-                  <h3 className="text-lg font-black text-gray-800 tracking-tight">{item.title}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-[10px] px-2 py-0.5 bg-green-50 text-[#14532d] rounded-full font-bold uppercase tracking-tighter ring-1 ring-[#14532d]/20">
-                      {item.visa_type}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-bold uppercase tracking-tighter ring-1 ring-blue-700/20">
-                      {item.duration}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Starting from</p>
-                      <p className="text-2xl font-black text-[#14532d]">₹{Number(item.selling_price || 0).toLocaleString('en-IN')}</p>
-                    </div>
-                    <Link
-                      to={`/visa/apply/${item.id}`}
-                      className="bg-[#14532d] text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#0f4a24] transition-all transform active:scale-95 shadow-lg shadow-green-900/20"
-                    >
-                      Apply Now
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
-            {[
-              { img: dubaiVisa, title: "Dubai Visa", price: "₹8,500", country: "United Arab Emirates", category: "PRIORITY" },
-              { img: saudiVisa, title: "Saudi Arabia Visa", price: "₹6,500", country: "Saudi Arabia", category: "FAST-TRACK" },
-              { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "₹4,500", country: "Azerbaijan", category: "E-VISA" },
-              { img: thailandOffer, title: "Thailand Visa", price: "₹3,200", country: "Thailand", category: "E-VISA" },
-              { img: singaporeVisa, title: "Singapore Visa", price: "₹2,800", country: "Singapore", category: "E-VISA" },
-              { img: vietnamVisa, title: "Vietnam Visa", price: "₹3,500", country: "Vietnam", category: "E-VISA" }
-            ].map((item, i) => (
+            {(popularVisas.slice(0, 6).length > 0 
+              ? popularVisas.slice(0, 6).map((v, idx) => {
+                  const countryLower = (v.country || "").toLowerCase();
+                  const genericFallbacks = [leisure1, leisure2, leisure3, leisure4, leisure5, bali, paris];
+                  
+                  let fallbackImg = genericFallbacks[idx % genericFallbacks.length];
+                  if (countryLower.includes("dubai") || countryLower.includes("emirates") || countryLower.includes("uae")) fallbackImg = dubaiVisa;
+                  else if (countryLower.includes("saudi")) fallbackImg = saudiVisa;
+                  else if (countryLower.includes("azerbaijan")) fallbackImg = azerbaijanVisa;
+                  else if (countryLower.includes("vietnam")) fallbackImg = vietnamVisa;
+                  else if (countryLower.includes("singapore")) fallbackImg = singaporeVisa;
+                  else if (countryLower.includes("bahrain")) fallbackImg = BahrainDeal;
+                  else if (countryLower.includes("kenya")) fallbackImg = KenyaDeal;
+                  else if (countryLower.includes("jordan")) fallbackImg = JordanDeal;
+                  else if (countryLower.includes("indonesia") || countryLower.includes("bali")) fallbackImg = IndonesiaDeal;
+                  else if (countryLower.includes("turkey")) fallbackImg = TurkeyDeal;
+
+                  return {
+                    id: v.id,
+                    img: getImageUrl(v.card_image) || fallbackImg,
+                    title: v.title,
+                    price: `₹${Number(v.selling_price || 0).toLocaleString('en-IN')}`,
+                    country: v.country,
+                    category: v.visa_type || "E-VISA",
+                    isLive: true,
+                    fallbackImg
+                  };
+                })
+              : [
+                  { img: dubaiVisa, title: "Dubai Visa", price: "₹8,500", country: "United Arab Emirates", category: "PRIORITY" },
+                  { img: saudiVisa, title: "Saudi Arabia Visa", price: "₹6,500", country: "Saudi Arabia", category: "FAST-TRACK" },
+                  { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "₹4,500", country: "Azerbaijan", category: "E-VISA" },
+                  { img: thailandOffer, title: "Thailand Visa", price: "₹3,200", country: "Thailand", category: "E-VISA" },
+                  { img: singaporeVisa, title: "Singapore Visa", price: "₹2,800", country: "Singapore", category: "E-VISA" },
+                  { img: vietnamVisa, title: "Vietnam Visa", price: "₹3,500", country: "Vietnam", category: "E-VISA" }
+                ]
+            ).map((item, i) => (
               <div
-                key={i}
+                key={item.id || i}
                 className="relative h-[320px] rounded-3xl overflow-hidden group border border-white/5 shadow-2xl fade-up cursor-pointer bg-slate-900"
                 style={{ animationDelay: `${i * 0.1}s` }}
-                onClick={() => navigate('/visa')}
+                onClick={() => navigate(item.isLive ? `/visa/apply/${item.id}` : '/visa')}
               >
                 {/* Background Image with Neutral Overlay */}
                 <div className="absolute inset-0 z-0">
@@ -583,6 +573,7 @@ const Home = () => {
                     src={item.img}
                     className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
                     alt={item.title}
+                    onError={(e) => { e.target.src = item.fallbackImg || singaporeVisa; }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black transition-all duration-500" />
                 </div>
@@ -624,7 +615,7 @@ const Home = () => {
                         <button
                           className="w-full py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-xl hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
                         >
-                          Apply Now
+                          {item.isLive ? "Apply Now" : "Explore Now"}
                         </button>
                       </div>
                     </div>

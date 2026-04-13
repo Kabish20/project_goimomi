@@ -357,6 +357,16 @@ const HolidayDetails = () => {
                     <span className="text-[9px] font-bold text-[#16a34a] uppercase tracking-widest mb-0.5">Starting From</span>
                     <span className="text-[13px] font-extrabold uppercase">{pkg.starting_city}</span>
                   </div>
+                  <div className="w-px h-6 bg-white/20 hidden md:block"></div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-[#16a34a] uppercase tracking-widest mb-0.5">Best Offer</span>
+                    <div className="flex items-center gap-2">
+                       {markupPrice > currentPrice && (
+                         <span className="text-[11px] text-white/60 line-through decoration-[#16a34a] font-bold">₹{Number(markupPrice).toLocaleString('en-IN')}</span>
+                       )}
+                       <span className="text-[15px] font-black uppercase text-white tracking-tight">₹{Number(currentPrice || 0).toLocaleString('en-IN')} <span className="text-[8px] opacity-70 font-medium">/ PER PERSON</span></span>
+                    </div>
+                  </div>
                   {availableDates.length > 0 && (
                     <>
                       <div className="w-px h-6 bg-white/20 hidden md:block"></div>
@@ -464,7 +474,8 @@ const HolidayDetails = () => {
                   const tierKey = Object.keys(s.tiers || {}).find(k => k.toLowerCase() === (selectedTier || "standard").toLowerCase());
                   const tierRows = s.tiers?.[tierKey] || [];
                   const priceData = tierRows[0];
-                  const price = priceData ? (priceData.offer_price || priceData.Offer_price || priceData.price) : null;
+                  const price = priceData ? (priceData.offer_price || priceData.Offer_price || priceData.price) : (pkg?.Offer_price || pkg?.offer_price);
+                  const slotMarkupPrice = priceData ? (priceData.markup_price || priceData.Markup_price || priceData.market_price || priceData.Market_price) : (pkg?.price || price);
                   const isSelected = selectedSlotIdx === i;
                   return (
                     <div
@@ -481,12 +492,17 @@ const HolidayDetails = () => {
                           ? new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
                           : "DATE TBA"}
                       </p>
-                      {price && (
-                        <p className={`text-base font-black ${isSelected ? "text-[#15803d]" : "text-gray-900"}`}>
-                          ₹ {Number(price).toLocaleString('en-IN')}
+                      <div className="flex flex-col items-center justify-center">
+                        {slotMarkupPrice > price && (
+                          <p className="text-[11px] text-gray-400 line-through decoration-red-500/30 font-bold opacity-70 -mb-1">
+                            ₹ {Number(slotMarkupPrice).toLocaleString('en-IN')}
+                          </p>
+                        )}
+                        <p className={`text-base font-black leading-tight ${isSelected ? "text-[#15803d]" : "text-gray-900"}`}>
+                          ₹ {Number(price || 0).toLocaleString('en-IN')}
                         </p>
-                      )}
-                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Per Person</p>
+                      </div>
+                      <p className={`text-[8px] font-bold uppercase tracking-tighter mt-1 ${isSelected ? "text-green-600/60" : "text-gray-400"}`}>Per Person</p>
                     </div>
                   );
                 })}
@@ -873,16 +889,19 @@ const HolidayDetails = () => {
             
             <div className="text-right relative holiday-details-price-info">
               {markupPrice && markupPrice > currentPrice && (
-                <p className="line-through text-gray-400 text-[11px] mb-[-4px] font-bold opacity-50">₹ {Number(markupPrice || 0).toLocaleString('en-IN')}</p>
+                <p className="line-through text-gray-400 decoration-red-500/40 text-[13px] mb-[-4px] font-bold opacity-70">₹ {Number(markupPrice || 0).toLocaleString('en-IN')}</p>
               )}
               <div className="flex items-center justify-end gap-1.5">
-                <p className="text-2xl font-black text-gray-900 tracking-tighter drop-shadow-sm">₹ {Number(currentPrice || 0).toLocaleString('en-IN')}</p>
-                <button
-                  onClick={() => setPricePopupOpen(!pricePopupOpen)}
-                  className="text-gray-300 hover:text-green-600 transition-colors"
-                >
-                  <Info size={14} />
-                </button>
+                <p className="text-2xl font-black text-gray-900 tracking-tighter drop-shadow-sm leading-none">₹ {Number(currentPrice || 0).toLocaleString('en-IN')}</p>
+                <div className="flex items-center justify-end gap-1.5 mt-1">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Per Person</p>
+                  <button
+                    onClick={() => setPricePopupOpen(!pricePopupOpen)}
+                    className="text-gray-300 hover:text-green-600 transition-colors"
+                  >
+                    <Info size={12} />
+                  </button>
+                </div>
               </div>
 
               {pricePopupOpen && (
