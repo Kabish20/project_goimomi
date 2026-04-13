@@ -29,6 +29,7 @@ import pdfImg16 from "../assets/pdf/15 Best Places In Turkey To Visit - Hand Lug
 const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downloadPackagePDF, setViewDetailsPkg }) => {
   const [activeTab, setActiveTab] = useState("Hotels");
   const [selectedTier, setSelectedTier] = useState("Standard");
+  const [selectedSlotIdx, setSelectedSlotIdx] = useState(0);
 
   const uniqueHotels = React.useMemo(() => {
     const hotels = [];
@@ -69,12 +70,12 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
 
   const currentPrice = React.useMemo(() => {
     if (slots.length > 0) {
-      const slot = slots[0];
+      const slot = slots[selectedSlotIdx] || slots[0];
       const tierData = slot.tiers?.[selectedTier];
       if (tierData && tierData.length > 0) return tierData[0].offer_price;
     }
     return pkg.Offer_price;
-  }, [slots, selectedTier, pkg.Offer_price]);
+  }, [slots, selectedTier, selectedSlotIdx, pkg.Offer_price]);
 
   return (
     <div className="bg-white border border-gray-200 rounded-sm shadow-sm mb-4 flex flex-col font-sans max-w-[1000px] mx-auto overflow-hidden">
@@ -134,12 +135,15 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
         <div className="w-full md:w-[180px] p-3 flex flex-col items-center shrink-0">
           <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center shadow-sm border border-gray-100">
             {pkg.fixed_departure && (
-              <div className="absolute top-0 left-0 z-20 flex flex-col items-start translate-x-[-2px] translate-y-[-2px]">
-                <div className="bg-[#1a1a1a] text-white px-3 py-1 text-[11px] font-bold shadow-md rounded-tl-xl">
+              <div 
+                onClick={() => setActiveTab("Dates")}
+                className="absolute top-0 left-0 z-20 flex flex-col items-start translate-x-[-2px] translate-y-[-2px] cursor-pointer group"
+              >
+                <div className="bg-[#1a1a1a] text-white px-3 py-1 text-[11px] font-bold shadow-md rounded-tl-xl group-hover:bg-[#333] transition-colors">
                   Fix Departure
                 </div>
                 {/* Speech bubble pointer */}
-                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#1a1a1a] ml-2"></div>
+                <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[#1a1a1a] ml-2 group-hover:border-t-[#333] transition-colors"></div>
               </div>
             )}
             <img 
@@ -188,7 +192,7 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
                 <div className="p-3 space-y-2">
                   {uniqueHotels.length > 0 ? uniqueHotels.map((h, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></div>
+                       <div className="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></div>
                       <span className="text-[12px] font-black text-[#3498db] tracking-tight">{h}</span>
                     </div>
                   )) : (
@@ -233,13 +237,22 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
                 {slots.length > 0 ? slots.map((s, i) => {
                   const priceData = s.tiers?.[selectedTier]?.[0];
                   const price = priceData ? priceData.offer_price : null;
+                  const isSelected = selectedSlotIdx === i;
                   return (
-                    <div key={i} className="border border-gray-100 px-1.5 py-1 text-center bg-gray-50 flex flex-col items-center justify-center rounded-sm">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                    <div 
+                      key={i} 
+                      onClick={() => setSelectedSlotIdx(i)}
+                      className={`border px-1.5 py-1 text-center flex flex-col items-center justify-center rounded-sm cursor-pointer transition-all ${
+                        isSelected 
+                        ? "border-[#16a34a] bg-green-50 shadow-sm" 
+                        : "border-gray-100 bg-gray-50 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className={`text-[10px] font-bold uppercase tracking-tighter ${isSelected ? "text-[#16a34a]" : "text-gray-400"}`}>
                         {new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
                       </span>
                       {price && (
-                        <span className="text-[11px] font-black text-[#16a34a] leading-none mt-1">
+                        <span className={`text-[11px] font-black leading-none mt-1 ${isSelected ? "text-[#15803d]" : "text-[#16a34a]"}`}>
                           ₹ {Number(price).toLocaleString('en-IN')}
                         </span>
                       )}
@@ -249,6 +262,7 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
               </div>
             )}
           </div>
+
 
           {/* LOWER ICONS BAR */}
           <div className="px-3 pb-3 flex items-center gap-3">

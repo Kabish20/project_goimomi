@@ -27,6 +27,7 @@ import pdfImg16 from "../assets/pdf/15 Best Places In Turkey To Visit - Hand Lug
 
 const HolidayDetails = () => {
   const { id } = useParams();
+  const tabsRef = React.useRef(null);
   const location = useLocation();
   const [openDay, setOpenDay] = useState([]);
   const [pkg, setPkg] = useState(null);
@@ -37,6 +38,7 @@ const HolidayDetails = () => {
   const [pricePopupOpen, setPricePopupOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Itinerary");
   const [selectedTier, setSelectedTier] = useState(location.state?.selectedTier || "Standard");
+  const [selectedSlotIdx, setSelectedSlotIdx] = useState(0);
 
   const slots = useMemo(() => {
     try {
@@ -46,21 +48,21 @@ const HolidayDetails = () => {
 
   const currentPrice = useMemo(() => {
     if (slots.length > 0) {
-      const slot = slots[0];
+      const slot = slots[selectedSlotIdx] || slots[0];
       const tierData = slot.tiers?.[selectedTier];
       if (tierData && tierData.length > 0) return tierData[0].offer_price;
     }
     return pkg?.Offer_price;
-  }, [slots, selectedTier, pkg?.Offer_price]);
+  }, [slots, selectedTier, selectedSlotIdx, pkg?.Offer_price]);
 
   const markupPrice = useMemo(() => {
     if (slots.length > 0) {
-      const slot = slots[0];
+      const slot = slots[selectedSlotIdx] || slots[0];
       const tierData = slot.tiers?.[selectedTier];
       if (tierData && tierData.length > 0) return tierData[0].markup_price;
     }
     return pkg?.price;
-  }, [slots, selectedTier, pkg?.price]);
+  }, [slots, selectedTier, selectedSlotIdx, pkg?.price]);
 
   const discountPercentage = useMemo(() => {
     if (markupPrice && currentPrice && markupPrice > currentPrice) {
@@ -307,9 +309,15 @@ const HolidayDetails = () => {
                 {pkg.category || "International Tour"}
               </span>
               {pkg.fixed_departure && (
-                <span className="bg-white/10 backdrop-blur-md text-white text-[10px] font-black px-4 py-1.5 rounded-full border border-white/20 uppercase tracking-widest shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-700">
+                <button 
+                  onClick={() => {
+                    setActiveTab("Dates");
+                    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="bg-white/10 backdrop-blur-md text-white text-[10px] font-black px-4 py-1.5 rounded-full border border-white/20 uppercase tracking-widest shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-700 hover:bg-white/20 transition-all cursor-pointer"
+                >
                   Fixed Departure
-                </span>
+                </button>
               )}
             </div>
 
@@ -338,7 +346,17 @@ const HolidayDetails = () => {
                         <span className="text-[9px] font-bold text-[#16a34a] uppercase tracking-widest mb-0.5">Available Dates</span>
                         <div className="flex flex-wrap gap-1.5 items-center">
                           {availableDates.slice(0, 3).map((d, di) => (
-                            <span key={di} className="text-[11px] font-black bg-white/10 px-2 py-0.5 rounded-md border border-white/5 uppercase">{d}</span>
+                            <button 
+                              key={di} 
+                              onClick={() => setSelectedSlotIdx(di)}
+                              className={`text-[11px] font-black px-2 py-0.5 rounded-md border transition-all uppercase ${
+                                selectedSlotIdx === di 
+                                ? "bg-white text-[#16a34a] border-white shadow-lg" 
+                                : "bg-white/10 text-white border-white/5 hover:bg-white/20"
+                              }`}
+                            >
+                              {d}
+                            </button>
                           ))}
                           {availableDates.length > 3 && <span className="text-[10px] opacity-60 font-black">+{availableDates.length - 3} MORE</span>}
                         </div>
@@ -402,9 +420,9 @@ const HolidayDetails = () => {
           )}
 
           {/* TABS HEADER - STICKY / FLOATING */}
-          <div className="sticky top-[100px] z-30 bg-white/95 backdrop-blur-md py-3 mb-4 -mx-4 px-4 shadow-sm border-b border-gray-100">
+          <div ref={tabsRef} className="sticky top-[100px] z-30 bg-white/95 backdrop-blur-md py-3 mb-4 -mx-4 px-4 shadow-sm border-b border-gray-100">
             <div className="flex flex-row overflow-x-auto gap-2 pb-1 custom-scrollbar no-scrollbar">
-              {["Itinerary", "Sightseeing", "Hotels", "Inclusions & Exclusions", "Terms & Policy"].map((tab) => (
+              {["Itinerary", "Sightseeing", "Hotels", "Dates", "Inclusions & Exclusions", "Terms & Policy"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -421,6 +439,37 @@ const HolidayDetails = () => {
 
           {/* TAB CONTENT */}
           <div className="animate-in fade-in duration-500">
+
+            {activeTab === "Dates" && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                {slots.map((s, i) => {
+                  const priceData = s.tiers?.[selectedTier]?.[0];
+                  const price = priceData ? priceData.offer_price : null;
+                  const isSelected = selectedSlotIdx === i;
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => setSelectedSlotIdx(i)}
+                      className={`p-4 border rounded-2xl text-center cursor-pointer transition-all ${
+                        isSelected
+                          ? "bg-green-50 border-[#16a34a] shadow-md scale-[1.02]"
+                          : "bg-white border-gray-100 hover:border-green-100 hover:bg-gray-50/50"
+                      }`}
+                    >
+                      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isSelected ? "text-[#16a34a]" : "text-gray-400"}`}>
+                        {new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                      </p>
+                      {price && (
+                        <p className={`text-base font-black ${isSelected ? "text-[#15803d]" : "text-gray-900"}`}>
+                          ₹ {Number(price).toLocaleString('en-IN')}
+                        </p>
+                      )}
+                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Per Person</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {activeTab === "Itinerary" && (
               <div className="space-y-16">
@@ -793,9 +842,11 @@ const HolidayDetails = () => {
           <div className="flex justify-between items-end mb-3 pb-3 border-b border-gray-50">
             <div className="space-y-1">
                <p className="text-gray-400 text-[9px] font-black uppercase tracking-widest leading-none">Best Price</p>
-               <div className="px-2 py-0.5 bg-red-50 text-red-500 text-[9px] font-black rounded-full inline-block animate-pulse">
-                {discountPercentage}% OFF
-               </div>
+               {discountPercentage > 0 && (
+                <div className="px-2 py-0.5 bg-red-50 text-red-500 text-[9px] font-black rounded-full inline-block animate-pulse">
+                  {discountPercentage}% OFF
+                </div>
+               )}
             </div>
             
             <div className="text-right relative holiday-details-price-info">
