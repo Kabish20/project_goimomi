@@ -42,24 +42,36 @@ const HolidayDetails = () => {
 
   const slots = useMemo(() => {
     try {
-      return pkg?.fixed_departure_data ? (typeof pkg.fixed_departure_data === 'string' ? JSON.parse(pkg.fixed_departure_data) : pkg.fixed_departure_data) : [];
+      const raw = pkg?.fixed_departure_data ? (typeof pkg.fixed_departure_data === 'string' ? JSON.parse(pkg.fixed_departure_data) : pkg.fixed_departure_data) : [];
+      return raw.map(s => ({
+        ...s,
+        travel_date: s.travel_date || s.date || s.travelDate || ""
+      }));
     } catch (e) { return []; }
   }, [pkg?.fixed_departure_data]);
 
   const currentPrice = useMemo(() => {
     if (slots.length > 0) {
       const slot = slots[selectedSlotIdx] || slots[0];
-      const tierData = slot.tiers?.[selectedTier];
-      if (tierData && tierData.length > 0) return tierData[0].offer_price;
+      const tierKey = Object.keys(slot.tiers || {}).find(k => k.toLowerCase() === (selectedTier || "standard").toLowerCase());
+      const tierData = slot.tiers?.[tierKey];
+      if (tierData && tierData.length > 0) {
+        const data = tierData[0];
+        return data.offer_price || data.Offer_price || data.price;
+      }
     }
-    return pkg?.Offer_price;
-  }, [slots, selectedTier, selectedSlotIdx, pkg?.Offer_price]);
+    return pkg?.Offer_price || pkg?.offer_price;
+  }, [slots, selectedTier, selectedSlotIdx, pkg?.Offer_price, pkg?.offer_price]);
 
   const markupPrice = useMemo(() => {
     if (slots.length > 0) {
       const slot = slots[selectedSlotIdx] || slots[0];
-      const tierData = slot.tiers?.[selectedTier];
-      if (tierData && tierData.length > 0) return tierData[0].markup_price;
+      const tierKey = Object.keys(slot.tiers || {}).find(k => k.toLowerCase() === (selectedTier || "standard").toLowerCase());
+      const tierData = slot.tiers?.[tierKey];
+      if (tierData && tierData.length > 0) {
+        const data = tierData[0];
+        return data.markup_price || data.Markup_price || data.market_price || data.Market_price;
+      }
     }
     return pkg?.price;
   }, [slots, selectedTier, selectedSlotIdx, pkg?.price]);
@@ -73,7 +85,13 @@ const HolidayDetails = () => {
 
   const availableDates = useMemo(() => {
     if (slots.length > 0) {
-      return slots.map(s => s.date).filter(Boolean);
+      return slots.map(s => {
+        const d = s.travel_date;
+        if (!d) return null;
+        try {
+          return new Date(d).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) { return null; }
+      }).filter(Boolean);
     }
     return [];
   }, [slots]);
@@ -443,8 +461,10 @@ const HolidayDetails = () => {
             {activeTab === "Dates" && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
                 {slots.map((s, i) => {
-                  const priceData = s.tiers?.[selectedTier]?.[0];
-                  const price = priceData ? priceData.offer_price : null;
+                  const tierKey = Object.keys(s.tiers || {}).find(k => k.toLowerCase() === (selectedTier || "standard").toLowerCase());
+                  const tierRows = s.tiers?.[tierKey] || [];
+                  const priceData = tierRows[0];
+                  const price = priceData ? (priceData.offer_price || priceData.Offer_price || priceData.price) : null;
                   const isSelected = selectedSlotIdx === i;
                   return (
                     <div
@@ -457,7 +477,9 @@ const HolidayDetails = () => {
                       }`}
                     >
                       <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isSelected ? "text-[#16a34a]" : "text-gray-400"}`}>
-                        {new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                        {s.travel_date 
+                          ? new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
+                          : "DATE TBA"}
                       </p>
                       {price && (
                         <p className={`text-base font-black ${isSelected ? "text-[#15803d]" : "text-gray-900"}`}>

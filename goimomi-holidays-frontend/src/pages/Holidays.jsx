@@ -64,18 +64,26 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
 
   const slots = React.useMemo(() => {
     try {
-      return pkg.fixed_departure_data ? (typeof pkg.fixed_departure_data === 'string' ? JSON.parse(pkg.fixed_departure_data) : pkg.fixed_departure_data) : [];
+      const raw = pkg.fixed_departure_data ? (typeof pkg.fixed_departure_data === 'string' ? JSON.parse(pkg.fixed_departure_data) : pkg.fixed_departure_data) : [];
+      return raw.map(s => ({
+        ...s,
+        travel_date: s.travel_date || s.date || s.travelDate || ""
+      }));
     } catch (e) { return []; }
   }, [pkg.fixed_departure_data]);
 
   const currentPrice = React.useMemo(() => {
     if (slots.length > 0) {
       const slot = slots[selectedSlotIdx] || slots[0];
-      const tierData = slot.tiers?.[selectedTier];
-      if (tierData && tierData.length > 0) return tierData[0].offer_price;
+      const tierKey = Object.keys(slot.tiers || {}).find(k => k.toLowerCase() === (selectedTier || "standard").toLowerCase());
+      const tierData = slot.tiers?.[tierKey];
+      if (tierData && tierData.length > 0) {
+        const data = tierData[0];
+        return data.offer_price || data.Offer_price || data.price;
+      }
     }
-    return pkg.Offer_price;
-  }, [slots, selectedTier, selectedSlotIdx, pkg.Offer_price]);
+    return pkg.Offer_price || pkg.offer_price;
+  }, [slots, selectedTier, selectedSlotIdx, pkg.Offer_price, pkg.offer_price]);
 
   return (
     <div className="bg-white border border-gray-200 rounded-sm shadow-sm mb-4 flex flex-col font-sans max-w-[1000px] mx-auto overflow-hidden">
@@ -235,8 +243,10 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
             {activeTab === "Dates" && (
               <div className="grid grid-cols-3 gap-1.5">
                 {slots.length > 0 ? slots.map((s, i) => {
-                  const priceData = s.tiers?.[selectedTier]?.[0];
-                  const price = priceData ? priceData.offer_price : null;
+                  const tierKey = Object.keys(s.tiers || {}).find(k => k.toLowerCase() === (selectedTier || "standard").toLowerCase());
+                  const tierRows = s.tiers?.[tierKey] || [];
+                  const priceData = tierRows[0];
+                  const price = priceData ? (priceData.offer_price || priceData.Offer_price || priceData.price) : null;
                   const isSelected = selectedSlotIdx === i;
                   return (
                     <div 
@@ -249,7 +259,9 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
                       }`}
                     >
                       <span className={`text-[10px] font-bold uppercase tracking-tighter ${isSelected ? "text-[#16a34a]" : "text-gray-400"}`}>
-                        {new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                        {s.travel_date 
+                          ? new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
+                          : "DATE TBA"}
                       </span>
                       {price && (
                         <span className={`text-[11px] font-black leading-none mt-1 ${isSelected ? "text-[#15803d]" : "text-[#16a34a]"}`}>
