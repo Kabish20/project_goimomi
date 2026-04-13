@@ -8,6 +8,13 @@ const CountryCodePicker = ({ value, onChange, disabled = false }) => {
     const wrapperRef = useRef(null);
     const optionsRef = useRef([]);
 
+    const filteredCountries = countries.filter(c =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.dial_code.includes(searchTerm)
+    );
+
+    const activeCountry = activeIndex >= 0 ? filteredCountries[activeIndex] : null;
+
     useEffect(() => {
         setActiveIndex(-1);
     }, [searchTerm, isOpen]);
@@ -32,8 +39,6 @@ const CountryCodePicker = ({ value, onChange, disabled = false }) => {
         }
     };
 
-    const activeCountry = activeIndex >= 0 ? filteredCountries[activeIndex] : null;
-
     useEffect(() => {
         if (activeIndex >= 0 && optionsRef.current[activeIndex]) {
             optionsRef.current[activeIndex].scrollIntoView({
@@ -53,31 +58,26 @@ const CountryCodePicker = ({ value, onChange, disabled = false }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const filteredCountries = countries.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.dial_code.includes(searchTerm)
-    );
-
     const selectedCountry = countries.find(c => c.dial_code === value) || countries.find(c => c.dial_code === "+91");
 
     return (
         <div className={`relative ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`} ref={wrapperRef}>
             <div
-                className={`bg-white border border-gray-300 px-3 py-2 rounded-lg flex items-center gap-2 cursor-pointer focus-within:ring-2 focus-within:ring-[#14532d] ${disabled ? 'pointer-events-none' : ''}`}
+                className={`bg-gray-50/50 border border-gray-100 px-2 py-1.5 rounded-lg flex items-center gap-1.5 cursor-pointer hover:bg-white transition-all ${disabled ? 'pointer-events-none' : ''}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
-                <span className="text-xl">{selectedCountry?.emoji}</span>
-                <span className="text-gray-700 font-medium">{value || "+91"}</span>
-                <span className="text-gray-400 text-[10px] ml-1">▼</span>
+                <span className="text-sm">{selectedCountry?.emoji}</span>
+                <span className="text-gray-800 font-bold text-[11px] truncate">{value || "+91"}</span>
+                <span className="text-gray-300 text-[8px] ml-auto">▼</span>
             </div>
 
             {isOpen && (
-                <div className="absolute z-[110] left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="p-2 border-b border-gray-100 sticky top-0 bg-white">
+                <div className="absolute z-[110] left-0 mt-1 w-56 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="p-1.5 border-b border-gray-50 bg-white">
                         <input
                             type="text"
-                            className="w-full px-3 py-2 border border-blue-100 rounded-lg text-sm focus:outline-none focus:border-[#14532d] bg-gray-50"
-                            placeholder="Search country or code..."
+                            className="w-full px-2 py-1 border border-gray-100 rounded-md text-[10px] font-bold focus:outline-none focus:border-green-500/50 bg-gray-50/50"
+                            placeholder="Search country..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onKeyDown={handleKeyDown}
@@ -85,14 +85,14 @@ const CountryCodePicker = ({ value, onChange, disabled = false }) => {
                             autoFocus
                         />
                     </div>
-                    <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="max-h-48 overflow-y-auto custom-scrollbar">
                         {filteredCountries.length > 0 ? (
                             filteredCountries.map((country, index) => (
                                 <div
                                     key={`${country.code}-${country.dial_code}`}
                                     ref={el => optionsRef.current[index] = el}
-                                    className={`px-4 py-3 text-sm cursor-pointer flex items-center gap-3 transition-colors 
-                                      ${value === country.dial_code ? "bg-green-50 text-[#14532d]" : (index === activeIndex ? "bg-gray-100 text-black border-l-4 border-green-600" : "text-gray-700 hover:bg-green-50")}
+                                    className={`px-2.5 py-1.5 text-[10px] cursor-pointer flex items-center gap-2 transition-colors 
+                                      ${value === country.dial_code ? "bg-green-50 text-green-700 font-bold" : (index === activeIndex ? "bg-gray-50 text-black border-l-2 border-green-500" : "text-gray-600 hover:bg-gray-50")}
                                     `}
                                     onMouseEnter={() => setActiveIndex(index)}
                                     onClick={() => {
@@ -101,13 +101,13 @@ const CountryCodePicker = ({ value, onChange, disabled = false }) => {
                                         setSearchTerm("");
                                     }}
                                 >
-                                    <span className="text-2xl w-8 flex-shrink-0">{country.emoji}</span>
-                                    <span className="flex-1 truncate font-medium">{country.name}</span>
-                                    <span className="text-gray-400 font-mono text-xs">{country.dial_code}</span>
+                                    <span className="text-sm w-4 flex-shrink-0">{country.emoji}</span>
+                                    <span className="flex-1 truncate uppercase tracking-tight">{country.name}</span>
+                                    <span className="text-gray-400 font-mono text-[9px]">{country.dial_code}</span>
                                 </div>
                             ))
                         ) : (
-                            <div className="px-4 py-4 text-sm text-gray-500 text-center italic">No country matches</div>
+                            <div className="px-2 py-3 text-[9px] text-gray-400 text-center italic">No results</div>
                         )}
                     </div>
                 </div>
@@ -115,19 +115,10 @@ const CountryCodePicker = ({ value, onChange, disabled = false }) => {
 
             <style dangerouslySetInnerHTML={{
                 __html: `
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f9fafb;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #e5e7eb;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #d1d5db;
-                }
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
             `}} />
         </div>
     );

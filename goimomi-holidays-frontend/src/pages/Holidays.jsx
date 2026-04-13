@@ -230,11 +230,22 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
 
             {activeTab === "Dates" && (
               <div className="grid grid-cols-3 gap-1.5">
-                {slots.length > 0 ? slots.map((s, i) => (
-                  <div key={i} className="border border-gray-100 px-1.5 py-0.5 text-center text-[10px] font-bold text-gray-600 bg-gray-50 uppercase tracking-tighter">
-                    {new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </div>
-                )) : <div className="p-4 text-center text-gray-400 italic w-full">Contact for availability.</div>}
+                {slots.length > 0 ? slots.map((s, i) => {
+                  const priceData = s.tiers?.[selectedTier]?.[0];
+                  const price = priceData ? priceData.offer_price : null;
+                  return (
+                    <div key={i} className="border border-gray-100 px-1.5 py-1 text-center bg-gray-50 flex flex-col items-center justify-center rounded-sm">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                        {new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                      </span>
+                      {price && (
+                        <span className="text-[11px] font-black text-[#16a34a] leading-none mt-1">
+                          ₹ {Number(price).toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                }) : <div className="p-4 text-center text-gray-400 italic w-full">Contact for availability.</div>}
               </div>
             )}
           </div>
@@ -458,7 +469,7 @@ ${pkg.itinerary?.map(day => `Day ${day.day_number}: ${day.title}${day.descriptio
 Destinations: ${pkg.starting_city}${pkg.destinations?.length > 0 ? " • " + pkg.destinations.map(d => d.name).join(" • ") : ""}
 
 Thank you for choosing goimomi.com
-Contact : +91 6382220393
+Contact : +91 8110082222
 Email : hello@goimomi.com`;
     return text;
   };
@@ -501,7 +512,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
       doc.setTextColor(156, 163, 175);
       doc.setFontSize(8);
       doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - padding, pageHeight - 10, { align: "right" });
-      doc.text("© goimomi.com | +91 6382220393 | hello@goimomi.com", padding, pageHeight - 10);
+      doc.text("© goimomi.com | +91 8110082222 | hello@goimomi.com", padding, pageHeight - 10);
     };
 
     // PAGE 1: COVER
@@ -1225,7 +1236,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 <div className="mt-4 pt-3 border-t border-gray-50">
                   <div className="bg-[#f0f9f1] border-l-[2px] border-[#16a34a] p-2 rounded-r-md space-y-0.5">
                     <p className="italic text-[10px] text-gray-400">Thank you for choosing goimomi.com</p>
-                    <p className="font-bold text-[#16a34a] text-[12px]">Call: +91 6382220393</p>
+                    <p className="font-bold text-[#16a34a] text-[12px]">Call: +91 8110082222</p>
                     <p className="text-gray-500 font-medium text-[10px]">hello@goimomi.com</p>
                   </div>
                 </div>

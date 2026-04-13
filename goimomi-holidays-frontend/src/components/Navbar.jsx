@@ -62,7 +62,7 @@ const Navbar = () => {
         <div className="max-w-10xl mx-auto flex items-center justify-between px-4 py-1.5">
           <div className="flex items-center gap-5">
             <span className="flex items-center gap-2">
-              <span className="text-sm">📞</span> +91 638 222 0393
+              <span className="text-sm">📞</span> +91 8110082222
             </span>
             <span className="flex items-center gap-2">
               <span className="text-sm">✉️</span> hello@goimomi.com
@@ -535,7 +535,7 @@ const Navbar = () => {
                   <a href="https://www.facebook.com/goimomi" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#1877F2] rounded-2xl shadow-lg shadow-blue-500/20 active:scale-90 transition-transform">
                     <img src="https://cdn-icons-png.flaticon.com/128/733/733547.png" className="w-6 h-6 invert brightness-100" alt="Facebook" />
                   </a>
-                  <a href="https://wa.me/916382220393" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#25D366] rounded-2xl shadow-lg shadow-green-500/20 active:scale-90 transition-transform">
+                  <a href="https://wa.me/918110082222" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#25D366] rounded-2xl shadow-lg shadow-green-500/20 active:scale-90 transition-transform">
                     <img src="https://cdn-icons-png.flaticon.com/128/733/733585.png" className="w-6 h-6 invert brightness-100" alt="WhatsApp" />
                   </a>
                 </div>

@@ -238,7 +238,7 @@ const CustomizedHolidays = () => {
               icon={<FaPhoneAlt size={35} className="text-yellow-500" />}
               title="Phone Support"
               subtitle="24/7 Customer Service"
-              info="+91 638 222 0393"
+              info="+91 8110082222"
             />
 
             <ContactCard

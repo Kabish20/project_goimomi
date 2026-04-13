@@ -137,7 +137,7 @@ const CabPrivacyModal = ({ isOpen, onClose }) => {
               <p className="mb-1 font-bold">Address</p>
               <p className="mb-3 text-sm">5, Crescent Park Apartment<br/>Hazrath Sulaiman Street<br/>Kaja Nagar<br/>Trichy – 620020<br/>Tamil Nadu, India</p>
               
-              <p className="mb-1"><strong>Phone:</strong> +91 638 222 0393</p>
+              <p className="mb-1"><strong>Phone:</strong> +91 8110082222</p>
               <p className="mb-1"><strong>Email:</strong> <a href="mailto:hello@goimomi.com" className="text-green-600 hover:underline">hello@goimomi.com</a></p>
               <p className="mb-1"><strong>Website:</strong> <a href="https://goimomi.com" target="_blank" rel="noreferrer" className="text-green-600 hover:underline">https://goimomi.com</a></p>
             </div>

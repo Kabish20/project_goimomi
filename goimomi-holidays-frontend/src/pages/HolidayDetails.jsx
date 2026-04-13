@@ -53,6 +53,29 @@ const HolidayDetails = () => {
     return pkg?.Offer_price;
   }, [slots, selectedTier, pkg?.Offer_price]);
 
+  const markupPrice = useMemo(() => {
+    if (slots.length > 0) {
+      const slot = slots[0];
+      const tierData = slot.tiers?.[selectedTier];
+      if (tierData && tierData.length > 0) return tierData[0].markup_price;
+    }
+    return pkg?.price;
+  }, [slots, selectedTier, pkg?.price]);
+
+  const discountPercentage = useMemo(() => {
+    if (markupPrice && currentPrice && markupPrice > currentPrice) {
+      return Math.round(((markupPrice - currentPrice) / markupPrice) * 100);
+    }
+    return 0;
+  }, [markupPrice, currentPrice]);
+
+  const availableDates = useMemo(() => {
+    if (slots.length > 0) {
+      return slots.map(s => s.date).filter(Boolean);
+    }
+    return [];
+  }, [slots]);
+
   const stripeHtml = (html) => {
     if (!html) return "";
     const tmp = document.createElement("DIV");
@@ -154,7 +177,7 @@ const HolidayDetails = () => {
       doc.setTextColor(156, 163, 175);
       doc.setFontSize(8);
       doc.text(`Page ${pageNum}`, pageWidth - padding, pageHeight - 10, { align: "right" });
-      doc.text("© goimomi.com | +91 6382220393 | hello@goimomi.com", padding, pageHeight - 10);
+      doc.text("© goimomi.com | +91 8110082222 | hello@goimomi.com", padding, pageHeight - 10);
     };
 
     // PAGE 1: COVER
@@ -308,6 +331,20 @@ const HolidayDetails = () => {
                     <span className="text-[9px] font-bold text-[#16a34a] uppercase tracking-widest mb-0.5">Starting From</span>
                     <span className="text-[13px] font-extrabold uppercase">{pkg.starting_city}</span>
                   </div>
+                  {availableDates.length > 0 && (
+                    <>
+                      <div className="w-px h-6 bg-white/20 hidden md:block"></div>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-[#16a34a] uppercase tracking-widest mb-0.5">Available Dates</span>
+                        <div className="flex flex-wrap gap-1.5 items-center">
+                          {availableDates.slice(0, 3).map((d, di) => (
+                            <span key={di} className="text-[11px] font-black bg-white/10 px-2 py-0.5 rounded-md border border-white/5 uppercase">{d}</span>
+                          ))}
+                          {availableDates.length > 3 && <span className="text-[10px] opacity-60 font-black">+{availableDates.length - 3} MORE</span>}
+                        </div>
+                      </div>
+                    </>
+                  )}
                   <div className="w-px h-6 bg-white/20 hidden md:block"></div>
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col items-center">
@@ -753,19 +790,25 @@ const HolidayDetails = () => {
           </div>
 
           {/* Price Row */}
-          <div className="flex justify-between items-center mb-2.5">
-            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest leading-none">Price per<br />Adult</p>
+          <div className="flex justify-between items-end mb-3 pb-3 border-b border-gray-50">
+            <div className="space-y-1">
+               <p className="text-gray-400 text-[9px] font-black uppercase tracking-widest leading-none">Best Price</p>
+               <div className="px-2 py-0.5 bg-red-50 text-red-500 text-[9px] font-black rounded-full inline-block animate-pulse">
+                {discountPercentage}% OFF
+               </div>
+            </div>
+            
             <div className="text-right relative holiday-details-price-info">
-              {pkg.price && (
-                <p className="line-through text-gray-400 text-[10px] mb-[-2px]">₹ {Number(pkg.price || 0).toLocaleString('en-IN')}</p>
+              {markupPrice && markupPrice > currentPrice && (
+                <p className="line-through text-gray-400 text-[11px] mb-[-4px] font-bold opacity-50">₹ {Number(markupPrice || 0).toLocaleString('en-IN')}</p>
               )}
-              <div className="flex items-center justify-end gap-1">
-                <p className="text-lg font-black text-gray-900 tracking-tighter">₹ {Number(currentPrice || 0).toLocaleString('en-IN')}</p>
+              <div className="flex items-center justify-end gap-1.5">
+                <p className="text-2xl font-black text-gray-900 tracking-tighter drop-shadow-sm">₹ {Number(currentPrice || 0).toLocaleString('en-IN')}</p>
                 <button
                   onClick={() => setPricePopupOpen(!pricePopupOpen)}
-                  className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="text-gray-300 hover:text-green-600 transition-colors"
                 >
-                  <Info size={12} />
+                  <Info size={14} />
                 </button>
               </div>
 

@@ -269,7 +269,7 @@ const CustomizedUmrah = () => {
             <div>
               <FaPhoneAlt className="text-yellow-400 text-4xl mx-auto mb-3" />
               <h3 className="font-bold text-xl">Call Now</h3>
-              <p>638 222 0393</p>
+              <p>8110082222</p>
             </div>
 
             <div>

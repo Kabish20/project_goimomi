@@ -305,7 +305,7 @@ const CabBookingManage = () => {
         doc.setTextColor(156, 163, 175);
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
-        doc.text("Contact: +91 6382220393 | Email: hello@goimomi.com", padding + 5, footerY + 37);
+        doc.text("Contact: +91 8110082222 | Email: hello@goimomi.com", padding + 5, footerY + 37);
 
         doc.save(`GoImomi_Voucher_${booking.id}.pdf`);
     };

@@ -189,7 +189,7 @@ const VisaResults = () => {
 
         text += `Thank you for choosing goimomi.com\n`;
         text += `In case of any support :\n`;
-        text += `Contact : +91 6382220393\n`;
+        text += `Contact : +91 8110082222\n`;
         text += `Email : hello@goimomi.com\n\n`;
         text += `Terms & Conditions: Visa approval depends on authorities. Fees non-refundable.`;
 
@@ -251,7 +251,7 @@ Price: ₹${Number(emailModalVisa.selling_price || 0).toLocaleString('en-IN')}
 -------------------------------------------------------------
 Thank you for choosing goimomi.com
 In case of any support :
-Contact : +91 6382220393
+Contact : +91 8110082222
 Email : hello@goimomi.com
 
 Terms & Conditions:
@@ -512,7 +512,7 @@ Price: ₹${Number(visa.selling_price || 0).toLocaleString('en-IN')}
 -------------------------------------------------------------
 Thank you for choosing goimomi.com
 In case of any support :
-Contact : +91 6382220393
+Contact : +91 8110082222
 Email : hello@goimomi.com
 
 Terms & Conditions:
@@ -766,7 +766,7 @@ Price: ₹${Number(viewDetailsVisa.selling_price || 0).toLocaleString('en-IN')}
 -------------------------------------------------------------
 Thank you for choosing goimomi.com
 In case of any support :
-Contact : +91 6382220393
+Contact : +91 8110082222
 Email : hello@goimomi.com
 
 Terms & Conditions:
@@ -831,7 +831,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                 <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
                                 <p>Thank you for choosing goimomi.com</p>
                                 <p>In case of any support :</p>
-                                <p>Contact : <span className="font-bold">+91 6382220393</span></p>
+                                <p>Contact : <span className="font-bold">+91 8110082222</span></p>
                                 <p>Email : <span className="font-bold">hello@goimomi.com</span></p>
                                 <br />
                                 <div className="border-t border-gray-100 pt-3 mt-1">
@@ -959,7 +959,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                 <p className="text-gray-400 text-[10px]">-------------------------------------------------------------</p>
                                 <p>Thank you for choosing goimomi.com</p>
                                 <p>In case of any support :</p>
-                                <p>Contact : <span className="font-bold">+91 6382220393</span></p>
+                                <p>Contact : <span className="font-bold">+91 8110082222</span></p>
                                 <p>Email : <span className="font-bold">hello@goimomi.com</span></p>
                                 <br />
                                 <div className="border-t border-gray-100 pt-3 mt-1">

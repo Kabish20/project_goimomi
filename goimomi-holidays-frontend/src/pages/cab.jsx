@@ -1005,7 +1005,7 @@ const Cab = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              const text = `Hello, please find details for the following cab transfer:\n\nVehicle: ${car.name}\nCategory: ${car.category}\nPassengers: ${car.passengers} Pax\nBags: ${car.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(car.price || 0).toLocaleString('en-IN')}\n\nFree cancellation till ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                              const text = `Hello, please find details for the following cab transfer:\n\nVehicle: ${car.name}\nCategory: ${car.category}\nPassengers: ${car.passengers} Pax\nBags: ${car.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(car.price || 0).toLocaleString('en-IN')}\n\nFree cancellation till ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 8110082222\nEmail: hello@goimomi.com`;
                               window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                             }}
                             className="flex items-center gap-1 text-[#14532d] hover:text-[#14532d]/80 font-bold text-[9px] md:text-[10px] transition-colors"
@@ -1113,7 +1113,7 @@ const Cab = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nPrice: ₹${Number(viewDetailsCar.price || 0).toLocaleString('en-IN')}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nPrice: ₹${Number(viewDetailsCar.price || 0).toLocaleString('en-IN')}\n\nThank you for choosing goimomi.com\nContact: +91 8110082222\nEmail: hello@goimomi.com`;
                     navigator.clipboard.writeText(text);
                     alert("Details with price copied to clipboard!");
                   }}
@@ -1124,7 +1124,7 @@ const Cab = () => {
                 </button>
                 <button
                   onClick={() => {
-                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                    const text = `Vehicle: ${viewDetailsCar.name}\nCategory: ${viewDetailsCar.category}\nPassengers: ${viewDetailsCar.passengers} Pax\nBags: ${viewDetailsCar.bags}\nRoute: ${searchParams.fromName} → ${searchParams.toName}\nDate: ${searchParams.pickupDate}\n\nThank you for choosing goimomi.com\nContact: +91 8110082222\nEmail: hello@goimomi.com`;
                     navigator.clipboard.writeText(text);
                     alert("Details without price copied to clipboard!");
                   }}
@@ -1157,7 +1157,7 @@ const Cab = () => {
                 <p className="text-gray-400 text-[10px] mt-2">-------------------------------------------------------------</p>
                 <p className="mt-2">Thank you for choosing goimomi.com</p>
                 <p>In case of any support :</p>
-                <p>Contact : <span className="font-bold">+91 6382220393</span></p>
+                <p>Contact : <span className="font-bold">+91 8110082222</span></p>
                 <p>Email : <span className="font-bold">hello@goimomi.com</span></p>
               </div>
             </div>
@@ -1181,7 +1181,7 @@ const Cab = () => {
                   if (!sharingEmail || !emailModalCar) return;
                   setSendingEmail(true);
                   const subject = `Cab Transfer: ${emailModalCar.name} — ${searchParams.fromName} to ${searchParams.toName}`;
-                  const body = `Hello, please find the cab transfer details:\n\nVehicle: ${emailModalCar.name}\nCategory: ${emailModalCar.category}\nPassengers: ${emailModalCar.passengers} Pax\nBags: ${emailModalCar.bags}\nFrom: ${searchParams.fromName}\nTo: ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(emailModalCar.price || 0).toLocaleString('en-IN')}\nFree Cancellation till: ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 6382220393\nEmail: hello@goimomi.com`;
+                  const body = `Hello, please find the cab transfer details:\n\nVehicle: ${emailModalCar.name}\nCategory: ${emailModalCar.category}\nPassengers: ${emailModalCar.passengers} Pax\nBags: ${emailModalCar.bags}\nFrom: ${searchParams.fromName}\nTo: ${searchParams.toName}\nDate: ${searchParams.pickupDate}\nGuests: ${searchParams.guests}\nPrice: ₹${Number(emailModalCar.price || 0).toLocaleString('en-IN')}\nFree Cancellation till: ${new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}\n\nThank you for choosing goimomi.com\nContact: +91 8110082222\nEmail: hello@goimomi.com`;
                   try {
                     await api.post('/api/send-visa-details/', { email: sharingEmail, subject, body });
                     alert("Details sent successfully to " + sharingEmail);

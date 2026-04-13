@@ -36,7 +36,7 @@ const ContactSuccess = () => {
 
         <div className="space-y-4 mb-10">
           <div className="flex items-center justify-center gap-3 text-sm font-bold text-gray-400">
-            <Phone size={16} /> +91 6382220393
+            <Phone size={16} /> +91 8110082222
           </div>
           <div className="flex items-center justify-center gap-3 text-sm font-bold text-gray-400">
             <Mail size={16} /> hello@goimomi.com
