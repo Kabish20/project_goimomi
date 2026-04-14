@@ -57,15 +57,24 @@ def restore_full():
         print(f"{'Created' if created else 'Updated'} Package {pkg_id}: {title_safe}")
         
         # Restore Itinerary
-        package.itinerary.all().delete()
         for day_data in entry['itinerary']:
-            ItineraryDay.objects.create(
+            day_num = int(day_data['day'])
+            day_obj, d_created = ItineraryDay.objects.get_or_create(
                 package=package,
-                day_number=int(day_data['day']),
-                title=day_data['title'],
-                description=day_data['description'],
-                details_json={}
+                day_number=day_num,
+                defaults={
+                    'title': day_data['title'],
+                    'description': day_data['description'],
+                    'details_json': {}
+                }
             )
+            if not d_created:
+                day_obj.title = day_data['title']
+                day_obj.description = day_data['description']
+                # Preservation rule: only set to {} if absolutely null/empty
+                if not day_obj.details_json:
+                    day_obj.details_json = {}
+                day_obj.save()
         
         # Restore Inclusions/Exclusions/Highlights
         package.inclusions.all().delete()
