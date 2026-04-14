@@ -59,16 +59,19 @@ def restore_full():
         # Restore Itinerary
         for day_data in entry['itinerary']:
             day_num = int(day_data['day'])
-            day_obj, d_created = ItineraryDay.objects.get_or_create(
-                package=package,
-                day_number=day_num,
-                defaults={
-                    'title': day_data['title'],
-                    'description': day_data['description'],
-                    'details_json': {}
-                }
-            )
-            if not d_created:
+            
+            # Use filter().first() to avoid MultipleObjectsReturned
+            day_obj = ItineraryDay.objects.filter(package=package, day_number=day_num).first()
+            
+            if not day_obj:
+                day_obj = ItineraryDay.objects.create(
+                    package=package,
+                    day_number=day_num,
+                    title=day_data['title'],
+                    description=day_data['description'],
+                    details_json={}
+                )
+            else:
                 day_obj.title = day_data['title']
                 day_obj.description = day_data['description']
                 # Preservation rule: only set to {} if absolutely null/empty
