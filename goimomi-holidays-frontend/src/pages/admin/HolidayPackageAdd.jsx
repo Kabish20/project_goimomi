@@ -341,19 +341,26 @@ const HolidayPackageAdd = () => {
     }
   };
 
-  const cityOptions = useMemo(() => {
-    if (!startingCities || startingCities.length === 0) return [];
+  const combinedCityOptions = useMemo(() => {
+    const groups = {};
 
-    const groups = startingCities.reduce((acc, city) => {
-      const country = (city.country_name || city.country || "Other").toString().toUpperCase();
-      if (!acc[country]) acc[country] = [];
-      acc[country].push({
-        value: city.name || "Unknown",
-        label: city.name || "Unknown",
-        subtitle: city.region_name || city.region || ""
-      });
-      return acc;
-    }, {});
+    const addToGroups = (item, type) => {
+      if (!item || !item.name) return;
+      const country = (item.country_name || item.country || "Other").toString().toUpperCase();
+      if (!groups[country]) groups[country] = [];
+      
+      const exists = groups[country].find(opt => opt.value === item.name);
+      if (!exists) {
+        groups[country].push({
+          value: item.name,
+          label: item.name,
+          subtitle: type === 'city' ? (item.region_name || item.region || 'City') : 'Region'
+        });
+      }
+    };
+
+    startingCities.forEach(c => addToGroups(c, 'city'));
+    regions.forEach(r => addToGroups(r, 'region'));
 
     return Object.entries(groups)
       .sort(([a], [b]) => a.localeCompare(b))
@@ -361,7 +368,7 @@ const HolidayPackageAdd = () => {
         label: country,
         options: options.sort((a, b) => a.label.localeCompare(b.label))
       }));
-  }, [startingCities]);
+  }, [startingCities, regions]);
 
   const fetchRoomTypes = async () => {
     try {
@@ -1202,7 +1209,7 @@ const HolidayPackageAdd = () => {
                         <SearchableSelect
                           options={[
                             { value: "Any City", label: "Any City" },
-                            ...cityOptions
+                            ...combinedCityOptions
                           ]}
                           value={formData.starting_city}
                           onChange={(val) => setFormData(prev => ({ ...prev, starting_city: val }))}
@@ -1215,7 +1222,7 @@ const HolidayPackageAdd = () => {
                         <SearchableSelect
                           options={[
                             { value: "Any City", label: "Any City" },
-                            ...cityOptions
+                            ...combinedCityOptions
                           ]}
                           value={formData.ending_city}
                           onChange={(val) => setFormData(prev => ({ ...prev, ending_city: val }))}
@@ -1408,14 +1415,14 @@ const HolidayPackageAdd = () => {
                           <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 bg-white/50 p-2 rounded-2xl border border-gray-50" style={{ animationDelay: `${i * 100}ms` }}>
                             <div className="flex-1">
                               <SearchableSelect
-                                options={regions.map(r => ({ value: r.name, label: r.name, subtitle: r.country_name || r.country }))}
+                                options={combinedCityOptions}
                                 value={row.destination}
                                 onChange={(val) => {
                                   const copy = [...packageDestinations];
                                   copy[i].destination = val;
                                   setPackageDestinations(copy);
                                 }}
-                                placeholder="🔍 Select region..."
+                                placeholder="🔍 Select Destination..."
                                 error={errors[`dest_${i}`]}
                               />
                             </div>
@@ -2534,7 +2541,7 @@ const HolidayPackageAdd = () => {
                                 <SearchableSelect
                                   options={[
                                     { value: "Any City", label: "Any City" },
-                                    ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                    ...combinedCityOptions
                                   ]}
                                   value={formData.arrival_city}
                                   onChange={(val) => setFormData(prev => ({ ...prev, arrival_city: val }))}
@@ -2612,7 +2619,7 @@ const HolidayPackageAdd = () => {
                                 <SearchableSelect
                                   options={[
                                     { value: "Any City", label: "Any City" },
-                                    ...startingCities.map(city => ({ value: city.name, label: city.name }))
+                                    ...combinedCityOptions
                                   ]}
                                   value={formData.departure_city}
                                   onChange={(val) => setFormData(prev => ({ ...prev, departure_city: val }))}

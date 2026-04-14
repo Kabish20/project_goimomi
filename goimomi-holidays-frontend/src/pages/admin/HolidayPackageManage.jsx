@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Plus, Search, Package, Image as ImageIcon } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Package, Image as ImageIcon, Filter } from "lucide-react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
+import SearchableSelect from "../../components/admin/SearchableSelect";
 
 const HolidayPackageManage = () => {
   const [packages, setPackages] = useState([]);
@@ -12,6 +13,10 @@ const HolidayPackageManage = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [startingCities, setStartingCities] = useState([]);
+  const [regions, setRegions] = useState([]);
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
 
   const navigate = useNavigate();
   const API_BASE_URL = "/api";
@@ -36,14 +41,62 @@ const HolidayPackageManage = () => {
     }
   };
 
+  const fetchCitiesAndRegions = async () => {
+    try {
+      const [citiesRes, regionsRes] = await Promise.all([
+        api.get('/api/cities/'),
+        api.get('/api/regions/')
+      ]);
+      setStartingCities(citiesRes.data || []);
+      setRegions(regionsRes.data || []);
+    } catch (err) {
+      console.error("Error fetching cities/regions:", err);
+    }
+  };
+
   useEffect(() => {
-    const filtered = packages.filter(pkg =>
-      pkg.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pkg.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pkg.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    fetchCitiesAndRegions();
+  }, []);
+
+  const combinedCityOptions = React.useMemo(() => {
+    const groups = {};
+    const addToGroups = (item, type) => {
+      if (!item || !item.name) return;
+      const country = (item.country_name || item.country || "Other").toString().toUpperCase();
+      if (!groups[country]) groups[country] = [];
+      const exists = groups[country].find(opt => opt.value === item.name);
+      if (!exists) {
+        groups[country].push({
+          value: item.name,
+          label: item.name,
+          subtitle: type === 'city' ? (item.region_name || item.region || 'City') : 'Region'
+        });
+      }
+    };
+    startingCities.forEach(c => addToGroups(c, 'city'));
+    regions.forEach(r => addToGroups(r, 'region'));
+    return Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([country, options]) => ({
+        label: country,
+        options: options.sort((a, b) => a.label.localeCompare(b.label))
+      }));
+  }, [startingCities, regions]);
+
+  useEffect(() => {
+    const filtered = packages.filter(pkg => {
+      const matchesSearch = !searchTerm || 
+        pkg.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pkg.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pkg.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pkg.starting_city?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCity = !selectedCity || pkg.starting_city === selectedCity;
+      
+      return matchesSearch && matchesCity;
+    });
     setFilteredPackages(filtered);
-  }, [searchTerm, packages]);
+  }, [searchTerm, packages, selectedCity]);
 
   const handleEdit = (pkg) => {
     navigate(`/admin/packages/edit/${pkg.id}`);
@@ -110,7 +163,7 @@ const HolidayPackageManage = () => {
         <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar bg-[#fcfdfc]">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Stats & Filter Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div className="md:col-span-3 relative group">
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors" size={18} />
                 <input
@@ -121,9 +174,23 @@ const HolidayPackageManage = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <div className="md:col-span-2 relative group flex items-center gap-2">
+                <div className="flex-1">
+                  <SearchableSelect
+                    options={[
+                      { value: "", label: "All Cities / Regions" },
+                      ...combinedCityOptions
+                    ]}
+                    value={selectedCity}
+                    onChange={setSelectedCity}
+                    placeholder="Filter by Starting City..."
+                    className="!rounded-full !py-2.5 !border-gray-100"
+                  />
+                </div>
+              </div>
               <div className="bg-white border-2 border-green-100 rounded-full py-3 px-6 flex items-center justify-between shadow-sm">
                 <div>
-                  <p className="text-[9px] text-[#14532d] font-black uppercase tracking-widest opacity-60">Live Packages</p>
+                  <p className="text-[9px] text-[#14532d] font-black uppercase tracking-widest opacity-60">Packages</p>
                   <p className="text-xl font-black text-gray-900 leading-none mt-0.5">{filteredPackages.length}</p>
                 </div>
                 <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center text-[#14532d]">
