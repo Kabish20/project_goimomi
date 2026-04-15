@@ -17,6 +17,7 @@ const HolidayPackageManage = () => {
   const [regions, setRegions] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const navigate = useNavigate();
   const API_BASE_URL = "/api";
@@ -83,6 +84,11 @@ const HolidayPackageManage = () => {
       }));
   }, [startingCities, regions]);
 
+  const uniqueCategories = useMemo(() => {
+    const cats = new Set(packages.map(p => p.category).filter(Boolean));
+    return Array.from(cats).sort();
+  }, [packages]);
+
   useEffect(() => {
     const filtered = packages.filter(pkg => {
       const matchesSearch = !searchTerm || 
@@ -92,11 +98,12 @@ const HolidayPackageManage = () => {
         pkg.starting_city?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCity = !selectedCity || pkg.starting_city === selectedCity;
+      const matchesCategory = !selectedCategory || pkg.category === selectedCategory;
       
-      return matchesSearch && matchesCity;
+      return matchesSearch && matchesCity && matchesCategory;
     });
     setFilteredPackages(filtered);
-  }, [searchTerm, packages, selectedCity]);
+  }, [searchTerm, packages, selectedCity, selectedCategory]);
 
   const handleEdit = (pkg) => {
     navigate(`/admin/packages/edit/${pkg.id}`);
@@ -163,7 +170,8 @@ const HolidayPackageManage = () => {
         <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar bg-[#fcfdfc]">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Stats & Filter Bar */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-8 gap-3">
+              {/* Search */}
               <div className="md:col-span-3 relative group">
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors" size={18} />
                 <input
@@ -174,6 +182,8 @@ const HolidayPackageManage = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+
+              {/* City / Region Filter */}
               <div className="md:col-span-2 relative group flex items-center gap-2">
                 <div className="flex-1">
                   <SearchableSelect
@@ -188,6 +198,25 @@ const HolidayPackageManage = () => {
                   />
                 </div>
               </div>
+
+              {/* Category Filter */}
+              <div className="md:col-span-2 relative">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full bg-white border-2 border-gray-100 px-5 py-3.5 rounded-full text-[10px] font-black text-gray-700 uppercase tracking-widest focus:outline-none focus:ring-8 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 transition-all shadow-sm appearance-none cursor-pointer"
+                >
+                  <option value="">All Categories</option>
+                  {uniqueCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <Filter size={13} />
+                </div>
+              </div>
+
+              {/* Count Badge */}
               <div className="bg-white border-2 border-green-100 rounded-full py-3 px-6 flex items-center justify-between shadow-sm">
                 <div>
                   <p className="text-[9px] text-[#14532d] font-black uppercase tracking-widest opacity-60">Packages</p>

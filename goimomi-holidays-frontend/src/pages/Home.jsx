@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
-import { MapPin, Zap, ShieldCheck, Headphones } from "lucide-react";
+import {
+  MapPin, Zap, ShieldCheck, Headphones, Star, Award, Clock, Globe,
+  Users, CheckCircle2, Briefcase, CreditCard, Plane, FileText,
+  PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays
+} from "lucide-react";
 import usePageSEO from "../hooks/usePageSEO";
 import { getImageUrl } from "../utils/imageUtils";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -284,56 +288,101 @@ const Home = () => {
       </section>
 
       {/* ---------------- SECTION 2: CHOOSE YOUR JOURNEY ---------------- */}
-      <section className="relative py-16 px-6 overflow-hidden bg-slate-50/50">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-10 text-center">
-            <h2 className="text-[10px] uppercase tracking-[0.4em] text-[#14532d] font-black mb-1">Dual Expertise</h2>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Choose Your Journey</h3>
+      <section className="relative py-20 px-6 overflow-hidden bg-slate-50">
+        {/* Subtle bg accent */}
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-emerald-50 rounded-full blur-[100px] opacity-60 pointer-events-none" />
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-14 text-center">
+            <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-700 font-black">Expert-Curated Experiences</span>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic mt-2">Choose Your Journey</h2>
+            <p className="max-w-xl mx-auto text-slate-500 text-sm mt-4 leading-relaxed">
+              As your dedicated travel partner, we handle every detail — from flights and hotels to visas and on-ground logistics —
+              so you can focus entirely on the experience.
+            </p>
           </div>
-          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto overflow-hidden">
+          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
 
             {/* Business Block */}
             <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              whileHover={{ y: -8 }}
+              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/businesshome')}
             >
-              <div className="absolute top-4 right-4 bg-orange-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
-                Trending
+              <div className="absolute top-4 right-4 bg-orange-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Trending</div>
+              <div className="mb-5 w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Briefcase className="w-6 h-6 text-orange-600 group-hover:text-white transition-colors" />
               </div>
-              <div className="mb-4 p-3.5 bg-slate-50 rounded-xl w-fit group-hover:bg-white/10 transition-colors">
-                <span className="text-3xl">💼</span>
-              </div>
-              <h4 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Business Travel</h4>
-              <p className="text-slate-500 mb-4 text-[13px] leading-snug group-hover:text-white/80 line-clamp-2">
-                Optimized itineraries for corporate efficiency and seamless professional logistics.
+              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Business Travel</h4>
+              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+                Precision-managed corporate travel — flights, hotels, visa processing, and ground logistics optimized for maximum efficiency and cost savings.
               </p>
-              <div className="flex items-center gap-3 text-slate-900 font-bold uppercase tracking-widest text-[9px] group-hover:text-white cursor-pointer">
-                <span>[ Explore Business ]</span>
-                <div className="w-8 h-[1.5px] bg-slate-900 group-hover:bg-white transition-all group-hover:w-12" />
+              <ul className="space-y-1.5 mb-6">
+                {["Dedicated corporate desk","Consolidated billing & GST","24/7 travel support"].map(pt => (
+                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+                <span>EXPLORE BUSINESS</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </motion.div>
 
             {/* Leisure Block */}
             <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white p-6 md:p-8 group hover:bg-[#14532d] transition-all duration-500 rounded-[2rem] border border-slate-100 shadow-xl relative overflow-hidden"
+              whileHover={{ y: -8 }}
+              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/holidayhome')}
-
             >
-              <div className="absolute top-4 right-4 bg-green-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20">
-                Popular
+              <div className="absolute top-4 right-4 bg-emerald-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Popular</div>
+              <div className="mb-5 w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Globe className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
               </div>
-              <div className="mb-4 p-3.5 bg-slate-50 rounded-xl w-fit group-hover:bg-white/10 transition-colors">
-                <span className="text-3xl">🌴</span>
-              </div>
-              <h4 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Leisure Travel</h4>
-              <p className="text-slate-500 mb-4 text-[13px] leading-snug group-hover:text-white/80 line-clamp-2">
-                Curated global holidays that rejuvenate the soul with luxury retreats and hidden gems.
+              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Leisure Travel</h4>
+              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+                Handpicked holiday packages to 80+ global destinations — beach escapes, cultural tours, pilgrimages, and European adventures.
               </p>
-              <div className="flex items-center gap-3 text-slate-900 font-bold uppercase tracking-widest text-[9px] group-hover:text-white cursor-pointer">
-                <span>[ Explore Holidays ]</span>
-                <div className="w-8 h-[1.5px] bg-slate-900 group-hover:bg-white transition-all group-hover:w-12" />
+              <ul className="space-y-1.5 mb-6">
+                {["Personally vetted itineraries","Best price guarantee","Free customisation"].map(pt => (
+                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+                <span>EXPLORE HOLIDAYS</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.div>
+
+            {/* Visa & Documentation Block */}
+            <motion.div
+              whileHover={{ y: -8 }}
+              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              onClick={() => navigate('/visa')}
+            >
+              <div className="absolute top-4 right-4 bg-blue-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Fast-Track</div>
+              <div className="mb-5 w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <FileText className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+              </div>
+              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Visa Services</h4>
+              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+                Expert visa assistance for 40+ countries — tourist, business, e-Visa, and Umrah visas processed accurately and on time.
+              </p>
+              <ul className="space-y-1.5 mb-6">
+                {["10+ years of expertise","Documentation guidance","Real-time status updates"].map(pt => (
+                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+                <span>APPLY FOR VISA</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </motion.div>
           </div>
@@ -878,48 +927,191 @@ const Home = () => {
       </section>
 
 
-      {/* ---------------- WHY CHOOSE US SECTION ---------------- */}
-      <section className="py-16 px-6 bg-gray-100">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
+      {/* ---------------- WHY BOOK THROUGH A TRAVEL AGENT ---------------- */}
+      <section className="py-24 px-6 bg-slate-900 relative overflow-hidden">
+        {/* Decorative accents */}
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-emerald-700/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-emerald-900/30 rounded-full blur-[120px] pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.4) 1px,transparent 1px)", backgroundSize: "50px 50px" }}
+        />
 
-          {/* Why Goimomi Holidays */}
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Why Goimomi Holidays?</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              Established in 2010, Goimomi Holidays has since positioned itself as one of the leading companies,
-              providing great offers, competitive airfares, exclusive discounts, and a seamless online booking
-              experience to many of its customers. The experience of booking your flight tickets, hotel stay, and
-              holiday package with complete ease and no hassles at all. We also deliver amazing offers, such as
-              Instant Discounts, Fare Calendar, MyRewardsProgram, MyWallet, and many more while booking your
-              flight tickets online to make the experience better and better for our customers.
+        <div className="max-w-7xl mx-auto relative z-10">
+
+          {/* Heading */}
+          <div className="text-center mb-16">
+            <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-400 font-black">Your Trusted Travel Partner Since 2010</span>
+            <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mt-2 mb-4">
+              Why Book With A <span className="text-emerald-400">Professional Agent?</span>
+            </h2>
+            <p className="max-w-2xl mx-auto text-slate-400 text-sm leading-relaxed">
+              In the age of online booking, a professional travel agent delivers something no algorithm can — personalised
+              expertise, crisis management, unbeatable rates, and the peace of mind that comes from a human who genuinely
+              cares about your journey.
             </p>
           </div>
 
-          {/* Booking Flights with Goimomi Holidays */}
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Booking Flights with Goimomi Holidays</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              At Goimomi Holidays, you can find the best of deals and cheap air tickets to any place you want by
-              booking in just a few simple clicks. Just use our deals and you will surely find great discounts
-              on your flight tickets. Goimomi Holidays helps you book flight tickets that are affordable and customized
-              to your convenience. With customer satisfaction being our ultimate goal, we also have a 24/7
-              dedicated helpline to cater to our customer's queries and concerns. Serving over 5 million happy
-              customers and counting, we also have a 24/7 dedicated helpline who need a quick and easy means
-              to find air tickets. You can get a hold of the cheapest flight of your choice today while also
-              enjoying the other available options for your travel needs with us.
-            </p>
+          {/* Agent advantage grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
+            {[
+              {
+                icon: <Award className="w-5 h-5" />,
+                title: "10+ Years of Expertise",
+                desc: "Established in 2010, Goimomi has planned thousands of trips across 80+ destinations. Our deep destination knowledge means your itinerary is built on real experience — not guesswork."
+              },
+              {
+                icon: <TrendingUp className="w-5 h-5" />,
+                title: "Unbeatable Negotiated Rates",
+                desc: "We hold preferred partnerships with airlines, hotel chains, and tour operators — unlocking exclusive fares and room upgrades that are simply unavailable to individual travellers booking online."
+              },
+              {
+                icon: <Headphones className="w-5 h-5" />,
+                title: "24 / 7 Human Support",
+                desc: "Travel disruptions don't keep office hours. When a flight is cancelled or a hotel overbooks, our dedicated travel desk responds instantly — rebooking and problem-solving in real time."
+              },
+              {
+                icon: <FileText className="w-5 h-5" />,
+                title: "Flawless Documentation",
+                desc: "From visa applications and travel insurance to hotel confirmations and forex — we meticulously manage every document so there are zero surprises at the airport or border."
+              },
+              {
+                icon: <Sparkles className="w-5 h-5" />,
+                title: "Personalised Itineraries",
+                desc: "No two travellers are alike. We study your preferences, budget, travel style, and dietary needs, then craft an itinerary that feels tailor-made — because it is."
+              },
+              {
+                icon: <ShieldCheck className="w-5 h-5" />,
+                title: "Fully Insured & Compliant",
+                desc: "All packages come with optional comprehensive travel insurance. Our operations are IATA-certified and GST-compliant — giving your booking the protection it deserves."
+              }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className="p-7 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/40 hover:bg-white/10 transition-all group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-emerald-700/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:bg-emerald-700 group-hover:text-white transition-all">
+                  {item.icon}
+                </div>
+                <h3 className="text-base font-bold uppercase tracking-tight text-white mb-2">{item.title}</h3>
+                <p className="text-slate-400 text-[13px] leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
           </div>
 
-          {/* Domestic Flights with Goimomi Holidays */}
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">Domestic Flights with Goimomi Holidays</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              Goimomi Holidays is India's leading player for flight bookings. With the cheapest fare guarantee,
-              experience great value at the lowest price. Instant notifications ensure current flight status,
-              instant fare drops, amazing discounts, instant refunds and rebook options, price comparisons and
-              many more interesting features.
-            </p>
+          {/* How We Work — 4-step process */}
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-10 mb-16">
+            <div className="text-center mb-10">
+              <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-400 font-black">Our Process</span>
+              <h3 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter mt-2">
+                From Enquiry to <span className="text-emerald-400">Safe Return</span>
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { step: "01", icon: <PhoneCall className="w-5 h-5" />, title: "Free Consultation", desc: "Tell us your destination, dates, and budget. Our agent crafts a bespoke plan within 24 hours — completely free of charge." },
+                { step: "02", icon: <CalendarDays className="w-5 h-5" />, title: "Itinerary Design", desc: "We build a day-by-day itinerary with flights, accommodation, transfers, and activities tailored to your preferences." },
+                { step: "03", icon: <CreditCard className="w-5 h-5" />, title: "Secure Booking", desc: "Confirm your package with a simple deposit. We handle all vendor payments, confirmations, and visa applications." },
+                { step: "04", icon: <Plane className="w-5 h-5" />, title: "Travel & Beyond", desc: "Travel with confidence. Our 24/7 support desk stays with you from departure to return — handling any change effortlessly." }
+              ].map((s, i) => (
+                <div key={i} className="flex flex-col items-start">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-4xl font-black italic text-white/10">{s.step}</span>
+                    <div className="w-11 h-11 rounded-xl bg-emerald-700 flex items-center justify-center text-white shrink-0">
+                      {s.icon}
+                    </div>
+                  </div>
+                  <h4 className="text-sm font-bold uppercase tracking-tight text-white mb-2">{s.title}</h4>
+                  <p className="text-slate-400 text-[13px] leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Agent stats strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16 text-center">
+            {[
+              { value: "15,000+", label: "Happy Travellers" },
+              { value: "80+", label: "Destinations Covered" },
+              { value: "98%", label: "Client Satisfaction" },
+              { value: "10+", label: "Years of Excellence" }
+            ].map((stat) => (
+              <div key={stat.label} className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                <p className="text-4xl font-black italic text-emerald-400 tracking-tighter">{stat.value}</p>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* 3-column info cards — Goimomi story + flights + domestic */}
+          <div className="grid md:grid-cols-3 gap-5 mb-16">
+            {[
+              {
+                title: "About Goimomi Holidays",
+                icon: <BadgeCheck className="w-5 h-5" />,
+                body: "Established in 2010, Goimomi Holidays has grown into one of India's most trusted travel agencies — renowned for delivering competitive airfares, exclusive holiday packages, and seamless visa processing. We've served thousands of happy travellers across domestic and international routes, backed by a team of passionate, certified travel professionals."
+              },
+              {
+                title: "Flight Booking Expertise",
+                icon: <Plane className="w-5 h-5" />,
+                body: "Find the best airfares on domestic and international routes — priority class, economy, and everything in between. Our agents compare fares across carriers in real time, apply negotiated corporate rates, and handle group bookings with ease. With a 24/7 helpline and instant confirmations, booking your next flight has never been more reassuring."
+              },
+              {
+                title: "Domestic Travel Specialists",
+                icon: <MapPin className="w-5 h-5" />,
+                body: "From Kashmir to Kanyakumari, we've curated the finest domestic holiday experiences for Indian travellers. Get the cheapest fare guarantee on domestic flights, instant hotel bookings in 500+ cities, and real-time updates on fare drops, discounts, and refunds. Your perfect India trip is just one call away."
+              }
+            ].map((card, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="p-7 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 hover:bg-white/10 transition-all group"
+              >
+                <div className="w-12 h-12 rounded-xl bg-emerald-700/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:bg-emerald-700 group-hover:text-white transition-all">
+                  {card.icon}
+                </div>
+                <h3 className="text-base font-bold uppercase tracking-tight text-white mb-3">{card.title}</h3>
+                <p className="text-slate-400 text-[13px] leading-relaxed">{card.body}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTA strip */}
+          <div className="rounded-2xl bg-gradient-to-r from-emerald-800 to-emerald-900 border border-emerald-700/50 p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.4em] text-emerald-300 font-black mb-2">Ready to travel?</p>
+              <h3 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none">
+                Let's Plan Your Next <span className="text-emerald-300">Adventure</span>
+              </h3>
+              <p className="text-emerald-100/70 text-sm mt-2 max-w-lg">
+                Speak to a Goimomi travel expert today — free itinerary planning, best price promise, and zero booking fee.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+              <button
+                id="home-agent-cta-contact"
+                onClick={() => navigate('/contactus')}
+                className="px-8 py-4 bg-white text-emerald-800 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-50 transition-all shadow-xl rounded-sm whitespace-nowrap"
+              >
+                TALK TO AN AGENT
+              </button>
+              <button
+                id="home-agent-cta-holidays"
+                onClick={() => navigate('/holidayhome')}
+                className="px-8 py-4 bg-transparent border-2 border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all rounded-sm whitespace-nowrap"
+              >
+                VIEW PACKAGES
+              </button>
+            </div>
+          </div>
+
         </div>
       </section>
     </div>

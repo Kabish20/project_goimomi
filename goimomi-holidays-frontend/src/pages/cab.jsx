@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle } from "lucide-react";
+import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle, ShieldCheck, Clock, Headphones, Award, CreditCard, Star, Plane, ArrowRight, BadgeCheck, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 import api from "../api";
 import SearchableSelect from "../components/admin/SearchableSelect";
 import CabCruiseForm from "../components/CabCruiseForm";
@@ -247,19 +248,53 @@ const Cab = () => {
       {/* Hero Section or Compact Search */}
       {!isSearched ? (
         <div
-          className="relative h-[45vh] md:h-[50vh] flex flex-col items-center justify-center px-4 overflow-hidden"
+          className="relative flex flex-col items-center justify-center px-4 overflow-hidden pt-10 pb-36"
           style={{
-            backgroundImage: `linear-gradient(rgba(20, 83, 45, 0.35), rgba(20, 83, 45, 0.35)), url(${cabSearchBg})`,
+            backgroundImage: `url(${cabSearchBg})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
         >
-          <div className="w-full max-w-6xl z-10 -mt-8">
-            {/* New Service Advertisement Banner */}
-            <div className="mb-4 overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl group/ad">
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/85 via-slate-900/75 to-slate-900/90" />
+          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.4) 1px,transparent 1px)", backgroundSize: "50px 50px" }} />
+
+          <div className="w-full max-w-6xl z-10 flex flex-col items-center">
+            {/* Hero Text */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-center text-white mb-8 w-full"
+            >
+              <div className="flex items-center justify-center gap-3 text-emerald-400 mb-4">
+                <div className="w-10 h-[2px] bg-emerald-400" />
+                <span className="text-[11px] uppercase tracking-[0.5em] font-black">Professional Transfer Services</span>
+                <div className="w-10 h-[2px] bg-emerald-400" />
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-[0.85] mb-4">
+                PREMIUM
+                <br />
+                <span className="text-white/25">TRANSFERS</span>
+              </h1>
+              <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-5">
+                Airport pickups, intercity rides, and pilgrimage transfers across Saudi Arabia — driven by verified professional chauffeurs and managed by Goimomi's expert travel desk.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-5">
+                {["Verified Drivers", "Free 30 Min Wait", "Free Cancellation", "All-Inclusive Pricing"].map(badge => (
+                  <div key={badge} className="flex items-center gap-1.5 text-slate-300">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">{badge}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Announcement Banner */}
+            <div className="mb-5 w-full overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl group/ad">
               <div className="flex items-center py-3 px-6 cursor-default overflow-hidden">
-                <div className="flex-shrink-0 bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter mr-4 z-10 shadow-lg animate-pulse-slow">
-                  New Update
+                <div className="flex-shrink-0 bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter mr-4 z-10 shadow-lg animate-pulse">
+                  New
                 </div>
                 <div className="flex-1 overflow-hidden pointer-events-none relative h-full flex items-center">
                   <div className="animate-marquee w-max group-hover/ad:[animation-play-state:paused] pointer-events-auto">
@@ -274,124 +309,131 @@ const Cab = () => {
               </div>
             </div>
 
-            <div className="flex mb-[-1px] relative z-20">
-              <div className="bg-white px-6 py-2.5 rounded-t-xl font-bold text-[#14532d] flex items-center gap-2 shadow-sm border-b-2 border-white text-sm">
-                Transfers
+            {/* Search Box */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.7 }}
+              className="w-full"
+            >
+              <div className="flex mb-[-1px] relative z-20">
+                <div className="bg-white px-6 py-2.5 rounded-t-xl font-bold text-[#14532d] flex items-center gap-2 shadow-sm border-b-2 border-white text-sm">
+                  Transfers
+                </div>
               </div>
-            </div>
-
-            <div className="bg-white rounded-r-xl rounded-bl-xl shadow-xl p-3 md:p-4">
-              <form onSubmit={handleSearch}>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
-                  <div className="md:col-span-12 lg:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-1.5 relative">
-                    <div className="relative group">
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] z-10 pointer-events-none">
-                        <MapPin size={16} />
+              <div className="bg-white rounded-r-xl rounded-bl-xl shadow-2xl p-3 md:p-4">
+                <form onSubmit={handleSearch}>
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                    <div className="md:col-span-12 lg:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-1.5 relative">
+                      <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] z-10 pointer-events-none">
+                          <MapPin size={16} />
+                        </div>
+                        <SearchableSelect
+                          options={destinations}
+                          value={searchParams.fromId}
+                          onChange={(val) => {
+                            const opt = destinations.find(d => d.value === val);
+                            setSearchParams(prev => ({ ...prev, fromId: val, fromName: opt?.label || "" }));
+                          }}
+                          placeholder="From city"
+                          size="compact"
+                          className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                        />
                       </div>
-                      <SearchableSelect
-                        options={destinations}
-                        value={searchParams.fromId}
-                        onChange={(val) => {
-                          const opt = destinations.find(d => d.value === val);
-                          setSearchParams(prev => ({ ...prev, fromId: val, fromName: opt?.label || "" }));
-                        }}
-                        placeholder="From city"
-                        size="compact"
-                        className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
-                      />
-                    </div>
 
-                    <div
-                      onClick={handleSwap}
-                      className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-white p-0.5 rounded-md border border-gray-100 shadow-sm text-gray-400 hover:text-[#14532d] cursor-pointer transition-colors active:scale-90"
-                    >
-                      <ArrowLeftRight size={12} />
-                    </div>
-
-                    <div className="relative group">
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] z-10 pointer-events-none">
-                        <MapPin size={16} />
-                      </div>
-                      <SearchableSelect
-                        options={destinations}
-                        value={searchParams.toId}
-                        onChange={(val) => {
-                          const opt = destinations.find(d => d.value === val);
-                          setSearchParams(prev => ({ ...prev, toId: val, toName: opt?.label || "" }));
-                        }}
-                        placeholder="To city"
-                        size="compact"
-                        className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-6 lg:col-span-3">
-                    <div className="relative group">
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors pointer-events-none">
-                        <Calendar size={16} />
-                      </div>
-                      <input
-                        type="date"
-                        value={searchParams.pickupDate}
-                        onChange={(e) => setSearchParams({ ...searchParams, pickupDate: e.target.value })}
-                        className="w-full pl-9 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] transition-all text-xs font-bold text-gray-900"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-4 lg:col-span-2 relative group guest-selector">
-                    <div
-                      onClick={() => setIsGuestsOpen(!isGuestsOpen)}
-                      className="flex items-center gap-3 w-full pl-9 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#14532d] transition-all"
-                    >
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                        <Users size={16} />
-                      </div>
-                      <span className="text-xs font-bold text-gray-900">{searchParams.guests} guests</span>
-                    </div>
-
-                    {isGuestsOpen && (
                       <div
-                        ref={guestPopoverRef}
-                        className="absolute top-full left-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] p-4 z-50 min-w-[220px] animate-in fade-in slide-in-from-top-2 duration-200"
+                        onClick={handleSwap}
+                        className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-white p-0.5 rounded-md border border-gray-100 shadow-sm text-gray-400 hover:text-[#14532d] cursor-pointer transition-colors active:scale-90"
                       >
-                        <div className="flex items-center justify-between gap-6">
-                          <span className="text-sm font-bold text-gray-500">Guests</span>
-                          <div className="flex items-center gap-4">
-                            <button
-                              type="button"
-                              onClick={() => setSearchParams(prev => ({ ...prev, guests: Math.max(1, prev.guests - 1) }))}
-                              className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
-                            >
-                              <span className="text-xl font-light">−</span>
-                            </button>
-                            <span className="text-sm font-bold text-gray-900 min-w-[12px] text-center">{searchParams.guests}</span>
-                            <button
-                              type="button"
-                              onClick={() => setSearchParams(prev => ({ ...prev, guests: prev.guests + 1 }))}
-                              className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
-                            >
-                              <span className="text-xl font-light">+</span>
-                            </button>
+                        <ArrowLeftRight size={12} />
+                      </div>
+
+                      <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] z-10 pointer-events-none">
+                          <MapPin size={16} />
+                        </div>
+                        <SearchableSelect
+                          options={destinations}
+                          value={searchParams.toId}
+                          onChange={(val) => {
+                            const opt = destinations.find(d => d.value === val);
+                            setSearchParams(prev => ({ ...prev, toId: val, toName: opt?.label || "" }));
+                          }}
+                          placeholder="To city"
+                          size="compact"
+                          className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-6 lg:col-span-3">
+                      <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors pointer-events-none">
+                          <Calendar size={16} />
+                        </div>
+                        <input
+                          type="date"
+                          value={searchParams.pickupDate}
+                          onChange={(e) => setSearchParams({ ...searchParams, pickupDate: e.target.value })}
+                          className="w-full pl-9 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] transition-all text-xs font-bold text-gray-900"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-4 lg:col-span-2 relative group guest-selector">
+                      <div
+                        onClick={() => setIsGuestsOpen(!isGuestsOpen)}
+                        className="flex items-center gap-3 w-full pl-9 pr-3 py-2.5 bg-white border-2 border-gray-200 rounded-lg cursor-pointer hover:border-[#14532d] transition-all"
+                      >
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                          <Users size={16} />
+                        </div>
+                        <span className="text-xs font-bold text-gray-900">{searchParams.guests} guests</span>
+                      </div>
+
+                      {isGuestsOpen && (
+                        <div
+                          ref={guestPopoverRef}
+                          className="absolute top-full left-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] p-4 z-50 min-w-[220px] animate-in fade-in slide-in-from-top-2 duration-200"
+                        >
+                          <div className="flex items-center justify-between gap-6">
+                            <span className="text-sm font-bold text-gray-500">Guests</span>
+                            <div className="flex items-center gap-4">
+                              <button
+                                type="button"
+                                onClick={() => setSearchParams(prev => ({ ...prev, guests: Math.max(1, prev.guests - 1) }))}
+                                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+                              >
+                                <span className="text-xl font-light">−</span>
+                              </button>
+                              <span className="text-sm font-bold text-gray-900 min-w-[12px] text-center">{searchParams.guests}</span>
+                              <button
+                                type="button"
+                                onClick={() => setSearchParams(prev => ({ ...prev, guests: prev.guests + 1 }))}
+                                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+                              >
+                                <span className="text-xl font-light">+</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
 
-                  <div className="md:col-span-2 lg:col-span-2 self-end">
-                    <button
-                      type="submit"
-                      className="w-full h-[42px] bg-gradient-to-r from-[#14532d] to-[#15803d] text-white rounded-lg font-bold uppercase tracking-wider shadow-md hover:shadow-[#14532d]/20 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
-                    >
-                      <Search size={16} />
-                      Search
-                    </button>
+                    <div className="md:col-span-2 lg:col-span-2 self-end">
+                      <button
+                        type="submit"
+                        className="w-full h-[42px] bg-gradient-to-r from-[#14532d] to-[#15803d] text-white rounded-lg font-bold uppercase tracking-wider shadow-md hover:shadow-[#14532d]/20 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
+                      >
+                        <Search size={16} />
+                        Search
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </form>
-            </div>
+                </form>
+              </div>
+            </motion.div>
           </div>
         </div>
       ) : isBooking ? (
@@ -922,24 +964,249 @@ const Cab = () => {
 
       {/* Main Content Area */}
       {!isSearched ? (
-        <div className="bg-white py-12 px-4">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-3 text-2xl shadow-inner">✈️</div>
-              <h3 className="text-base font-bold text-gray-800 mb-1">Airport Transfers</h3>
-              <p className="text-gray-500 text-xs">Punctual pickups to and from all major airports.</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-3 text-2xl shadow-inner">💼</div>
-              <h3 className="text-base font-bold text-gray-800 mb-1">Business Travel</h3>
-              <p className="text-gray-500 text-xs">Arrive in comfort with our premium fleet and drivers.</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-3 text-2xl shadow-inner">🏙️</div>
-              <h3 className="text-base font-bold text-gray-800 mb-1">City Tours</h3>
-              <p className="text-gray-500 text-xs">Explore with our experienced local drivers.</p>
+        <div>
+
+          {/* ── STATS STRIP ─────────────────────────────── */}
+          <div className="bg-emerald-800 py-8 px-6">
+            <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              {[
+                { value: "5,000+", label: "Transfers Completed" },
+                { value: "50+", label: "Cities Covered" },
+                { value: "100%", label: "Verified Drivers" },
+                { value: "24/7", label: "Support Desk" },
+              ].map(s => (
+                <div key={s.label} className="text-white">
+                  <p className="text-3xl font-black italic tracking-tighter text-white">{s.value}</p>
+                  <p className="text-[10px] uppercase tracking-widest text-emerald-200 font-bold mt-1">{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* ── WHY BOOK WITH US (DARK) ──────────────────── */}
+          <div className="py-20 px-6 bg-slate-900 relative overflow-hidden">
+            <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-emerald-700/10 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-emerald-900/30 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.4) 1px,transparent 1px)", backgroundSize: "50px 50px" }} />
+
+            <div className="max-w-7xl mx-auto relative z-10">
+              <div className="text-center mb-14">
+                <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-400 font-black">Why Travel With Goimomi</span>
+                <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mt-2 mb-4">
+                  More Than Just <span className="text-emerald-400">A Cab Booking</span>
+                </h2>
+                <p className="max-w-2xl mx-auto text-slate-400 text-sm leading-relaxed">
+                  Booking a transfer through Goimomi means a verified professional chauffeur, transparent pricing, real-time
+                  coordination, and a dedicated travel desk — not just a random car from an app.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[
+                  {
+                    icon: <ShieldCheck className="w-5 h-5" />,
+                    title: "Verified Professional Drivers",
+                    desc: "Every chauffeur on our platform is background-verified, licensed, and trained in professional conduct — so you travel with complete confidence."
+                  },
+                  {
+                    icon: <CreditCard className="w-5 h-5" />,
+                    title: "All-Inclusive Transparent Pricing",
+                    desc: "The price you see is the price you pay. No surge charges, no hidden airport fees, no surprise toll additions — complete cost transparency from the start."
+                  },
+                  {
+                    icon: <Clock className="w-5 h-5" />,
+                    title: "Complimentary Wait Time",
+                    desc: "We include 30 minutes of free waiting time on all airport pickups — because flight delays happen. No extra charges for the first 30 minutes."
+                  },
+                  {
+                    icon: <Headphones className="w-5 h-5" />,
+                    title: "24/7 Travel Desk Support",
+                    desc: "Our team is available around the clock to handle last-minute changes, flight delays, route modifications, or any transfer-related emergency."
+                  },
+                  {
+                    icon: <Award className="w-5 h-5" />,
+                    title: "Meet & Greet Service",
+                    desc: "Your driver will be waiting with a name board at the arrival hall — guiding you smoothly to the vehicle without any confusing waits or calls."
+                  },
+                  {
+                    icon: <BadgeCheck className="w-5 h-5" />,
+                    title: "Free Cancellation Policy",
+                    desc: "Cancel up to 48 hours before your pickup at zero cost. Modify your booking details anytime without penalty — complete flexibility for your plans."
+                  },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    className="p-7 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/40 hover:bg-white/10 transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-emerald-700/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:bg-emerald-700 group-hover:text-white transition-all">
+                      {item.icon}
+                    </div>
+                    <h3 className="text-base font-bold uppercase tracking-tight text-white mb-2">{item.title}</h3>
+                    <p className="text-slate-400 text-[13px] leading-relaxed">{item.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── SERVICE TYPES ────────────────────────────── */}
+          <div className="py-20 px-6 bg-white">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-14">
+                <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-700 font-black">Our Services</span>
+                <h2 className="text-3xl md:text-4xl font-black text-slate-900 uppercase italic tracking-tighter leading-none mt-2">
+                  Transfer Solutions <span className="text-emerald-700">For Every Journey</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[
+                  {
+                    emoji: "✈️",
+                    title: "Airport Transfers",
+                    desc: "Punctual, stress-free pickups and drop-offs at all major domestic and international airports. Flight tracking included — your driver waits even if your flight is late.",
+                    tags: ["Arrival", "Departure", "Layover"],
+                    color: "from-blue-50 to-indigo-50 border-blue-100",
+                  },
+                  {
+                    emoji: "🏙️",
+                    title: "Intercity Transfers",
+                    desc: "Comfortable point-to-point rides between cities with professional drivers, air-conditioned vehicles, and flexible departure times. Ideal for group travel.",
+                    tags: ["Sedan", "SUV", "Minivan"],
+                    color: "from-emerald-50 to-green-50 border-emerald-100",
+                  },
+                  {
+                    emoji: "💼",
+                    title: "Corporate Travel",
+                    desc: "Premium executive transfers for business travellers — quiet, punctual, and professional. Ideal for client pickups, site visits, and conference transfers.",
+                    tags: ["Executive", "Group", "Recurring"],
+                    color: "from-orange-50 to-amber-50 border-orange-100",
+                  },
+                  {
+                    emoji: "🕌",
+                    title: "Pilgrimage Transfers",
+                    desc: "Specialised transfers in Jeddah, Makkah, Madinah & Taif for Umrah and Hajj pilgrims. Managed with reverence, punctuality, and deep spiritual understanding.",
+                    tags: ["Makkah", "Madinah", "Jeddah", "Taif"],
+                    color: "from-rose-50 to-pink-50 border-rose-100",
+                  },
+                  {
+                    emoji: "🗺️",
+                    title: "City & Sightseeing Tours",
+                    desc: "Explore cities with knowledgeable local drivers on custom hourly or full-day hire basis. Perfect for tourists and first-time visitors.",
+                    tags: ["Hourly", "Full Day", "Custom"],
+                    color: "from-violet-50 to-purple-50 border-violet-100",
+                  },
+                  {
+                    emoji: "👨‍👩‍👧‍👦",
+                    title: "Group & Event Transfers",
+                    desc: "Coordinated multi-vehicle transfers for large groups, weddings, conferences, or sporting events. Single-point booking with synchronized arrivals.",
+                    tags: ["Fleet", "Events", "MICE"],
+                    color: "from-teal-50 to-cyan-50 border-teal-100",
+                  },
+                ].map((svc, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    className={`p-7 rounded-2xl border bg-gradient-to-br ${svc.color} hover:shadow-lg transition-all`}
+                  >
+                    <div className="text-3xl mb-4">{svc.emoji}</div>
+                    <h3 className="text-base font-black uppercase tracking-tight text-slate-900 mb-2">{svc.title}</h3>
+                    <p className="text-slate-600 text-[13px] leading-relaxed mb-4">{svc.desc}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {svc.tags.map(tag => (
+                        <span key={tag} className="text-[10px] font-black uppercase tracking-widest bg-white/70 px-2.5 py-1 rounded-full text-slate-600">{tag}</span>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── HOW TO BOOK ──────────────────────────────── */}
+          <div className="py-20 px-6 bg-slate-50">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-14">
+                <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-700 font-black">Simple Process</span>
+                <h2 className="text-3xl md:text-4xl font-black text-slate-900 uppercase italic tracking-tighter leading-none mt-2">
+                  Book Your Transfer <span className="text-emerald-700">In 4 Steps</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { step: "01", emoji: "🔍", title: "Search Your Route", desc: "Enter your pickup city, destination, travel date, and number of passengers above to see available vehicles instantly." },
+                  { step: "02", emoji: "🚗", title: "Choose Your Vehicle", desc: "Select from Sedans, SUVs, and Minivans based on your group size, luggage, and budget — all transparently priced." },
+                  { step: "03", emoji: "📋", title: "Fill Your Details", desc: "Enter your contact information, flight details, and any special requirements. Our team reviews every booking personally." },
+                  { step: "04", emoji: "✅", title: "Confirmed & Ready", desc: "Receive instant booking confirmation. Your verified driver will be at your pickup point on time — with your name on a board." },
+                ].map((s, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="relative flex flex-col items-start p-7 rounded-2xl bg-white border border-slate-100 hover:border-emerald-200 hover:shadow-lg transition-all group"
+                  >
+                    {i < 3 && <ChevronRight className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-200 hidden lg:block z-10" />}
+                    <div className="flex items-center gap-3 mb-5">
+                      <span className="text-4xl font-black italic text-slate-100 group-hover:text-emerald-100 transition-colors">{s.step}</span>
+                      <span className="text-2xl">{s.emoji}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900 uppercase tracking-tight mb-2">{s.title}</h3>
+                    <p className="text-slate-500 text-[13px] leading-relaxed">{s.desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── CTA STRIP ────────────────────────────────── */}
+          <div className="py-16 px-6 bg-gradient-to-br from-emerald-800 to-emerald-950 relative overflow-hidden">
+            <div className="absolute -top-16 -right-16 w-64 h-64 bg-emerald-500/20 rounded-full blur-[60px]" />
+            <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-emerald-500/20 rounded-full blur-[60px]" />
+            <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.4em] text-emerald-300 font-black mb-2">Need help booking?</p>
+                <h2 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none">
+                  Talk to Our Transfer <span className="text-emerald-300">Specialists</span>
+                </h2>
+                <p className="text-emerald-100/70 text-sm mt-2 max-w-lg">
+                  For group bookings, custom routes, pilgrimage transfers, or corporate accounts — our travel desk is ready to help.
+                </p>
+                <div className="flex flex-wrap gap-5 mt-4">
+                  {["Free Cancellation", "No Hidden Fees", "Instant Confirmation"].map(b => (
+                    <div key={b} className="flex items-center gap-1.5">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200">{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                <a
+                  href="tel:+918110082222"
+                  className="px-8 py-4 bg-white text-emerald-800 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-emerald-50 transition-all shadow-xl rounded-sm whitespace-nowrap text-center"
+                >
+                  📞 CALL US NOW
+                </a>
+                <a
+                  href="https://wa.me/918110082222"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-8 py-4 bg-transparent border-2 border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all rounded-sm whitespace-nowrap text-center"
+                >
+                  💬 WHATSAPP US
+                </a>
+              </div>
+            </div>
+          </div>
+
         </div>
       ) : !isBooking ? (
         <div className="max-w-7xl mx-auto px-4 py-8">

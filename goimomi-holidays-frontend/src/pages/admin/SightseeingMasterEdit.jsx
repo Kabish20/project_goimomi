@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { MapPin, Image as ImageIcon, Plus, X, ArrowLeft, Camera, Clock, IndianRupee, Link as LinkIcon, Info, Trash2 } from "lucide-react";
@@ -23,7 +23,8 @@ const Input = (props) => (
 const SightseeingMasterEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [cities, setCities] = useState([]);
+    const [allCities, setAllCities] = useState([]);
+    const [allRegions, setAllRegions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [citiesLoading, setCitiesLoading] = useState(false);
@@ -55,32 +56,51 @@ const SightseeingMasterEdit = () => {
     const fetchCities = async () => {
         try {
             setCitiesLoading(true);
-            const response = await api.get('/api/cities/');
-            const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
-            
-            const grouped = data.reduce((acc, city) => {
-                const groupName = `${city.region_name} (${city.country_name})`;
-                if (!acc[groupName]) acc[groupName] = [];
-                acc[groupName].push({
-                    value: city.id,
-                    label: city.name,
-                    subtitle: groupName
-                });
-                return acc;
-            }, {});
-
-            const options = Object.entries(grouped).map(([label, opts]) => ({
-                label,
-                options: opts
-            }));
-
-            setCities(options);
+            const [citiesRes, regionsRes] = await Promise.all([
+                api.get('/api/cities/'),
+                api.get('/api/regions/')
+            ]);
+            const citiesData = Array.isArray(citiesRes.data) ? citiesRes.data : (citiesRes.data?.results || []);
+            const regionsData = Array.isArray(regionsRes.data) ? regionsRes.data : (regionsRes.data?.results || []);
+            setAllCities(citiesData);
+            setAllRegions(regionsData);
         } catch (err) {
-            console.error("Error fetching cities:", err);
+            console.error("Error fetching cities/regions:", err);
         } finally {
             setCitiesLoading(false);
         }
     };
+
+    // Build combined city+region options grouped by country (matches HolidayPackageAdd pattern)
+    const cities = useMemo(() => {
+        const groups = {};
+        const addToGroups = (item, type) => {
+            if (!item || !item.name) return;
+            const country = (item.country_name || item.country || "Other").toString().toUpperCase();
+            if (!groups[country]) groups[country] = [];
+            const key = `${type}-${item.id}`;
+            const exists = groups[country].find(opt => opt._key === key);
+            if (!exists) {
+                groups[country].push({
+                    _key: key,
+                    value: item.id,
+                    label: item.name,
+                    subtitle: type === 'city'
+                        ? (item.region_name || 'City')
+                        : 'Region',
+                    badge: type
+                });
+            }
+        };
+        allCities.forEach(c => addToGroups(c, 'city'));
+        allRegions.forEach(r => addToGroups(r, 'region'));
+        return Object.entries(groups)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([label, opts]) => ({
+                label,
+                options: opts.sort((a, b) => a.label.localeCompare(b.label))
+            }));
+    }, [allCities, allRegions]);
 
     const fetchSightseeingData = async () => {
         try {

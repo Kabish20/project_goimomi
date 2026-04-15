@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,7 +19,8 @@ const PickupPointManage = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingPoint, setEditingPoint] = useState(null);
     const [formData, setFormData] = useState({ name: "", city: "" });
-    const [cities, setCities] = useState([]);
+    const [allCities, setAllCities] = useState([]);
+    const [allRegions, setAllRegions] = useState([]);
     const [citySearch, setCitySearch] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [toast, setToast] = useState(null);
@@ -41,26 +42,76 @@ const PickupPointManage = () => {
         }
     };
 
-    const fetchCities = async (search = "") => {
+    const fetchCities = async () => {
         try {
-            const response = await api.get(`/api/cities/${search ? `?search=${search}` : ""}`);
-            setCities(response.data || []);
+            const [citiesRes, regionsRes] = await Promise.all([
+                api.get('/api/cities/'),
+                api.get('/api/regions/')
+            ]);
+            const citiesData = Array.isArray(citiesRes.data) ? citiesRes.data : (citiesRes.data?.results || []);
+            const regionsData = Array.isArray(regionsRes.data) ? regionsRes.data : (regionsRes.data?.results || []);
+            setAllCities(citiesData);
+            setAllRegions(regionsData);
         } catch (err) {
-            console.error("Error fetching cities:", err);
+            console.error("Error fetching cities/regions:", err);
         }
     };
+
+    // Build combined city+region options grouped by country (same pattern as HolidayPackageAdd)
+    const combinedCityOptions = useMemo(() => {
+        const groups = {};
+        const addToGroups = (item, type) => {
+            if (!item || !item.name) return;
+            const country = (item.country_name || item.country || "Other").toString().toUpperCase();
+            if (!groups[country]) groups[country] = [];
+            const exists = groups[country].find(opt => opt.value === item.id && opt.type === type);
+            if (!exists) {
+                groups[country].push({
+                    value: item.id,
+                    id: item.id,
+                    name: item.name,
+                    type,
+                    label: item.name,
+                    subtitle: type === 'city'
+                        ? (item.region_name || item.region || 'City')
+                        : 'Region'
+                });
+            }
+        };
+        allCities.forEach(c => addToGroups(c, 'city'));
+        allRegions.forEach(r => addToGroups(r, 'region'));
+        return Object.entries(groups)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([country, options]) => ({
+                label: country,
+                options: options.sort((a, b) => a.label.localeCompare(b.label))
+            }));
+    }, [allCities, allRegions]);
+
+    // Filtered suggestions based on city search input
+    const citySuggestions = useMemo(() => {
+        if (!citySearch.trim()) return [];
+        const q = citySearch.toLowerCase();
+        const results = [];
+        combinedCityOptions.forEach(group => {
+            group.options.forEach(opt => {
+                if (opt.label.toLowerCase().includes(q)) {
+                    results.push({ ...opt, country: group.label });
+                }
+            });
+        });
+        return results;
+    }, [citySearch, combinedCityOptions]);
 
     const handleOpenModal = (point = null) => {
         if (point) {
             setEditingPoint(point);
             setFormData({ name: point.name, city: point.city });
             setCitySearch(point.city_name || "");
-            setCities([]);
         } else {
             setEditingPoint(null);
             setFormData({ name: "", city: "" });
             setCitySearch("");
-            setCities([]);
         }
         setShowModal(true);
     };
@@ -311,7 +362,10 @@ const PickupPointManage = () => {
                                     </div>
 
                                     <div className="relative group">
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Geographic Association (City)</label>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">
+                                            City / Region
+                                            <span className="text-[8px] text-[#14532d] bg-green-50 px-1.5 py-0.5 rounded ml-2 border border-green-100">Cities &amp; Regions</span>
+                                        </label>
                                         <div className="relative">
                                             <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors" />
                                             <input
@@ -319,27 +373,36 @@ const PickupPointManage = () => {
                                                 value={citySearch}
                                                 onChange={e => {
                                                     setCitySearch(e.target.value);
-                                                    fetchCities(e.target.value);
+                                                    if (!e.target.value) setFormData(prev => ({ ...prev, city: "" }));
                                                 }}
-                                                placeholder="Begin typing city name..."
+                                                placeholder="Search city or region..."
                                                 className="w-full bg-white border-2 border-gray-100 pl-16 pr-6 py-3 rounded-2xl text-[12px] font-bold text-gray-900 focus:outline-none focus:border-[#14532d] focus:ring-8 focus:ring-[#14532d]/5 transition-all shadow-sm"
                                             />
-                                            {citySearch && cities.length > 0 && formData.city !== cities[0].id && (
-                                                <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-gray-100 max-h-56 overflow-y-auto z-[310] p-3 space-y-1 custom-scrollbar animate-in fade-in slide-in-from-top-4">
-                                                    {cities.map(c => (
+                                            {citySearch && citySuggestions.length > 0 && !formData.city && (
+                                                <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-gray-100 max-h-64 overflow-y-auto z-[310] p-3 space-y-1 custom-scrollbar animate-in fade-in slide-in-from-top-4">
+                                                    {citySuggestions.map(opt => (
                                                         <button
-                                                            key={c.id}
+                                                            key={`${opt.type}-${opt.id}`}
                                                             type="button"
                                                             onClick={() => {
-                                                                setFormData({ ...formData, city: c.id });
-                                                                setCitySearch(c.name);
-                                                                setCities([]);
+                                                                setFormData(prev => ({ ...prev, city: opt.id }));
+                                                                setCitySearch(opt.label);
                                                             }}
                                                             className="w-full text-left px-5 py-3 hover:bg-[#f8faf8] rounded-xl transition-all flex justify-between items-center group/item"
                                                         >
-                                                            <span className="text-[12px] font-bold text-gray-800 group-hover/item:text-[#14532d]">{c.name}</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[12px] font-bold text-gray-800 group-hover/item:text-[#14532d]">{opt.label}</span>
+                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{opt.subtitle}</span>
+                                                            </div>
                                                             <div className="flex items-center gap-2">
-                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{c.country_name}</span>
+                                                                <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest ${
+                                                                    opt.type === 'region'
+                                                                        ? 'bg-blue-50 text-blue-500'
+                                                                        : 'bg-green-50 text-[#14532d]'
+                                                                }`}>
+                                                                    {opt.type}
+                                                                </span>
+                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{opt.country}</span>
                                                                 <ChevronRight size={10} className="text-gray-200 group-hover/item:text-[#14532d] transition-colors" />
                                                             </div>
                                                         </button>
