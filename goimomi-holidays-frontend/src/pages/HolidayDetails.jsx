@@ -373,7 +373,7 @@ const HolidayDetails = () => {
                       <div className="flex flex-col">
                         <span className="text-[9px] font-bold text-[#16a34a] uppercase tracking-widest mb-0.5">Available Dates</span>
                         <div className="flex flex-wrap gap-1.5 items-center">
-                          {availableDates.slice(0, 3).map((d, di) => (
+                          {availableDates.map((d, di) => (
                             <button 
                               key={di} 
                               onClick={() => setSelectedSlotIdx(di)}
@@ -386,7 +386,6 @@ const HolidayDetails = () => {
                               {d}
                             </button>
                           ))}
-                          {availableDates.length > 3 && <span className="text-[10px] opacity-60 font-black">+{availableDates.length - 3} MORE</span>}
                         </div>
                       </div>
                     </>
