@@ -500,12 +500,7 @@ const VisaSearch = () => {
               Top picks for Indian travellers — apply directly or speak to our visa consultant for personalised assistance.
             </p>
           </div>
-          <button
-            onClick={() => navigate("/visa/results?citizenOf=India&goingTo=")}
-            className="flex items-center gap-2 text-emerald-700 font-black text-[11px] uppercase tracking-wider hover:text-emerald-900 transition-colors"
-          >
-            VIEW ALL VISAS <ArrowRight className="w-4 h-4" />
-          </button>
+
         </div>
 
         {loading ? (
