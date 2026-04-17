@@ -1,19 +1,9 @@
 import React from "react";
 import QuickEnquiryForm from "./QuickEnquiryForm.jsx";
-import UmrahForm from "../pages/umrahform.jsx";
-
 const FormModal = ({ isOpen, onClose, packageType, packageData }) => {
   if (!isOpen) return null;
 
-  const isUmrah = packageType && packageType.toLowerCase().includes("umrah");
-
-  return isUmrah ? (
-    <UmrahForm
-      packageType={packageType}
-      isOpen={isOpen}
-      onClose={onClose}
-    />
-  ) : (
+  return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4">
       <div className="w-full max-w-[360px] bg-white rounded-[2.5rem] relative overflow-visible shadow-2xl p-2 pb-8">
          <button 
