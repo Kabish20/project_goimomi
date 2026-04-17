@@ -468,7 +468,7 @@ const HolidayDetails = () => {
           <div className="animate-in fade-in duration-500">
 
             {activeTab === "Dates" && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2 animate-in fade-in slide-in-from-top-4 duration-500">
                 {slots.map((s, i) => {
                   const tierKey = Object.keys(s.tiers || {}).find(k => k.toLowerCase() === (selectedTier || "standard").toLowerCase());
                   const tierRows = s.tiers?.[tierKey] || [];
@@ -476,32 +476,45 @@ const HolidayDetails = () => {
                   const price = priceData ? (priceData.offer_price || priceData.Offer_price || priceData.price) : (pkg?.Offer_price || pkg?.offer_price);
                   const slotMarkupPrice = priceData ? (priceData.markup_price || priceData.Markup_price || priceData.market_price || priceData.Market_price) : (pkg?.price || price);
                   const isSelected = selectedSlotIdx === i;
+                  
+                  // Check if date is in the past
+                  const travelDateObj = s.travel_date ? new Date(s.travel_date) : null;
+                  const isPast = travelDateObj && travelDateObj < new Date().setHours(0, 0, 0, 0);
+
                   return (
                     <div
                       key={i}
-                      onClick={() => setSelectedSlotIdx(i)}
-                      className={`p-4 border rounded-2xl text-center cursor-pointer transition-all ${
-                        isSelected
-                          ? "bg-green-50 border-[#16a34a] shadow-md scale-[1.02]"
-                          : "bg-white border-gray-100 hover:border-green-100 hover:bg-gray-50/50"
+                      onClick={() => !isPast && setSelectedSlotIdx(i)}
+                      className={`p-2.5 border rounded-xl text-center transition-all ${
+                        isPast 
+                          ? "bg-red-50/50 border-red-100 opacity-70 cursor-not-allowed"
+                          : isSelected
+                            ? "bg-green-50 border-[#16a34a] shadow-md scale-[1.02] cursor-pointer"
+                            : "bg-white border-gray-100 hover:border-green-100 hover:bg-gray-50/50 cursor-pointer"
                       }`}
                     >
-                      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isSelected ? "text-[#16a34a]" : "text-gray-400"}`}>
+                      <p className={`text-[9px] font-black uppercase tracking-tight mb-1 ${
+                        isPast ? "text-red-500" : (isSelected ? "text-[#16a34a]" : "text-gray-400")
+                      }`}>
                         {s.travel_date 
                           ? new Date(s.travel_date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()
                           : "DATE TBA"}
                       </p>
                       <div className="flex flex-col items-center justify-center">
                         {slotMarkupPrice > price && (
-                          <p className="text-[11px] text-gray-400 line-through decoration-red-500/30 font-bold opacity-70 -mb-1">
-                            ₹ {Number(slotMarkupPrice).toLocaleString('en-IN')}
+                          <p className={`text-[9px] line-through font-bold opacity-70 -mb-0.5 ${isPast ? "text-red-300 decoration-red-400/30" : "text-gray-400 decoration-red-500/30"}`}>
+                            ₹{Number(slotMarkupPrice).toLocaleString('en-IN')}
                           </p>
                         )}
-                        <p className={`text-base font-black leading-tight ${isSelected ? "text-[#15803d]" : "text-gray-900"}`}>
-                          ₹ {Number(price || 0).toLocaleString('en-IN')}
+                        <p className={`text-[13px] font-black leading-tight ${
+                          isPast ? "text-red-700" : (isSelected ? "text-[#15803d]" : "text-gray-900")
+                        }`}>
+                          ₹{Number(price || 0).toLocaleString('en-IN')}
                         </p>
                       </div>
-                      <p className={`text-[8px] font-bold uppercase tracking-tighter mt-1 ${isSelected ? "text-green-600/60" : "text-gray-400"}`}>Per Person</p>
+                      <p className={`text-[7px] font-bold uppercase tracking-tighter mt-1 ${
+                        isPast ? "text-red-400" : (isSelected ? "text-green-600/60" : "text-gray-400")
+                      }`}>Per Person</p>
                     </div>
                   );
                 })}
