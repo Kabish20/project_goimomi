@@ -383,8 +383,8 @@ const HolidayPackageAdd = () => {
   const fetchAccommodations = async () => {
     try {
       const [hotelsRes, destsRes] = await Promise.all([
-        api.get(`${API_BASE_URL}/accommodations/`),
-        api.get(`${API_BASE_URL}/regions/`),
+        api.get(`${API_BASE_URL}/accommodations/?all=true`),
+        api.get(`${API_BASE_URL}/regions/?all=true`),
       ]);
       const hotelsData = Array.isArray(hotelsRes.data) ? hotelsRes.data : (hotelsRes.data?.results || []);
       const destList = Array.isArray(destsRes.data) ? destsRes.data : (destsRes.data?.results || []);
@@ -406,7 +406,7 @@ const HolidayPackageAdd = () => {
 
   const fetchPickupPoints = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/pickup-point-masters/`);
+      const response = await api.get(`${API_BASE_URL}/pickup-point-masters/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setPickupPoints(data);
     } catch (err) {
@@ -416,7 +416,7 @@ const HolidayPackageAdd = () => {
 
   const fetchDestinations = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/regions/`);
+      const response = await api.get(`${API_BASE_URL}/regions/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setDestinations(data);
     } catch (err) {
@@ -427,7 +427,7 @@ const HolidayPackageAdd = () => {
 
   const fetchItineraryMasters = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/itinerary-masters/`);
+      const response = await api.get(`${API_BASE_URL}/itinerary-masters/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setItineraryMasters(data);
     } catch (err) {
@@ -437,7 +437,7 @@ const HolidayPackageAdd = () => {
 
   const fetchSightseeingMasters = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/sightseeing-masters/`);
+      const response = await api.get(`${API_BASE_URL}/sightseeing-masters/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setSightseeingMasters(data);
     } catch (err) {
@@ -447,7 +447,7 @@ const HolidayPackageAdd = () => {
 
   const fetchAirlines = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/airlines/`);
+      const response = await api.get(`${API_BASE_URL}/airlines/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setAirlines(data);
     } catch (err) {
@@ -457,7 +457,7 @@ const HolidayPackageAdd = () => {
 
   const fetchMealMasters = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/meal-masters/`);
+      const response = await api.get(`${API_BASE_URL}/meal-masters/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setMealMasters(data);
     } catch (err) {
@@ -467,7 +467,7 @@ const HolidayPackageAdd = () => {
 
   const fetchVehicleMasters = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/vehicle-masters/`);
+      const response = await api.get(`${API_BASE_URL}/vehicle-masters/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setVehicleMasters(data);
     } catch (err) {
@@ -477,7 +477,7 @@ const HolidayPackageAdd = () => {
 
   const fetchDriverMasters = async () => {
     try {
-      const response = await api.get(`${API_BASE_URL}/driver-masters/`);
+      const response = await api.get(`${API_BASE_URL}/driver-masters/?all=true`);
       const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
       setDriverMasters(data);
     } catch (err) {
@@ -488,7 +488,7 @@ const HolidayPackageAdd = () => {
   const fetchVehicleBrands = async () => {
     try {
       console.log("Fetching vehicle brands in HolidayPackageAdd...");
-      const response = await api.get(`${API_BASE_URL}/vehicle-brands/`);
+      const response = await api.get(`${API_BASE_URL}/vehicle-brands/?all=true`);
       console.log("Vehicle brands response (HolidayPackageAdd):", response.data);
       if (Array.isArray(response.data)) {
         setVehicleBrands(response.data);
@@ -1658,10 +1658,14 @@ const HolidayPackageAdd = () => {
                             };
                             const currentDest = getDestinationForDay(i);
                             const allowedSightseeings = currentDest && currentDest !== "---"
-                              ? sightseeingMasters.filter(sm =>
-                                (sm.city && sm.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
-                                (sm.destination_name && sm.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase())
-                              )
+                              ? sightseeingMasters.filter(sm => {
+                                const city = sm.city ? sm.city.trim().toLowerCase() : "";
+                                const destName = sm.destination_name ? sm.destination_name.trim().toLowerCase() : "";
+                                const target = currentDest.trim().toLowerCase();
+
+                                return (city && (city === target || city.includes(target) || target.includes(city))) ||
+                                       (destName && (destName === target || destName.includes(target) || target.includes(destName)));
+                              })
                               : sightseeingMasters;
 
                             return (

@@ -332,16 +332,16 @@ const HolidayPackageEdit = () => {
                     api.get('/api/regions/'),
                     api.get(`${API_BASE_URL}/regions/`),
                     api.get(`${API_BASE_URL}/suppliers/`),
-                    api.get(`${API_BASE_URL}/itinerary-masters/`),
-                    api.get(`${API_BASE_URL}/sightseeing-masters/`),
-                    api.get(`${API_BASE_URL}/meal-masters/`),
-                    api.get(`${API_BASE_URL}/hotel-masters/`),
-                    api.get(`${API_BASE_URL}/airlines/`),
-                    api.get(`${API_BASE_URL}/vehicle-brands/`),
-                    api.get(`${API_BASE_URL}/vehicle-masters/`),
-                    api.get(`${API_BASE_URL}/driver-masters/`),
-                    api.get(`${API_BASE_URL}/room-types/`),
-                    api.get(`${API_BASE_URL}/pickup-point-masters/`),
+                    api.get(`${API_BASE_URL}/itinerary-masters/?all=true`),
+                    api.get(`${API_BASE_URL}/sightseeing-masters/?all=true`),
+                    api.get(`${API_BASE_URL}/meal-masters/?all=true`),
+                    api.get(`${API_BASE_URL}/hotel-masters/?all=true`),
+                    api.get(`${API_BASE_URL}/airlines/?all=true`),
+                    api.get(`${API_BASE_URL}/vehicle-brands/?all=true`),
+                    api.get(`${API_BASE_URL}/vehicle-masters/?all=true`),
+                    api.get(`${API_BASE_URL}/driver-masters/?all=true`),
+                    api.get(`${API_BASE_URL}/room-types/?all=true`),
+                    api.get(`${API_BASE_URL}/pickup-point-masters/?all=true`),
                     api.get(`${API_BASE_URL}/packages/${id}/?all=true`),
                 ]);
 
@@ -362,8 +362,8 @@ const HolidayPackageEdit = () => {
                 const fetchAccommodations = async () => {
                     try {
                       const [hotelsRes, destsRes] = await Promise.all([
-                        api.get(`${API_BASE_URL}/accommodations/`),
-                        api.get(`${API_BASE_URL}/regions/`),
+                        api.get(`${API_BASE_URL}/accommodations/?all=true`),
+                        api.get(`${API_BASE_URL}/regions/?all=true`),
                       ]);
                       const hotelsData = Array.isArray(hotelsRes.data) ? hotelsRes.data : (hotelsRes.data?.results || []);
                       const destList = Array.isArray(destsRes.data) ? destsRes.data : (destsRes.data?.results || []);
@@ -2214,10 +2214,14 @@ const HolidayPackageEdit = () => {
                                                                 };
                                                                 const currentDest = getDestinationForDay(i);
                                                                 const allowedSightseeings = currentDest && currentDest !== "---"
-                                                                    ? sightseeingMasters.filter(sm =>
-                                                                        (sm.city && sm.city.trim().toLowerCase() === currentDest.trim().toLowerCase()) ||
-                                                                        (sm.destination_name && sm.destination_name.trim().toLowerCase() === currentDest.trim().toLowerCase())
-                                                                    )
+                                                                    ? sightseeingMasters.filter(sm => {
+                                                                        const city = sm.city ? sm.city.trim().toLowerCase() : "";
+                                                                        const destName = sm.destination_name ? sm.destination_name.trim().toLowerCase() : "";
+                                                                        const target = currentDest.trim().toLowerCase();
+
+                                                                        return (city && (city === target || city.includes(target) || target.includes(city))) ||
+                                                                               (destName && (destName === target || destName.includes(target) || target.includes(destName)));
+                                                                    })
                                                                     : sightseeingMasters;
 
                                                                 const filteredSightseeings = sightseeingSearch
