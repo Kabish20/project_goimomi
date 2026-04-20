@@ -368,7 +368,7 @@ const Holidays = () => {
 
   const [nights, setNights] = useState("");
   const [startingCity, setStartingCity] = useState("");
-  const [budget, setBudget] = useState([0, 200000]);
+  const [budget, setBudget] = useState([0, 1000000]);
   const [flightFilter, setFlightFilter] = useState("All");
 
   const [isDestOpen, setIsDestOpen] = useState(false);
