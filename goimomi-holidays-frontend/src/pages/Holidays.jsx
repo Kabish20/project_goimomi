@@ -789,7 +789,22 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
     );
 
     // Ensure price is a number
-    const price = Number(pkg.Offer_price || 0);
+    let price = Number(pkg.Offer_price || pkg.offer_price || 0);
+    
+    // Fallback to first slot price if 0 and fixed departure
+    if (price === 0 && pkg.fixed_departure && pkg.fixed_departure_data) {
+      try {
+        const slots = typeof pkg.fixed_departure_data === 'string' ? JSON.parse(pkg.fixed_departure_data) : pkg.fixed_departure_data;
+        if (slots && slots.length > 0) {
+          const firstSlot = slots[0];
+          const tierKey = Object.keys(firstSlot.tiers || {}).find(k => k.toLowerCase() === 'standard') || Object.keys(firstSlot.tiers || {})[0];
+          const tierData = firstSlot.tiers?.[tierKey];
+          if (tierData && tierData.length > 0) {
+            price = Number(tierData[0].offer_price || tierData[0].Offer_price || tierData[0].price || 0);
+          }
+        }
+      } catch (e) {}
+    }
 
     const flightMatch =
       flightFilter === "All" ||
@@ -800,7 +815,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
       categoryMatch &&
       destinationMatch &&
       flightMatch &&
-      (nights ? pkg.nights === Number(nights) : true) &&
+      (nights ? (pkg.nights || pkg.days - 1) === Number(nights) : true) &&
       (startingCity ? pkg.starting_city === startingCity : true) &&
       price >= budget[0] &&
       price <= budget[1]
@@ -821,7 +836,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                 setDestination("");
                 setNights("");
                 setStartingCity("");
-                setBudget([0, 200000]);
+                setBudget([0, 1000000]);
                 setFlightFilter("All");
               }}
               className="text-[9px] font-black text-[#14532d] hover:underline uppercase tracking-tighter"
@@ -1034,18 +1049,18 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
               <input
                 type="range"
                 min="0"
-                max="200000"
+                max="1000000"
                 step="5000"
                 value={budget[1]}
                 onChange={(e) => setBudget([0, Number(e.target.value)])}
                 className="w-full h-1 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#14532d]"
                 style={{
-                  background: `linear-gradient(to right, #14532d 0%, #14532d ${(budget[1] / 200000) * 100}%, #f3f4f6 ${(budget[1] / 200000) * 100}%, #f3f4f6 100%)`
+                  background: `linear-gradient(to right, #14532d 0%, #14532d ${(budget[1] / 1000000) * 100}%, #f3f4f6 ${(budget[1] / 1000000) * 100}%, #f3f4f6 100%)`
                 }}
               />
               <div className="flex justify-between text-[8px] font-black text-gray-400 mt-2 uppercase tracking-widest">
                 <span>Free</span>
-                <span>₹2,00,000+</span>
+                <span>₹10,00,000+</span>
               </div>
             </div>
           </div>
@@ -1181,13 +1196,13 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
                         console.error("Error parsing fixed_departure_data in preview:", e);
                       }
 
-                      if (slots.length > 0) {
-                        const slot = slots[0];
-                        const tierData = slot.tiers?.[tier];
-                        if (tierData && tierData.length > 0) return tierData[0].offer_price;
-                      }
-                      return p.Offer_price;
-                    })() || 0).toLocaleString('en-IN')}
+                        if (slots.length > 0) {
+                          const slot = slots[0];
+                          const tierData = slot.tiers?.[tier];
+                          if (tierData && tierData.length > 0) return tierData[0].offer_price || tierData[0].Offer_price;
+                        }
+                        return p.Offer_price || p.offer_price;
+                      })() || 0).toLocaleString('en-IN')}
                     {viewDetailsPkg.selectedTier && <span className="ml-1 text-[9px] font-bold text-gray-400">({viewDetailsPkg.selectedTier})</span>}
                   </p>
                 </div>
