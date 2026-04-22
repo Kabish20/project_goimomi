@@ -9,7 +9,7 @@ import {
   CheckCircle2, Award, BadgeCheck, Headphones, ShieldCheck,
   ArrowRight, ChevronDown, Globe, Star, Sparkles, BookOpen,
 } from "lucide-react";
-import FormModal from "../components/FormModal.jsx";
+import UmrahForm from "./UmrahForm.jsx";
 import usePageSEO from "../hooks/usePageSEO";
 import umrahImage from "../assets/umrah.png";
 import umrah2Image from "../assets/umrah2.png";
@@ -684,7 +684,7 @@ const CustomizedUmrah = () => {
         </motion.div>
       </section>
 
-      <FormModal
+      <UmrahForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         packageType={selectedPackage}
