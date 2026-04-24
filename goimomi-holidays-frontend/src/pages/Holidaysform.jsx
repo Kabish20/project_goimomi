@@ -76,10 +76,18 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const regionsRes = await api.get("/api/regions/");
+        const [regionsRes, nationalitiesRes] = await Promise.all([
+          api.get("/api/regions/"),
+          api.get("/api/nationalities/")
+        ]);
         setDestinationsList(regionsRes.data);
+        setNationalitiesList(nationalitiesRes.data.map(n => ({
+          id: n.id,
+          nationality: n.name,
+          country: n.country_name || ""
+        })));
       } catch (err) {
-        console.error("Error fetching regions:", err);
+        console.error("Error fetching data:", err);
       }
     };
     if (isOpen) {

@@ -53,20 +53,21 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const regionsRes = await api.get("/api/regions/");
+        const [regionsRes, nationalitiesRes] = await Promise.all([
+          api.get("/api/regions/"),
+          api.get("/api/nationalities/")
+        ]);
         setUmrahDestinationsList(regionsRes.data);
+        setNationalitiesList(nationalitiesRes.data.map(n => ({
+          id: n.id,
+          nationality: n.name,
+          country: n.country_name || ""
+        })));
       } catch (err) {
-        console.error("Error fetching regions:", err);
+        console.error("Error fetching data:", err);
       }
     };
 
-    // Set static defaults for common values
-    setNationalitiesList([
-      { id: 1, nationality: "Indian", country: "India" },
-      { id: 2, nationality: "British", country: "United Kingdom" },
-      { id: 3, nationality: "American", country: "United States" },
-      { id: 4, nationality: "Malaysian", country: "Malaysia" }
-    ]);
     setStartingCitiesList([
       { id: 1, name: "Chennai" }, { id: 2, name: "Mumbai" }, { id: 3, name: "Delhi" }, { id: 4, name: "Bangalore" }
     ]);
