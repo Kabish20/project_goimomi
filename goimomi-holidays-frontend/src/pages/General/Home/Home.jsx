@@ -13,6 +13,7 @@ import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { motion, AnimatePresence } from "framer-motion";
+import { simpleCache } from "../../../utils/cache";
 
 import biz1 from "../../../assets/Business/biz1.jpeg";
 import biz2 from "../../../assets/Business/biz2.jpeg";
@@ -115,7 +116,7 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const visaRes = await api.get("/api/visas/?is_popular=true");
+        const visaRes = await simpleCache("popular_visas", () => api.get("/api/visas/?is_popular=true"));
         setPopularVisas(Array.isArray(visaRes.data) ? visaRes.data : (visaRes.data.results || []));
         setLoadingVisas(false);
       } catch (err) {
@@ -135,11 +136,11 @@ const Home = () => {
 
           {/* Business Travel Side */}
           <motion.div
-            initial={{ width: "100%" }}
-            whileHover={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "65%" } : { width: "100%" }}
-            animate={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "50%" } : { width: "100%" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
-            className="relative h-1/2 md:h-full overflow-hidden"
+            initial={{ flexGrow: 1 }}
+            whileHover={typeof window !== "undefined" && window.innerWidth > 768 ? { flexGrow: 1.5 } : { flexGrow: 1 }}
+            animate={{ flexGrow: 1 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} 
+            className="relative h-1/2 md:h-full overflow-hidden basis-0"
           >
             <div className="absolute inset-0 animate-slowZoom">
               <Swiper
@@ -188,11 +189,11 @@ const Home = () => {
 
           {/* Leisure Travel Side */}
           <motion.div
-            initial={{ width: "100%" }}
-            whileHover={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "65%" } : { width: "100%" }}
-            animate={typeof window !== "undefined" && window.innerWidth > 768 ? { width: "50%" } : { width: "100%" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="relative h-1/2 md:h-full overflow-hidden"
+            initial={{ flexGrow: 1 }}
+            whileHover={typeof window !== "undefined" && window.innerWidth > 768 ? { flexGrow: 1.5 } : { flexGrow: 1 }}
+            animate={{ flexGrow: 1 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="relative h-1/2 md:h-full overflow-hidden basis-0"
           >
             <div className="absolute inset-0 bg-[#0f172a]/20 z-10" />
             <div className="absolute inset-0 animate-slowZoom">

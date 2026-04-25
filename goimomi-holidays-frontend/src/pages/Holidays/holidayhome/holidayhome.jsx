@@ -348,21 +348,6 @@ const HolidayHome = () => {
           </motion.div>
         </div>
 
-        {/* Floating destination pills */}
-        <div className="absolute bottom-10 right-10 hidden lg:flex flex-col gap-3 z-20">
-          {["Maldives", "Europe", "Dubai", "Bali"].map((dest, i) => (
-            <motion.div
-              key={dest}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 + i * 0.15 }}
-              className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2"
-            >
-              <Plane className="w-3 h-3 text-emerald-400" />
-              <span className="text-[11px] font-bold text-white uppercase tracking-wider">{dest}</span>
-            </motion.div>
-          ))}
-        </div>
 
         {/* Scroll indicator */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce hidden md:block">

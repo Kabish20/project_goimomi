@@ -127,6 +127,52 @@ const App = () => {
     }
   }, [isAdminPath]);
 
+  // Global IntersectionObserver for .fade-up animations
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const handleIntersect = (entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    
+    const observeElements = () => {
+      const elements = document.querySelectorAll('.fade-up:not(.visible)');
+      elements.forEach(el => {
+        if (el.style.animationDelay) {
+          el.style.setProperty('--delay', el.style.animationDelay);
+        }
+        observer.observe(el);
+      });
+    };
+
+    observeElements();
+
+    const mutationObserver = new MutationObserver(() => {
+      observeElements();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [location.pathname]);
+
   return (
     <div className={`flex flex-col ${isAdminPath ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       <ScrollToTop />

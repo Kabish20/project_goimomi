@@ -6,24 +6,10 @@ import ZohoTripForm from "../../../components/ZohoTripForm";
 import DownloadPDFModal from "../../../components/DownloadPDFModal";
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
-import jsPDF from "jspdf";
+import { simpleCache } from "../../../utils/cache";
+import { downloadPackagePDF } from "../../../utils/pdfGenerator";
 import goimomilogo from "../../../assets/goimomilogo.png";
-import pdfImg1 from "../../../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
-import pdfImg2 from "../../../assets/pdf/Egypt.jpeg";
-import pdfImg3 from "../../../assets/pdf/FAMILY FUN IN VIETNAM _ Tailor-made tour - Exotic Voyages.jpeg";
-import pdfImg4 from "../../../assets/pdf/16 of the Best Places to Visit in Italy.jpeg";
-import pdfImg5 from "../../../assets/pdf/Petra (Jordan).jpeg";
-import pdfImg6 from "../../../assets/pdf/The Colosseum, Rome.jpeg";
-import pdfImg7 from "../../../assets/pdf/Matera_ The City of Stones.jpeg";
-import pdfImg8 from "../../../assets/pdf/20 Best City Breaks in the World - Travel Den.jpeg";
-import pdfImg9 from "../../../assets/pdf/A guide to the Azores.jpeg";
-import pdfImg10 from "../../../assets/pdf/5 Day Phuket Thailand Itinerary - Guide To Things To Do.jpeg";
-import pdfImg11 from "../../../assets/pdf/10 Top Cities In India To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
-import pdfImg12 from "../../../assets/pdf/Navigating Japanese Culture_ 20 Essential Etiquette Tips for Travelers.jpeg";
-import pdfImg13 from "../../../assets/pdf/amazing places in the world to travel.jpeg";
-import pdfImg14 from "../../../assets/pdf/The ultimate travel Guide to Cappadocia, Turkey - Jyo Shankar.jpeg";
-import pdfImg15 from "../../../assets/pdf/100 Most Beautiful UNESCO World Heritage Sites - Road Affair.jpeg";
-import pdfImg16 from "../../../assets/pdf/15 Best Places In Turkey To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
+// PDF Static Assets are handled by pdfGenerator utility
 
 const HolidayDetails = () => {
   const { id } = useParams();
@@ -124,11 +110,11 @@ const HolidayDetails = () => {
   };
 
   useEffect(() => {
-    api.get(`/api/packages/${id}/`)
+    simpleCache(`package_${id}`, () => api.get(`/api/packages/${id}/`))
       .then((res) => setPkg(res.data))
       .catch((err) => console.error("Error fetching package details:", err));
 
-    api.get("/api/accommodations/")
+    simpleCache("accommodations", () => api.get("/api/accommodations/"))
       .then((res) => {
         const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
         const enriched = data.map(acc => ({
@@ -139,7 +125,7 @@ const HolidayDetails = () => {
       })
       .catch((err) => console.error("Error fetching accommodations:", err));
 
-    api.get("/api/sightseeing-masters/")
+    simpleCache("sightseeing_masters", () => api.get("/api/sightseeing-masters/"))
       .then((res) => setSightseeingMasters(Array.isArray(res.data) ? res.data : (res.data.results || [])))
       .catch((err) => console.error("Error fetching sightseeing masters:", err));
 
@@ -152,155 +138,7 @@ const HolidayDetails = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [id]);
 
-  const downloadPackagePDF = async (pkg) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const sidebarWidth = 50;
-    const padding = 15;
-
-    const addWrappedText = (text, x, currentY, maxWidth, fontSize = 10, fontStyle = "normal", color = [75, 85, 99]) => {
-      doc.setFont("helvetica", fontStyle);
-      doc.setFontSize(fontSize);
-      doc.setTextColor(color[0], color[1], color[2]);
-      const lines = doc.splitTextToSize(text, maxWidth);
-      let tempY = currentY;
-      
-      lines.forEach(line => {
-        if (tempY > pageHeight - 25) {
-          addFooter(doc, doc.internal.getNumberOfPages(), doc.internal.getNumberOfPages());
-          doc.addPage();
-          addHeader(doc, pkg.title);
-          tempY = 55;
-          doc.setFont("helvetica", fontStyle);
-          doc.setFontSize(fontSize);
-          doc.setTextColor(color[0], color[1], color[2]);
-        }
-        doc.text(line, x, tempY);
-        tempY += fontSize * 0.5;
-      });
-      return tempY;
-    };
-
-    const addHeader = (doc, title) => {
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, pageWidth, 50, 'F');
-      try { doc.addImage(goimomilogo, 'PNG', padding, 5, 42, 40); } catch(e){}
-      doc.setTextColor(156, 163, 175);
-      doc.setFontSize(8);
-      doc.text(title || "Package Details", pageWidth - padding, 12, { align: "right" });
-      doc.setDrawColor(243, 244, 246);
-      doc.line(padding, 45, pageWidth - padding, 45);
-    };
-
-    const addFooter = (doc, pageNum, totalPages) => {
-      doc.setTextColor(156, 163, 175);
-      doc.setFontSize(8);
-      doc.text(`Page ${pageNum}`, pageWidth - padding, pageHeight - 10, { align: "right" });
-      doc.text("© goimomi.com | +91 8110082222 | hello@goimomi.com", padding, pageHeight - 10);
-    };
-
-    // PAGE 1: COVER
-    doc.setFillColor(248, 250, 252);
-    doc.rect(0, 0, sidebarWidth, pageHeight, 'F');
-    const baseImgs = [pdfImg1, pdfImg2, pdfImg3, pdfImg4, pdfImg5, pdfImg6, pdfImg7, pdfImg8, pdfImg9, pdfImg10, pdfImg11, pdfImg12, pdfImg13, pdfImg14, pdfImg15, pdfImg16];
-    const imgSize = 24;
-    const colW = sidebarWidth / 2;
-    let sidebarY = 0;
-    let imgIndex = 0;
-    while (sidebarY + imgSize <= pageHeight) {
-      try {
-        doc.addImage(baseImgs[imgIndex % baseImgs.length], 'JPEG', 0, sidebarY, colW, imgSize, undefined, 'FAST');
-        doc.addImage(baseImgs[(imgIndex + 1) % baseImgs.length], 'JPEG', colW, sidebarY, colW, imgSize, undefined, 'FAST');
-      } catch (e) { }
-      sidebarY += imgSize;
-      imgIndex += 2;
-    }
-
-    let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
-    try { doc.addImage(goimomilogo, 'PNG', centerX - 35, 30, 70, 70); } catch (e) { }
-
-    doc.setTextColor(31, 41, 55);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    const titleLines = doc.splitTextToSize((pkg.title || "").toUpperCase(), pageWidth - sidebarWidth - 30);
-    doc.text(titleLines, centerX, 100, { align: "center" });
-
-    doc.setTextColor(107, 114, 128);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "normal");
-    doc.text(`${pkg.starting_city} (${pkg.days}D / ${pkg.nights || pkg.days - 1}N)`, centerX, 125, { align: "center" });
-
-    // PAGE 2: Overview
-    doc.addPage(); 
-    addHeader(doc, pkg.title);
-    let y = 55; 
-    doc.setTextColor(20, 83, 45); doc.setFontSize(16); doc.setFont("helvetica", "bold");
-    doc.text("Trip Overview", padding, y); y += 12;
-    
-    if (pkg.description) {
-      y = addWrappedText(pkg.description, padding, y, pageWidth - (padding * 2), 10);
-      y += 10;
-    }
-
-    if (pkg.highlights && pkg.highlights.length > 0) {
-      if (y > pageHeight - 40) { doc.addPage(); addHeader(doc, pkg.title); y = 55; }
-      doc.setTextColor(20, 83, 45); doc.setFontSize(14); doc.setFont("helvetica", "bold");
-      doc.text("Trip Highlights", padding, y); y += 10;
-      
-      pkg.highlights.forEach(h => {
-        doc.setFillColor(20, 83, 45); 
-        doc.circle(padding + 2, y - 1, 1, 'F');
-        y = addWrappedText(h.text, padding + 7, y, pageWidth - (padding * 2) - 10, 10);
-        y += 2;
-      });
-    }
-    addFooter(doc, 2, 2);
-
-    // PAGE 3: Itinerary
-    doc.addPage(); addHeader(doc, "Day Wise Itinerary"); y = 55;
-    if (pkg.itinerary && pkg.itinerary.length > 0) {
-      pkg.itinerary.forEach((day) => {
-        if (y > pageHeight - 50) { 
-           addFooter(doc, doc.internal.getNumberOfPages(), doc.internal.getNumberOfPages());
-           doc.addPage(); addHeader(doc, "Day Wise Itinerary"); y = 55; 
-        }
-        doc.setFillColor(243, 244, 246); doc.rect(padding, y - 5, pageWidth - (padding * 2), 10, 'F');
-        doc.setTextColor(20, 83, 45); doc.setFontSize(11); doc.setFont("helvetica", "bold");
-        doc.text(`DAY ${day.day_number}: ${day.title}`, padding + 5, y + 2); y += 10;
-        
-        if (day.description) {
-          y = addWrappedText(day.description, padding + 5, y, pageWidth - (padding * 2) - 10, 9);
-          y += 5;
-        }
-      });
-    }
-    addFooter(doc, 3, 3);
-
-    // PAGE 4: Policies
-    doc.addPage(); addHeader(doc, "Policies & Details"); y = 55;
-    if (pkg.inclusions && pkg.inclusions.length > 0) {
-      doc.setTextColor(20, 83, 45); doc.setFontSize(14); doc.setFont("helvetica", "bold");
-      doc.text("Inclusions", padding, y); y += 10;
-      pkg.inclusions.forEach(inc => {
-        y = addWrappedText(`• ${inc.text}`, padding + 5, y, pageWidth - (padding * 2) - 10, 10);
-        y += 2;
-      });
-      y += 5;
-    }
-    
-    if (pkg.exclusions && pkg.exclusions.length > 0) {
-      if (y > pageHeight - 40) { doc.addPage(); addHeader(doc, pkg.title); y = 55; }
-      doc.setTextColor(220, 38, 38); doc.setFontSize(14); doc.setFont("helvetica", "bold");
-      doc.text("Exclusions", padding, y); y += 10;
-      pkg.exclusions.forEach(exc => {
-        y = addWrappedText(`• ${exc.text}`, padding + 5, y, pageWidth - (padding * 2) - 10, 10);
-        y += 2;
-      });
-    }
-    addFooter(doc, 4, 4);
-    doc.save(`GoImomi_${(pkg.title || "Package").replace(/\s+/g, '_')}.pdf`);
-  };
+  // PDF generation logic moved to pdfGenerator utility
 
   if (!pkg) return <div className="text-center mt-20">Loading...</div>;
 

@@ -3,6 +3,7 @@ import { X, MapPin, Calendar, Users, Home, ChevronDown, Clock, Globe, Briefcase,
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import api from "../api";
+import { simpleCache } from "../utils/cache";
 
 /**
  * ZohoCustomizedForm Component
@@ -25,8 +26,8 @@ const ZohoCustomizedForm = ({ isOpen, onClose, initialData = {} }) => {
     const fetchData = async () => {
       try {
         const [citiesRes, natRes] = await Promise.all([
-          api.get("/api/cities/"),
-          api.get("/api/nationalities/")
+          simpleCache("cities", () => api.get("/api/cities/")),
+          simpleCache("nationalities", () => api.get("/api/nationalities/"))
         ]);
         setCities(citiesRes.data || []);
         setNationalities(natRes.data || []);

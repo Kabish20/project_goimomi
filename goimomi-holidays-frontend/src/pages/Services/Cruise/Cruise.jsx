@@ -9,6 +9,7 @@ import api from "../../../api";
 import ZohoCruiseForm from "../../../components/ZohoCruiseForm";
 import usePageSEO from "../../../hooks/usePageSEO";
 import cruiseHeroImg from "../../../assets/cruise_hero.jpg";
+import { simpleCache } from "../../../utils/cache";
 
 const Cruise = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -33,7 +34,7 @@ const Cruise = () => {
   useEffect(() => {
     const fetchCalendar = async () => {
       try {
-        const response = await api.get("/api/cruise-calendar/");
+        const response = await simpleCache("cruise_calendar", () => api.get("/api/cruise-calendar/"));
         setCalendarData(response.data);
       } catch (err) {
         console.error("Error fetching cruise calendar:", err);
