@@ -9,16 +9,16 @@ import {
   ArrowRight, CheckCircle2, PhoneCall, ChevronDown, TrendingUp,
   MapPin, Heart, Briefcase,
 } from "lucide-react";
-import HolidaysForm from "../../Holidaysform/Holidaysform.jsx";
+import HolidaysForm from "../Holidaysform/Holidaysform.jsx";
 import { useNavigate } from "react-router-dom";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 // Images
-import heroImg from "../../../../assets/cusholidays.png";
-import beachImg from "../../../../assets/beach & island.png";
-import mountainImg from "../../../../assets/mountain.png";
-import cultureImg from "../../../../assets/temples.png";
-import cardImg from "../../../../assets/TravelGallery/download.jpeg";
+import heroImg from "../../../assets/cusholidays.png";
+import beachImg from "../../../assets/beach & island.png";
+import mountainImg from "../../../assets/mountain.png";
+import cultureImg from "../../../assets/temples.png";
+import cardImg from "../../../assets/TravelGallery/download.jpeg";
 
 const CustomizedHolidays = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -615,5 +615,6 @@ const CustomizedHolidays = () => {
 };
 
 export default CustomizedHolidays;
+
 
 

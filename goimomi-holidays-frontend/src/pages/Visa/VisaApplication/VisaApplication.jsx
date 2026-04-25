@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import api from "../../../../api";
+import api from "../../../api";
 import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin, Zap } from "lucide-react";
-import { getImageUrl } from "../../../../utils/imageUtils";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import { getImageUrl } from "../../../utils/imageUtils";
+import usePageSEO from "../../../hooks/usePageSEO";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import visaBg from "../../../../assets/Hero/visa_bg.jpg";
+import visaBg from "../../../assets/Hero/visa_bg.jpg";
 
 
 
@@ -1119,5 +1119,6 @@ const VisaApplication = () => {
 
 
 export default VisaApplication;
+
 
 

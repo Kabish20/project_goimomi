@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import CabCruiseForm from "../../../../components/CabCruiseForm";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import CabCruiseForm from "../../../components/CabCruiseForm";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 const Hotel = () => {
   usePageSEO(
@@ -94,5 +94,6 @@ const Hotel = () => {
 };
 
 export default Hotel;
+
 
 

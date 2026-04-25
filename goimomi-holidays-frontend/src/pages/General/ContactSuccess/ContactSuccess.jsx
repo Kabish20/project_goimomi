@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Home, Phone, Mail } from "lucide-react";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 const ContactSuccess = () => {
   const navigate = useNavigate();
@@ -67,5 +67,6 @@ const ContactSuccess = () => {
 };
 
 export default ContactSuccess;
+
 
 

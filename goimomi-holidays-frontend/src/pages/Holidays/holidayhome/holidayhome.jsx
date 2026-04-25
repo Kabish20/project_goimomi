@@ -26,20 +26,20 @@ import {
   CalendarDays,
   BadgeCheck,
 } from "lucide-react";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 // Assets
-import leisure1 from "../../../../assets/Hero/leisure1.jpeg";
-import leisure2 from "../../../../assets/Hero/leisure2.jpeg";
-import leisure3 from "../../../../assets/Hero/leisure3.jpeg";
-import leisure4 from "../../../../assets/Hero/leisure4.jpeg";
-import leisure5 from "../../../../assets/Hero/leisure5.jpeg";
-import holidayHero from "../../../../assets/Hero/holiday_home_hero.jpeg";
-import blueseaImg from "../../../../assets/Hero/bluesea.png";
-import sunsetImg from "../../../../assets/Hero/sunset.png";
-import umrahImg from "../../../../assets/umrah.png";
-import umrahImg2 from "../../../../assets/umrah2.png";
-import cusHolidays from "../../../../assets/cusholidays.png";
+import leisure1 from "../../../assets/Hero/leisure1.jpeg";
+import leisure2 from "../../../assets/Hero/leisure2.jpeg";
+import leisure3 from "../../../assets/Hero/leisure3.jpeg";
+import leisure4 from "../../../assets/Hero/leisure4.jpeg";
+import leisure5 from "../../../assets/Hero/leisure5.jpeg";
+import holidayHero from "../../../assets/Hero/holiday_home_hero.jpeg";
+import blueseaImg from "../../../assets/Hero/bluesea.png";
+import sunsetImg from "../../../assets/Hero/sunset.png";
+import umrahImg from "../../../assets/umrah.png";
+import umrahImg2 from "../../../assets/umrah2.png";
+import cusHolidays from "../../../assets/cusholidays.png";
 
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
@@ -763,5 +763,6 @@ const HolidayHome = () => {
 };
 
 export default HolidayHome;
+
 
 

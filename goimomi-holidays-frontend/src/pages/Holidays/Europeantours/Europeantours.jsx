@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import usePageSEO from '../..//';
+import usePageSEO from '../../../hooks/usePageSEO';
 
 const Europeantours = () => {
     usePageSEO(

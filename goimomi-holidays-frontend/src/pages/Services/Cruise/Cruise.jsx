@@ -5,10 +5,10 @@ import {
   ArrowRight, BadgeCheck, Sparkles, ChevronDown, PhoneCall,
   Globe, Anchor, Compass, Sunrise, Utensils, Music,
 } from "lucide-react";
-import api from "../../../../api";
-import CabCruiseForm from "../../../../components/CabCruiseForm";
-import usePageSEO from "../../../../hooks/usePageSEO";
-import cruiseHeroImg from "../../../../assets/cruise_hero.jpg";
+import api from "../../../api";
+import CabCruiseForm from "../../../components/CabCruiseForm";
+import usePageSEO from "../../../hooks/usePageSEO";
+import cruiseHeroImg from "../../../assets/cruise_hero.jpg";
 
 const Cruise = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -657,5 +657,6 @@ const Cruise = () => {
 };
 
 export default Cruise;
+
 
 

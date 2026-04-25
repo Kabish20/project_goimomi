@@ -9,11 +9,11 @@ import {
   CheckCircle2, Award, BadgeCheck, Headphones, ShieldCheck,
   ArrowRight, ChevronDown, Globe, Star, Sparkles, BookOpen,
 } from "lucide-react";
-import UmrahForm from "../../UmrahForm/UmrahForm.jsx";
-import usePageSEO from "../../../../hooks/usePageSEO";
-import umrahImage from "../../../../assets/umrah.png";
-import umrah2Image from "../../../../assets/umrah2.png";
-import umrah3Image from "../../../../assets/umrah3.png";
+import UmrahForm from "../UmrahForm/UmrahForm.jsx";
+import usePageSEO from "../../../hooks/usePageSEO";
+import umrahImage from "../../../assets/umrah.png";
+import umrah2Image from "../../../assets/umrah2.png";
+import umrah3Image from "../../../assets/umrah3.png";
 
 const CustomizedUmrah = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -694,5 +694,6 @@ const CustomizedUmrah = () => {
 };
 
 export default CustomizedUmrah;
+
 
 

@@ -1,5 +1,5 @@
 import React from "react";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 const TermsConditions = () => {
   usePageSEO(
@@ -196,5 +196,6 @@ const TermsConditions = () => {
 };
 
 export default TermsConditions;
+
 
 

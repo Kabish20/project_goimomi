@@ -1,94 +1,94 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../../../api";
+import api from "../../../api";
 import {
   MapPin, Zap, ShieldCheck, Headphones, Star, Award, Clock, Globe,
   Users, CheckCircle2, Briefcase, CreditCard, Plane, FileText,
   PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays
 } from "lucide-react";
-import usePageSEO from "../../../../hooks/usePageSEO";
-import { getImageUrl } from "../../../../utils/imageUtils";
+import usePageSEO from "../../../hooks/usePageSEO";
+import { getImageUrl } from "../../../utils/imageUtils";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { motion, AnimatePresence } from "framer-motion";
 
-import biz1 from "../../../../assets/Business/biz1.jpeg";
-import biz2 from "../../../../assets/Business/biz2.jpeg";
-import biz3 from "../../../../assets/Business/biz3.jpeg";
-import biz4 from "../../../../assets/Business/biz4.jpeg";
-import biz5 from "../../../../assets/Business/biz5.jpeg";
+import biz1 from "../../../assets/Business/biz1.jpeg";
+import biz2 from "../../../assets/Business/biz2.jpeg";
+import biz3 from "../../../assets/Business/biz3.jpeg";
+import biz4 from "../../../assets/Business/biz4.jpeg";
+import biz5 from "../../../assets/Business/biz5.jpeg";
 
 const businessImages = [biz1, biz2, biz3, biz4, biz5];
 
-import leisure1 from "../../../../assets/Hero/leisure1.jpeg";
-import leisure2 from "../../../../assets/Hero/leisure2.jpeg";
-import leisure3 from "../../../../assets/Hero/leisure3.jpeg";
-import leisure4 from "../../../../assets/Hero/leisure4.jpeg";
-import leisure5 from "../../../../assets/Hero/leisure5.jpeg";
+import leisure1 from "../../../assets/Hero/leisure1.jpeg";
+import leisure2 from "../../../assets/Hero/leisure2.jpeg";
+import leisure3 from "../../../assets/Hero/leisure3.jpeg";
+import leisure4 from "../../../assets/Hero/leisure4.jpeg";
+import leisure5 from "../../../assets/Hero/leisure5.jpeg";
 
 // POPULAR DESTINATIONS
-import maldives from "../../../../assets/PopularDestinations/maldives.png";
-import dubai from "../../../../assets/PopularDestinations/dubaiSafari.png";
-import singapore from "../../../../assets/PopularDestinations/singapore.png";
-import paris from "../../../../assets/PopularDestinations/paris.png";
-import santorini from "../../../../assets/PopularDestinations/santorini.png";
-import bali from "../../../../assets/PopularDestinations/bali.png";
+import maldives from "../../../assets/PopularDestinations/maldives.png";
+import dubai from "../../../assets/PopularDestinations/dubaiSafari.png";
+import singapore from "../../../assets/PopularDestinations/singapore.png";
+import paris from "../../../assets/PopularDestinations/paris.png";
+import santorini from "../../../assets/PopularDestinations/santorini.png";
+import bali from "../../../assets/PopularDestinations/bali.png";
 
 // SPECIAL OFFERS
-import dubaiOffer from "../../../../assets/Specialoffers/dubai.png";
-import keralaOffer from "../../../../assets/Specialoffers/keralaBackwaters.png";
-import europeOffer from "../../../../assets/Specialoffers/venice.png";
-import thailandOffer from "../../../../assets/Specialoffers/thailand.png";
-import switzerlandOffer from "../../../../assets/Specialoffers/switzerland.png";
-import maldivesOffer from "../../../../assets/Specialoffers/maldivesOffer.png";
+import dubaiOffer from "../../../assets/Specialoffers/dubai.png";
+import keralaOffer from "../../../assets/Specialoffers/keralaBackwaters.png";
+import europeOffer from "../../../assets/Specialoffers/venice.png";
+import thailandOffer from "../../../assets/Specialoffers/thailand.png";
+import switzerlandOffer from "../../../assets/Specialoffers/switzerland.png";
+import maldivesOffer from "../../../assets/Specialoffers/maldivesOffer.png";
 
 // GALLERY
-import gallery1 from "../../../../assets/TravelGallery/client1.jpeg";
-import gallery2 from "../../../../assets/TravelGallery/client2.jpeg";
-import gallery3 from "../../../../assets/TravelGallery/client3.jpeg";
-import gallery4 from "../../../../assets/TravelGallery/client4.jpeg";
-import gallery5 from "../../../../assets/TravelGallery/client5.jpeg";
-import gallery6 from "../../../../assets/TravelGallery/client6.jpeg";
-import gallery7 from "../../../../assets/TravelGallery/client7.jpeg";
-import gallery8 from "../../../../assets/TravelGallery/client8.jpeg";
-import gallery9 from "../../../../assets/TravelGallery/client9.jpeg";
-import gallery10 from "../../../../assets/TravelGallery/client10.webp";
-import gallery11 from "../../../../assets/TravelGallery/client11.webp";
-import gallery12 from "../../../../assets/TravelGallery/client12.webp";
-import gallery13 from "../../../../assets/TravelGallery/client13.jpeg";
-import gallery14 from "../../../../assets/TravelGallery/client14.jpeg";
+import gallery1 from "../../../assets/TravelGallery/client1.jpeg";
+import gallery2 from "../../../assets/TravelGallery/client2.jpeg";
+import gallery3 from "../../../assets/TravelGallery/client3.jpeg";
+import gallery4 from "../../../assets/TravelGallery/client4.jpeg";
+import gallery5 from "../../../assets/TravelGallery/client5.jpeg";
+import gallery6 from "../../../assets/TravelGallery/client6.jpeg";
+import gallery7 from "../../../assets/TravelGallery/client7.jpeg";
+import gallery8 from "../../../assets/TravelGallery/client8.jpeg";
+import gallery9 from "../../../assets/TravelGallery/client9.jpeg";
+import gallery10 from "../../../assets/TravelGallery/client10.webp";
+import gallery11 from "../../../assets/TravelGallery/client11.webp";
+import gallery12 from "../../../assets/TravelGallery/client12.webp";
+import gallery13 from "../../../assets/TravelGallery/client13.jpeg";
+import gallery14 from "../../../assets/TravelGallery/client14.jpeg";
 
 // VISAS
-import dubaiVisa from "../../../../assets/Visa/dubai.png";
-import singaporeVisa from "../../../../assets/Visa/singapore.png";
-import saudiVisa from "../../../../assets/Visa/saudi.png";
-import azerbaijanVisa from "../../../../assets/Visa/azerbaijan.png";
-import vietnamVisa from "../../../../assets/Visa/vietnam.png";
+import dubaiVisa from "../../../assets/Visa/dubai.png";
+import singaporeVisa from "../../../assets/Visa/singapore.png";
+import saudiVisa from "../../../assets/Visa/saudi.png";
+import azerbaijanVisa from "../../../assets/Visa/azerbaijan.png";
+import vietnamVisa from "../../../assets/Visa/vietnam.png";
 
 // VISA DEALS 
-import uzbekistanVisa from "../../../../assets/Visa Deals/Uzbekistan.png";
-import turkey from "../../../../assets/Visa Deals/Turkey.png";
-import oman from "../../../../assets/Visa Deals/Oman.png";
-import moroccoVisa from "../../../../assets/Visa Deals/Morocco.png";
-import Laos from "../../../../assets/Visa Deals/Laos.png";
-import Kyrgystan from "../../../../assets/Visa Deals/Kyrgystan.png";
-import Kenya from "../../../../assets/Visa Deals/Kenya.png";
-import Jordan from "../../../../assets/Visa Deals/Jordan.png";
-import Indonesia from "../../../../assets/Visa Deals/Indonesia.png";
-import Ethiopia from "../../../../assets/Visa Deals/Ethiopia.png";
-import Dubai from "../../../../assets/Visa Deals/Dubai.png";
-import cambodia from "../../../../assets/Visa Deals/cambodia.png";
-import Bhutan from "../../../../assets/Visa Deals/Bhutan.png";
-import Bahrain from "../../../../assets/Visa Deals/Bahrain.png";
-import Azerbaijan from "../../../../assets/Visa Deals/Azerbaijan.png";
-import Antigua from "../../../../assets/Visa Deals/Antigua & Barbuda.png";
-import BahrainDeal from "../../../../assets/Visa Deals/Bahrain.png";
-import KenyaDeal from "../../../../assets/Visa Deals/Kenya.png";
-import JordanDeal from "../../../../assets/Visa Deals/Jordan.png";
-import IndonesiaDeal from "../../../../assets/Visa Deals/Indonesia.png";
-import TurkeyDeal from "../../../../assets/Visa Deals/Turkey.png";
+import uzbekistanVisa from "../../../assets/Visa Deals/Uzbekistan.png";
+import turkey from "../../../assets/Visa Deals/Turkey.png";
+import oman from "../../../assets/Visa Deals/Oman.png";
+import moroccoVisa from "../../../assets/Visa Deals/Morocco.png";
+import Laos from "../../../assets/Visa Deals/Laos.png";
+import Kyrgystan from "../../../assets/Visa Deals/Kyrgystan.png";
+import Kenya from "../../../assets/Visa Deals/Kenya.png";
+import Jordan from "../../../assets/Visa Deals/Jordan.png";
+import Indonesia from "../../../assets/Visa Deals/Indonesia.png";
+import Ethiopia from "../../../assets/Visa Deals/Ethiopia.png";
+import Dubai from "../../../assets/Visa Deals/Dubai.png";
+import cambodia from "../../../assets/Visa Deals/cambodia.png";
+import Bhutan from "../../../assets/Visa Deals/Bhutan.png";
+import Bahrain from "../../../assets/Visa Deals/Bahrain.png";
+import Azerbaijan from "../../../assets/Visa Deals/Azerbaijan.png";
+import Antigua from "../../../assets/Visa Deals/Antigua & Barbuda.png";
+import BahrainDeal from "../../../assets/Visa Deals/Bahrain.png";
+import KenyaDeal from "../../../assets/Visa Deals/Kenya.png";
+import JordanDeal from "../../../assets/Visa Deals/Jordan.png";
+import IndonesiaDeal from "../../../assets/Visa Deals/Indonesia.png";
+import TurkeyDeal from "../../../assets/Visa Deals/Turkey.png";
 
 
 
@@ -1119,4 +1119,5 @@ const Home = () => {
 };
 
 export default Home;
+
 

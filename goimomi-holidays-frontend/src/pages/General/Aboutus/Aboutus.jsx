@@ -5,9 +5,9 @@ import {
   Globe, Star, ArrowRight, TrendingUp, Users, MapPin,
   Heart, Briefcase, Plane, Clock, Sparkles,
 } from 'lucide-react';
-import aboutHero from '../..//';
-import officeImg from '../..//';
-import usePageSEO from '../..//';
+import aboutHero from '../../../assets/aboutus.png';
+import officeImg from '../../../assets/office.png';
+import usePageSEO from '../../../hooks/usePageSEO';
 
 const About = () => {
   usePageSEO(

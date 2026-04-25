@@ -6,8 +6,8 @@ import {
 } from "lucide-react";
 import { FiPhone, FiMail, FiMapPin, FiUser, FiMessageCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
-import usePageSEO from "../../../../hooks/usePageSEO";
-import api from "../../../../api";
+import usePageSEO from "../../../hooks/usePageSEO";
+import api from "../../../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import emailjs from "emailjs-com";
@@ -483,5 +483,6 @@ const Contact = () => {
 };
 
 export default Contact;
+
 
 

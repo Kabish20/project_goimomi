@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import api from "../../../../api";
+import api from "../../../api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import SuccessModal from "../../../../components/SuccessModal";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import SuccessModal from "../../../components/SuccessModal";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 const PackageEnquiryPage = () => {
     const location = useLocation();
@@ -336,5 +336,6 @@ const PackageEnquiryPage = () => {
 };
 
 export default PackageEnquiryPage;
+
 
 

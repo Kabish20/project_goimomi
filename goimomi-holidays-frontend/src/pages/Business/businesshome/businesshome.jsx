@@ -24,12 +24,12 @@ import {
   ChevronRight,
   Phone,
 } from "lucide-react";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 // Assets
-import bizHero from "../../../../assets/Business/biz1.jpeg";
-import bizCardImg from "../../../../assets/Business/biz3.jpeg";
-import cantonCardImg from "../../../../assets/images/canton-hero.png";
+import bizHero from "../../../assets/Business/biz1.jpeg";
+import bizCardImg from "../../../assets/Business/biz3.jpeg";
+import cantonCardImg from "../../../assets/images/canton-hero.png";
 
 // ─── Animated Counter ────────────────────────────────────────────────────────
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
@@ -715,5 +715,6 @@ const BusinessHome = () => {
 };
 
 export default BusinessHome;
+
 
 

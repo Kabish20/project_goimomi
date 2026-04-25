@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import usePageSEO from "../../../../hooks/usePageSEO";
-import api from "../../../../api";
+import usePageSEO from "../../../hooks/usePageSEO";
+import api from "../../../api";
 import { jwtDecode } from "jwt-decode";
 import { User, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 
@@ -152,5 +152,6 @@ const AdminLogin = ({ isOpen, onClose }) => {
 };
 
 export default AdminLogin;
+
 
 

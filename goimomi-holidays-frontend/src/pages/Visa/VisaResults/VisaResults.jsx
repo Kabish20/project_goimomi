@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import api from "../../../../api";
+import api from "../../../api";
 import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
-import { getImageUrl } from "../../../../utils/imageUtils";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import { getImageUrl } from "../../../utils/imageUtils";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 
 const VisaResults = () => {
@@ -1069,5 +1069,6 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
 
 export default VisaResults;
+
 
 

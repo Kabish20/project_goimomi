@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle, ShieldCheck, Clock, Headphones, Award, CreditCard, Star, Plane, ArrowRight, BadgeCheck, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-import api from "../../../../api";
-import SearchableSelect from "../../../../components/admin/SearchableSelect/SearchableSelect";
-import CabCruiseForm from "../../../../components/CabCruiseForm";
-import CabTermsModal from "../../../../components/CabTermsModal";
-import CabPrivacyModal from "../../../../components/CabPrivacyModal";
+import api from "../../../api";
+import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
+import CabCruiseForm from "../../../components/CabCruiseForm";
+import CabTermsModal from "../../../components/CabTermsModal";
+import CabPrivacyModal from "../../../components/CabPrivacyModal";
 import cabSearchBg from "@/assets/Hero/cab_search_bg_v4.jpg";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 const Cab = () => {
   usePageSEO(
@@ -1510,6 +1510,7 @@ const Cab = () => {
 
 
 export default Cab;
+
 
 
 

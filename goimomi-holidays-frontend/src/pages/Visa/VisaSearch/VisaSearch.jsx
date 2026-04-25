@@ -7,10 +7,10 @@ import {
   PhoneCall, AlertCircle, ChevronRight, Sparkles, TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import api from "../../../../api";
-import visaBg from "../../../../assets/Hero/visa_bg.jpg";
-import { getImageUrl } from "../../../../utils/imageUtils";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import api from "../../../api";
+import visaBg from "../../../assets/Hero/visa_bg.jpg";
+import { getImageUrl } from "../../../utils/imageUtils";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 const VisaSearch = () => {
   const navigate = useNavigate();
@@ -822,5 +822,6 @@ const VisaSearch = () => {
 };
 
 export default VisaSearch;
+
 
 

@@ -1,29 +1,29 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Hotel, Star, MapPin, Info, Utensils, MessageCircle, FileDown, Eye, ArrowRight, Car } from "lucide-react";
 import { useParams, useLocation } from "react-router-dom";
-import api from "../../../../api";
-import FormModal from "../../../../components/FormModal";
-import DownloadPDFModal from "../../../../components/DownloadPDFModal";
-import usePageSEO from "../../../../hooks/usePageSEO";
-import { getImageUrl } from "../../../../utils/imageUtils";
+import api from "../../../api";
+import FormModal from "../../../components/FormModal";
+import DownloadPDFModal from "../../../components/DownloadPDFModal";
+import usePageSEO from "../../../hooks/usePageSEO";
+import { getImageUrl } from "../../../utils/imageUtils";
 import jsPDF from "jspdf";
-import goimomilogo from "../../../../assets/goimomilogo.png";
-import pdfImg1 from "../../../../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
-import pdfImg2 from "../../../../assets/pdf/Egypt.jpeg";
-import pdfImg3 from "../../../../assets/pdf/FAMILY FUN IN VIETNAM _ Tailor-made tour - Exotic Voyages.jpeg";
-import pdfImg4 from "../../../../assets/pdf/16 of the Best Places to Visit in Italy.jpeg";
-import pdfImg5 from "../../../../assets/pdf/Petra (Jordan).jpeg";
-import pdfImg6 from "../../../../assets/pdf/The Colosseum, Rome.jpeg";
-import pdfImg7 from "../../../../assets/pdf/Matera_ The City of Stones.jpeg";
-import pdfImg8 from "../../../../assets/pdf/20 Best City Breaks in the World - Travel Den.jpeg";
-import pdfImg9 from "../../../../assets/pdf/A guide to the Azores.jpeg";
-import pdfImg10 from "../../../../assets/pdf/5 Day Phuket Thailand Itinerary - Guide To Things To Do.jpeg";
-import pdfImg11 from "../../../../assets/pdf/10 Top Cities In India To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
-import pdfImg12 from "../../../../assets/pdf/Navigating Japanese Culture_ 20 Essential Etiquette Tips for Travelers.jpeg";
-import pdfImg13 from "../../../../assets/pdf/amazing places in the world to travel.jpeg";
-import pdfImg14 from "../../../../assets/pdf/The ultimate travel Guide to Cappadocia, Turkey - Jyo Shankar.jpeg";
-import pdfImg15 from "../../../../assets/pdf/100 Most Beautiful UNESCO World Heritage Sites - Road Affair.jpeg";
-import pdfImg16 from "../../../../assets/pdf/15 Best Places In Turkey To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
+import goimomilogo from "../../../assets/goimomilogo.png";
+import pdfImg1 from "../../../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
+import pdfImg2 from "../../../assets/pdf/Egypt.jpeg";
+import pdfImg3 from "../../../assets/pdf/FAMILY FUN IN VIETNAM _ Tailor-made tour - Exotic Voyages.jpeg";
+import pdfImg4 from "../../../assets/pdf/16 of the Best Places to Visit in Italy.jpeg";
+import pdfImg5 from "../../../assets/pdf/Petra (Jordan).jpeg";
+import pdfImg6 from "../../../assets/pdf/The Colosseum, Rome.jpeg";
+import pdfImg7 from "../../../assets/pdf/Matera_ The City of Stones.jpeg";
+import pdfImg8 from "../../../assets/pdf/20 Best City Breaks in the World - Travel Den.jpeg";
+import pdfImg9 from "../../../assets/pdf/A guide to the Azores.jpeg";
+import pdfImg10 from "../../../assets/pdf/5 Day Phuket Thailand Itinerary - Guide To Things To Do.jpeg";
+import pdfImg11 from "../../../assets/pdf/10 Top Cities In India To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
+import pdfImg12 from "../../../assets/pdf/Navigating Japanese Culture_ 20 Essential Etiquette Tips for Travelers.jpeg";
+import pdfImg13 from "../../../assets/pdf/amazing places in the world to travel.jpeg";
+import pdfImg14 from "../../../assets/pdf/The ultimate travel Guide to Cappadocia, Turkey - Jyo Shankar.jpeg";
+import pdfImg15 from "../../../assets/pdf/100 Most Beautiful UNESCO World Heritage Sites - Road Affair.jpeg";
+import pdfImg16 from "../../../assets/pdf/15 Best Places In Turkey To Visit - Hand Luggage Only - Travel, Food And Photography Blog.jpeg";
 
 const HolidayDetails = () => {
   const { id } = useParams();
@@ -973,5 +973,6 @@ const HolidayDetails = () => {
 };
 
 export default HolidayDetails;
+
 
 

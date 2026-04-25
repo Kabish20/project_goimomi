@@ -1,5 +1,5 @@
 import React from "react";
-import usePageSEO from "../../../../hooks/usePageSEO";
+import usePageSEO from "../../../hooks/usePageSEO";
 
 const CancellationPolicy = () => {
   usePageSEO(
@@ -139,5 +139,6 @@ const CancellationPolicy = () => {
 };
 
 export default CancellationPolicy;
+
 
 

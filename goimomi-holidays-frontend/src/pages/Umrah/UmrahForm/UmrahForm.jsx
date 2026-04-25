@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import api from "../../../../api";
+import api from "../../../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import SuccessModal from "../../../../components/SuccessModal";
+import SuccessModal from "../../../components/SuccessModal";
 
 const UmrahForm = ({ isOpen, onClose, packageType }) => {
   const [step, setStep] = useState(1);
@@ -768,5 +768,6 @@ const UmrahForm = ({ isOpen, onClose, packageType }) => {
 };
 
 export default UmrahForm;
+
 
 
