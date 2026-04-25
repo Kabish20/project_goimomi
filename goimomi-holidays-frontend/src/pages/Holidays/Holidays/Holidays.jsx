@@ -5,7 +5,7 @@ import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircl
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
 import jsPDF from "jspdf";
-import FormModal from "../../../components/FormModal";
+import ZohoTripForm from "../../../components/ZohoTripForm";
 import DownloadPDFModal from "../../../components/DownloadPDFModal";
 import goimomilogo from "../../../assets/goimomilogo.png";
 import pdfImg1 from "../../../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
@@ -1129,11 +1129,10 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
         }}
       />
 
-      <FormModal 
+      <ZohoTripForm 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        packageType={selectedPkgTitle} 
-        packageData={viewDetailsPkg}
+        packageName={selectedPkgTitle || viewDetailsPkg?.title} 
       />
 
       {viewDetailsPkg && (

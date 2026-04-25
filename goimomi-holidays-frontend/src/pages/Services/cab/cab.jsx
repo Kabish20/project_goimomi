@@ -3,7 +3,7 @@ import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, Mes
 import { motion } from "framer-motion";
 import api from "../../../api";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
-import CabCruiseForm from "../../../components/CabCruiseForm";
+import ZohoCabForm from "../../../components/ZohoCabForm";
 import CabTermsModal from "../../../components/CabTermsModal";
 import CabPrivacyModal from "../../../components/CabPrivacyModal";
 import cabSearchBg from "@/assets/Hero/cab_search_bg_v4.jpg";
@@ -236,9 +236,14 @@ const Cab = () => {
   };
 
   const handleBookNow = (car) => {
-    setSelectedVehicle(car);
-    setIsBooking(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setSelectedCar(car.name);
+    setBookingFormData(prev => ({
+      ...prev,
+      pickupPoint: searchParams.fromName,
+      dropPoint: searchParams.toName,
+      pickupDate: searchParams.pickupDate
+    }));
+    setIsFormOpen(true);
   };
 
   const vehicles = searchResults;
@@ -1487,18 +1492,16 @@ const Cab = () => {
         </div>
       )}
 
-      <CabCruiseForm
+      <ZohoCabForm
         isOpen={isFormOpen}
         onClose={() => {
           setIsFormOpen(false);
           setSelectedCar("");
         }}
-        type="Cab"
-        initialDescription={selectedCar}
         initialData={{
-          from: searchParams.fromName,
-          to: searchParams.toName,
-          date: searchParams.pickupDate
+          fromCity: searchParams.fromName,
+          toCity: searchParams.toName,
+          vehicle: selectedCar
         }}
       />
 

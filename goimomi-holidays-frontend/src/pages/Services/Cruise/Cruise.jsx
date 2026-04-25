@@ -6,7 +6,7 @@ import {
   Globe, Anchor, Compass, Sunrise, Utensils, Music,
 } from "lucide-react";
 import api from "../../../api";
-import CabCruiseForm from "../../../components/CabCruiseForm";
+import ZohoCruiseForm from "../../../components/ZohoCruiseForm";
 import usePageSEO from "../../../hooks/usePageSEO";
 import cruiseHeroImg from "../../../assets/cruise_hero.jpg";
 
@@ -643,14 +643,13 @@ const Cruise = () => {
         </motion.div>
       </div>
 
-      <CabCruiseForm
+      <ZohoCruiseForm
         isOpen={isFormOpen}
         onClose={() => {
           setIsFormOpen(false);
           setSelectedCruise("");
         }}
-        type="Cruise"
-        initialDescription={selectedCruise}
+        initialData={{ description: selectedCruise }}
       />
     </div>
   );

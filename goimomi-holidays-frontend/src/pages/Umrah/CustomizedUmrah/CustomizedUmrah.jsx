@@ -9,7 +9,7 @@ import {
   CheckCircle2, Award, BadgeCheck, Headphones, ShieldCheck,
   ArrowRight, ChevronDown, Globe, Star, Sparkles, BookOpen,
 } from "lucide-react";
-import UmrahForm from "../UmrahForm/UmrahForm.jsx";
+import ZohoCustomizedForm from "../../../components/ZohoCustomizedForm.jsx";
 import usePageSEO from "../../../hooks/usePageSEO";
 import umrahImage from "../../../assets/umrah.png";
 import umrah2Image from "../../../assets/umrah2.png";
@@ -684,10 +684,10 @@ const CustomizedUmrah = () => {
         </motion.div>
       </section>
 
-      <UmrahForm
+      <ZohoCustomizedForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        packageType={selectedPackage}
+        initialData={{ packageType: selectedPackage }}
       />
     </div>
   );

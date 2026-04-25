@@ -1,5 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 /**
  * ZohoLeadForm Component
@@ -7,6 +9,7 @@ import { X } from "lucide-react";
  */
 const ZohoLeadForm = ({ isOpen, onClose }) => {
   const formRef = useRef(null);
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -103,6 +106,20 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
         }
     }
 
+    // Phone validation: MUST be at least 10 digits after country code
+    const phoneDigits = (phone || "").replace(/\D/g, "");
+    if (phoneDigits.startsWith("91")) {
+        if (phoneDigits.length !== 12) {
+            alert("Please enter a valid 10-digit phone number after the country code (+91).");
+            e.preventDefault();
+            return false;
+        }
+    } else if (phoneDigits.length < 10) {
+        alert("Please enter a valid phone number.");
+        e.preventDefault();
+        return false;
+    }
+
     trackVisitor(form);
     if (!validateEmail(form)) {
       e.preventDefault();
@@ -126,7 +143,7 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
       />
       
       {/* Modal Card */}
-      <div className="relative w-full max-w-[380px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-[340px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10 text-gray-400 hover:text-gray-900"
@@ -134,11 +151,11 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
           <X size={18} />
         </button>
 
-        <div className="p-6 md:p-8">
-            <h2 className="text-xl font-black text-[#14532d] mb-1 leading-tight tracking-tight">
+        <div className="p-5 md:p-6">
+            <h2 className="text-lg font-black text-[#14532d] mb-1 leading-tight tracking-tight">
                 Welcome to Goimomi Holidays
             </h2>
-            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-6">
+            <p className="text-gray-400 text-[9px] font-bold uppercase tracking-widest mb-4">
                 Briefly share details with us.
             </p>
 
@@ -150,7 +167,7 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
               method='POST' 
               onSubmit={handleZohoSubmit}
               acceptCharset='UTF-8'
-              className="space-y-4"
+              className="space-y-2.5"
             >
                 {/* Zoho Required Hidden Fields */}
                 <input type='text' style={{ display: 'none' }} name='xnQsjsdp' value='f98456093f3d9fa012da9b1f392957a6f9a73df303a1745e5005096696b06141' readOnly />
@@ -163,63 +180,65 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
                 <input type='text' style={{ display: 'none' }} name='aG9uZXlwb3Q' value='' readOnly />
 
                 {/* Visible Fields */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">First Name *</label>
+                <div className="grid grid-cols-2 gap-2.5">
+                    <div className="space-y-0.5">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">First Name *</label>
                         <input 
                             name='First Name' 
                             type='text' 
-                            className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold outline-none transition-all" 
+                            className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none transition-all" 
                             placeholder="John" 
                         />
                     </div>
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Last Name *</label>
+                    <div className="space-y-0.5">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Last Name *</label>
                         <input 
                             name='Last Name' 
                             type='text' 
-                            className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold outline-none transition-all" 
+                            className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none transition-all" 
                             placeholder="Doe" 
                         />
                     </div>
                 </div>
 
-                <div className="space-y-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address *</label>
+                <div className="space-y-0.5">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address *</label>
                     <input 
                         name='Email' 
                         type='text' 
                         ftype='email'
-                        className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold outline-none transition-all" 
+                        className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none transition-all" 
                         placeholder="john@example.com" 
                     />
                 </div>
 
-                <div className="space-y-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number *</label>
-                    <div className="relative group">
-                        <input 
-                            name='Mobile' 
-                            type='text' 
-                            className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold outline-none transition-all" 
-                            placeholder="+91 00000 00000" 
-                        />
-                    </div>
+                <div className="space-y-0.5">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number *</label>
+                    <input type="hidden" name="Mobile" value={phone} />
+                    <PhoneInput
+                        country={"in"}
+                        value={phone}
+                        onChange={(val) => setPhone(val)}
+                        inputClass="!w-full !bg-gray-50 !border-2 !border-transparent focus:!border-green-50 focus:!bg-white !rounded-xl !px-3 !py-1.5 !text-xs !font-bold !outline-none !transition-all !h-[34px]"
+                        containerClass="!w-full"
+                        buttonClass="!bg-gray-50 !border-none !rounded-l-xl"
+                        dropdownClass="!rounded-xl !shadow-2xl !border-gray-100 !text-[10px] !font-bold !py-1 !max-h-[200px]"
+                    />
                 </div>
 
-                <div className="space-y-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Message</label>
+                <div className="space-y-0.5">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Message</label>
                     <textarea 
                         name='Description' 
-                        rows="3"
-                        className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-2 text-xs font-bold outline-none transition-all resize-none" 
+                        rows="2"
+                        className="w-full bg-gray-50 border-2 border-transparent focus:border-green-50 focus:bg-white rounded-xl px-3 py-1.5 text-xs font-bold outline-none transition-all resize-none" 
                         placeholder="How can we help?"
                     ></textarea>
                 </div>
 
                 <button 
                   type='submit' 
-                  className="formsubmit w-full bg-[#14532d] hover:bg-[#0f4022] text-white py-3 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-green-900/10 transition-all active:scale-[0.98] mt-2"
+                  className="formsubmit w-full bg-[#14532d] hover:bg-[#0f4022] text-white py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-green-900/10 transition-all active:scale-[0.98] mt-1"
                 >
                     Submit Details
                 </button>

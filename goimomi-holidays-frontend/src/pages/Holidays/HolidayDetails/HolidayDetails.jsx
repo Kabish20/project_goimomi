@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Hotel, Star, MapPin, Info, Utensils, MessageCircle, FileDown, Eye, ArrowRight, Car } from "lucide-react";
 import { useParams, useLocation } from "react-router-dom";
 import api from "../../../api";
-import FormModal from "../../../components/FormModal";
+import ZohoTripForm from "../../../components/ZohoTripForm";
 import DownloadPDFModal from "../../../components/DownloadPDFModal";
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
@@ -962,11 +962,13 @@ const HolidayDetails = () => {
         }}
       />
 
-      <FormModal
+      <ZohoTripForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        packageType={pkg?.title}
-        packageData={pkg}
+        initialData={{
+          packageTitle: pkg?.title,
+          category: pkg?.category
+        }}
       />
     </div>
   );

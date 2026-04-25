@@ -9,7 +9,7 @@ import {
   ArrowRight, CheckCircle2, PhoneCall, ChevronDown, TrendingUp,
   MapPin, Heart, Briefcase,
 } from "lucide-react";
-import HolidaysForm from "../Holidaysform/Holidaysform.jsx";
+import ZohoCustomizedForm from "../../../components/ZohoCustomizedForm.jsx";
 import { useNavigate } from "react-router-dom";
 import usePageSEO from "../../../hooks/usePageSEO";
 
@@ -605,10 +605,10 @@ const CustomizedHolidays = () => {
         </div>
       </section>
 
-      <HolidaysForm
+      <ZohoCustomizedForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        packageType={selectedPackage}
+        initialData={{ packageType: selectedPackage }}
       />
     </div>
   );
