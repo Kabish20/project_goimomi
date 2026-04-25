@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+  import React, { useEffect, useRef, useState } from "react";
 import { X, Ship, Calendar } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -18,11 +18,10 @@ const ZohoCruiseForm = ({ isOpen, onClose, initialData = {} }) => {
     window.$zoho = window.$zoho || {};
     window.$zoho.salesiq = window.$zoho.salesiq || {
       widgetcode: 'siq728d0317d0309852f4889fdec03e4cabaa5c80fa1a246bd2cdb3b355a354df81',
-      values: {},
       ready: function () { }
     };
 
-    // 2. Load SalesIQ Script
+    // 2. Load SalesIQ Script (Only if not already loaded)
     if (!document.getElementById('zsiqscript')) {
       const s = document.createElement('script');
       s.type = 'text/javascript';
@@ -37,18 +36,16 @@ const ZohoCruiseForm = ({ isOpen, onClose, initialData = {} }) => {
       }
     }
 
-    // 3. Load WebForm Analytics for this specific form
+    // 3. Load WebForm Analytics for this specific form (Only once)
     const rid = "7368c4cda5b97e3ffd4904f12f38b410ad6a800e19a94727d5b778e5df488d8eee46a18e15dcabf8cfdca4b251fb32a2gidac61a9e28d6886309aec5390c781c2dd8547047e959baf5054b0e111f08ae4cegide4dd80880e862c2d39a2856cf8766252edbaae35b328b0f18aa7f55094db4013gid8f566533f9f3cd217c3aca05fe60fb316b8fa25258927d1f9440341551d563c2";
     const tw = "bd837f6c28568dc8cd5d342212f5b08b83564c342b1606bde6374f6f149dfbcd";
     
-    // Remove existing analytics script if it exists to avoid conflicts
-    const existingAnal = document.getElementById('wf_anal_cruise');
-    if (existingAnal) existingAnal.remove();
-
-    const s = document.createElement('script');
-    s.id = 'wf_anal_cruise';
-    s.src = `https://crm.zohopublic.in/crm/WebFormAnalyticsServeServlet?rid=${rid}&tw=${tw}`;
-    document.body.appendChild(s);
+    if (!document.getElementById('wf_anal_cruise')) {
+      const s = document.createElement('script');
+      s.id = 'wf_anal_cruise';
+      s.src = `https://crm.zohopublic.in/crm/WebFormAnalyticsServeServlet?rid=${rid}&tw=${tw}`;
+      document.body.appendChild(s);
+    }
 
     // Lock scroll
     document.body.style.overflow = "hidden";
