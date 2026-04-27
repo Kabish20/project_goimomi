@@ -13,6 +13,20 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({ error, errorInfo });
     console.error("Uncaught error:", error, errorInfo);
+
+    // Check for chunk load error (Vite/Rollup specific)
+    const chunkFailedMessage = /Failed to fetch dynamically imported module|Importing a module script failed/i;
+    if (error.message && chunkFailedMessage.test(error.message)) {
+      const chunkErrorKey = 'last-chunk-error';
+      const now = Date.now();
+      const lastError = sessionStorage.getItem(chunkErrorKey);
+
+      // Only reload if the last error was more than 5 seconds ago to avoid infinite reload loops
+      if (!lastError || (now - parseInt(lastError)) > 5000) {
+        sessionStorage.setItem(chunkErrorKey, now.toString());
+        window.location.reload();
+      }
+    }
   }
 
   render() {
