@@ -6,30 +6,30 @@ import { lazy } from 'react';
  */
 export const lazyRetry = (componentImport) => {
   return lazy(async () => {
-    const pageHasAlreadyBeenForceRefreshed = JSON.parse(
-      window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
-    );
-
+    const chunkErrorKey = 'last-chunk-error-timestamp';
+    
     try {
-      const component = await componentImport();
-      window.sessionStorage.setItem('page-has-been-force-refreshed', 'false');
-      return component;
+      return await componentImport();
     } catch (error) {
-      if (!pageHasAlreadyBeenForceRefreshed) {
-        // Log the error to the console for debugging
-        console.error('Lazy import failed, attempting page reload:', error);
+      const now = Date.now();
+      const lastErrorTimestamp = sessionStorage.getItem(chunkErrorKey);
+      
+      // If we haven't retried in the last 10 seconds, try a reload
+      if (!lastErrorTimestamp || (now - parseInt(lastErrorTimestamp)) > 10000) {
+        sessionStorage.setItem(chunkErrorKey, now.toString());
         
-        // Mark that we've already refreshed to avoid infinite loops
-        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
+        console.warn('Chunk load failed. Retrying with page reload...', error);
         
-        // Reload the page
+        // Force reload from server
         window.location.reload();
-        return;
+        
+        // Return a promise that never resolves to stop execution while reloading
+        return new Promise(() => {});
       }
 
-      // If we already refreshed and it still fails, throw the error
-      // The ErrorBoundary will catch it and show the error UI
+      // If we already retried recently and it still fails, let the error bubble up to ErrorBoundary
       throw error;
     }
   });
 };
+
