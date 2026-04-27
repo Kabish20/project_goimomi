@@ -33,10 +33,14 @@ class ErrorBoundary extends React.Component {
       // If we haven't retried in the last 10 seconds, try a reload
       if (!lastErrorTimestamp || (now - parseInt(lastErrorTimestamp)) > 10000) {
         sessionStorage.setItem(chunkErrorKey, now.toString());
-        console.warn("Chunk error detected in ErrorBoundary, reloading...");
-        window.location.reload();
+        console.warn("Chunk error detected in ErrorBoundary, reloading forcefully...");
+        
+        const url = new URL(window.location.href);
+        url.searchParams.set('t', Date.now().toString());
+        window.location.href = url.toString();
       }
     }
+
   }
 
   handleClearCacheAndReload = () => {

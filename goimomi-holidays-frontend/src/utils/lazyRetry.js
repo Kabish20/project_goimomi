@@ -18,13 +18,16 @@ export const lazyRetry = (componentImport) => {
       if (!lastErrorTimestamp || (now - parseInt(lastErrorTimestamp)) > 10000) {
         sessionStorage.setItem(chunkErrorKey, now.toString());
         
-        console.warn('Chunk load failed. Retrying with page reload...', error);
+        console.warn('Chunk load failed. Retrying with forceful page reload...', error);
         
-        // Force reload from server
-        window.location.reload();
+        // Force reload by appending/updating a timestamp query parameter
+        const url = new URL(window.location.href);
+        url.searchParams.set('t', Date.now().toString());
+        window.location.href = url.toString();
         
         // Return a promise that never resolves to stop execution while reloading
         return new Promise(() => {});
+
       }
 
       // If we already retried recently and it still fails, let the error bubble up to ErrorBoundary
