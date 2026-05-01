@@ -522,6 +522,15 @@ const Navbar = () => {
                 <img src="https://cdn-icons-png.flaticon.com/128/4320/4320227.png" alt="Cruise" className="w-6 h-6 object-contain" />
                 Cruise Bookings
               </NavLink>
+              <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+                <img src="https://cdn-icons-png.flaticon.com/128/471/471664.png" alt="About" className="w-6 h-6 object-contain opacity-70" />
+                About Us
+              </NavLink>
+
+              <NavLink to="/contactus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+                <img src="https://cdn-icons-png.flaticon.com/128/1034/1034153.png" alt="Contact" className="w-6 h-6 object-contain opacity-70" />
+                Contact Us
+              </NavLink>
 
 
               {/* Social Links for "Instagram Part" */}

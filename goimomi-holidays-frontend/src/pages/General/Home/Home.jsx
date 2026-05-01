@@ -301,31 +301,31 @@ const Home = () => {
               so you can focus entirely on the experience.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-4 max-w-6xl mx-auto">
 
             {/* Business Block */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/businesshome')}
             >
               <div className="absolute top-4 right-4 bg-orange-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Trending</div>
-              <div className="mb-5 w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                <Briefcase className="w-6 h-6 text-orange-600 group-hover:text-white transition-colors" />
+              <div className="mb-4 w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Briefcase className="w-5 h-5 text-orange-600 group-hover:text-white transition-colors" />
               </div>
-              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Business Travel</h4>
-              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5 group-hover:text-white">Business Travel</h4>
+              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed group-hover:text-white/80">
                 Precision-managed corporate travel — flights, hotels, visa processing, and ground logistics optimized for maximum efficiency and cost savings.
               </p>
-              <ul className="space-y-1.5 mb-6">
+              <ul className="space-y-1 mb-5">
                 {["Dedicated corporate desk","Consolidated billing & GST","24/7 travel support"].map(pt => (
-                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
                     {pt}
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[8px] group-hover:text-white">
                 <span>EXPLORE BUSINESS</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -334,26 +334,26 @@ const Home = () => {
             {/* Leisure Block */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/holidayhome')}
             >
               <div className="absolute top-4 right-4 bg-emerald-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Popular</div>
-              <div className="mb-5 w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                <Globe className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
+              <div className="mb-4 w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Globe className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
               </div>
-              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Leisure Travel</h4>
-              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5 group-hover:text-white">Leisure Travel</h4>
+              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed group-hover:text-white/80">
                 Handpicked holiday packages to 80+ global destinations — beach escapes, cultural tours, pilgrimages, and European adventures.
               </p>
-              <ul className="space-y-1.5 mb-6">
+              <ul className="space-y-1 mb-5">
                 {["Personally vetted itineraries","Best price guarantee","Free customisation"].map(pt => (
-                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
                     {pt}
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[8px] group-hover:text-white">
                 <span>EXPLORE HOLIDAYS</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -362,26 +362,26 @@ const Home = () => {
             {/* Visa & Documentation Block */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/visa')}
             >
               <div className="absolute top-4 right-4 bg-blue-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Fast-Track</div>
-              <div className="mb-5 w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                <FileText className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+              <div className="mb-4 w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <FileText className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" />
               </div>
-              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Visa Services</h4>
-              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5 group-hover:text-white">Visa Services</h4>
+              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed group-hover:text-white/80">
                 Expert visa assistance for 40+ countries — tourist, business, e-Visa, and Umrah visas processed accurately and on time.
               </p>
-              <ul className="space-y-1.5 mb-6">
+              <ul className="space-y-1 mb-5">
                 {["10+ years of expertise","Documentation guidance","Real-time status updates"].map(pt => (
-                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
                     {pt}
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[8px] group-hover:text-white">
                 <span>APPLY FOR VISA</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -390,26 +390,26 @@ const Home = () => {
             {/* Flight Ticket Block */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => window.open('https://booking.goimomi.com/', '_blank')}
             >
               <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Best Rates</div>
-              <div className="mb-5 w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                <Plane className="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors" />
+              <div className="mb-4 w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Plane className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
               </div>
-              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Flight Tickets</h4>
-              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5 group-hover:text-white">Flight Tickets</h4>
+              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed group-hover:text-white/80">
                 Seamless flight booking with exclusive corporate fares, multi-city itineraries, and 24/7 priority rebooking support.
               </p>
-              <ul className="space-y-1.5 mb-6">
+              <ul className="space-y-1 mb-5">
                 {["Exclusive airline deals","Instant ticketing & GST","24/7 change assistance"].map(pt => (
-                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
                     {pt}
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[8px] group-hover:text-white">
                 <span>BOOK FLIGHTS</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -418,26 +418,26 @@ const Home = () => {
             {/* Umrah Service Block */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/holidays?category=Umrah')}
             >
               <div className="absolute top-4 right-4 bg-amber-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Spiritual</div>
-              <div className="mb-5 w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                <Users className="w-6 h-6 text-amber-600 group-hover:text-white transition-colors" />
+              <div className="mb-4 w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Users className="w-5 h-5 text-amber-600 group-hover:text-white transition-colors" />
               </div>
-              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Umrah Services</h4>
-              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5 group-hover:text-white">Umrah Services</h4>
+              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed group-hover:text-white/80">
                 Spiritually enriching journeys with premium accommodation close to the Haram, guided tours, and complete logistics.
               </p>
-              <ul className="space-y-1.5 mb-6">
+              <ul className="space-y-1 mb-5">
                 {["Guided spiritual tours","Premium hotel stays","End-to-end logistics"].map(pt => (
-                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
                     {pt}
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[8px] group-hover:text-white">
                 <span>EXPLORE UMRAH</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -446,26 +446,26 @@ const Home = () => {
             {/* Cab Service Block */}
             <motion.div
               whileHover={{ y: -8 }}
-              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/cab')}
             >
               <div className="absolute top-4 right-4 bg-rose-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Reliable</div>
-              <div className="mb-5 w-14 h-14 rounded-2xl bg-rose-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                <Car className="w-6 h-6 text-rose-600 group-hover:text-white transition-colors" />
+              <div className="mb-4 w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Car className="w-5 h-5 text-rose-600 group-hover:text-white transition-colors" />
               </div>
-              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Cab Services</h4>
-              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5 group-hover:text-white">Cab Services</h4>
+              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed group-hover:text-white/80">
                 Reliable ground transportation for airport transfers, local sightseeing, and outstation travel across global cities.
               </p>
-              <ul className="space-y-1.5 mb-6">
+              <ul className="space-y-1 mb-5">
                 {["Professional chauffeurs","Wide fleet of vehicles","Punctual & safe rides"].map(pt => (
-                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
                     {pt}
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[8px] group-hover:text-white">
                 <span>BOOK A CAB</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
