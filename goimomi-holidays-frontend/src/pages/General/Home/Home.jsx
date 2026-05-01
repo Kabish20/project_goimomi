@@ -4,7 +4,7 @@ import api from "../../../api";
 import {
   MapPin, Zap, ShieldCheck, Headphones, Star, Award, Clock, Globe,
   Users, CheckCircle2, Briefcase, CreditCard, Plane, FileText,
-  PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays
+  PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays, Car, Ticket
 } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
@@ -383,6 +383,90 @@ const Home = () => {
               </ul>
               <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
                 <span>APPLY FOR VISA</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.div>
+
+            {/* Flight Ticket Block */}
+            <motion.div
+              whileHover={{ y: -8 }}
+              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              onClick={() => window.open('https://booking.goimomi.com/', '_blank')}
+            >
+              <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Best Rates</div>
+              <div className="mb-5 w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Plane className="w-6 h-6 text-indigo-600 group-hover:text-white transition-colors" />
+              </div>
+              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Flight Tickets</h4>
+              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+                Seamless flight booking with exclusive corporate fares, multi-city itineraries, and 24/7 priority rebooking support.
+              </p>
+              <ul className="space-y-1.5 mb-6">
+                {["Exclusive airline deals","Instant ticketing & GST","24/7 change assistance"].map(pt => (
+                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+                <span>BOOK FLIGHTS</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.div>
+
+            {/* Umrah Service Block */}
+            <motion.div
+              whileHover={{ y: -8 }}
+              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              onClick={() => navigate('/holidays?category=Umrah')}
+            >
+              <div className="absolute top-4 right-4 bg-amber-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Spiritual</div>
+              <div className="mb-5 w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Users className="w-6 h-6 text-amber-600 group-hover:text-white transition-colors" />
+              </div>
+              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Umrah Services</h4>
+              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+                Spiritually enriching journeys with premium accommodation close to the Haram, guided tours, and complete logistics.
+              </p>
+              <ul className="space-y-1.5 mb-6">
+                {["Guided spiritual tours","Premium hotel stays","End-to-end logistics"].map(pt => (
+                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+                <span>EXPLORE UMRAH</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.div>
+
+            {/* Cab Service Block */}
+            <motion.div
+              whileHover={{ y: -8 }}
+              className="bg-white p-7 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
+              onClick={() => navigate('/cab')}
+            >
+              <div className="absolute top-4 right-4 bg-rose-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Reliable</div>
+              <div className="mb-5 w-14 h-14 rounded-2xl bg-rose-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Car className="w-6 h-6 text-rose-600 group-hover:text-white transition-colors" />
+              </div>
+              <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter mb-2 group-hover:text-white">Cab Services</h4>
+              <p className="text-slate-500 mb-5 text-[13px] leading-relaxed group-hover:text-white/80">
+                Reliable ground transportation for airport transfers, local sightseeing, and outstation travel across global cities.
+              </p>
+              <ul className="space-y-1.5 mb-6">
+                {["Professional chauffeurs","Wide fleet of vehicles","Punctual & safe rides"].map(pt => (
+                  <li key={pt} className="flex items-center gap-2 text-[11px] font-semibold text-slate-600 group-hover:text-white/80">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[9px] group-hover:text-white">
+                <span>BOOK A CAB</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </motion.div>
