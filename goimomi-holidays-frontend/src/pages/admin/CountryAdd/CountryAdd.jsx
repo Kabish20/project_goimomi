@@ -10,17 +10,18 @@ import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 const CountryAdd = () => {
   const [formData, setFormData] = useState({
     name: "",
-    is_active: true
+    is_active: true,
+    card_image: null
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, files } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : (type === 'file' ? files[0] : value)
     }));
   };
 
@@ -30,7 +31,16 @@ const CountryAdd = () => {
 
     try {
       setLoading(true);
-      await api.post("/api/countries/", formData);
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("is_active", formData.is_active);
+      if (formData.card_image) {
+        data.append("card_image", formData.card_image);
+      }
+
+      await api.post("/api/countries/", data, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       navigate("/admin/management-country");
     } catch (err) {
       console.error("Error creating country:", err);
@@ -87,6 +97,20 @@ const CountryAdd = () => {
                         className="w-full bg-white border border-gray-100 pl-11 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] shadow-sm transition-all"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Nano Banner (Country Image)</label>
+                    <div className="relative group">
+                      <input
+                        type="file"
+                        name="card_image"
+                        onChange={handleChange}
+                        className="w-full bg-white border border-gray-100 px-4 py-3 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] shadow-sm transition-all text-[10px]"
+                        accept="image/*"
+                      />
+                    </div>
+                    <p className="text-[8px] text-gray-400 font-medium ml-1 italic">Vertical orientation (4:5) recommended for best results.</p>
                   </div>
 
                   <div className="flex items-center gap-3 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">

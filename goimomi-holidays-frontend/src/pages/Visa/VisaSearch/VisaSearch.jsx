@@ -47,14 +47,10 @@ const VisaSearch = () => {
       setLoading(true);
       try {
         const popularVisasRes = await api.get("/api/visas/?is_popular=true");
-        const vData = popularVisasRes.data || [];
-        setCountriesLoading(true);
-        const countriesRes = await api.get("/api/countries/");
-        const countriesList = Array.isArray(countriesRes.data)
-          ? countriesRes.data.filter((c) => c && c.name)
-          : [];
-        setCountries(countriesList);
-        setCountriesLoading(false);
+        const vData = Array.isArray(popularVisasRes.data) 
+          ? popularVisasRes.data 
+          : (popularVisasRes.data?.results || []);
+          
         const dests = vData.map((v) => ({
           id: v.id,
           name: v.title,
@@ -63,6 +59,22 @@ const VisaSearch = () => {
           region: "",
         }));
         setPopularDestinations(dests);
+        
+        setCountriesLoading(true);
+        try {
+          const countriesRes = await api.get("/api/countries/");
+          const rawData = countriesRes.data;
+          const countriesList = Array.isArray(rawData)
+            ? rawData
+            : (rawData?.results || []);
+            
+          const filtered = countriesList.filter((c) => c && c.name);
+          setCountries(filtered);
+        } catch (err) {
+          console.error("Error fetching countries:", err);
+        } finally {
+          setCountriesLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching initial data:", error);
       } finally {
@@ -83,11 +95,11 @@ const VisaSearch = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredCitizenCountries = countries.filter((c) =>
-    c.name.toLowerCase().includes(citizenSearch.toLowerCase())
+  const filteredCitizenCountries = (countries || []).filter((c) =>
+    c?.name?.toLowerCase().includes(citizenSearch.toLowerCase())
   );
-  const filteredGoingToCountries = countries.filter((c) =>
-    c.name.toLowerCase().includes(goingToSearch.toLowerCase())
+  const filteredGoingToCountries = (countries || []).filter((c) =>
+    c?.name?.toLowerCase().includes(goingToSearch.toLowerCase())
   );
 
   const handleSearch = () => {
@@ -280,10 +292,8 @@ const VisaSearch = () => {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-50">
-
-      {/* ─── HERO SECTION WITH SEARCH ────────────────────────────────────── */}
       <div
-        className="relative pt-24 pb-36"
+        className="relative pt-24 pb-36 bg-slate-900"
         style={{
           backgroundImage: `url(${visaBg})`,
           backgroundSize: "cover",
@@ -488,58 +498,108 @@ const VisaSearch = () => {
         </div>
       </div>
 
-      {/* ─── POPULAR VISAS ───────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 py-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+
+      {/* ─── ALL DESTINATIONS GRID ────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-6 pb-24">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
-            <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-700 font-black">Quick Access</span>
+            <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-700 font-black">Global Access</span>
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase italic mt-1">
-              Popular Visas
+              Explore All <span className="text-emerald-700">196 Countries</span>
             </h2>
             <p className="text-slate-500 text-sm mt-2 max-w-md">
-              Top picks for Indian travellers — apply directly or speak to our visa consultant for personalised assistance.
+              Find visa requirements and application details for any destination worldwide.
             </p>
           </div>
 
+          <div className="relative group w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-600 transition-colors" size={18} />
+            <input
+              type="text"
+              placeholder="Search destination country..."
+              className="w-full bg-white border border-slate-200 pl-12 pr-4 py-3 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-sm"
+              value={goingToSearch}
+              onChange={(e) => setGoingToSearch(e.target.value)}
+            />
+          </div>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-700" />
+        {countriesLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-700" />
+            <p className="text-xs font-black text-emerald-700 uppercase tracking-widest animate-pulse">Loading Destinations...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {popularDestinations.filter((dest) => dest.card_image).map((dest) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {filteredGoingToCountries.map((country) => (
               <motion.div
-                key={dest.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                key={country.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -6 }}
-                onClick={() => navigate(`/visa/results?citizenOf=${encodeURIComponent(citizenOf)}&goingTo=${encodeURIComponent(dest.country)}`)}
-                className="group cursor-pointer"
+                whileHover={{ y: -5, scale: 1.02 }}
+                onClick={() => {
+                  setGoingTo(country.name);
+                  setGoingToSearch(country.name);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="group cursor-pointer relative"
               >
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden relative mb-3 shadow-md group-hover:shadow-xl transition-all duration-500">
-                  <img
-                    src={getImageUrl(dest.card_image) || "/placeholder.jpg"}
-                    alt={dest.name}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-90 transition-opacity" />
+                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative shadow-sm group-hover:shadow-xl transition-all duration-500">
+                  {/* Nano Banner Image Overlay */}
+                  {country.card_image ? (
+                    <img
+                      src={getImageUrl(country.card_image)}
+                      alt={country.name}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-slate-200" />
+                      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                      
+                      {/* Country Initial/Flag Placeholder */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-4xl font-black text-slate-300 group-hover:text-emerald-200/50 transition-colors duration-500">
+                          {country.name.substring(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+                  
                   <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-white font-bold text-sm tracking-wide">{dest.name}</h3>
-                    <p className="text-white/70 text-[10px] uppercase font-black tracking-widest">
-                      {dest.region && dest.country
-                        ? `${dest.region} · ${dest.country}`
-                        : dest.region || dest.country}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">Apply Visa</span>
+                    </div>
+                    <h3 className="text-white font-bold text-xs md:text-sm tracking-tight truncate leading-tight uppercase">
+                      {country.name}
+                    </h3>
                   </div>
-                  <div className="absolute inset-x-0 bottom-0 bg-emerald-700 text-white text-[9px] font-black uppercase tracking-widest text-center py-1.5 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    Apply Now
+
+                  {/* Hover Accent */}
+                  <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform duration-300 border border-white/20">
+                    <ArrowRight size={12} />
                   </div>
                 </div>
               </motion.div>
             ))}
+          </div>
+        )}
+
+        {!countriesLoading && filteredGoingToCountries.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+            <Globe className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">No matching countries found</p>
+            <button 
+              onClick={() => setGoingToSearch("")}
+              className="mt-4 text-emerald-700 font-black text-xs uppercase tracking-widest hover:underline"
+            >
+              Clear Search
+            </button>
           </div>
         )}
       </div>

@@ -256,6 +256,7 @@ class CancellationPolicy(models.Model):
 
 class Country(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    card_image = models.ImageField(upload_to="countries/cards/", null=True, blank=True)
 
     def __str__(self):
         return self.name
