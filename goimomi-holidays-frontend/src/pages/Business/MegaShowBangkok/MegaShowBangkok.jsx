@@ -151,12 +151,13 @@ const MegaShowBangkok = () => {
           <div className="grid md:grid-cols-2 gap-8 fade-up">
             {/* Package 1 */}
             <div className="bg-white rounded-3xl overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 hover:shadow-2xl transition-shadow flex flex-col relative">
-              <div className="h-48 bg-slate-900 relative">
+              <div className="h-56 bg-slate-900 relative">
                 <div className="absolute inset-0 bg-gradient-to-tr from-slate-900 to-blue-900 opacity-90"></div>
                 <div className="absolute inset-0 flex items-center justify-center text-white text-center p-6">
                   <div>
                     <div className="text-yellow-400 font-bold tracking-widest text-sm mb-2 uppercase">3 Nights / 4 Days</div>
-                    <h3 className="text-3xl font-black">3N Bangkok<br />Business Package</h3>
+                    <h3 className="text-3xl font-black mb-3">3N Bangkok<br />Business Package</h3>
+                    <div className="text-2xl font-black text-white">₹34,333 <span className="text-sm font-normal text-slate-300">/ person</span></div>
                   </div>
                 </div>
               </div>
@@ -185,12 +186,13 @@ const MegaShowBangkok = () => {
             {/* Package 2 */}
             <div className="bg-white rounded-3xl overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border-2 border-yellow-500 relative flex flex-col transform md:-translate-y-4">
               <div className="absolute top-0 right-0 bg-yellow-500 text-slate-900 text-xs font-black px-4 py-1.5 rounded-bl-xl uppercase tracking-widest z-10">Popular Choice</div>
-              <div className="h-48 bg-slate-900 relative">
+              <div className="h-56 bg-slate-900 relative">
                 <div className="absolute inset-0 bg-gradient-to-tr from-slate-900 to-yellow-900 opacity-90"></div>
                 <div className="absolute inset-0 flex items-center justify-center text-white text-center p-6">
                   <div>
                     <div className="text-yellow-400 font-bold tracking-widest text-sm mb-2 uppercase">5 Nights / 6 Days</div>
-                    <h3 className="text-3xl font-black">Bangkok + Pattaya<br />Business & Leisure</h3>
+                    <h3 className="text-3xl font-black mb-3">Bangkok + Pattaya<br />Business & Leisure</h3>
+                    <div className="text-2xl font-black text-white">₹40,000 <span className="text-sm font-normal text-slate-300">/ person</span></div>
                   </div>
                 </div>
               </div>
