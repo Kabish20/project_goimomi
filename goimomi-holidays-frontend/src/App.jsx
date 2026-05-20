@@ -29,6 +29,7 @@ const TermsConditions = lazyRetry(() => import('./pages/Policies/TermsConditions
 const CancellationPolicy = lazyRetry(() => import('./pages/Policies/CancellationPolicy/CancellationPolicy.jsx'));
 const HolidayDetails = lazyRetry(() => import("./pages/Holidays/HolidayDetails/HolidayDetails.jsx"));
 const Canton = lazyRetry(() => import("./pages/Business/Canton/Canton.jsx"));
+const MegaShowBangkok = lazyRetry(() => import("./pages/Business/MegaShowBangkok/MegaShowBangkok.jsx"));
 const HolidayHome = lazyRetry(() => import("./pages/Holidays/holidayhome/holidayhome.jsx"));
 const PackageEnquiryPage = lazyRetry(() => import("./pages/Holidays/PackageEnquiryPage/PackageEnquiryPage.jsx"));
 const BusinessHome = lazyRetry(() => import("./pages/Business/businesshome/businesshome.jsx"));
@@ -185,6 +186,7 @@ const App = () => {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/canton" element={<Canton />} />
+              <Route path="/megashowbangkok" element={<MegaShowBangkok />} />
               <Route path="/" element={<Home />} />
             <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
             <Route path="/aboutus" element={<About />} />

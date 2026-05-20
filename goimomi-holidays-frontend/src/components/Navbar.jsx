@@ -175,6 +175,13 @@ const Navbar = () => {
                   >
                     Canton Fair
                   </NavLink>
+                  <NavLink
+                    to="/megashowbangkok"
+                    onClick={() => setDesktopBusiness(false)}
+                    className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
+                  >
+                    Mega Show Bangkok
+                  </NavLink>
                 </div>
               )}
             </div>
@@ -409,6 +416,9 @@ const Navbar = () => {
                     </NavLink>
                     <NavLink to="/canton" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
                       Canton Fair
+                    </NavLink>
+                    <NavLink to="/megashowbangkok" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
+                      Mega Show Bangkok
                     </NavLink>
                   </div>
                 )}

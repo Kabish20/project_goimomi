@@ -30,6 +30,7 @@ import usePageSEO from "../../../hooks/usePageSEO";
 import bizHero from "../../../assets/Business/biz1.jpeg";
 import bizCardImg from "../../../assets/Business/biz3.jpeg";
 import cantonCardImg from "../../../assets/images/canton-hero.png";
+import megaheaderImg from "../../../assets/megaheader.png";
 
 // ─── Animated Counter ────────────────────────────────────────────────────────
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
@@ -108,6 +109,18 @@ const BusinessHome = () => {
       icon: <Building2 className="w-6 h-6" />,
       tag: "Most Popular",
       highlights: ["Fair Registration", "Factory Visit Tours", "Interpreter Services", "Group Hotel Deals"],
+    },
+    {
+      id: "mega-show-bangkok",
+      title: "Mega Show Bangkok",
+      subtitle: "Asia's Leading B2B",
+      description:
+        "Attend Asia’s Leading B2B Sourcing Exhibition in Bangkok. Join global buyers, importers, and retailers with our premium Business Travel Packages and explore new sourcing opportunities.",
+      image: megaheaderImg,
+      path: "/megashowbangkok",
+      icon: <Globe className="w-6 h-6" />,
+      tag: "Upcoming Event",
+      highlights: ["Expo Registration", "4-Star Hotel Stay", "Airport Transfers", "Networking Dinner"],
     },
   ];
 
@@ -348,7 +361,7 @@ const BusinessHome = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {businessCategories.map((cat, idx) => (
             <motion.div
               key={cat.id}
