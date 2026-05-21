@@ -57,6 +57,79 @@ const MegaShowBangkok = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+      {/* --- HOT NEWS TICKER --- */}
+      <div className="bg-red-600 text-white py-2 overflow-hidden whitespace-nowrap relative border-b border-red-700 z-50">
+        <div className="inline-block animate-marquee uppercase font-bold text-xs tracking-widest px-4">
+          🔥 HOT NEWS: MEGA SHOW Bangkok 2026 Registration is now LIVE! • Secure your Business Package today • Early bird discounts ending soon • Limited 4-Star stay available •
+        </div>
+        <div className="absolute top-0 inline-block animate-marquee2 uppercase font-bold text-xs tracking-widest px-4">
+          🔥 HOT NEWS: MEGA SHOW Bangkok 2026 Registration is now LIVE! • Secure your Business Package today • Early bird discounts ending soon • Limited 4-Star stay available •
+        </div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
+        }
+        @keyframes marquee2 {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(0); }
+        }
+        .animate-marquee {
+          animation: marquee 25s linear infinite;
+        }
+        .animate-marquee2 {
+          animation: marquee2 25s linear infinite;
+        }
+        @keyframes flash-sticker-blink {
+          0% { background-color: #dc2626; box-shadow: 0 0 15px #dc2626; }
+          50% { background-color: #facc15; box-shadow: 0 0 30px #facc15; color: #000; }
+          100% { background-color: #dc2626; box-shadow: 0 0 15px #dc2626; }
+        }
+        .flash-sticker {
+          position: fixed;
+          bottom: 2rem;
+          right: 2rem;
+          z-index: 2000;
+          animation: flash-sticker-blink 0.6s infinite;
+          padding: 1.25rem 2.5rem;
+          border-radius: 1rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          text-decoration: none;
+          color: white;
+          border: 4px solid white;
+          transform: rotate(-5deg);
+          font-size: 1.5rem;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .flash-sticker:hover {
+          transform: rotate(0deg) scale(1.1);
+          animation-play-state: paused;
+          background-color: #dc2626 !important;
+          color: white !important;
+        }
+        @media (max-width: 768px) {
+          .flash-sticker {
+            bottom: 1.5rem;
+            right: 50%;
+            transform: translateX(50%) rotate(0deg);
+            width: 90%;
+            justify-content: center;
+            font-size: 1.25rem;
+          }
+          .flash-sticker:hover {
+            transform: translateX(50%) scale(1.05);
+          }
+        }
+        `
+      }} />
 
       {/* 1. Hero Section */}
       <section className="relative w-full h-[80vh] flex items-center justify-center overflow-hidden">
@@ -359,6 +432,10 @@ const MegaShowBangkok = () => {
         </div>
       </section>
 
+      {/* --- FLOATING ADVERTISEMENT STICKER --- */}
+      <a href="#enquiry-form" className="flash-sticker">
+        ⚡ Register Now!
+      </a>
     </div>
   );
 };
