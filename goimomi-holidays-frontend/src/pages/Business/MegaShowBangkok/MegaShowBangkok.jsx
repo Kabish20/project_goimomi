@@ -157,7 +157,7 @@ const MegaShowBangkok = () => {
                   <div>
                     <div className="text-yellow-400 font-bold tracking-widest text-sm mb-2 uppercase">3 Nights / 4 Days</div>
                     <h3 className="text-3xl font-black mb-3">3N Bangkok<br />Business Package</h3>
-                    <div className="text-2xl font-black text-white">₹34,333 <span className="text-sm font-normal text-slate-300">/ person</span></div>
+                    <div className="text-2xl font-black text-white">₹33,333 <span className="text-sm font-normal text-slate-300">/ person</span></div>
                   </div>
                 </div>
               </div>
@@ -192,7 +192,7 @@ const MegaShowBangkok = () => {
                   <div>
                     <div className="text-yellow-400 font-bold tracking-widest text-sm mb-2 uppercase">5 Nights / 6 Days</div>
                     <h3 className="text-3xl font-black mb-3">Bangkok + Pattaya<br />Business & Leisure</h3>
-                    <div className="text-2xl font-black text-white">₹40,000 <span className="text-sm font-normal text-slate-300">/ person</span></div>
+                    <div className="text-2xl font-black text-white">₹41,499 <span className="text-sm font-normal text-slate-300">/ person</span></div>
                   </div>
                 </div>
               </div>
