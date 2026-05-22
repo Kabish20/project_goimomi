@@ -741,9 +741,9 @@ const Home = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-rows-[1fr] transition-all duration-500">
+                    <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
                       <div className="overflow-hidden">
-                        <p className="text-white font-bold text-lg mb-4">
+                        <p className="text-white font-bold text-lg mb-4 mt-2">
                           Starting at <span className="text-[#14532d] bg-white px-2 py-0.5 rounded-lg">{item.price}</span>
                         </p>
                         <button
