@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
-from Holidays.models import StartingCity
+from Holidays.models import City, Region, Country
 
 class Command(BaseCommand):
-    help = 'Populates the StartingCity table with initial data, including international airports.'
+    help = 'Populates the City and Region tables with initial starting cities, including international airports.'
 
     def handle(self, *args, **kwargs):
         data = {
@@ -126,14 +126,62 @@ class Command(BaseCommand):
              ]
         }
 
-        count = 0
-        for region, cities in data.items():
+        # City to Country mapping for international cities
+        city_country_map = {
+            "Dubai": "United Arab Emirates", "Abu Dhabi": "United Arab Emirates", "Sharjah": "United Arab Emirates",
+            "Doha": "Qatar", "Riyadh": "Saudi Arabia", "Jeddah": "Saudi Arabia", "Muscat": "Oman",
+            "Bahrain": "Bahrain", "Kuwait": "Kuwait", "Tel Aviv": "Israel", "Amman": "Jordan", "Beirut": "Lebanon",
+            "Singapore": "Singapore", "Bangkok": "Thailand", "Phuket": "Thailand", "Kuala Lumpur": "Malaysia",
+            "Jakarta": "Indonesia", "Bali": "Indonesia", "Manila": "Philippines", "Ho Chi Minh City": "Vietnam",
+            "Hanoi": "Vietnam", "Tokyo": "Japan", "Osaka": "Japan", "Seoul": "South Korea",
+            "Beijing": "China", "Shanghai": "China", "Hong Kong": "China", "Taipei": "Taiwan",
+            "London Heathrow": "United Kingdom", "London Gatwick": "United Kingdom", "Paris": "France",
+            "Frankfurt": "Germany", "Munich": "Germany", "Amsterdam": "Netherlands", "Madrid": "Spain",
+            "Barcelona": "Spain", "Rome": "Italy", "Zurich": "Switzerland", "Istanbul": "Turkey",
+            "Moscow": "Russia", "Vienna": "Austria", "Brussels": "Belgium", "Copenhagen": "Denmark",
+            "Dublin": "Ireland", "New York": "United States of America", "Los Angeles": "United States of America",
+            "Chicago": "United States of America", "San Francisco": "United States of America",
+            "Miami": "United States of America", "Dallas": "United States of America", "Atlanta": "United States of America",
+            "Washington": "United States of America", "Toronto": "Canada", "Vancouver": "Canada",
+            "Sydney": "Australia", "Melbourne": "Australia", "Brisbane": "Australia", "Perth": "Australia",
+            "Auckland": "New Zealand", "Cairo": "Egypt", "Johannesburg": "South Africa", "Cape Town": "South Africa",
+            "Nairobi": "Kenya", "Addis Ababa": "Ethiopia", "Casablanca": "Morocco", "Lagos": "Nigeria",
+            "Sao Paulo": "Brazil", "Rio De Janeiro": "Brazil", "Buenos Aires": "Argentina", "Bogota": "Colombia",
+            "Lima": "Peru", "Santiago": "Chile"
+        }
+
+        india, _ = Country.objects.get_or_create(name="India")
+        intl_fallback, _ = Country.objects.get_or_create(name="International")
+
+        city_count = 0
+        region_count = 0
+
+        for region_name, cities in data.items():
+            # If region is one of the Indian states, link to India
+            is_india = region_name not in [
+                "MIDDLE EAST", "SOUTH EAST ASIA", "EAST ASIA", "EUROPE", "NORTH AMERICA",
+                "AUSTRALIA & OCEANIA", "AFRICA", "SOUTH AMERICA"
+            ]
+            
+            country = india if is_india else intl_fallback
+            region, region_created = Region.objects.get_or_create(name=region_name, country=country)
+            if region_created:
+                region_count += 1
+
             for city_name in cities:
-                obj, created = StartingCity.objects.get_or_create(
+                # Find matching country for international cities
+                city_key = city_name.split('(')[0].strip()
+                city_country_name = city_country_map.get(city_key)
+                
+                city_country = country
+                if city_country_name:
+                    city_country, _ = Country.objects.get_or_create(name=city_country_name)
+
+                obj, created = City.objects.get_or_create(
                     name=city_name,
-                    defaults={'region': region}
+                    defaults={'region': region, 'country': city_country}
                 )
                 if created:
-                    count += 1
-        
-        self.stdout.write(self.style.SUCCESS(f'Successfully populated {count} new starting cities'))
+                    city_count += 1
+
+        self.stdout.write(self.style.SUCCESS(f'Successfully populated {region_count} regions and {city_count} starting cities.'))
