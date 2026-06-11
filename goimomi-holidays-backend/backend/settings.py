@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-&t4_sd6+&#m!@p4e$n7@+84rtr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'goimomi.com,www.goimomi.com,3.27.184.234,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'goimomi.com,www.goimomi.com,54.81.116.105,localhost,127.0.0.1').split(',')
 
 # Secure Proxy SSL Header
 # This tells Django it's behind a proxy that handles SSL

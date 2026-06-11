@@ -7,8 +7,8 @@ export const getImageUrl = (url) => {
         return url
             .replace("http://localhost:8000", "")
             .replace("http://127.0.0.1:8000", "")
-            .replace("https://3.27.184.234", "")
-            .replace("http://3.27.184.234", "")
+            .replace("https://54.81.116.105", "")
+            .replace("http://54.81.116.105", "")
             .replace("https://www.goimomi.com", "")
             .replace("http://www.goimomi.com", "");
     }
