@@ -7,6 +7,8 @@ sed -i 's/^ALLOWED_HOSTS=.*/ALLOWED_HOSTS=54.81.116.105,localhost,127.0.0.1,goim
 # Restart backend
 source venv/bin/activate
 python manage.py collectstatic --noinput
+python manage.py fix_vehicle_images
+python manage.py fix_package_images
 sudo systemctl restart goimomi
 
 # Build frontend

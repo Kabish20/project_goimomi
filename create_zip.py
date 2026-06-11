@@ -16,6 +16,8 @@ def create_zip(filename, source_dirs):
                     dirs.remove('__pycache__')
                 if '.git' in dirs:
                     dirs.remove('.git')
+                if 'media' in dirs:
+                    dirs.remove('media')
                 
                 for file in files:
                     file_path = os.path.join(root, file)
