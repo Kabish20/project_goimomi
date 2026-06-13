@@ -159,12 +159,12 @@ const PickupPointManage = () => {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const uniqueCities = ["All", ...new Set(points.map(p => p.city_name))];
+    const uniqueCities = ["All", ...new Set(points.map(p => p.city_name?.trim()).filter(Boolean))];
 
     const filteredPoints = points.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.city_name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCity = filterCity === "All" || p.city_name === filterCity;
+        const matchesCity = filterCity === "All" || p.city_name?.trim() === filterCity;
         return matchesSearch && matchesCity;
     });
 

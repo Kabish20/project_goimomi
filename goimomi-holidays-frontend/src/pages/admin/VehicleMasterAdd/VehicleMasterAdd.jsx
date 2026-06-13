@@ -135,7 +135,12 @@ const VehicleMasterAdd = () => {
     const fetchPickupPoints = async () => {
         try {
             const res = await api.get("/api/pickup-point-masters/");
-            setPickupPoints(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setPickupPoints(data.map(p => ({
+                ...p,
+                name: p.name?.trim(),
+                city_name: p.city_name?.trim()
+            })));
         } catch (err) {
             console.error("Error fetching pickup points:", err);
         }
@@ -144,7 +149,11 @@ const VehicleMasterAdd = () => {
     const fetchStartingCities = async () => {
         try {
             const res = await api.get("/api/starting-cities/");
-            setStartingCities(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setStartingCities(data.map(c => ({
+                ...c,
+                name: c.name?.trim()
+            })));
         } catch (err) {
             console.error("Error fetching starting cities:", err);
         }
@@ -153,7 +162,11 @@ const VehicleMasterAdd = () => {
     const fetchDestinations = async () => {
         try {
             const res = await api.get("/api/cities/");
-            setDestinations(res.data || []);
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setDestinations(data.map(d => ({
+                ...d,
+                name: d.name?.trim()
+            })));
         } catch (err) {
             console.error("Error fetching cities:", err);
         }

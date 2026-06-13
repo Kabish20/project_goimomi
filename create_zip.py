@@ -25,9 +25,10 @@ def create_zip(filename, source_dirs):
                     zipf.write(file_path, arcname)
 
 if __name__ == "__main__":
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     sources = [
-        'd:/G/goimomi-holidays-backend',
-        'd:/G/goimomi-holidays-frontend'
+        os.path.join(base_dir, 'goimomi-holidays-backend'),
+        os.path.join(base_dir, 'goimomi-holidays-frontend')
     ]
-    create_zip('d:/G/update_package.zip', sources)
+    create_zip(os.path.join(base_dir, 'update_package.zip'), sources)
     print("Zip created successfully.")

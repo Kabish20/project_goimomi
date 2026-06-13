@@ -114,7 +114,12 @@ const VehicleRateCardEdit = () => {
     const fetchPickupPoints = async () => {
         try {
             const res = await api.get("/api/pickup-point-masters/");
-            setPickupPoints(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setPickupPoints(data.map(p => ({
+                ...p,
+                name: p.name?.trim(),
+                city_name: p.city_name?.trim()
+            })));
         } catch (err) {
             console.error("Error fetching pickup points:", err);
         }
@@ -123,7 +128,11 @@ const VehicleRateCardEdit = () => {
     const fetchStartingCities = async () => {
         try {
             const res = await api.get("/api/starting-cities/");
-            setStartingCities(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setStartingCities(data.map(c => ({
+                ...c,
+                name: c.name?.trim()
+            })));
         } catch (err) {
             console.error("Error fetching starting cities:", err);
         }
@@ -132,7 +141,11 @@ const VehicleRateCardEdit = () => {
     const fetchDestinations = async () => {
         try {
             const res = await api.get("/api/cities/");
-            setDestinations(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+            setDestinations(data.map(d => ({
+                ...d,
+                name: d.name?.trim()
+            })));
         } catch (err) {
             console.error("Error fetching cities:", err);
         }
@@ -146,12 +159,12 @@ const VehicleRateCardEdit = () => {
             // Detect vehicle count from existing data
             const count = detectVehicleCount(data.routes);
             setVehicleCount(count);
-            // Normalize routes — convert v1..vN to vehicles array
+            // Normalize routes — convert v1..vN to vehicles array and trim fields
             const normalizedRoutes = (data.routes || []).map(r => ({
-                start_city: r.start_city || "",
-                start_from: r.start_from || "",
-                drop_city: r.drop_city || "",
-                drop_to: r.drop_to || "",
+                start_city: r.start_city?.trim() || "",
+                start_from: r.start_from?.trim() || "",
+                drop_city: r.drop_city?.trim() || "",
+                drop_to: r.drop_to?.trim() || "",
                 vehicles: routeToVehiclesArray(r, count)
             }));
             setRateCard({ ...data, routes: normalizedRoutes, rate_card_file: null, existing_file: data.rate_card_file || null });
