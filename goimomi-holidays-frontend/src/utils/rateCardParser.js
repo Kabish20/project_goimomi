@@ -34,7 +34,16 @@ const cleanExtractedText = (text) => {
         .replace(/Mee\s+qat/gi, "Meeqat")
         .replace(/Stati\s+on/gi, "Station")
         .replace(/Maza\s+rata/gi, "Mazarat")
-        .replace(/Mazar\s+ata/gi, "Mazarat");
+        .replace(/Mazar\s+ata/gi, "Mazarat")
+        .replace(/MAZARTA/gi, "Mazarat")
+        .replace(/M\s+AZARAT/gi, "Mazarat")
+        .replace(/M\s+AZARATS/gi, "Mazarats")
+        .replace(/WADI\s+E\s+JIN/gi, "Wadi E Jin")
+        .replace(/WADI\s+E\s+JINN/gi, "Wadi E Jin")
+        .replace(/WADI\s+E\s+JNI/gi, "Wadi E Jin")
+        .replace(/BARAR\s+M\s+AZARATS/gi, "Barar Mazarats")
+        .replace(/BARAR\s+Mazarats/gi, "Barar Mazarats")
+        .replace(/BARAR\s+Mazarat/gi, "Barar Mazarat");
 };
 
 // Match vehicle headers to known database vehicle master records
@@ -65,6 +74,119 @@ const matchVehicle = (headerToken, vehicleMasters) => {
     }
     
     return bestMatch || headerToken;
+};
+
+// Match parsed pickup point with database pickup points using exact/alphanumeric/substring fuzzy logic
+const matchPickupPoint = (pointRaw, cityName, pickupPoints) => {
+    if (!pointRaw) return "CITY";
+    const cleanRaw = pointRaw.trim().toLowerCase().replace(/\s+/g, " ");
+    const cleanRawAlpha = cleanRaw.replace(/[^a-z0-9]/g, "");
+    
+    // Filter points for this city
+    const cityPoints = pickupPoints.filter(p => p.city_name?.toLowerCase() === cityName.toLowerCase());
+    if (cityPoints.length === 0) return pointRaw;
+    
+    // 1. Exact match
+    let bestMatch = cityPoints.find(p => p.name?.trim().toLowerCase().replace(/\s+/g, " ") === cleanRaw);
+    if (bestMatch) return bestMatch.name;
+    
+    // 2. Alphanumeric match
+    bestMatch = cityPoints.find(p => p.name?.toLowerCase().replace(/[^a-z0-9]/g, "") === cleanRawAlpha);
+    if (bestMatch) return bestMatch.name;
+    
+    // 3. Substring match (database contains raw, or raw contains database)
+    bestMatch = cityPoints.find(p => {
+        const pNameClean = p.name?.toLowerCase().replace(/\s+/g, " ") || "";
+        return pNameClean.includes(cleanRaw) || cleanRaw.includes(pNameClean);
+    });
+    if (bestMatch) return bestMatch.name;
+    
+    return pointRaw;
+};
+
+// Parse Route (Start/Drop Cities and Points) from route text cells using city boundary splitting
+const parseRouteFromTextCells = (textCells, cityList) => {
+    // Join text cells with space
+    const fullText = textCells.filter(c => c !== undefined && c !== null).join(" ").replace(/\s+/g, " ").trim();
+    
+    // Find all occurrences of known cities in fullText
+    // Sort cities by length descending to match longer ones first (e.g. "Port Blair" before "Port")
+    const sortedCities = [...cityList].sort((a, b) => b.length - a.length);
+    
+    const matches = [];
+    
+    sortedCities.forEach(city => {
+        let pos = fullText.toLowerCase().indexOf(city.toLowerCase());
+        while (pos !== -1) {
+            matches.push({ city: city, index: pos });
+            pos = fullText.toLowerCase().indexOf(city.toLowerCase(), pos + 1);
+        }
+    });
+    
+    // Sort matches by their index in the string
+    matches.sort((a, b) => a.index - b.index);
+    
+    // Filter out overlapping matches (e.g. if we matched "Madinah" and "Madin" at the same index)
+    const uniqueMatches = [];
+    matches.forEach(m => {
+        const isOverlap = uniqueMatches.some(um => 
+            m.index >= um.index && m.index < um.index + um.city.length
+        );
+        if (!isOverlap) {
+            uniqueMatches.push(m);
+        }
+    });
+    
+    // Now we expect at least 2 city matches (Start City and Drop City)
+    if (uniqueMatches.length >= 2) {
+        const firstMatch = uniqueMatches[0];
+        const secondMatch = uniqueMatches[1];
+        
+        const startLocText = fullText.substring(firstMatch.index, secondMatch.index).trim();
+        const dropLocText = fullText.substring(secondMatch.index).trim();
+        
+        const startCity = cityList.find(c => c.toLowerCase() === firstMatch.city.toLowerCase()) || firstMatch.city;
+        const startPointRaw = startLocText.substring(firstMatch.city.length).trim();
+        
+        const dropCity = cityList.find(c => c.toLowerCase() === secondMatch.city.toLowerCase()) || secondMatch.city;
+        const dropPointRaw = dropLocText.substring(secondMatch.city.length).trim();
+        
+        return { startCity, startPointRaw, dropCity, dropPointRaw };
+    }
+    
+    // Fallback if we don't find at least 2 cities:
+    // Split the textCells in half
+    let startCity = "";
+    let startPointRaw = "";
+    let dropCity = "";
+    let dropPointRaw = "";
+    
+    const nonBlockedCells = textCells.filter(Boolean);
+    if (nonBlockedCells.length >= 4) {
+        startCity = cityList.find(c => c.toLowerCase() === nonBlockedCells[0].toLowerCase()) || nonBlockedCells[0];
+        startPointRaw = nonBlockedCells[1];
+        dropCity = cityList.find(c => c.toLowerCase() === nonBlockedCells[2].toLowerCase()) || nonBlockedCells[2];
+        dropPointRaw = nonBlockedCells[3];
+    } else if (nonBlockedCells.length === 2) {
+        const startLoc = nonBlockedCells[0];
+        const dropLoc = nonBlockedCells[1];
+        
+        const matchedStart = cityList.find(c => startLoc.toLowerCase().startsWith(c.toLowerCase()));
+        startCity = matchedStart || startLoc.split(/\s+/)[0];
+        startPointRaw = matchedStart ? startLoc.substring(matchedStart.length).trim() : startLoc;
+        
+        const matchedDrop = cityList.find(c => dropLoc.toLowerCase().startsWith(c.toLowerCase()));
+        dropCity = matchedDrop || dropLoc.split(/\s+/)[0];
+        dropPointRaw = matchedDrop ? dropLoc.substring(matchedDrop.length).trim() : dropLoc;
+    } else {
+        // 3 cells
+        startCity = cityList.find(c => c.toLowerCase() === nonBlockedCells[0].toLowerCase()) || nonBlockedCells[0];
+        startPointRaw = nonBlockedCells[1] || "";
+        dropCity = cityList.find(c => c.toLowerCase() === nonBlockedCells[2]?.toLowerCase()) || nonBlockedCells[2] || "";
+        dropPointRaw = nonBlockedCells[2] || "";
+    }
+    
+    return { startCity, startPointRaw, dropCity, dropPointRaw };
 };
 
 // Parse PDF File using dynamic column clustering
@@ -208,65 +330,33 @@ export const parsePdfRateCard = async (file, cityList, pickupPoints, vehicleMast
     const parsedRoutes = [];
     
     mergedGrid.forEach(row => {
-        // Split text cells and rate cells
+        // Separate route text cells and rate cells
         const textCells = [];
         const rateCells = [];
+        let foundRate = false;
         
         row.forEach(cell => {
             const val = cell.trim().replace(/,/g, '');
-            if (val !== "" && !isNaN(val)) {
-                rateCells.push(val);
-            } else if (cell.trim()) {
-                textCells.push(cell.trim());
+            const isNumeric = val !== "" && !isNaN(val);
+            if (isNumeric || foundRate) {
+                if (val !== "") {
+                    rateCells.push(val);
+                }
+                foundRate = true;
+            } else {
+                textCells.push(cell);
             }
         });
         
-        // We need at least 2 text columns (for Start City/Point, Drop City/Point) and 1 rate
-        if (textCells.length >= 2 && rateCells.length > 0) {
-            let startCity = "";
-            let startPointRaw = "";
-            let dropCity = "";
-            let dropPointRaw = "";
-            
-            if (textCells.length >= 4) {
-                // Case A: 4 separate columns (Start City, Start Point, Drop City, Drop Point)
-                startCity = cityList.find(c => c.toLowerCase() === textCells[0].toLowerCase()) || textCells[0];
-                startPointRaw = textCells[1];
-                dropCity = cityList.find(c => c.toLowerCase() === textCells[2].toLowerCase()) || textCells[2];
-                dropPointRaw = textCells[3];
-            } else if (textCells.length === 2) {
-                // Case B: 2 combined columns (Start City+Point, Drop City+Point)
-                const startLoc = textCells[0];
-                const dropLoc = textCells[1];
-                
-                const matchedStart = cityList.find(c => startLoc.toLowerCase().startsWith(c.toLowerCase()));
-                startCity = matchedStart || startLoc.split(/\s+/)[0];
-                startPointRaw = matchedStart ? startLoc.substring(matchedStart.length).trim() : startLoc;
-                
-                const matchedDrop = cityList.find(c => dropLoc.toLowerCase().startsWith(c.toLowerCase()));
-                dropCity = matchedDrop || dropLoc.split(/\s+/)[0];
-                dropPointRaw = matchedDrop ? dropLoc.substring(matchedDrop.length).trim() : dropLoc;
-            } else {
-                // Case C: 3 columns (e.g. Start City, Drop City, Points combined)
-                startCity = cityList.find(c => c.toLowerCase() === textCells[0].toLowerCase()) || textCells[0];
-                startPointRaw = textCells[1] || "";
-                dropCity = cityList.find(c => c.toLowerCase() === textCells[2]?.toLowerCase()) || textCells[2] || "";
-                dropPointRaw = textCells[2] || "";
-            }
+        // We need at least some text cells and 1 rate
+        if (textCells.some(c => c.trim()) && rateCells.length > 0) {
+            const { startCity, startPointRaw, dropCity, dropPointRaw } = parseRouteFromTextCells(textCells, cityList);
             
             // Standardize Start Point
-            const startPointMatch = pickupPoints.find(p => 
-                p.city_name?.toLowerCase() === startCity.toLowerCase() &&
-                p.name?.toLowerCase().trim() === startPointRaw.toLowerCase()
-            );
-            const startPoint = startPointMatch ? startPointMatch.name : (startPointRaw || "CITY");
+            const startPoint = matchPickupPoint(startPointRaw, startCity, pickupPoints);
             
             // Standardize Drop Point
-            const dropPointMatch = pickupPoints.find(p => 
-                p.city_name?.toLowerCase() === dropCity.toLowerCase() &&
-                p.name?.toLowerCase().trim() === dropPointRaw.toLowerCase()
-            );
-            const dropPoint = dropPointMatch ? dropPointMatch.name : (dropPointRaw || "CITY");
+            const dropPoint = matchPickupPoint(dropPointRaw, dropCity, pickupPoints);
             
             parsedRoutes.push({
                 start_city: startCity,
