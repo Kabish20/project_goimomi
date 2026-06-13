@@ -5,6 +5,7 @@ import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, MapPin, ArrowRight
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
+import { parsePdfRateCard, parseCsvRateCard } from "../../../utils/rateCardParser";
 
 const FormLabel = ({ label, required, optional }) => (
     <div className="flex items-center gap-2 mb-1.5">
@@ -157,50 +158,24 @@ const VehicleRateCardAdd = () => {
         }));
     };
 
-    const handleFileExtraction = (e) => {
+    const handleFileExtraction = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         // Set the file state for backend upload
         setRateCard(prev => ({ ...prev, rate_card_file: file }));
 
-        // If CSV, perform auto-extraction into the matrix
-        if (file.name.toLowerCase().endsWith('.csv')) {
+        const fileNameLower = file.name.toLowerCase();
+        if (fileNameLower.endsWith('.csv')) {
             const reader = new FileReader();
             reader.onload = (evt) => {
                 try {
                     const content = evt.target.result;
-                    const lines = content.split('\n').filter(line => line.trim() !== "");
-                    if (lines.length < 2) { alert("Invalid CSV format."); return; }
-
-                    const parseLine = (line) => {
-                        const res = []; let cur = ''; let q = false;
-                        for (let c of line) {
-                            if (c === '"') q = !q;
-                            else if (c === ',' && !q) { res.push(cur.trim()); cur = ''; }
-                            else cur += c;
-                        }
-                        res.push(cur.trim()); return res;
-                    };
-
-                    const newRoutes = lines.slice(1).map(line => {
-                        const cols = parseLine(line);
-                        if (cols.length < 4) return null;
-                        const vRates = Array(vehicleCount).fill("");
-                        for (let i = 0; i < vehicleCount; i++) {
-                            if (cols[4 + i] !== undefined) vRates[i] = cols[4 + i];
-                        }
-                        return {
-                            start_city: cols[0],
-                            start_from: cols[1],
-                            drop_city: cols[2],
-                            drop_to: cols[3],
-                            vehicles: vRates
-                        };
-                    }).filter(Boolean);
-
-                    if (newRoutes.length > 0) {
-                        setRateCard(prev => ({ ...prev, routes: newRoutes }));
+                    const res = parseCsvRateCard(content, vehicleMasters);
+                    if (res && res.routes.length > 0) {
+                        setVehicleCount(res.vehicleCount);
+                        setColumnVehicles(res.columnVehicles);
+                        setRateCard(prev => ({ ...prev, routes: res.routes }));
                         setShowErrors(true);
                     }
                 } catch (err) {
@@ -208,6 +183,24 @@ const VehicleRateCardAdd = () => {
                 }
             };
             reader.readAsText(file);
+        } else if (fileNameLower.endsWith('.pdf')) {
+            setLoading(true);
+            try {
+                const res = await parsePdfRateCard(file, cityList, pickupPoints, vehicleMasters);
+                if (res && res.routes.length > 0) {
+                    setVehicleCount(res.vehicleCount);
+                    setColumnVehicles(res.columnVehicles);
+                    setRateCard(prev => ({ ...prev, routes: res.routes }));
+                    setShowErrors(true);
+                } else {
+                    alert("No pricing matrix data could be extracted from this PDF.");
+                }
+            } catch (err) {
+                console.error("PDF Import Error:", err);
+                alert("Failed to parse PDF file. Make sure it contains a readable text table layout.");
+            } finally {
+                setLoading(false);
+            }
         }
 
         // Clear input value so same file can be selected again
