@@ -233,12 +233,11 @@ const VehicleRateCardAdd = () => {
     const filteredPickupPoints = (city) => city ? pickupPoints.filter(p => p.city_name === city) : pickupPoints;
 
     const cityList = destinations.length > 0
-        ? destinations
+        ? [...new Set(destinations
             .filter(d => !rateCard.country || d.country_name === rateCard.country)
-            .map(d => d.name)
-            .sort()
+            .map(d => d.name))].sort()
         : startingCities.length > 0
-            ? startingCities.map(c => c.name).sort()
+            ? [...new Set(startingCities.map(c => c.name))].sort()
             : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
 
     const handleSubmit = async (e) => {

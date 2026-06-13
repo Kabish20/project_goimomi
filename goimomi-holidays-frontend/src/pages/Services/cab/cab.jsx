@@ -175,11 +175,19 @@ const Cab = () => {
     try {
       const response = await api.get("/api/cities/");
       if (Array.isArray(response.data)) {
-        const options = response.data.map(d => ({
-          label: d.name,
-          value: d.id.toString(),
-          subtitle: d.region_name ? `${d.region_name}, ${d.country_name}` : d.country_name
-        }));
+        const seen = new Set();
+        const options = [];
+        response.data.forEach(d => {
+          const key = d.name.toLowerCase().trim();
+          if (!seen.has(key)) {
+            seen.add(key);
+            options.push({
+              label: d.name,
+              value: d.id.toString(),
+              subtitle: d.region_name ? `${d.region_name}, ${d.country_name}` : d.country_name
+            });
+          }
+        });
         setDestinations(options);
       }
     } catch (err) {
@@ -344,6 +352,7 @@ const Cab = () => {
                           placeholder="From city"
                           size="compact"
                           className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                          uniqueByLabel={true}
                         />
                       </div>
 
@@ -368,6 +377,7 @@ const Cab = () => {
                           placeholder="To city"
                           size="compact"
                           className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                          uniqueByLabel={true}
                         />
                       </div>
                     </div>
@@ -886,6 +896,7 @@ const Cab = () => {
                     placeholder="From city"
                     size="compact"
                     className="!pl-0 !py-0 !h-6 !text-[11px] !border-none !bg-transparent !font-black !text-gray-800 focus:!ring-0"
+                    uniqueByLabel={true}
                   />
                 </div>
 
@@ -902,6 +913,7 @@ const Cab = () => {
                     placeholder="To city"
                     size="compact"
                     className="!pl-0 !py-0 !h-6 !text-[11px] !border-none !bg-transparent !font-black !text-gray-800 focus:!ring-0"
+                    uniqueByLabel={true}
                   />
                 </div>
 

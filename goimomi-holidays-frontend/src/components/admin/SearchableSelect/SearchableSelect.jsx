@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 
-const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select...", searchPlaceholder = "Search...", disabled = false, allowCustom = false, error, size = "default", className = "" }) => {
+const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select...", searchPlaceholder = "Search...", disabled = false, allowCustom = false, error, size = "default", className = "", uniqueByLabel = false }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [searchTerm, setSearchTerm] = useState("");
@@ -25,23 +25,40 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
 
     const { allOptionsFlat, processedOptions } = useMemo(() => {
         let flat = [];
-        const processed = options.map(opt => {
+        const seen = new Set();
+        const processed = [];
+        
+        options.forEach(opt => {
             if (opt.options) {
-                const startIdx = flat.length;
-                const optionsWithIndices = opt.options.map((subOpt, i) => {
-                    const mapped = { ...subOpt, overallIndex: startIdx + i };
-                    flat.push(mapped);
-                    return mapped;
+                const uniqueSubOpts = [];
+                opt.options.forEach(subOpt => {
+                    const key = uniqueByLabel ? subOpt.label?.toLowerCase().trim() : subOpt.value;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueSubOpts.push(subOpt);
+                    }
                 });
-                return { ...opt, options: optionsWithIndices };
+                if (uniqueSubOpts.length > 0) {
+                    const startIdx = flat.length;
+                    const optionsWithIndices = uniqueSubOpts.map((subOpt, i) => {
+                        const mapped = { ...subOpt, overallIndex: startIdx + i };
+                        flat.push(mapped);
+                        return mapped;
+                    });
+                    processed.push({ ...opt, options: optionsWithIndices });
+                }
             } else {
-                const mapped = { ...opt, overallIndex: flat.length };
-                flat.push(mapped);
-                return mapped;
+                const key = uniqueByLabel ? opt.label?.toLowerCase().trim() : opt.value;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    const mapped = { ...opt, overallIndex: flat.length };
+                    flat.push(mapped);
+                    processed.push(mapped);
+                }
             }
         });
         return { allOptionsFlat: flat, processedOptions: processed };
-    }, [options]);
+    }, [options, uniqueByLabel]);
 
     const filteredOptions = useMemo(() => {
         const term = debouncedTerm.toLowerCase();
