@@ -43,7 +43,13 @@ const cleanExtractedText = (text) => {
         .replace(/WADI\s+E\s+JNI/gi, "Wadi E Jin")
         .replace(/BARAR\s+M\s+AZARATS/gi, "Barar Mazarats")
         .replace(/BARAR\s+Mazarats/gi, "Barar Mazarats")
-        .replace(/BARAR\s+Mazarat/gi, "Barar Mazarat");
+        .replace(/BARAR\s+Mazarat/gi, "Barar Mazarat")
+        .replace(/SONA\s+TA/gi, "Sonata")
+        .replace(/T\s+AURUS/gi, "Taurus")
+        .replace(/HYUNDA\s+I/gi, "Hyundai")
+        .replace(/GMC\s+Y\s+UKON/gi, "GMC Yukon")
+        .replace(/HIAC\s+E/gi, "Hiace")
+        .replace(/COASTE\s+R/gi, "Coaster");
 };
 
 // Match vehicle headers to known database vehicle master records
@@ -273,30 +279,72 @@ export const parsePdfRateCard = async (file, cityList, pickupPoints, vehicleMast
         }
     });
     
-    // 4. Merge wrapped cells across rows (where text overflows vertically)
+    // 4. Reconstruct headers from the top of the grid (Page 1 headers)
+    let firstDataRowIdx = rawGrid.findIndex(row => {
+        let numCount = 0;
+        row.forEach(cell => {
+            const val = cell.trim().replace(/,/g, '');
+            if (val !== "" && !isNaN(val)) {
+                numCount++;
+            }
+        });
+        return numCount > 0;
+    });
+    
+    if (firstDataRowIdx === -1) firstDataRowIdx = rawGrid.length;
+    
+    // Merge header rows vertically
+    const columnHeaders = Array(colStarts.length).fill("");
+    for (let r = 0; r < firstDataRowIdx; r++) {
+        for (let c = 0; c < colStarts.length; c++) {
+            if (rawGrid[r] && rawGrid[r][c]) {
+                columnHeaders[c] += " " + rawGrid[r][c];
+            }
+        }
+    }
+    
+    // Clean column headers
+    const cleanedHeaders = columnHeaders.map(h => cleanExtractedText(h.trim().replace(/\s+/g, " ")));
+    
+    // Extract vehicle headers from column index 4 onwards
+    let detectedVehicles = [];
+    cleanedHeaders.forEach((header, idx) => {
+        if (idx >= 4 && header.trim()) {
+            const matchedName = matchVehicle(header.trim(), vehicleMasters);
+            detectedVehicles.push(matchedName);
+        }
+    });
+    
+    // Define helper to identify header/metadata rows to skip
+    const isHeaderOrMetadataRow = (row) => {
+        let hasRates = false;
+        row.forEach(cell => {
+            const val = cell.trim().replace(/,/g, '');
+            if (val !== "" && !isNaN(val)) {
+                hasRates = true;
+            }
+        });
+        if (hasRates) return false;
+        
+        const rowText = row.join(" ").toLowerCase();
+        const headerKeywords = [
+            "start", "city", "point", "drop", "validity", "season", "page",
+            "sedan", "camry", "sonata", "taurus", "staria", "yukon", "hiace", "coaster", "h1", "driver"
+        ];
+        return headerKeywords.some(k => rowText.includes(k));
+    };
+    
+    // 5. Merge wrapped cells across rows
     const mergedGrid = [];
     let textBuffer = Array(colStarts.length).fill("");
-    let detectedVehicles = [];
     
-    rawGrid.forEach(row => {
-        // Check if row is a header row
-        const rowText = row.join(" ").toLowerCase();
-        if (rowText.includes("start city") || rowText.includes("validity") || rowText.includes("start point")) {
-            // Extract vehicle columns from header if present
-            const vehicleCols = [];
-            row.forEach((cell, idx) => {
-                if (idx >= 4 && cell.trim()) {
-                    const matchedName = matchVehicle(cell.trim(), vehicleMasters);
-                    vehicleCols.push({ name: matchedName, index: idx });
-                }
-            });
-            if (vehicleCols.length > 0) {
-                detectedVehicles = vehicleCols.map(v => v.name);
-            }
+    rawGrid.forEach((row, idx) => {
+        // Skip header rows (we already extracted headers from Page 1)
+        if (isHeaderOrMetadataRow(row) || idx < firstDataRowIdx) {
             return;
         }
         
-        // Check if row contains pricing data (has numbers at the end)
+        // Check if row contains pricing data (has numbers)
         let numCount = 0;
         row.forEach(cell => {
             const val = cell.trim().replace(/,/g, '');
