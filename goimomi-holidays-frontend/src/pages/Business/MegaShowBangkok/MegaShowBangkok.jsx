@@ -61,7 +61,7 @@ const MegaShowBangkok = () => {
       {/* 1. Hero Section */}
       <section className="relative w-full h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src={megaheader} alt="Mega Show Bangkok" className="w-full h-full object-cover object-center transform scale-105 animate-[pulse_15s_ease-in-out_infinite]" />
+          <img src={megaheader} alt="Mega Show Bangkok" className="w-full h-full object-cover object-center transform scale-105 animate-slowZoom" />
           <div className="absolute inset-0 bg-slate-900/70 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
         </div>
         <div className="relative z-10 max-w-6xl mx-auto px-6 text-center mt-16">

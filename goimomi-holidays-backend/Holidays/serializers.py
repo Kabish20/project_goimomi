@@ -677,8 +677,10 @@ class VehicleRateCardSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def to_internal_value(self, data):
-        # Copy data to allow modification if it is a QueryDict
-        if hasattr(data, 'copy'):
+        # Convert QueryDict to standard dict to avoid list-wrapping issues in DRF fields
+        if hasattr(data, 'dict'):
+            data = data.dict()
+        elif hasattr(data, 'copy'):
             data = data.copy()
         
         for field in ['supplier', 'vehicle']:

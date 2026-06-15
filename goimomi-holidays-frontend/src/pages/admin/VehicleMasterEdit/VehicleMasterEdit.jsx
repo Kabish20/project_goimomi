@@ -32,7 +32,6 @@ const VehicleMasterEdit = () => {
     const [countries, setCountries] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const [pickupPoints, setPickupPoints] = useState([]);
-    const [startingCities, setStartingCities] = useState([]);
     const [destinations, setDestinations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
@@ -82,7 +81,6 @@ const VehicleMasterEdit = () => {
             fetchCountries(),
             fetchSuppliers(),
             fetchPickupPoints(),
-            fetchStartingCities(),
             fetchDestinations(),
             fetchVehicleMasters(),
             fetchVehicleAndRateCard()
@@ -147,19 +145,6 @@ const VehicleMasterEdit = () => {
             })));
         } catch (err) {
             console.error("Error fetching pickup points:", err);
-        }
-    };
-
-    const fetchStartingCities = async () => {
-        try {
-            const res = await api.get("/api/starting-cities/");
-            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
-            setStartingCities(data.map(c => ({
-                ...c,
-                name: c.name?.trim()
-            })));
-        } catch (err) {
-            console.error("Error fetching starting cities:", err);
         }
     };
 
@@ -565,9 +550,7 @@ const VehicleMasterEdit = () => {
         ? [...new Set(destinations
             .filter(d => !rateCard.country || d.country_name === rateCard.country)
             .map(d => d.name))].sort()
-        : startingCities.length > 0
-            ? [...new Set(startingCities.map(c => c.name))].sort()
-            : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
+        : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
 
     if (fetching) return (
         <div className="flex h-screen items-center justify-center bg-gray-50">

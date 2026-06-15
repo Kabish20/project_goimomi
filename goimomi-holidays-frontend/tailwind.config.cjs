@@ -44,6 +44,8 @@ module.exports = {
       animation: {
         'fade-up': 'fadeUp 0.8s ease-out forwards',
         'float': 'float 6s ease-in-out infinite',
+        'slowZoom': 'slowZoom 20s ease-in-out infinite',
+        'slideDown': 'slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
       },
       keyframes: {
         fadeUp: {
@@ -53,7 +55,15 @@ module.exports = {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-20px)' },
-        }
+        },
+        slowZoom: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.08)' },
+        },
+        slideDown: {
+          '0%': { transform: 'translateY(-10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
       }
     },
   },

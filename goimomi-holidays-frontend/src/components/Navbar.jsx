@@ -152,7 +152,7 @@ const Navbar = () => {
               </button>
 
               {desktopBusiness && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl"
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown"
                 >
                   <NavLink
                     to="/businesshome"
@@ -211,7 +211,7 @@ const Navbar = () => {
               </button>
 
               {desktopUmrah && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown">
                   <NavLink
                     to="/holidayhome"
                     onClick={() => setDesktopUmrah(false)}
@@ -270,7 +270,7 @@ const Navbar = () => {
 
               {/* Dropdown */}
               {desktopHoliday && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown">
                   <NavLink
                     to="/holidayhome"
                     onClick={() => setDesktopHoliday(false)}

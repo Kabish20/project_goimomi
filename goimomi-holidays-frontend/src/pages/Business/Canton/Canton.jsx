@@ -165,7 +165,7 @@ const Canton = () => {
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Video Placeholder Background (using image) */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-black transition-transform duration-[10000ms] hover:scale-110"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-black animate-slowZoom"
           style={{ backgroundImage: `url(${cantonHero})` }}
         />
         <div className="absolute inset-0 hero-gradient" />

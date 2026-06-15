@@ -31,7 +31,6 @@ const VehicleRateCardAdd = () => {
     const [countries, setCountries] = useState([]);
     const [suppliers, setSuppliers] = useState([]);
     const [pickupPoints, setPickupPoints] = useState([]);
-    const [startingCities, setStartingCities] = useState([]);
     const [destinations, setDestinations] = useState([]);
     // vehicleCount drives how many vehicle columns are shown
     const [vehicleCount, setVehicleCount] = useState(4);
@@ -47,12 +46,10 @@ const VehicleRateCardAdd = () => {
         rate_card_file: null,
         routes: [{ start_city: "", start_from: "", drop_city: "", drop_to: "", vehicles: Array(4).fill("") }]
     });
-
     useEffect(() => {
         fetchCountries();
         fetchSuppliers();
         fetchPickupPoints();
-        fetchStartingCities();
         fetchDestinations();
         fetchVehicleMasters();
     }, []);
@@ -100,19 +97,6 @@ const VehicleRateCardAdd = () => {
             })));
         } catch (err) {
             console.error("Error fetching pickup points:", err);
-        }
-    };
-
-    const fetchStartingCities = async () => {
-        try {
-            const res = await api.get("/api/starting-cities/");
-            const data = Array.isArray(res.data) ? res.data : (res.data?.results || []);
-            setStartingCities(data.map(c => ({
-                ...c,
-                name: c.name?.trim()
-            })));
-        } catch (err) {
-            console.error("Error fetching starting cities:", err);
         }
     };
 
@@ -242,9 +226,7 @@ const VehicleRateCardAdd = () => {
         ? [...new Set(destinations
             .filter(d => !rateCard.country || d.country_name === rateCard.country)
             .map(d => d.name))].sort()
-        : startingCities.length > 0
-            ? [...new Set(startingCities.map(c => c.name))].sort()
-            : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
+        : [...new Set(pickupPoints.map(p => p.city_name))].filter(Boolean).sort();
 
     const handleSubmit = async (e) => {
         e.preventDefault();

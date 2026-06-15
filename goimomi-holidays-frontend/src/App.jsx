@@ -131,6 +131,12 @@ const App = () => {
 
   // Global IntersectionObserver for .fade-up animations
   useEffect(() => {
+    // Safety check for environments without IntersectionObserver (or before hydration / during testing)
+    if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+      document.querySelectorAll('.fade-up').forEach(el => el.classList.add('visible'));
+      return;
+    }
+
     const observerOptions = {
       root: null,
       rootMargin: '0px',
@@ -147,21 +153,38 @@ const App = () => {
     };
 
     const observer = new IntersectionObserver(handleIntersect, observerOptions);
-    
-    const observeElements = () => {
-      const elements = document.querySelectorAll('.fade-up:not(.visible)');
-      elements.forEach(el => {
-        if (el.style.animationDelay) {
-          el.style.setProperty('--delay', el.style.animationDelay);
+
+    const setupElement = (el) => {
+      if (el && el.classList && !el.classList.contains('visible')) {
+        const delay = el.style.animationDelay || el.style.transitionDelay;
+        if (delay) {
+          el.style.setProperty('--delay', delay);
         }
         observer.observe(el);
-      });
+      }
     };
 
-    observeElements();
+    const observeSubtree = (container) => {
+      if (!container || container.nodeType !== Node.ELEMENT_NODE) return;
+      if (container.classList.contains('fade-up')) {
+        setupElement(container);
+      }
+      const elements = container.querySelectorAll('.fade-up:not(.visible)');
+      elements.forEach(setupElement);
+    };
 
-    const mutationObserver = new MutationObserver(() => {
-      observeElements();
+    // Initial run on mount
+    observeSubtree(document.body);
+
+    // Dynamic subtree monitoring (highly optimized - runs querySelector only on new nodes)
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        if (mutation.addedNodes) {
+          mutation.addedNodes.forEach(node => {
+            observeSubtree(node);
+          });
+        }
+      });
     });
 
     mutationObserver.observe(document.body, {
