@@ -675,6 +675,19 @@ class VehicleRateCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleRateCard
         fields = "__all__"
+
+    def to_internal_value(self, data):
+        # Copy data to allow modification if it is a QueryDict
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        
+        for field in ['supplier', 'vehicle']:
+            if field in data:
+                val = data.get(field)
+                if val == '' or val == 'null' or val == 'undefined' or val is None:
+                    data[field] = None
+                    
+        return super().to_internal_value(data)
 class PickupPointMasterSerializer(serializers.ModelSerializer):
     city_name = serializers.ReadOnlyField(source='city.name')
     region_name = serializers.ReadOnlyField(source='city.region.name')
