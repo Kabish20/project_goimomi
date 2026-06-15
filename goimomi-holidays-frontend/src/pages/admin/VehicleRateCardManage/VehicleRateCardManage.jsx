@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Plus, Search, Map, Calendar, Globe, FileText, Download, Loader2, ChevronDown, Upload } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Map, Calendar, Globe, FileText, Download, Loader2, ChevronDown, Upload, Copy } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import jsPDF from 'jspdf';
@@ -62,6 +62,67 @@ const VehicleRateCardManage = () => {
             } catch (err) {
                 console.error("Error deleting rate card:", err);
                 setError("Failed to delete rate card. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const handleDuplicate = async (id) => {
+        if (window.confirm("Are you sure you want to duplicate this rate card?")) {
+            try {
+                setLoading(true);
+                const response = await api.get(`${API_BASE_URL}/vehicle-rate-cards/${id}/`);
+                const data = response.data;
+                
+                const MAX_VEHICLES = 10;
+                let count = 0;
+                if (data.routes && data.routes.length > 0) {
+                    const route = data.routes[0];
+                    for (let i = 1; i <= MAX_VEHICLES; i++) {
+                        if (`v${i}` in route) {
+                            count = i;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                const detectedCount = Math.max(1, count || 4);
+
+                const formattedRoutes = (data.routes || []).map(r => {
+                    const route = {
+                        start_city: r.start_city || "",
+                        start_from: r.start_from || "",
+                        drop_city: r.drop_city || "",
+                        drop_to: r.drop_to || ""
+                    };
+                    for (let i = 1; i <= detectedCount; i++) {
+                        route[`v${i}`] = r[`v${i}`] ?? "";
+                    }
+                    return route;
+                });
+
+                const fd = new FormData();
+                fd.append("country", data.country || "");
+                const supplierId = typeof data.supplier === 'object' ? data.supplier?.id : data.supplier;
+                if (supplierId) {
+                    fd.append("supplier", supplierId);
+                }
+                fd.append("name", `${data.name} - Copy`);
+                fd.append("validity_start", data.validity_start || "");
+                fd.append("validity_end", data.validity_end || "");
+                fd.append("column_vehicles", JSON.stringify(data.column_vehicles || []));
+                fd.append("routes", JSON.stringify(formattedRoutes));
+
+                await api.post(`${API_BASE_URL}/vehicle-rate-cards/`, fd, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
+
+                setMessage("Rate card duplicated successfully!");
+                fetchRateCards();
+            } catch (err) {
+                console.error("Error duplicating rate card:", err);
+                setError(`Failed to duplicate rate card: ${err.response?.data?.message || err.message}`);
             } finally {
                 setLoading(false);
             }
@@ -309,14 +370,20 @@ const VehicleRateCardManage = () => {
                                                                 </>
                                                             )}
                                                         </div>
-
-                                                        <button
-                                                            onClick={() => handleEdit(c.id)}
-                                                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm active:scale-90"
-                                                            title="Edit"
-                                                        >
-                                                            <Edit2 size={16} />
-                                                        </button>
+                                                         <button
+                                                             onClick={() => handleDuplicate(c.id)}
+                                                             className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-50 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-90"
+                                                             title="Duplicate"
+                                                         >
+                                                             <Copy size={16} />
+                                                         </button>
+                                                         <button
+                                                             onClick={() => handleEdit(c.id)}
+                                                             className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm active:scale-90"
+                                                             title="Edit"
+                                                         >
+                                                             <Edit2 size={16} />
+                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(c.id)}
                                                             className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-90"
