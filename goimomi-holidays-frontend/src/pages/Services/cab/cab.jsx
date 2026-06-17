@@ -248,8 +248,8 @@ const Cab = () => {
     setIsBooking(true);
     setBookingFormData(prev => ({
       ...prev,
-      pickupPoint: searchParams.fromName,
-      dropPoint: searchParams.toName,
+      pickupPoint: car.pickup_point || searchParams.fromName,
+      dropPoint: car.drop_point || searchParams.toName,
       pickupDate: searchParams.pickupDate
     }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
