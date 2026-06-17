@@ -1350,6 +1350,16 @@ const Cab = () => {
                               </div>
                             </div>
 
+                            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-600 flex-wrap">
+                              <span className="bg-orange-50 text-orange-600 text-[8px] font-black px-1.5 py-0.5 rounded border border-orange-100/50 uppercase tracking-wider">
+                                {car.pickup_point}
+                              </span>
+                              <span className="text-gray-300 text-[8px]">➔</span>
+                              <span className="bg-[#14532d]/5 text-[#14532d] text-[8px] font-black px-1.5 py-0.5 rounded border border-[#14532d]/10 uppercase tracking-wider">
+                                {car.drop_point}
+                              </span>
+                            </div>
+
                             <div className="flex items-center gap-1.5 text-[8px] font-black text-green-600 bg-green-50/50 px-2.5 py-1 rounded-full w-max border border-green-100 uppercase tracking-widest leading-none">
                               <div className="w-2.5 h-2.5 rounded-full bg-green-500 text-white flex items-center justify-center text-[5px] font-black">✓</div>
                               Free cancellation till {new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
