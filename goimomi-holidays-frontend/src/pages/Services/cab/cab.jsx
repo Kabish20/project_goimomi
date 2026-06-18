@@ -132,6 +132,42 @@ const Cab = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isGuestsOpen]);
 
+  useEffect(() => {
+    if (!isBooking || !selectedVehicle) return;
+
+    const fetchUpdatedPrice = async () => {
+      try {
+        const response = await api.get("/api/cab-search/", {
+          params: {
+            from_city: searchParams.fromName,
+            to_city: searchParams.toName,
+            pickup_date: searchParams.pickupDate,
+            pickup_point: bookingFormData.pickupPoint || "",
+            drop_point: bookingFormData.dropPoint || ""
+          }
+        });
+        
+        if (Array.isArray(response.data)) {
+          const matchedVehicle = response.data.find(v => v.id === selectedVehicle.id);
+          if (matchedVehicle) {
+            setSelectedVehicle(prev => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                price: matchedVehicle.price
+              };
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error updating price for points:", err);
+      }
+    };
+
+    fetchUpdatedPrice();
+  }, [bookingFormData.pickupPoint, bookingFormData.dropPoint, isBooking]);
+
+
   const getTomorrowDate = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
