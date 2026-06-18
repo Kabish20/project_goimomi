@@ -723,19 +723,6 @@ const Cab = () => {
 
                   {transferType === "airport" ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Airport</label>
-                        <select
-                          className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          value={bookingFormData.airportName || ""}
-                          onChange={(e) => setBookingFormData(prev => ({ ...prev, airportName: e.target.value }))}
-                        >
-                          <option value="">Select Airport</option>
-                          {airports.map(a => (
-                            <option key={a.id} value={`${a.name} (${a.iata_code})`}>{a.name} ({a.iata_code})</option>
-                          ))}
-                        </select>
-                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Flight Number</label>
