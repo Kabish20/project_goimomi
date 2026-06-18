@@ -764,6 +764,8 @@ class CabSearchAPI(APIView):
             to_city = request.query_params.get('to_city', '').strip().lower()
             
         pickup_date = request.query_params.get('pickup_date')
+        pickup_point = request.query_params.get('pickup_point', '').strip().lower()
+        drop_point = request.query_params.get('drop_point', '').strip().lower()
 
         if not from_city or not to_city or not pickup_date:
             return Response({"error": "Missing parameters"}, status=status.HTTP_400_BAD_REQUEST)
@@ -792,7 +794,14 @@ class CabSearchAPI(APIView):
                 from_matched = (rc_from == from_city) or (rc_from in from_city) or (from_city in rc_from)
                 to_matched = (rc_to == to_city) or (rc_to in to_city) or (to_city in rc_to)
                 
-                if from_matched and to_matched:
+                # Check optional pickup & drop points if they were searched
+                rc_pickup = str(route.get('start_from', '')).strip().lower()
+                rc_drop = str(route.get('drop_to', '')).strip().lower()
+                
+                pickup_matched = not pickup_point or (rc_pickup == pickup_point) or (rc_pickup in pickup_point) or (pickup_point in rc_pickup)
+                drop_matched = not drop_point or (rc_drop == drop_point) or (rc_drop in drop_point) or (drop_point in rc_drop)
+                
+                if from_matched and to_matched and pickup_matched and drop_matched:
                     # Found a match!
                     for i, v_name in enumerate(column_vehicles):
                         if not v_name: continue

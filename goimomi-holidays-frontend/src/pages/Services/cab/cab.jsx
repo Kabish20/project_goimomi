@@ -143,6 +143,8 @@ const Cab = () => {
     toId: "",
     fromName: "",
     toName: "",
+    pickupPoint: "",
+    dropPoint: "",
     pickupDate: getTomorrowDate(),
     guests: 1
   });
@@ -201,8 +203,29 @@ const Cab = () => {
       fromId: prev.toId,
       toId: prev.fromId,
       fromName: prev.toName,
-      toName: prev.fromName
+      toName: prev.fromName,
+      pickupPoint: prev.dropPoint,
+      dropPoint: prev.pickupPoint
     }));
+  };
+
+  const getPickupOptionsForCity = (cityName) => {
+    if (!cityName) return [];
+    const filtered = pickupPoints.filter(p => p.city_name?.toLowerCase().trim() === cityName.toLowerCase().trim());
+    const seen = new Set();
+    const options = [];
+    filtered.forEach(p => {
+      const nameKey = p.name.toLowerCase().trim();
+      if (!seen.has(nameKey)) {
+        seen.add(nameKey);
+        options.push({
+          label: p.name,
+          value: p.name,
+          subtitle: p.city_name
+        });
+      }
+    });
+    return options;
   };
 
   const handleSearch = async (e) => {
@@ -218,7 +241,9 @@ const Cab = () => {
         params: {
           from_city: searchParams.fromName,
           to_city: searchParams.toName,
-          pickup_date: searchParams.pickupDate
+          pickup_date: searchParams.pickupDate,
+          pickup_point: searchParams.pickupPoint || "",
+          drop_point: searchParams.dropPoint || ""
         }
       });
       setSearchResults(response.data);
@@ -229,8 +254,8 @@ const Cab = () => {
         // Pre-fill structured data
         setBookingFormData(prev => ({
           ...prev,
-          pickupPoint: searchParams.fromName,
-          dropPoint: searchParams.toName,
+          pickupPoint: searchParams.pickupPoint || searchParams.fromName,
+          dropPoint: searchParams.dropPoint || searchParams.toName,
           pickupDate: searchParams.pickupDate
         }));
         setTimeout(() => setIsFormOpen(true), 100);
@@ -248,8 +273,8 @@ const Cab = () => {
     setIsBooking(true);
     setBookingFormData(prev => ({
       ...prev,
-      pickupPoint: car.pickup_point || searchParams.fromName,
-      dropPoint: car.drop_point || searchParams.toName,
+      pickupPoint: searchParams.pickupPoint || car.pickup_point || searchParams.fromName,
+      dropPoint: searchParams.dropPoint || car.drop_point || searchParams.toName,
       pickupDate: searchParams.pickupDate
     }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -338,7 +363,7 @@ const Cab = () => {
               <div className="bg-white rounded-r-xl rounded-bl-xl shadow-2xl p-3 md:p-4">
                 <form onSubmit={handleSearch}>
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
-                    <div className="md:col-span-12 lg:col-span-5 grid grid-cols-1 md:grid-cols-2 gap-1.5 relative">
+                    <div className="md:col-span-12 lg:col-span-6 grid grid-cols-1 md:grid-cols-4 gap-1.5 relative">
                       <div className="relative group">
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] z-10 pointer-events-none">
                           <MapPin size={16} />
@@ -348,9 +373,27 @@ const Cab = () => {
                           value={searchParams.fromId}
                           onChange={(val) => {
                             const opt = destinations.find(d => d.value === val);
-                            setSearchParams(prev => ({ ...prev, fromId: val, fromName: opt?.label || "" }));
+                            setSearchParams(prev => ({ ...prev, fromId: val, fromName: opt?.label || "", pickupPoint: "" }));
                           }}
                           placeholder="From city"
+                          size="compact"
+                          className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                          uniqueByLabel={true}
+                        />
+                      </div>
+
+                      <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] z-10 pointer-events-none">
+                          <MapPin size={16} className="text-emerald-500" />
+                        </div>
+                        <SearchableSelect
+                          options={getPickupOptionsForCity(searchParams.fromName)}
+                          value={searchParams.pickupPoint}
+                          onChange={(val) => {
+                            setSearchParams(prev => ({ ...prev, pickupPoint: val }));
+                          }}
+                          placeholder="Pickup point"
+                          disabled={!searchParams.fromName}
                           size="compact"
                           className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
                           uniqueByLabel={true}
@@ -373,7 +416,7 @@ const Cab = () => {
                           value={searchParams.toId}
                           onChange={(val) => {
                             const opt = destinations.find(d => d.value === val);
-                            setSearchParams(prev => ({ ...prev, toId: val, toName: opt?.label || "" }));
+                            setSearchParams(prev => ({ ...prev, toId: val, toName: opt?.label || "", dropPoint: "" }));
                           }}
                           placeholder="To city"
                           size="compact"
@@ -381,9 +424,27 @@ const Cab = () => {
                           uniqueByLabel={true}
                         />
                       </div>
+
+                      <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] z-10 pointer-events-none">
+                          <MapPin size={16} className="text-emerald-500" />
+                        </div>
+                        <SearchableSelect
+                          options={getPickupOptionsForCity(searchParams.toName)}
+                          value={searchParams.dropPoint}
+                          onChange={(val) => {
+                            setSearchParams(prev => ({ ...prev, dropPoint: val }));
+                          }}
+                          placeholder="Drop point"
+                          disabled={!searchParams.toName}
+                          size="compact"
+                          className="!pl-9 !py-2.5 !text-xs !border-2 !border-gray-200 !rounded-lg"
+                          uniqueByLabel={true}
+                        />
+                      </div>
                     </div>
 
-                    <div className="md:col-span-6 lg:col-span-3">
+                    <div className="md:col-span-4 lg:col-span-2">
                       <div className="relative group">
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors pointer-events-none">
                           <Calendar size={16} />
@@ -437,7 +498,7 @@ const Cab = () => {
                       )}
                     </div>
 
-                    <div className="md:col-span-2 lg:col-span-2 self-end">
+                    <div className="md:col-span-4 lg:col-span-2 self-end">
                       <button
                         type="submit"
                         className="w-full h-[42px] bg-gradient-to-r from-[#14532d] to-[#15803d] text-white rounded-lg font-bold uppercase tracking-wider shadow-md hover:shadow-[#14532d]/20 active:scale-95 transition-all flex items-center justify-center gap-2 text-xs"
@@ -892,9 +953,26 @@ const Cab = () => {
                     value={searchParams.fromId}
                     onChange={(val) => {
                       const opt = destinations.find(d => d.value === val);
-                      setSearchParams(prev => ({ ...prev, fromId: val, fromName: opt?.label || "" }));
+                      setSearchParams(prev => ({ ...prev, fromId: val, fromName: opt?.label || "", pickupPoint: "" }));
                     }}
                     placeholder="From city"
+                    size="compact"
+                    className="!pl-0 !py-0 !h-6 !text-[11px] !border-none !bg-transparent !font-black !text-gray-800 focus:!ring-0"
+                    uniqueByLabel={true}
+                  />
+                </div>
+
+                {/* Pickup Point */}
+                <div className="flex-1 p-1 px-2 relative group min-w-[140px]">
+                  <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-0">Pickup Point</p>
+                  <SearchableSelect
+                    options={getPickupOptionsForCity(searchParams.fromName)}
+                    value={searchParams.pickupPoint}
+                    onChange={(val) => {
+                      setSearchParams(prev => ({ ...prev, pickupPoint: val }));
+                    }}
+                    placeholder="Pickup point"
+                    disabled={!searchParams.fromName}
                     size="compact"
                     className="!pl-0 !py-0 !h-6 !text-[11px] !border-none !bg-transparent !font-black !text-gray-800 focus:!ring-0"
                     uniqueByLabel={true}
@@ -909,9 +987,26 @@ const Cab = () => {
                     value={searchParams.toId}
                     onChange={(val) => {
                       const opt = destinations.find(d => d.value === val);
-                      setSearchParams(prev => ({ ...prev, toId: val, toName: opt?.label || "" }));
+                      setSearchParams(prev => ({ ...prev, toId: val, toName: opt?.label || "", dropPoint: "" }));
                     }}
                     placeholder="To city"
+                    size="compact"
+                    className="!pl-0 !py-0 !h-6 !text-[11px] !border-none !bg-transparent !font-black !text-gray-800 focus:!ring-0"
+                    uniqueByLabel={true}
+                  />
+                </div>
+
+                {/* Drop Point */}
+                <div className="flex-1 p-1 px-2 relative group min-w-[140px]">
+                  <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-0">Drop Point</p>
+                  <SearchableSelect
+                    options={getPickupOptionsForCity(searchParams.toName)}
+                    value={searchParams.dropPoint}
+                    onChange={(val) => {
+                      setSearchParams(prev => ({ ...prev, dropPoint: val }));
+                    }}
+                    placeholder="Drop point"
+                    disabled={!searchParams.toName}
                     size="compact"
                     className="!pl-0 !py-0 !h-6 !text-[11px] !border-none !bg-transparent !font-black !text-gray-800 focus:!ring-0"
                     uniqueByLabel={true}
