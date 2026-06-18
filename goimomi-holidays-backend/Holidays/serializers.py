@@ -657,6 +657,20 @@ class VehicleMasterSerializer(serializers.ModelSerializer):
         model = VehicleMaster
         fields = "__all__"
 
+    def to_internal_value(self, data):
+        if hasattr(data, 'dict'):
+            data = data.dict()
+        elif hasattr(data, 'copy'):
+            data = data.copy()
+        
+        for field in ['brand', 'driver', 'photo']:
+            if field in data:
+                val = data.get(field)
+                if val == '' or val == 'null' or val == 'undefined' or val is None:
+                    data[field] = None
+                    
+        return super().to_internal_value(data)
+
     def get_latest_rate_card_file(self, obj):
         latest_card = obj.rate_cards.order_by('-created_at').first()
         if latest_card and latest_card.rate_card_file:
