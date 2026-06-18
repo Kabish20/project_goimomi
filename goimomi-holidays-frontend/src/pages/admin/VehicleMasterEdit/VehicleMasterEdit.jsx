@@ -68,6 +68,7 @@ const VehicleMasterEdit = () => {
     });
 
     const [preview, setPreview] = useState(null);
+    const [originalPhoto, setOriginalPhoto] = useState(null);
 
     useEffect(() => {
         fetchInitialData();
@@ -175,7 +176,10 @@ const VehicleMasterEdit = () => {
                 photo: null
             });
             setPrevName(vData.name || "");
-            if (vData.photo) setPreview(vData.photo);
+            if (vData.photo) {
+                setPreview(vData.photo);
+                setOriginalPhoto(vData.photo);
+            }
 
             const rRes = await api.get(`/api/vehicle-rate-cards/?vehicle=${id}`);
             const rData = Array.isArray(rRes.data) ? rRes.data : (rRes.data?.results || []);
@@ -279,7 +283,14 @@ const VehicleMasterEdit = () => {
         try {
             const fd = new FormData();
             Object.keys(formData).forEach(key => {
-                if (key === 'photo' && formData[key] === null) return;
+                if (key === 'photo') {
+                    if (formData.photo) {
+                        fd.append('photo', formData.photo);
+                    } else if (preview === null) {
+                        fd.append('photo', '');
+                    }
+                    return;
+                }
                 fd.append(key, formData[key]);
             });
 
@@ -690,18 +701,28 @@ const VehicleMasterEdit = () => {
                                                 <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
                                                 <h2 className="text-[12px] font-black text-gray-900 uppercase tracking-widest">Vehicle Photo</h2>
                                             </div>
-                                            {preview && (
-                                                <div className="flex gap-2">
+                                            <div className="flex gap-2">
+                                                {preview && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleRemovePhoto}
+                                                        className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                                        title="Remove Photo"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
+                                                {(preview !== originalPhoto) && (
                                                     <button
                                                         type="button"
                                                         onClick={saveVehicleOnly}
                                                         className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-[#14532d] hover:text-white transition-all shadow-sm"
-                                                        title="Quick Save Vehicle"
+                                                        title="Save Photo Change"
                                                     >
                                                         <Check size={14} />
                                                     </button>
-                                                </div>
-                                            )}
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="aspect-[4/3] w-full bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center relative overflow-hidden group hover:border-[#14532d]/30 transition-colors">
                                             {preview ? (
