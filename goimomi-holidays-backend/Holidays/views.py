@@ -122,7 +122,7 @@ class CityViewSet(ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        queryset = City.objects.all().order_by('name')
+        queryset = City.objects.exclude(name='Jeddah (JED)').order_by('name')
         region_id = self.request.query_params.get('region_id')
         country_id = self.request.query_params.get('country_id')
         if region_id and region_id != 'undefined':

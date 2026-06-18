@@ -180,7 +180,11 @@ const Cab = () => {
         const seen = new Set();
         const options = [];
         response.data.forEach(d => {
-          const key = d.name.toLowerCase().trim();
+          const name = d.name || "";
+          if (name.toLowerCase().trim() === "jeddah (jed)") {
+            return;
+          }
+          const key = name.toLowerCase().trim();
           if (!seen.has(key)) {
             seen.add(key);
             options.push({
