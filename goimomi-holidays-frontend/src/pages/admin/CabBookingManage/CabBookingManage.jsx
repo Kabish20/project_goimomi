@@ -534,6 +534,7 @@ const CabBookingManage = () => {
                                 <table className="w-full">
                                     <thead className="bg-[#14532d] text-white">
                                         <tr>
+                                            <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider whitespace-nowrap">Booking ID</th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider">Guest</th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider">Route & Vehicle</th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider">Type & Time</th>
@@ -555,7 +556,7 @@ const CabBookingManage = () => {
                                     <tbody className="divide-y divide-gray-100">
                                         {filteredBookings.length === 0 ? (
                                             <tr>
-                                                <td colSpan="6" className="text-center py-16 text-gray-500">
+                                                <td colSpan="7" className="text-center py-16 text-gray-500">
                                                     <div className="flex flex-col items-center gap-2">
                                                         <MapPin size={40} className="text-gray-200" />
                                                         {searchTerm ? `No bookings match "${searchTerm}"` : "No cab bookings found."}
@@ -565,13 +566,17 @@ const CabBookingManage = () => {
                                         ) : (
                                             filteredBookings.map((booking) => (
                                                 <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
-                                                    <td className="py-3 px-4">
-                                                        <div className="font-semibold text-gray-900 text-sm leading-tight">{booking.title} {booking.first_name} {booking.last_name}</div>
-                                                        {booking.booking_id && (
-                                                            <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#14532d]/10 text-[#14532d] text-[10px] font-black uppercase tracking-wider rounded mt-1">
+                                                    <td className="py-3 px-4 whitespace-nowrap">
+                                                        {booking.booking_id ? (
+                                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#14532d]/10 text-[#14532d] text-xs font-black uppercase tracking-wider rounded-lg border border-[#14532d]/20 whitespace-nowrap">
                                                                 🎫 {booking.booking_id}
                                                             </div>
+                                                        ) : (
+                                                            <span className="text-gray-400 italic text-xs">N/A</span>
                                                         )}
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <div className="font-semibold text-gray-900 text-sm leading-tight">{booking.title} {booking.first_name} {booking.last_name}</div>
                                                         <div className="text-[11px] text-gray-500 mt-1.5 flex flex-wrap items-center gap-2">
                                                             <span className="flex items-center gap-1.5 whitespace-nowrap"><Phone size={10} /> {booking.phone}</span>
                                                             {booking.email && (
