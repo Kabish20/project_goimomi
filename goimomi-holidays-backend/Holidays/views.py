@@ -685,6 +685,16 @@ class CabBookingViewSet(ModelViewSet):
     serializer_class = CabBookingSerializer
     pagination_class = None
 
+    def perform_create(self, serializer):
+        booking = serializer.save()
+        # Refresh from DB to ensure booking_id generated in save() is loaded
+        booking.refresh_from_db()
+        try:
+            from .utils import send_booking_voucher
+            send_booking_voucher(booking)
+        except Exception as e:
+            print(f"Error calling send_booking_voucher: {e}")
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         data = request.data.copy()

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cab Booking Confirmation</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #14532d 0%, #15803d 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            font-size: 13px;
+            color: #d1fae5;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-weight: 600;
+        }
+        .content {
+            padding: 35px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .voucher-card {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        .voucher-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #166534;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+        .voucher-id {
+            font-size: 28px;
+            font-weight: 900;
+            color: #14532d;
+            letter-spacing: 0.05em;
+            margin: 0 0 15px 0;
+        }
+        .details-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .details-grid td {
+            padding: 8px 0;
+            font-size: 13px;
+            vertical-align: top;
+        }
+        .details-grid .label {
+            color: #718096;
+            font-weight: 600;
+            width: 35%;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+        .details-grid .value {
+            color: #2d3748;
+            font-weight: 700;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #1e293b;
+            margin: 30px 0 15px 0;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            padding: 10px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .info-table .label {
+            color: #64748b;
+            font-weight: 600;
+            width: 40%;
+        }
+        .info-table .value {
+            color: #334155;
+            font-weight: 700;
+            text-align: right;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .footer p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .badge {
+            background-color: #10b981;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Goimomi Holidays</h1>
+            <p>Cab Booking Confirmation</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Dear <strong>{{ booking.title }} {{ booking.first_name }} {{ booking.last_name }}</strong>,<br><br>
+                Thank you for choosing Goimomi Holidays. Your cab transfer has been successfully booked. A professional chauffeur and vehicle are assigned to your service. Please find your booking voucher details below.
+            </div>
+
+            <!-- Voucher ID Card -->
+            <div class="voucher-card">
+                <div class="voucher-title">Booking Confirmation Reference</div>
+                <div class="voucher-id">{{ booking.booking_id }}</div>
+                
+                <table class="details-grid">
+                    <tr>
+                        <td class="label">Vehicle</td>
+                        <td class="value">{{ booking.vehicle_name }} <span class="badge">{{ booking.vehicle_category }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Route</td>
+                        <td class="value">{{ booking.from_city }} &rarr; {{ booking.to_city }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Travel Date</td>
+                        <td class="value">{{ booking.pickup_date|date:"d M Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Fare Amount</td>
+                        <td class="value" style="color: #166534; font-size: 16px;">&nbsp;₹{{ booking.price|floatformat:2 }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Transfer Details -->
+            <div class="section-title">Transfer Specifics</div>
+            <table class="info-table">
+                <tr>
+                    <td class="label">Transfer Type</td>
+                    <td class="value" style="text-transform: uppercase;">{{ booking.transfer_type }}</td>
+                </tr>
+                {% if booking.transfer_type == 'airport' %}
+                    {% if booking.flight_number %}
+                    <tr>
+                        <td class="label">Flight Number</td>
+                        <td class="value">{{ booking.flight_number }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if booking.terminal %}
+                    <tr>
+                        <td class="label">Airport Terminal</td>
+                        <td class="value">{{ booking.terminal }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if booking.arrival_time %}
+                    <tr>
+                        <td class="label">Arrival Date/Time</td>
+                        <td class="value">{{ booking.arrival_time }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if booking.departure_time %}
+                    <tr>
+                        <td class="label">Departure Date/Time</td>
+                        <td class="value">{{ booking.departure_time }}</td>
+                    </tr>
+                    {% endif %}
+                {% else %}
+                    {% if booking.pickup_time %}
+                    <tr>
+                        <td class="label">Pickup Time</td>
+                        <td class="value">{{ booking.pickup_time }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if booking.pickup_location_details %}
+                    <tr>
+                        <td class="label">Pickup & Drop Details</td>
+                        <td class="value">{{ booking.pickup_location_details }}</td>
+                    </tr>
+                    {% endif %}
+                {% endif %}
+                <tr>
+                    <td class="label">Number of Guests</td>
+                    <td class="value">{{ booking.guests }} Passenger(s)</td>
+                </tr>
+                {% if booking.luggage_count %}
+                <tr>
+                    <td class="label">Luggage Count</td>
+                    <td class="value">{{ booking.luggage_count }} Bag(s)</td>
+                </tr>
+                {% endif %}
+            </table>
+
+            <!-- Primary Guest Details -->
+            <div class="section-title">Primary Guest Info</div>
+            <table class="info-table">
+                <tr>
+                    <td class="label">Full Name</td>
+                    <td class="value">{{ booking.title }} {{ booking.first_name }} {{ booking.last_name }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Email Address</td>
+                    <td class="value">{{ booking.email }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Phone Number</td>
+                    <td class="value">{{ booking.phone }}</td>
+                </tr>
+                {% if booking.special_requirements %}
+                <tr>
+                    <td class="label">Special Instructions</td>
+                    <td class="value">{{ booking.special_requirements }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>A professional PDF voucher is attached to this email for your records.</p>
+            <p style="margin-top: 15px;">Need Assistance? Contact our 24/7 Travel Desk</p>
+            <p style="font-size: 14px; font-weight: bold; color: #1e293b; margin: 8px 0;">
+                📞 +91 81100 82222 &nbsp;|&nbsp; ✉️ <a href="mailto:hello@goimomi.com">hello@goimomi.com</a>
+            </p>
+            <p style="font-size: 11px; margin-top: 15px; color: #94a3b8;">
+                &copy; 2026 Goimomi Holidays. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
