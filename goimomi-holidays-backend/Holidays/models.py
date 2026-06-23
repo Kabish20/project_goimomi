@@ -679,6 +679,7 @@ class PickupPointMaster(models.Model):
         return f"{self.name} ({self.city.name})"
 
 class CabBooking(models.Model):
+    booking_id = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False)
     vehicle_name = models.CharField(max_length=255)
     vehicle_category = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=12, decimal_places=2)
@@ -721,8 +722,16 @@ class CabBooking(models.Model):
     invoice_number = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        # First save to get the PK, then assign booking_id
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and not self.booking_id:
+            self.booking_id = f'GO-TRN-{str(self.pk).zfill(4)}'
+            CabBooking.objects.filter(pk=self.pk).update(booking_id=self.booking_id)
+
     def __str__(self):
-        return f"Booking for {self.first_name} {self.last_name} - {self.vehicle_name}"
+        return f"{self.booking_id or self.pk} - {self.first_name} {self.last_name} ({self.vehicle_name})"
 
 class CabAdditionalDocument(models.Model):
     booking = models.ForeignKey(CabBooking, related_name='additional_documents', on_delete=models.CASCADE)

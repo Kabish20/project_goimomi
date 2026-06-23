@@ -29,6 +29,7 @@ const Cab = () => {
   const [transferType, setTransferType] = useState("airport"); // 'airport' or 'intercity'
   const [phone, setPhone] = useState("");
   const [bookingStatus, setBookingStatus] = useState({ loading: false, success: false, error: null });
+  const [confirmedBookingIds, setConfirmedBookingIds] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -120,7 +121,12 @@ const Cab = () => {
         return api.post("/api/cab-bookings/", payload);
       });
 
-      await Promise.all(bookingPromises);
+      const responses = await Promise.all(bookingPromises);
+      // Extract booking_ids from responses
+      const ids = responses
+        .filter(r => r?.data?.booking_id)
+        .map(r => r.data.booking_id);
+      setConfirmedBookingIds(ids);
       setBookingStatus({ loading: false, success: true, error: null });
     } catch (err) {
       console.error("Booking error:", err);
@@ -1021,15 +1027,31 @@ const Cab = () => {
                       <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
                         <CheckCircle size={40} className="text-green-500" />
                       </div>
-                      <h2 className="text-2xl font-black text-gray-900 tracking-tight text-center mb-3">Thank You!</h2>
-                      <p className="text-sm font-bold text-gray-500 text-center mb-8 px-2 leading-relaxed">
+                      <h2 className="text-2xl font-black text-gray-900 tracking-tight text-center mb-2">Booking Requested!</h2>
+                      <p className="text-sm font-bold text-gray-500 text-center mb-4 px-2 leading-relaxed">
                         Your bookings have been sent successfully. Our team will reach out to you shortly.
                       </p>
+                      {/* Show Booking IDs */}
+                      {confirmedBookingIds.length > 0 && (
+                        <div className="w-full mb-6 space-y-2">
+                          {confirmedBookingIds.map((bid, idx) => (
+                            <div key={idx} className="flex items-center justify-between bg-[#14532d]/5 border border-[#14532d]/20 rounded-xl px-4 py-3">
+                              <div>
+                                <p className="text-[9px] font-black text-[#14532d]/60 uppercase tracking-widest">Booking ID</p>
+                                <p className="text-base font-black text-[#14532d] tracking-widest mt-0.5">{bid}</p>
+                              </div>
+                              <BadgeCheck size={22} className="text-[#14532d]/60" />
+                            </div>
+                          ))}
+                          <p className="text-[10px] text-gray-400 font-medium text-center">Save this ID for your reference</p>
+                        </div>
+                      )}
                       <button
                         onClick={() => {
                           setBookingStatus({ loading: false, success: false, error: null });
                           setIsBooking(false);
                           setCart([]);
+                          setConfirmedBookingIds([]);
                           window.scrollTo(0, 0);
                         }}
                         className="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-100 transition-all active:scale-95"

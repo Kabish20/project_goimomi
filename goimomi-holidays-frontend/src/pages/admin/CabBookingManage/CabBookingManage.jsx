@@ -62,6 +62,7 @@ const CabBookingManage = () => {
     useEffect(() => {
         let filtered = bookings.filter(booking => {
             const matchesSearch =
+                booking.booking_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 booking.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 booking.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 booking.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -146,7 +147,7 @@ const CabBookingManage = () => {
         doc.setTextColor(107, 114, 128);
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
-        doc.text(`REF ID: CAB-${String(booking.id).padStart(5, '0')}`, pageWidth - padding, y + 18, { align: "right" });
+        doc.text(`REF ID: ${booking.booking_id || 'CAB-' + String(booking.id).padStart(5, '0')}`, pageWidth - padding, y + 18, { align: "right" });
 
         y = 45;
         doc.setDrawColor(229, 231, 235);
@@ -340,7 +341,7 @@ const CabBookingManage = () => {
         doc.setFont("helvetica", "normal");
         doc.text("Contact: +91 8110082222 | Email: hello@goimomi.com", padding + 5, footerY + 13);
 
-        doc.save(`GoImomi_Voucher_${booking.id}.pdf`);
+        doc.save(`GoImomi_Voucher_${booking.booking_id || booking.id}.pdf`);
     };
 
     const handleEditSave = async (e, section = null) => {
@@ -566,6 +567,11 @@ const CabBookingManage = () => {
                                                 <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
                                                     <td className="py-3 px-4">
                                                         <div className="font-semibold text-gray-900 text-sm leading-tight">{booking.title} {booking.first_name} {booking.last_name}</div>
+                                                        {booking.booking_id && (
+                                                            <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#14532d]/10 text-[#14532d] text-[10px] font-black uppercase tracking-wider rounded mt-1">
+                                                                🎫 {booking.booking_id}
+                                                            </div>
+                                                        )}
                                                         <div className="text-[11px] text-gray-500 mt-1.5 flex flex-wrap items-center gap-2">
                                                             <span className="flex items-center gap-1.5 whitespace-nowrap"><Phone size={10} /> {booking.phone}</span>
                                                             {booking.email && (
