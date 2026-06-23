@@ -255,6 +255,7 @@ const CabBookingManage = () => {
         const timing = booking.transfer_type === 'airport' ? `ARR: ${booking.arrival_time || 'N/A'}` : (booking.pickup_time || 'N/A');
         rightY = drawRow("SCHEDULED TIME", timing, rightCol, rightY);
         rightY = drawRow("TRIP TYPE", booking.transfer_type?.toUpperCase(), rightCol, rightY);
+        rightY = drawRow("BOOKED FARE", `Rs. ${Number(booking.price || 0).toLocaleString('en-IN')}`, rightCol, rightY);
 
         y = Math.max(currentY, rightY) + 5;
 
@@ -927,7 +928,7 @@ const CabBookingManage = () => {
                                     </div>
 
                                     {editSections.vehicle ? (
-                                        <div className="animate-in fade-in duration-200 grid grid-cols-2 gap-3">
+                                        <div className="animate-in fade-in duration-200 grid grid-cols-3 gap-3">
                                             <div>
                                                 <label className="text-[9px] font-bold text-gray-500 uppercase mb-0.5 block tracking-tight">Vehicle Name</label>
                                                 <input
@@ -948,9 +949,19 @@ const CabBookingManage = () => {
                                                     className="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
                                                 />
                                             </div>
+                                            <div>
+                                                <label className="text-[9px] font-bold text-gray-500 uppercase mb-0.5 block tracking-tight">Booked Price</label>
+                                                <input
+                                                    type="number"
+                                                    name="price"
+                                                    value={editingBooking.price || ""}
+                                                    onChange={handleEditChange}
+                                                    className="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none font-bold text-[#14532d]"
+                                                />
+                                            </div>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 gap-x-4 p-1">
+                                        <div className="grid grid-cols-3 gap-x-4 p-1">
                                             <div>
                                                 <p className="text-[8px] font-bold text-gray-400 uppercase">Vehicle Name</p>
                                                 <p className="text-xs font-bold text-green-700">{editingBooking.vehicle_name}</p>
@@ -958,6 +969,10 @@ const CabBookingManage = () => {
                                             <div>
                                                 <p className="text-[8px] font-bold text-gray-400 uppercase">Category</p>
                                                 <p className="text-xs font-bold text-gray-700">{editingBooking.vehicle_category}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[8px] font-bold text-gray-400 uppercase">Booked Price</p>
+                                                <p className="text-xs font-black text-[#14532d]">₹{Number(editingBooking.price || 0).toLocaleString('en-IN')}</p>
                                             </div>
                                         </div>
                                     )}
