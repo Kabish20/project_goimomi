@@ -16,7 +16,22 @@ from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import authentication_classes, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, BasePermission
+from rest_framework.throttling import AnonRateThrottle
+
+class IsAuthenticatedOrWriteOnly(BasePermission):
+    """
+    Allow any user to POST (create) a resource,
+    but require authentication for any other action (read, update, delete).
+    """
+    def has_permission(self, request, view):
+        if request.method == 'POST':
+            return True
+        return request.user and request.user.is_authenticated
+
+class EmailSharingRateThrottle(AnonRateThrottle):
+    rate = '5/minute' # limit email requests to 5 per minute per IP
+
 
 from .models import (
     HolidayEnquiry, UmrahEnquiry, Enquiry, HolidayPackage,
@@ -47,15 +62,13 @@ from .serializers import (
 
 
 class CantonEnquiryAPI(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = CantonEnquiry.objects.all().order_by('-created_at')
     serializer_class = CantonEnquirySerializer
     pagination_class = None
 
 class AirportViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = AirportSerializer
     pagination_class = None
 
@@ -70,8 +83,7 @@ class AirportViewSet(ModelViewSet):
         return queryset
 
 class CruiseTerminalViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = CruiseTerminalSerializer
     pagination_class = None
 
@@ -83,15 +95,13 @@ class CruiseTerminalViewSet(ModelViewSet):
         return queryset
 
 class CountryViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Country.objects.all().order_by('name')
     serializer_class = CountrySerializer
     pagination_class = None
 
 class NationalityViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = NationalitySerializer
     pagination_class = None
 
@@ -103,8 +113,7 @@ class NationalityViewSet(ModelViewSet):
         return queryset
 
 class RegionViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = RegionSerializer
     pagination_class = None
 
@@ -116,8 +125,7 @@ class RegionViewSet(ModelViewSet):
         return queryset
 
 class CityViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = CitySerializer
     pagination_class = None
 
@@ -146,8 +154,7 @@ class DashboardStatsAPI(APIView):
     Optimized endpoint for the Admin Dashboard Hub.
     Returns all counts and the recent consolidated enquiries list in ONE request.
     """
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # 1. Counts (Cheap operations)
@@ -259,32 +266,28 @@ class AdminLoginView(APIView):
 
 
 class HolidayEnquiryAPI(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = HolidayEnquiry.objects.all()
     serializer_class = HolidayEnquirySerializer
     pagination_class = None
 
 
 class UmrahEnquiryAPI(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = UmrahEnquiry.objects.all()
     serializer_class = UmrahEnquirySerializer
     pagination_class = None
 
 
 class EnquiryAPI(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = Enquiry.objects.all()
     serializer_class = EnquirySerializer
     pagination_class = None
 
 
 class HolidayPackageViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = HolidayPackage.objects.all()
     serializer_class = HolidayPackageSerializer
 
@@ -356,8 +359,7 @@ class HolidayPackageViewSet(ModelViewSet):
 
 
 class ItineraryMasterViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = ItineraryMaster.objects.all()
     serializer_class = ItineraryMasterSerializer
     pagination_class = None
@@ -365,6 +367,7 @@ class ItineraryMasterViewSet(ModelViewSet):
 
 
 class UserViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = None
@@ -378,8 +381,7 @@ class UserViewSet(ModelViewSet):
 
 
 class VisaViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Visa.objects.all()
     serializer_class = VisaSerializer
     pagination_class = None
@@ -408,8 +410,7 @@ class VisaViewSet(ModelViewSet):
 
 
 class VisaApplicationViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = VisaApplication.objects.all().order_by('-created_at')
     serializer_class = VisaApplicationSerializer
     pagination_class = None
@@ -461,16 +462,14 @@ class VisaApplicationViewSet(ModelViewSet):
 
 
 class VisaApplicantViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = VisaApplicant.objects.all()
     serializer_class = VisaApplicantSerializer
     pagination_class = None
 
 
 class VisaAdditionalDocumentViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = VisaAdditionalDocument.objects.all()
     serializer_class = VisaAdditionalDocumentSerializer
     pagination_class = None
@@ -479,8 +478,7 @@ class VisaAdditionalDocumentViewSet(ModelViewSet):
 
 
 class SupplierViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = Supplier.objects.all().order_by('-created_at')
     serializer_class = SupplierSerializer
     pagination_class = None
@@ -488,6 +486,8 @@ class SupplierViewSet(ModelViewSet):
 @authentication_classes([])
 @permission_classes([AllowAny])
 class SendVisaDetailsAPI(APIView):
+    throttle_classes = [EmailSharingRateThrottle]
+
     def post(self, request):
         email = request.data.get("email")
         subject = request.data.get("subject")
@@ -509,29 +509,25 @@ class SendVisaDetailsAPI(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CruiseCalendarViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = CruiseCalendar.objects.all().order_by('-created_at')
     serializer_class = CruiseCalendarSerializer
     pagination_class = None
 
 class HotelMasterViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = HotelMaster.objects.all().order_by('name')
     serializer_class = HotelMasterSerializer
     pagination_class = None
 
 class AirlineViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Airline.objects.all().order_by('name')
     serializer_class = AirlineSerializer
     pagination_class = None
 
 class SightseeingMasterViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = SightseeingMaster.objects.all()
     serializer_class = SightseeingMasterSerializer
     pagination_class = None
@@ -586,14 +582,13 @@ class SightseeingMasterViewSet(ModelViewSet):
         return Response(serializer.data)
 
 class MealMasterViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = MealMaster.objects.all()
     serializer_class = MealMasterSerializer
     pagination_class = None
 
 class VehicleBrandViewSet(ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = VehicleBrand.objects.all().order_by('name')
     serializer_class = VehicleBrandSerializer
     pagination_class = None
@@ -604,8 +599,7 @@ class VehicleBrandViewSet(ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class AccommodationViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Accommodation.objects.all().order_by('-created_at')
     serializer_class = AccommodationSerializer
     pagination_class = None
@@ -641,29 +635,25 @@ class AccommodationViewSet(ModelViewSet):
         return Response(serializer.data)
 
 class RoomTypeViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = RoomType.objects.all()
     serializer_class = RoomTypeSerializer
     pagination_class = None
 
 class VehicleMasterViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = VehicleMaster.objects.all().order_by('-created_at')
     serializer_class = VehicleMasterSerializer
     pagination_class = None
 
 class DriverMasterViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = DriverMaster.objects.all().order_by('-created_at')
     serializer_class = DriverMasterSerializer
     pagination_class = None
 
 class VehicleRateCardViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = VehicleRateCard.objects.all().order_by('-created_at')
     serializer_class = VehicleRateCardSerializer
     pagination_class = None
@@ -678,8 +668,7 @@ class VehicleRateCardViewSet(ModelViewSet):
             queryset = queryset.filter(vehicle_id=vehicle_id)
         return queryset
 class PickupPointMasterViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = PickupPointMasterSerializer
     pagination_class = None
 
@@ -691,8 +680,7 @@ class PickupPointMasterViewSet(ModelViewSet):
         return queryset
 
 class CabBookingViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = CabBooking.objects.all().order_by('-created_at')
     serializer_class = CabBookingSerializer
     pagination_class = None
@@ -743,8 +731,7 @@ class CabBookingViewSet(ModelViewSet):
         return Response(serializer.data)
 
 class CabAdditionalDocumentViewSet(ModelViewSet):
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = CabAdditionalDocument.objects.all()
     serializer_class = CabAdditionalDocumentSerializer
     pagination_class = None
