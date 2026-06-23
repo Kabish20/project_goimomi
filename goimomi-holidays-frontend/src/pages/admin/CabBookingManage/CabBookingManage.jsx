@@ -280,6 +280,33 @@ const CabBookingManage = () => {
         doc.setTextColor(20, 83, 45);
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
+        
+        // Estimate height needed for instructions and buffer space (approx 45mm)
+        if (y > pageHeight - 55) {
+            // Draw footer on first page
+            const tempFooterY = pageHeight - 25;
+            doc.setDrawColor(229, 231, 235);
+            doc.line(padding + 5, tempFooterY, pageWidth - padding, tempFooterY);
+            doc.setTextColor(20, 83, 45);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.text("GOIMOMI HOLIDAYS", padding + 5, tempFooterY + 8);
+            doc.setTextColor(156, 163, 175);
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.text("Contact: +91 8110082222 | Email: hello@goimomi.com", padding + 5, tempFooterY + 13);
+
+            doc.addPage();
+            
+            // Draw accent and background on second page
+            doc.setFillColor(255, 255, 255);
+            doc.rect(0, 0, pageWidth, pageHeight, 'F');
+            doc.setFillColor(20, 83, 45);
+            doc.rect(0, 0, 8, pageHeight, 'F');
+            
+            y = 25;
+        }
+
         doc.text("IMPORTANT INSTRUCTIONS", padding + 5, y);
         y += 8;
 
@@ -294,24 +321,24 @@ const CabBookingManage = () => {
         notes.forEach(msg => {
             const splitMsg = doc.splitTextToSize(msg, pageWidth - padding * 2 - 10);
             doc.text(splitMsg, padding + 5, y);
-            y += (splitMsg.length * 5);
+            y += (splitMsg.length * 5) + 2;
         });
 
         // --- 7. FOOTER ---
-        const footerY = pageHeight - 40;
+        const footerY = pageHeight - 25;
 
         doc.setDrawColor(229, 231, 235);
-        doc.line(padding + 5, footerY + 25, pageWidth - padding, footerY + 25);
+        doc.line(padding + 5, footerY, pageWidth - padding, footerY);
 
         doc.setTextColor(20, 83, 45);
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.text("GOIMOMI HOLIDAYS", padding + 5, footerY + 32);
+        doc.text("GOIMOMI HOLIDAYS", padding + 5, footerY + 8);
 
         doc.setTextColor(156, 163, 175);
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
-        doc.text("Contact: +91 8110082222 | Email: hello@goimomi.com", padding + 5, footerY + 37);
+        doc.text("Contact: +91 8110082222 | Email: hello@goimomi.com", padding + 5, footerY + 13);
 
         doc.save(`GoImomi_Voucher_${booking.id}.pdf`);
     };

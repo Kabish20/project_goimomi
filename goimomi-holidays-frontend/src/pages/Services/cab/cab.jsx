@@ -29,6 +29,7 @@ const Cab = () => {
   const [transferType, setTransferType] = useState("airport"); // 'airport' or 'intercity'
   const [phone, setPhone] = useState("");
   const [bookingStatus, setBookingStatus] = useState({ loading: false, success: false, error: null });
+  const [cart, setCart] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [airports, setAirports] = useState([]);
@@ -88,33 +89,38 @@ const Cab = () => {
 
     setBookingStatus({ loading: true, success: false, error: null });
 
-    const payload = {
-      vehicle_name: selectedVehicle.name,
-      vehicle_category: selectedVehicle.category,
-      price: selectedVehicle.price,
-      from_city: searchParams.fromName,
-      to_city: searchParams.toName,
-      pickup_date: searchParams.pickupDate,
-      guests: searchParams.guests,
-      title: bookingFormData.title,
-      first_name: bookingFormData.firstName,
-      last_name: bookingFormData.lastName,
-      email: bookingFormData.email,
-      phone: phone,
-      luggage_count: bookingFormData.luggageCount,
-      transfer_type: transferType,
-      flight_number: bookingFormData.flightNumber,
-      terminal: bookingFormData.terminal,
-      airport_name: bookingFormData.airportName,
-      arrival_time: `${bookingFormData.arrivalDate || ""} ${bookingFormData.arrivalTime || ""}`.trim(),
-      departure_time: `${bookingFormData.departureDate || ""} ${bookingFormData.departureTime || ""}`.trim(),
-      pickup_location_details: `Pickup: ${bookingFormData.pickupPoint}, Drop: ${bookingFormData.dropPoint}. ${bookingFormData.pickupLocationDetails}`,
-      pickup_time: `${bookingFormData.pickupDate || ""} ${bookingFormData.pickupTime || ""}`.trim(),
-      special_requirements: bookingFormData.specialRequirements
-    };
-
     try {
-      await api.post("/api/cab-bookings/", payload);
+      // Parallel booking creation for each vehicle in the cart
+      const bookingPromises = cart.map(item => {
+        const payload = {
+          vehicle_name: item.name,
+          vehicle_category: item.category,
+          price: item.price,
+          from_city: item.fromCity || searchParams.fromName,
+          to_city: item.toCity || searchParams.toName,
+          pickup_date: item.pickupDate || searchParams.pickupDate,
+          guests: searchParams.guests,
+          title: bookingFormData.title,
+          first_name: bookingFormData.firstName,
+          last_name: bookingFormData.lastName,
+          email: bookingFormData.email,
+          phone: phone,
+          luggage_count: bookingFormData.luggageCount,
+          transfer_type: item.transferType,
+          flight_number: item.flightNumber || "",
+          terminal: item.terminal || "",
+          airport_name: item.airportName || "",
+          arrival_time: item.transferType === 'airport' ? `${item.arrivalDate || ""} ${item.arrivalTime || ""}`.trim() : "",
+          departure_time: item.transferType === 'airport' ? `${item.departureDate || ""} ${item.departureTime || ""}`.trim() : "",
+          pickup_location_details: item.transferType === 'intercity' ? `Pickup: ${item.pickupPoint}, Drop: ${item.dropPoint}. ${item.pickupLocationDetails || ""}` : `Pickup: ${item.pickupPoint}, Drop: ${item.dropPoint}.`,
+          pickup_time: item.transferType === 'intercity' ? `${item.pickupDate || ""} ${item.pickupTime || ""}`.trim() : "",
+          special_requirements: bookingFormData.specialRequirements
+        };
+
+        return api.post("/api/cab-bookings/", payload);
+      });
+
+      await Promise.all(bookingPromises);
       setBookingStatus({ loading: false, success: true, error: null });
     } catch (err) {
       console.error("Booking error:", err);
@@ -308,15 +314,52 @@ const Cab = () => {
     }
   };
 
-  const handleBookNow = (car) => {
-    setSelectedVehicle(car);
-    setIsBooking(true);
-    setBookingFormData(prev => ({
-      ...prev,
+  const handleAddToCart = (car) => {
+    const newItem = {
+      cartId: Date.now() + Math.random(),
+      ...car,
+      fromCity: searchParams.fromName,
+      toCity: searchParams.toName,
       pickupPoint: searchParams.pickupPoint || car.pickup_point || searchParams.fromName,
       dropPoint: searchParams.dropPoint || car.drop_point || searchParams.toName,
-      pickupDate: searchParams.pickupDate
-    }));
+      pickupDate: searchParams.pickupDate,
+      pickupTime: "",
+      transferType: "airport", // default to airport
+      flightNumber: "",
+      terminal: "",
+      airportName: "",
+      arrivalDate: searchParams.pickupDate,
+      arrivalTime: "",
+      departureDate: searchParams.pickupDate,
+      departureTime: "",
+      pickupLocationDetails: ""
+    };
+    setCart(prev => [...prev, newItem]);
+    alert(`${car.name} added to cart!`);
+  };
+
+  const handleBookNow = (car) => {
+    const newItem = {
+      cartId: Date.now() + Math.random(),
+      ...car,
+      fromCity: searchParams.fromName,
+      toCity: searchParams.toName,
+      pickupPoint: searchParams.pickupPoint || car.pickup_point || searchParams.fromName,
+      dropPoint: searchParams.dropPoint || car.drop_point || searchParams.toName,
+      pickupDate: searchParams.pickupDate,
+      pickupTime: "",
+      transferType: "airport", // default to airport
+      flightNumber: "",
+      terminal: "",
+      airportName: "",
+      arrivalDate: searchParams.pickupDate,
+      arrivalTime: "",
+      departureDate: searchParams.pickupDate,
+      departureTime: "",
+      pickupLocationDetails: ""
+    };
+    setCart(prev => [...prev, newItem]);
+    setIsBooking(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -565,92 +608,261 @@ const Cab = () => {
 
           <div className="flex flex-col lg:flex-row gap-5">
             {/* Main Booking Form */}
-            <div className="lg:w-2/3 space-y-4">
-              {/* Vehicle Header Card */}
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="w-full md:w-1/4">
-                    <img
-                      src={selectedVehicle?.image}
-                      alt={selectedVehicle?.name}
-                      className="w-full h-auto object-contain mix-blend-multiply"
-                    />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">
-                      {selectedVehicle?.category}
-                    </h2>
-                    <div className="flex flex-wrap gap-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm leading-none">🧳</span>
-                        {selectedVehicle?.bags} Bags
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users size={12} className="text-gray-400" />
-                        Max {selectedVehicle?.passengers}
-                      </div>
+            <div className="lg:w-2/3 space-y-6">
+              <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">
+                Review Selected Vehicles
+              </h2>
+
+              {cart.map((item, index) => (
+                <div key={item.cartId} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {/* Remove Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCart(prev => prev.filter(c => c.cartId !== item.cartId));
+                      if (cart.length === 1) {
+                        setIsBooking(false);
+                      }
+                    }}
+                    className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                    title="Remove Vehicle"
+                  >
+                    <X size={16} />
+                  </button>
+
+                  <div className="flex flex-col md:flex-row gap-4 items-center pr-8">
+                    <div className="w-full md:w-32 h-24 md:h-20 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center p-2 shrink-0">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-contain mix-blend-multiply"
+                        />
+                      ) : (
+                        <div className="text-3xl">🚗</div>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="bg-green-50 text-green-600 text-[9px] font-black px-2 py-1 rounded-full border border-green-100 uppercase tracking-wider flex items-center gap-1">
-                        <div className="w-1 h-1 rounded-full bg-green-500"></div>
-                        30 min free waiting
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Route Timeline with Pickup/Drop Points */}
-                <div className="mt-4 p-4 bg-gray-50/50 rounded-xl border border-gray-100 relative overflow-hidden">
-                  <div className="absolute left-0 top-0 w-1 h-full bg-[#14532d]/10"></div>
-                  <p className="text-[10px] font-black text-gray-900 mb-3 uppercase tracking-widest opacity-80">
-                    {new Date(searchParams.pickupDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                  </p>
-
-                  <div className="space-y-4 relative">
-                    <div className="absolute left-[7px] top-1.5 bottom-1.5 w-0.5 border-l-2 border-dashed border-gray-200"></div>
-
-                    <div className="flex gap-4 relative items-center">
-                      <div className="w-4 h-4 rounded-full border-2 border-green-600 bg-white z-10 flex-shrink-0 mt-0.5"></div>
-                      <div className="flex-1 -mt-0.5">
-                        <select
-                          className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          value={bookingFormData.pickupPoint || ""}
-                          onChange={(e) => setBookingFormData(prev => ({ ...prev, pickupPoint: e.target.value }))}
-                        >
-                          <option value="">Select Pickup Point in {searchParams.fromName}</option>
-                          {pickupPoints.filter(p => p.city_name === searchParams.fromName).map(p => (
-                            <option key={p.id} value={p.name}>{p.name} ({p.city_name})</option>
-                          ))}
-                        </select>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-emerald-50 text-[#14532d] text-[9px] font-black px-2 py-0.5 rounded-full border border-emerald-100 uppercase tracking-wider">
+                          Vehicle #{index + 1}
+                        </span>
+                        <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">
+                          {item.name}
+                        </h2>
                       </div>
-                    </div>
-
-                    <div className="flex gap-4 relative items-center">
-                      <div className="w-4 h-4 rounded-full border-2 border-[#14532d] bg-[#14532d] z-10 flex-shrink-0 mt-0.5"></div>
-                      <div className="flex-1 -mt-0.5">
-                        <select
-                          className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          value={bookingFormData.dropPoint || ""}
-                          onChange={(e) => setBookingFormData(prev => ({ ...prev, dropPoint: e.target.value }))}
-                        >
-                          <option value="">Select Drop Point in {searchParams.toName}</option>
-                          {pickupPoints.filter(p => p.city_name === searchParams.toName).map(p => (
-                            <option key={p.id} value={p.name}>{p.name} ({p.city_name})</option>
-                          ))}
-                        </select>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{item.category}</p>
+                      <div className="flex flex-wrap gap-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm leading-none">🧳</span>
+                          {item.bags} Bags
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users size={12} className="text-gray-400" />
+                          Max {item.passengers} Pax
+                        </div>
+                        <div className="text-emerald-600 font-black">
+                          ₹{Number(item.price || 0).toLocaleString('en-IN')}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Cancellation Alert */}
-                <div className="mt-3 bg-green-50/50 border border-green-100 p-2.5 rounded-xl flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full border border-green-400 flex items-center justify-center text-green-500 text-[9px] font-black">✓</div>
-                  <p className="text-[10px] font-bold text-green-600 uppercase tracking-tight">
-                    Free cancellation till {new Date(new Date(searchParams.pickupDate).getTime() - 172800000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (48 hrs before pickup)
-                  </p>
+                  {/* Individual Transfer Type Selector */}
+                  <div className="pt-2 border-t border-gray-50">
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, transferType: "airport" } : c));
+                        }}
+                        className={`flex-1 py-1.5 px-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all ${item.transferType === "airport"
+                          ? "bg-emerald-800 text-white shadow-sm"
+                          : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
+                          }`}
+                      >
+                        Airport Transfer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, transferType: "intercity" } : c));
+                        }}
+                        className={`flex-1 py-1.5 px-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all ${item.transferType === "intercity"
+                          ? "bg-emerald-800 text-white shadow-sm"
+                          : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
+                          }`}
+                      >
+                        Inter-city Transfer
+                      </button>
+                    </div>
+
+                    {/* Route Timeline with Pickup/Drop Points */}
+                    <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100 relative overflow-hidden space-y-3">
+                      <div className="absolute left-0 top-0 w-1 h-full bg-[#14532d]/10"></div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest opacity-80">
+                          Route Details
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Travel Date:</span>
+                          <input
+                            type="date"
+                            value={item.pickupDate}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupDate: val, arrivalDate: val, departureDate: val } : c));
+                            }}
+                            className="bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[10px] font-black text-gray-800 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 relative">
+                        <div className="absolute left-[7px] top-1.5 bottom-1.5 w-0.5 border-l-2 border-dashed border-gray-200"></div>
+
+                        <div className="flex gap-4 relative items-center">
+                          <div className="w-4 h-4 rounded-full border-2 border-green-600 bg-white z-10 flex-shrink-0"></div>
+                          <div className="flex-1">
+                            <select
+                              className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
+                              value={item.pickupPoint || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupPoint: val } : c));
+                              }}
+                            >
+                              <option value="">Select Pickup Point in {item.fromCity || searchParams.fromName}</option>
+                              {pickupPoints.filter(p => p.city_name === (item.fromCity || searchParams.fromName)).map(p => (
+                                <option key={p.id} value={p.name}>{p.name} ({p.city_name})</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4 relative items-center">
+                          <div className="w-4 h-4 rounded-full border-2 border-[#14532d] bg-[#14532d] z-10 flex-shrink-0"></div>
+                          <div className="flex-1">
+                            <select
+                              className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
+                              value={item.dropPoint || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, dropPoint: val } : c));
+                              }}
+                            >
+                              <option value="">Select Drop Point in {item.toCity || searchParams.toName}</option>
+                              {pickupPoints.filter(p => p.city_name === (item.toCity || searchParams.toName)).map(p => (
+                                <option key={p.id} value={p.name}>{p.name} ({p.city_name})</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Sub-form based on transfer type */}
+                    {item.transferType === "airport" ? (
+                      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-gray-50/30 rounded-xl border border-gray-100/50 animate-in fade-in duration-200">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Flight Number</label>
+                          <input
+                            type="text"
+                            placeholder="Eg. AB153"
+                            value={item.flightNumber || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, flightNumber: val } : c));
+                            }}
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Terminal</label>
+                          <input
+                            type="text"
+                            placeholder="Eg. T3"
+                            value={item.terminal || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, terminal: val } : c));
+                            }}
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Arrival Date & Time</label>
+                          <input
+                            type="datetime-local"
+                            value={(item.arrivalDate && item.arrivalTime) ? `${item.arrivalDate}T${item.arrivalTime}` : ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const [d, t] = val.split("T");
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, arrivalDate: d, arrivalTime: t || "" } : c));
+                              } else {
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, arrivalDate: '', arrivalTime: '' } : c));
+                              }
+                            }}
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Departure Date & Time</label>
+                          <input
+                            type="datetime-local"
+                            value={(item.departureDate && item.departureTime) ? `${item.departureDate}T${item.departureTime}` : ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const [d, t] = val.split("T");
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, departureDate: d, departureTime: t || "" } : c));
+                              } else {
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, departureDate: '', departureTime: '' } : c));
+                              }
+                            }}
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-gray-50/30 rounded-xl border border-gray-100/50 animate-in fade-in duration-200">
+                        <div className="md:col-span-2 space-y-1">
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pickup Location Details</label>
+                          <textarea
+                            rows="2"
+                            placeholder="Enter complete pickup address with landmarks"
+                            value={item.pickupLocationDetails || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupLocationDetails: val } : c));
+                            }}
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 placeholder:text-gray-300 focus:outline-none resize-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pickup Date & Time</label>
+                          <input
+                            type="datetime-local"
+                            value={(item.pickupDate && item.pickupTime) ? `${item.pickupDate}T${item.pickupTime}` : ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const [d, t] = val.split("T");
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupDate: d, pickupTime: t || "" } : c));
+                              } else {
+                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupDate: '', pickupTime: '' } : c));
+                              }
+                            }}
+                            className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ))}
 
               {/* Guest Details Form */}
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
@@ -728,10 +940,10 @@ const Cab = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Luggage</label>
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Total Luggage (Optional)</label>
                     <input
                       type="text"
-                      placeholder="Enter number of Bags"
+                      placeholder="Enter total number of Bags"
                       value={bookingFormData.luggageCount}
                       onChange={(e) => setBookingFormData(prev => ({ ...prev, luggageCount: e.target.value }))}
                       className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
@@ -739,129 +951,11 @@ const Cab = () => {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-gray-100">
-                  <div className="flex gap-3 mb-4">
-                    <button
-                      onClick={() => setTransferType("airport")}
-                      className={`flex-1 py-2 px-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all ${transferType === "airport"
-                        ? "bg-green-600 text-white shadow-md shadow-green-100"
-                        : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
-                        }`}
-                    >
-                      Airport Transfer
-                    </button>
-                    <button
-                      onClick={() => setTransferType("intercity")}
-                      className={`flex-1 py-2 px-3 rounded-lg font-black text-[9px] uppercase tracking-widest transition-all ${transferType === "intercity"
-                        ? "bg-green-600 text-white shadow-md shadow-green-100"
-                        : "bg-gray-50 text-gray-400 border border-gray-100 hover:bg-gray-100"
-                        }`}
-                    >
-                      Inter-city Transfer
-                    </button>
-                  </div>
-
-                  {transferType === "airport" ? (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Flight Number</label>
-                          <input
-                            type="text"
-                            placeholder="Eg. AB153"
-                            value={bookingFormData.flightNumber}
-                            onChange={(e) => setBookingFormData(prev => ({ ...prev, flightNumber: e.target.value }))}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Terminal</label>
-                          <input
-                            type="text"
-                            placeholder="Eg. T3"
-                            value={bookingFormData.terminal}
-                            onChange={(e) => setBookingFormData(prev => ({ ...prev, terminal: e.target.value }))}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Arrival Date & Time</label>
-                          <input
-                            type="datetime-local"
-                            value={(bookingFormData.arrivalDate && bookingFormData.arrivalTime) ? `${bookingFormData.arrivalDate}T${bookingFormData.arrivalTime}` : ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val) {
-                                const [d, t] = val.split("T");
-                                setBookingFormData(prev => ({ ...prev, arrivalDate: d, arrivalTime: t || "" }));
-                              } else {
-                                setBookingFormData(prev => ({ ...prev, arrivalDate: '', arrivalTime: '' }));
-                              }
-                            }}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Departure Date & Time</label>
-                          <input
-                            type="datetime-local"
-                            value={(bookingFormData.departureDate && bookingFormData.departureTime) ? `${bookingFormData.departureDate}T${bookingFormData.departureTime}` : ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val) {
-                                const [d, t] = val.split("T");
-                                setBookingFormData(prev => ({ ...prev, departureDate: d, departureTime: t || "" }));
-                              } else {
-                                setBookingFormData(prev => ({ ...prev, departureDate: '', departureTime: '' }));
-                              }
-                            }}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pick up Location Details</label>
-                        <textarea
-                          rows="2"
-                          placeholder="Enter complete pickup address with landmarks"
-                          value={bookingFormData.pickupLocationDetails}
-                          onChange={(e) => setBookingFormData(prev => ({ ...prev, pickupLocationDetails: e.target.value }))}
-                          className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10 resize-none"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pickup Date & Time</label>
-                          <input
-                            type="datetime-local"
-                            value={(bookingFormData.pickupDate && bookingFormData.pickupTime) ? `${bookingFormData.pickupDate}T${bookingFormData.pickupTime}` : ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val) {
-                                const [d, t] = val.split("T");
-                                setBookingFormData(prev => ({ ...prev, pickupDate: d, pickupTime: t || "" }));
-                              } else {
-                                setBookingFormData(prev => ({ ...prev, pickupDate: '', pickupTime: '' }));
-                              }
-                            }}
-                            className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 <div className="pt-3 border-t border-gray-100 space-y-1">
-                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Special Requirements</label>
+                  <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Special Requirements (Optional)</label>
                   <textarea
                     rows="2"
-                    placeholder="Select or add a request"
+                    placeholder="Enter any special requests for the drivers"
                     value={bookingFormData.specialRequirements}
                     onChange={(e) => setBookingFormData(prev => ({ ...prev, specialRequirements: e.target.value }))}
                     className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10 resize-none"
@@ -899,7 +993,7 @@ const Cab = () => {
                 <p
                   className="text-[11px] font-black text-gray-400 select-none"
                 >
-                  By proceeding, I acknowledge that I have read and agree to the <span className="text-green-500 hover:underline cursor-pointer" onClick={(e) => { e.stopPropagation(); setIsTermsOpen(true); }}>Terms & Conditions</span> and <span className="text-green-500 hover:underline cursor-pointer" onClick={(e) => { e.stopPropagation(); setIsPrivacyOpen(true); }}>Privacy Policy</span>
+                  By proceeding, I acknowledge that I have read and agree to the <span className="text-green-500 hover:underline cursor-pointer" onClick={(e) => { e.stopPropagation(); setIsTermsOpen(true); }}>Terms & Conditions</span> and <span className="text-green-500 hover:underline cursor-pointer" onClick={(e) => { e.stopPropagation(); setIsPrivacyOpen(false); }}>Privacy Policy</span>
                 </p>
               </div>
 
@@ -929,12 +1023,13 @@ const Cab = () => {
                       </div>
                       <h2 className="text-2xl font-black text-gray-900 tracking-tight text-center mb-3">Thank You!</h2>
                       <p className="text-sm font-bold text-gray-500 text-center mb-8 px-2 leading-relaxed">
-                        Your booking has been sent successfully. Our team will reach out to you shortly.
+                        Your bookings have been sent successfully. Our team will reach out to you shortly.
                       </p>
                       <button
                         onClick={() => {
                           setBookingStatus({ loading: false, success: false, error: null });
                           setIsBooking(false);
+                          setCart([]);
                           window.scrollTo(0, 0);
                         }}
                         className="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-green-100 transition-all active:scale-95"
@@ -952,18 +1047,20 @@ const Cab = () => {
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                 <h3 className="text-base font-black text-gray-900 mb-4 tracking-tight">Fare Summary</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center text-[11px] font-black">
-                    <span className="text-gray-400 uppercase tracking-widest">Base Price</span>
-                    <span className="text-gray-900">₹{Number(selectedVehicle?.price || 0).toLocaleString('en-IN')}</span>
-                  </div>
+                  {cart.map((item, idx) => (
+                    <div key={item.cartId} className="flex justify-between items-center text-[11px] font-black">
+                      <span className="text-gray-400 uppercase tracking-widest">{item.name}</span>
+                      <span className="text-gray-900">₹{Number(item.price || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                  ))}
                   <div className="pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
                     <span className="text-xs font-black text-green-700 uppercase tracking-[0.1em]">Total Amount</span>
-                    <span className="text-lg font-black text-green-700">₹{Number(selectedVehicle?.price || 0).toLocaleString('en-IN')}</span>
+                    <span className="text-lg font-black text-green-700">
+                      ₹{cart.reduce((sum, item) => sum + Number(item.price || 0), 0).toLocaleString('en-IN')}
+                    </span>
                   </div>
                 </div>
               </div>
-
-
             </div>
           </div>
         </div>
@@ -1445,12 +1542,18 @@ const Cab = () => {
                       </div>
                       <div className="flex flex-col md:flex-row divide-y md:divide-y-0 divide-gray-100 h-auto md:h-36">
                         {/* Image */}
-                        <div className="md:w-[28%] relative overflow-hidden bg-white flex items-center justify-center h-48 md:h-full p-3">
-                          <img
-                            src={car.image}
-                            alt={car.name}
-                            className="w-full h-full object-contain rounded-2xl"
-                          />
+                        <div className="md:w-[28%] relative overflow-hidden bg-white flex items-center justify-center h-48 md:h-full p-3 shrink-0">
+                          {car.image ? (
+                            <img
+                              src={car.image}
+                              alt={car.name}
+                              className="w-full h-full object-contain rounded-2xl"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-50 rounded-2xl flex items-center justify-center text-4xl">
+                              🚗
+                            </div>
+                          )}
                         </div>
 
                         {/* Details */}
@@ -1498,12 +1601,28 @@ const Cab = () => {
                                 <span className="text-3xl font-black tracking-tighter">{Number(car?.price || 0).toLocaleString('en-IN')}</span>
                               </div>
                             </div>
-                            <button
-                              onClick={() => handleBookNow(car)}
-                              className="w-full bg-[#14532d] text-white py-1.5 px-3 rounded-lg font-black text-[8px] uppercase tracking-[0.2em] hover:bg-[#0f4022] transition-all shadow-sm active:scale-95 whitespace-nowrap"
-                            >
-                              Book Now
-                            </button>
+                            <div className="flex flex-col gap-1 w-full mt-2">
+                              <button
+                                onClick={() => {
+                                  // Add to cart if not already present, then checkout immediately
+                                  const isAlreadyInCart = cart.some(c => c.id === car.id);
+                                  if (!isAlreadyInCart) {
+                                    handleAddToCart(car);
+                                  }
+                                  setIsBooking(true);
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="w-full bg-[#14532d] text-white py-1.5 px-3 rounded-lg font-black text-[8px] uppercase tracking-[0.2em] hover:bg-[#0f4022] transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                              >
+                                Book Now
+                              </button>
+                              <button
+                                onClick={() => handleAddToCart(car)}
+                                className="w-full bg-white border border-[#14532d] text-[#14532d] py-1.5 px-3 rounded-lg font-black text-[8px] uppercase tracking-[0.2em] hover:bg-green-50 transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                              >
+                                Add to Cart {cart.filter(c => c.id === car.id).length > 0 && `(${cart.filter(c => c.id === car.id).length})`}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1654,6 +1773,49 @@ const Cab = () => {
 
       <CabTermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
       <CabPrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+
+      {/* Floating Cart Bar */}
+      {cart.length > 0 && !isBooking && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-xl shrink-0">
+                🛒
+              </div>
+              <div>
+                <p className="text-white text-xs font-black uppercase tracking-widest">{cart.length} Cabs Selected</p>
+                <p className="text-emerald-400 text-sm font-black mt-0.5">
+                  Total: ₹{cart.reduce((sum, item) => sum + Number(item.price || 0), 0).toLocaleString('en-IN')}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setCart([])}
+                className="px-4 py-2 border border-white/10 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-white/5 transition-colors active:scale-95"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsBooking(true);
+                  // Reset form data except guest info
+                  setBookingFormData(prev => ({
+                    ...prev,
+                    pickupDate: searchParams.pickupDate
+                  }));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all"
+              >
+                Checkout Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
