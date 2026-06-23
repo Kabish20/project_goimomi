@@ -158,22 +158,22 @@ const CabBookingManage = () => {
         doc.setFillColor(20, 83, 45);
         doc.roundedRect(padding + 5, y, pageWidth - (padding * 2) - 5, 28, 3, 3, 'F');
 
-        // Labels in Highlight Box
+        // Labels in Highlight Box (Balanced three-column grid)
         doc.setFontSize(8);
         doc.setTextColor(220, 252, 231);
         doc.setFont("helvetica", "normal");
         doc.text("TRAVEL DATE", padding + 10, y + 8);
-        doc.text("SERVICE ROUTE", padding + 55, y + 8);
-        doc.text("VEHICLE MODEL", padding + 145, y + 8);
+        doc.text("SERVICE ROUTE", padding + 50, y + 8);
+        doc.text("VEHICLE MODEL", padding + 115, y + 8);
 
         // Values in Highlight Box
-        doc.setFontSize(10); // Slightly smaller to prevent overlap
+        doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
         doc.setFont("helvetica", "bold");
         doc.text(formatDate(booking.pickup_date), padding + 10, y + 18);
 
         // --- DRAW CREATIVE ROUTE ICONS ---
-        const routeStartX = padding + 55;
+        const routeStartX = padding + 50; // Shifted slightly left to balance layout
         const routeY = y + 17;
 
         // 1. Pickup Icon
@@ -197,17 +197,17 @@ const CabBookingManage = () => {
         doc.circle(dropX, routeY - 0.8, 1, 'FD');
         doc.line(dropX, routeY - 0.8, dropX, routeY + 1.2);
 
-        // 4. Route Text (Cleaned up alignment)
+        // 4. Route Text (With wrap to prevent overlapping)
         const fromCity = (booking.from_city || "").toUpperCase();
         const toCity = (booking.to_city || "").toUpperCase();
         const routeDisplay = `${fromCity} > ${toCity}`;
+        const routeLines = doc.splitTextToSize(routeDisplay, 50); // Wrap inside 50mm
+        doc.text(routeLines, routeStartX + 15, y + 18);
 
-        // Use a character limit to ensure it doesn't spill into the next column
-        const truncatedRoute = routeDisplay.length > 25 ? routeDisplay.substring(0, 22) + "..." : routeDisplay;
-        doc.text(truncatedRoute, routeStartX + 15, y + 18);
-
-        // Vehicle Text (Shifted right)
-        doc.text(booking.vehicle_name?.toUpperCase() || "N/A", padding + 145, y + 18);
+        // Vehicle Text (Shifted left to give 65mm space and wrapped to prevent cutoff)
+        const vehicleName = booking.vehicle_name?.toUpperCase() || "N/A";
+        const vehicleLines = doc.splitTextToSize(vehicleName, 60); // Wrap inside 60mm to fit premium layout
+        doc.text(vehicleLines, padding + 115, y + 18);
 
         y += 45;
 
@@ -234,8 +234,12 @@ const CabBookingManage = () => {
             doc.setFontSize(10);
             doc.setTextColor(31, 41, 55);
             doc.setFont("helvetica", "bold");
-            doc.text(String(value || "N/A"), x, yPos + 6);
-            return yPos + 15;
+            
+            // Wrap text dynamically to prevent column overlap/cutoff
+            const maxWidth = (pageWidth / 2) - 20; // 85mm
+            const splitValue = doc.splitTextToSize(String(value || "N/A"), maxWidth);
+            doc.text(splitValue, x, yPos + 6);
+            return yPos + 8 + (splitValue.length * 5); // Return dynamic next Y position
         };
 
         // Column 1: Passenger
@@ -266,7 +270,9 @@ const CabBookingManage = () => {
 
         doc.setTextColor(20, 83, 45);
         doc.setFontSize(12);
-        doc.text(booking.driver || "WILL BE SHARED ON WHATSAPP", padding + 50, y + 13);
+        const driverText = booking.driver || "WILL BE SHARED ON WHATSAPP";
+        const splitDriver = doc.splitTextToSize(driverText, 125); // Wrap inside 125mm
+        doc.text(splitDriver, padding + 50, y + 13);
 
         y += 35;
 

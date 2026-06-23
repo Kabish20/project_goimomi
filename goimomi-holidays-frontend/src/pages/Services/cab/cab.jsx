@@ -1449,7 +1449,7 @@ const Cab = () => {
                           <img
                             src={car.image}
                             alt={car.name}
-                            className="w-full h-full object-cover rounded-2xl"
+                            className="w-full h-full object-contain rounded-2xl"
                           />
                         </div>
 
