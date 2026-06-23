@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from Holidays.models import VehicleMaster
 
 class Command(BaseCommand):
-    help = 'Fixes vehicle photo paths in database to match existing files on disk'
+    help = 'Sets fallback vehicle photo paths ONLY when a vehicle has no photo or the file is missing. Never overwrites user-uploaded images.'
 
     def handle(self, *args, **options):
         vehicles = VehicleMaster.objects.all()
@@ -30,12 +30,23 @@ class Command(BaseCommand):
                 matched_path = 'vehicles/11_Image_Hyundai_Grand_Starex_2020.jpeg'
                 
             if matched_path:
-                # Django ImageField expects the path relative to MEDIA_ROOT
-                if v.photo.name != matched_path:
-                    self.stdout.write(self.style.WARNING(f"Updating '{v.name}' photo from '{v.photo.name}' to '{matched_path}'"))
+                # IMPORTANT: Only apply fallback if vehicle currently has NO photo or the file is missing on disk
+                # Never overwrite a user-uploaded image
+                has_photo = bool(v.photo and v.photo.name)
+                file_exists = False
+                if has_photo:
+                    try:
+                        file_exists = v.photo.storage.exists(v.photo.name)
+                    except Exception:
+                        file_exists = False
+
+                if not has_photo or not file_exists:
+                    self.stdout.write(self.style.WARNING(f"Setting fallback for '{v.name}' (no photo or missing file) -> '{matched_path}'"))
                     v.photo.name = matched_path
                     v.save()
                     updated_count += 1
+                else:
+                    self.stdout.write(self.style.SUCCESS(f"Skipping '{v.name}' - already has photo: '{v.photo.name}'"))
             else:
                 self.stdout.write(self.style.ERROR(f"No mapping found for vehicle '{v.name}'"))
                 
