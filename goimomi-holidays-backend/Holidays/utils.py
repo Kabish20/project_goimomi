@@ -305,8 +305,8 @@ Goimomi Holidays
     if booking.email:
         recipients.append(booking.email)
     
-    # Add company email from settings (default to hello@goimomi.com if not defined)
-    company_email = getattr(settings, 'COMPANY_EMAIL', 'hello@goimomi.com')
+    # Add company email from settings (default to Reservations@goimomi.com if not defined)
+    company_email = getattr(settings, 'COMPANY_EMAIL', 'Reservations@goimomi.com')
     if company_email:
         recipients.append(company_email)
         
@@ -317,9 +317,9 @@ Goimomi Holidays
         return False
         
     # Build email message
-    sender = getattr(settings, 'EMAIL_HOST_USER', 'hello@goimomi.com')
+    sender = getattr(settings, 'EMAIL_HOST_USER', 'Reservations@goimomi.com')
     if not sender:
-        sender = 'hello@goimomi.com'
+        sender = 'Reservations@goimomi.com'
         
     email = EmailMultiAlternatives(
         subject=subject,
