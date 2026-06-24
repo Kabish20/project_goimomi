@@ -7,6 +7,7 @@ sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD="DCXServer321$"/' .env
 
 # Restart backend
 source venv/bin/activate
+pip install -r requirements.txt
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 python manage.py fix_vehicle_images
