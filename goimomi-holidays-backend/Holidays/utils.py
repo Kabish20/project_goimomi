@@ -257,10 +257,25 @@ def send_booking_voucher(booking):
     """
     subject = f"Goimomi Holidays - Booking Confirmation - {booking.booking_id}"
     
+    # Prepare booking context compatible with the new car_booking_voucher template
+    booking_context = {
+        'booking_id': booking.booking_id,
+        'customer_name': f"{booking.title} {booking.first_name} {booking.last_name}".strip(),
+        'customer_email': booking.email or "N/A",
+        'phone': booking.phone or "N/A",
+        'vehicle_type': f"{booking.vehicle_name} ({booking.vehicle_category})" if booking.vehicle_category else booking.vehicle_name,
+        'pickup_location': booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city),
+        'drop_location': booking.to_city,
+        'travel_date': booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "N/A",
+        'pickup_time': booking.pickup_time or booking.arrival_time or "N/A",
+        'total_amount': f"{booking.price:,.2f}",
+        'payment_status': booking.status,
+    }
+    
     # Render HTML content
     html_content = render_to_string(
-        'emails/booking_voucher.html',
-        {'booking': booking}
+        'emails/car_booking_voucher.html',
+        {'booking': booking_context}
     )
     
     # Fallback plain text message

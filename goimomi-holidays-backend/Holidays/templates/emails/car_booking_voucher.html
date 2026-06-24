@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Car Booking Voucher</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
+
+<table width="600" align="center" style="background:#ffffff; border-radius:8px; padding:20px;">
+    <tr>
+        <td align="center">
+            <h1 style="color:#0d6efd;">Booking Confirmed</h1>
+            <p>Thank you for choosing our service.</p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <h3>Booking Voucher</h3>
+            <hr>
+
+            <p><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
+            <p><strong>Customer Name:</strong> {{ booking.customer_name }}</p>
+            <p><strong>Email:</strong> {{ booking.customer_email }}</p>
+            <p><strong>Phone:</strong> {{ booking.phone }}</p>
+
+            <h4>Trip Details</h4>
+
+            <p><strong>Vehicle Type:</strong> {{ booking.vehicle_type }}</p>
+            <p><strong>Pickup Location:</strong> {{ booking.pickup_location }}</p>
+            <p><strong>Drop Location:</strong> {{ booking.drop_location }}</p>
+            <p><strong>Travel Date:</strong> {{ booking.travel_date }}</p>
+            <p><strong>Pickup Time:</strong> {{ booking.pickup_time }}</p>
+
+            <h4>Payment Information</h4>
+
+            <p><strong>Total Amount:</strong> ₹{{ booking.total_amount }}</p>
+            <p><strong>Payment Status:</strong> {{ booking.payment_status }}</p>
+
+            <hr>
+
+            <p>
+                <strong>Important:</strong><br>
+                Please carry this voucher during your journey. For any modifications or cancellations, contact our support team.
+            </p>
+
+            <br>
+
+            <p>
+                Regards,<br>
+                <strong>Goimomi Holidays</strong><br>
+                Customer Support Team
+            </p>
+        </td>
+    </tr>
+
+    <tr>
+        <td align="center" style="padding-top:20px; color:#666;">
+            © 2026 Goimomi Holidays. All Rights Reserved.
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
