@@ -186,15 +186,17 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
+from decouple import config
+
 # Email Settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'Reservations@goimomi.com')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.zoho.in')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'Reservations@goimomi.com') # Add your email to .env or here
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '4yxn 5wx6 ofh2') # Add your app password to .env or here
-COMPANY_EMAIL = os.getenv('COMPANY_EMAIL', 'Reservations@goimomi.com')
+EMAIL_BACKEND = config("EMAIL_BACKEND")
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT", cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+COMPANY_EMAIL = config("COMPANY_EMAIL")
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
