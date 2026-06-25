@@ -156,6 +156,88 @@ const HolidayPackageEdit = () => {
     const [autosaveStatus, setAutosaveStatus] = useState("");
     const [showRestorePrompt, setShowRestorePrompt] = useState(false);
 
+    // Refs for Trip Information textareas
+    const inclusionsRef = useRef(null);
+    const exclusionsRef = useRef(null);
+    const cancellationRef = useRef(null);
+    const highlightsRef = useRef(null);
+    const pricingSlotsRef = useRef(null);
+    const [sightseeingMasters, setSightseeingMasters] = useState([]);
+    const [mealMasters, setMealMasters] = useState([]);
+    const [airlines, setAirlines] = useState([]);
+    const [driverMasters, setDriverMasters] = useState([]);
+    const [vehicleBrands, setVehicleBrands] = useState([]);
+    const [vehicleMasters, setVehicleMasters] = useState([]);
+    const [pickupPoints, setPickupPoints] = useState([]);
+    const [vehicles, setVehicles] = useState([]);
+    const [hotelMasters, setHotelMasters] = useState([]);
+    const [roomTypes, setRoomTypes] = useState([]);
+    // New Sightseeing panel state
+    const [newSightseeingForm, setNewSightseeingForm] = useState({
+        name: '', description: '', address: '', city: '', duration: '', price: '', map_link: '',
+        latitude: '', longitude: '', images: []
+    });
+    const [hotelPanelDayIndex, setHotelPanelDayIndex] = useState(null);
+    const [newHotelForm, setNewHotelForm] = useState({
+        name: '', stars: '3', address: '', city: '', latitude: '', longitude: '', image: null
+    });
+    const [sightseeingPanelDayIndex, setSightseeingPanelDayIndex] = useState(null);
+
+    // Form state
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        category: "",
+        starting_city: "",
+        ending_city: "",
+        days: "",
+        start_date: "",
+        group_size: 0,
+        offer_price: "",
+        price: "",
+        header_image: null,
+        card_image: null,
+        supplier: "",
+        with_flight: false,
+        fixed_departure: false,
+        package_categories: [], // ['Budget', 'Standard', 'Deluxe', 'Luxury', 'Premium']
+        is_active: true,
+        with_arrival: true,
+        arrival_city: "",
+        arrival_date: "",
+        arrival_time: "",
+        arrival_airport: "",
+        departure_city: "",
+        with_departure: true,
+        departure_date: "",
+        departure_time: "",
+        departure_airport: "",
+        arrival_airline: "",
+        arrival_flight_no: "",
+        departure_airline: "",
+        departure_flight_no: "",
+        highlights: "",
+        sharing: "SINGLE",
+        arrival_no_of_nights: "",
+    });
+    const [fixedDepartureData, setFixedDepartureData] = useState([]);
+
+    // Previews for existing images to show if no new file selected
+    const [headerPreview, setHeaderPreview] = useState(null);
+    const [cardPreview, setCardPreview] = useState(null);
+
+    const [startingCities, setStartingCities] = useState([]);
+    const [regions, setRegions] = useState([]);
+    const [destinations, setDestinations] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
+    const [itineraryMasters, setItineraryMasters] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+    const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
+    const [activeSection, setActiveSection] = useState("overview");
+
     // Check for unsaved drafts on mount once id is loaded
     useEffect(() => {
         if (!id) return;
@@ -239,87 +321,6 @@ const HolidayPackageEdit = () => {
         return () => clearTimeout(saveTimeout);
     }, [formData, packageDestinations, highlights, inclusions, exclusions, cancellationPolicies, itineraryDays, fixedDepartureData, isAutosaveEnabled, id, loading]);
 
-    // Refs for Trip Information textareas
-    const inclusionsRef = useRef(null);
-    const exclusionsRef = useRef(null);
-    const cancellationRef = useRef(null);
-    const highlightsRef = useRef(null);
-    const pricingSlotsRef = useRef(null);
-    const [sightseeingMasters, setSightseeingMasters] = useState([]);
-    const [mealMasters, setMealMasters] = useState([]);
-    const [airlines, setAirlines] = useState([]);
-    const [driverMasters, setDriverMasters] = useState([]);
-    const [vehicleBrands, setVehicleBrands] = useState([]);
-    const [vehicleMasters, setVehicleMasters] = useState([]);
-    const [pickupPoints, setPickupPoints] = useState([]);
-    const [vehicles, setVehicles] = useState([]);
-    const [hotelMasters, setHotelMasters] = useState([]);
-    const [roomTypes, setRoomTypes] = useState([]);
-    // New Sightseeing panel state
-    const [newSightseeingForm, setNewSightseeingForm] = useState({
-        name: '', description: '', address: '', city: '', duration: '', price: '', map_link: '',
-        latitude: '', longitude: '', images: []
-    });
-    const [hotelPanelDayIndex, setHotelPanelDayIndex] = useState(null);
-    const [newHotelForm, setNewHotelForm] = useState({
-        name: '', stars: '3', address: '', city: '', latitude: '', longitude: '', image: null
-    });
-    const [sightseeingPanelDayIndex, setSightseeingPanelDayIndex] = useState(null);
-
-    // Form state
-    const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        category: "",
-        starting_city: "",
-        ending_city: "",
-        days: "",
-        start_date: "",
-        group_size: 0,
-        offer_price: "",
-        price: "",
-        header_image: null,
-        card_image: null,
-        supplier: "",
-        with_flight: false,
-        fixed_departure: false,
-        package_categories: [], // ['Budget', 'Standard', 'Deluxe', 'Luxury', 'Premium']
-        is_active: true,
-        with_arrival: true,
-        arrival_city: "",
-        arrival_date: "",
-        arrival_time: "",
-        arrival_airport: "",
-        departure_city: "",
-        with_departure: true,
-        departure_date: "",
-        departure_time: "",
-        departure_airport: "",
-        arrival_airline: "",
-        arrival_flight_no: "",
-        departure_airline: "",
-        departure_flight_no: "",
-        highlights: "",
-        sharing: "SINGLE",
-        arrival_no_of_nights: "",
-    });
-    const [fixedDepartureData, setFixedDepartureData] = useState([]);
-
-    // Previews for existing images to show if no new file selected
-    const [headerPreview, setHeaderPreview] = useState(null);
-    const [cardPreview, setCardPreview] = useState(null);
-
-    const [startingCities, setStartingCities] = useState([]);
-    const [regions, setRegions] = useState([]);
-    const [destinations, setDestinations] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [itineraryMasters, setItineraryMasters] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
-    const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
-    const [activeSection, setActiveSection] = useState("overview");
 
     // Default logistics block for a travel date slot
     const mkLogistics = () => ({
