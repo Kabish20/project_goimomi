@@ -338,7 +338,7 @@ class ItineraryMaster(models.Model):
     details_json = models.JSONField(default=dict, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.destination.name if self.destination else 'Global'} - {self.name}"
+        return f"{self.city.name if self.city else 'Global'} - {self.name}"
 
 
 

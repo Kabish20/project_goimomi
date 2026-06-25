@@ -386,7 +386,10 @@ const HolidayPackageEdit = () => {
     const groupedItineraryMasters = useMemo(() => {
         return itineraryMasters.reduce((acc, master) => {
             let destName = "Global / General";
-            if (master.destination) {
+            if (master.city) {
+                const cityObj = startingCities.find(c => c.id === master.city);
+                if (cityObj) destName = cityObj.name;
+            } else if (master.destination) {
                 const destObj = destinations.find(d => d.id === master.destination);
                 if (destObj) destName = destObj.name;
             }
@@ -395,7 +398,7 @@ const HolidayPackageEdit = () => {
             acc[destName].push(master);
             return acc;
         }, {});
-    }, [itineraryMasters, destinations]);
+    }, [itineraryMasters, startingCities, destinations]);
 
     // Helper to fix image URLs
     const getImageUrl = (url) => {
@@ -2235,11 +2238,15 @@ const HolidayPackageEdit = () => {
                                                                             <div>
                                                                                 <p className="text-[11px] font-bold text-gray-800 mb-1.5">Search day itinerary from the database</p>
                                                                                 <SearchableSelect
-                                                                                    options={availableMasters.map(m => ({
-                                                                                        value: m.id.toString(),
-                                                                                        label: m.title || m.name,
-                                                                                        subtitle: m.destination_name || (destinations.find(d => d.id === m.destination)?.name)
-                                                                                    }))}
+                                                                                    options={availableMasters.map(m => {
+                                                                                        const cityObj = startingCities.find(c => c.id === m.city);
+                                                                                        const destObj = destinations.find(d => d.id === m.destination);
+                                                                                        return {
+                                                                                            value: m.id.toString(),
+                                                                                            label: m.title || m.name,
+                                                                                            subtitle: cityObj?.name || destObj?.name || m.destination_name || "Global / General"
+                                                                                        };
+                                                                                    })}
                                                                                     value={row.master_template?.toString()}
                                                                                     onChange={(val) => handleMasterTemplateChange(i, val)}
                                                                                     placeholder="🔍 Search for day itinerary in masters..."

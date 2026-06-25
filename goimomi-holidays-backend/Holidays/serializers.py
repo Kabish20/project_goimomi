@@ -427,7 +427,7 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
                             except: pass
                         
                         master_template_obj = ItineraryMaster.objects.create(
-                            destination=primary_dest,
+                            city=primary_dest,
                             name=title[:200],
                             title=title[:200],
                             description=day_data.get('description', ''),
@@ -513,9 +513,42 @@ class HolidayPackageSerializer(serializers.ModelSerializer):
 
 
 class ItineraryMasterSerializer(serializers.ModelSerializer):
+    destination = serializers.SerializerMethodField()
+
     class Meta:
         model = ItineraryMaster
         fields = "__all__"
+
+    def get_destination(self, obj):
+        if obj.city:
+            if obj.city.region:
+                return obj.city.region.id
+            return obj.city.id
+        return None
+
+    def to_internal_value(self, data):
+        mutable_data = data.copy() if hasattr(data, 'copy') else dict(data)
+        destination_val = mutable_data.pop('destination', None)
+        internal_data = super().to_internal_value(mutable_data)
+        if destination_val:
+            from Holidays.models import City, Region
+            city = None
+            if isinstance(destination_val, list):
+                destination_val = destination_val[0] if destination_val else None
+            if destination_val:
+                if str(destination_val).isdigit():
+                    region = Region.objects.filter(id=int(destination_val)).first()
+                    if region:
+                        city = City.objects.filter(name__iexact=region.name).first()
+                        if not city:
+                            city = City.objects.filter(region=region).first()
+                    else:
+                        city = City.objects.filter(id=int(destination_val)).first()
+                else:
+                    city = City.objects.filter(name__iexact=str(destination_val)).first()
+                if city:
+                    internal_data['city'] = city
+        return internal_data
 
 
 class UserSerializer(serializers.ModelSerializer):
