@@ -44,7 +44,7 @@ const HolidayEnquiryManage = () => {
       console.error(err);
       alert("Failed to update enquiry.");
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false); 
     }
   };
 
