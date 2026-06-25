@@ -185,7 +185,6 @@ const HolidayPackageEdit = () => {
                 if (parsed.cancellationPolicies) setCancellationPolicies(parsed.cancellationPolicies);
                 if (parsed.itineraryDays) setItineraryDays(parsed.itineraryDays);
                 if (parsed.fixedDepartureData) setFixedDepartureData(parsed.fixedDepartureData);
-                if (parsed.currentPage) setCurrentPage(parsed.currentPage);
                 setMessage("Draft restored successfully!");
                 setTimeout(() => setMessage(""), 3000);
             } catch (e) {
@@ -226,8 +225,7 @@ const HolidayPackageEdit = () => {
                     exclusions,
                     cancellationPolicies,
                     itineraryDays,
-                    fixedDepartureData,
-                    currentPage
+                    fixedDepartureData
                 };
                 localStorage.setItem(`goimomi_package_edit_draft_${id}`, JSON.stringify(draftData));
                 setAutosaveStatus("Saved");
@@ -239,7 +237,7 @@ const HolidayPackageEdit = () => {
         }, 1000);
 
         return () => clearTimeout(saveTimeout);
-    }, [formData, packageDestinations, highlights, inclusions, exclusions, cancellationPolicies, itineraryDays, fixedDepartureData, currentPage, isAutosaveEnabled, id, loading]);
+    }, [formData, packageDestinations, highlights, inclusions, exclusions, cancellationPolicies, itineraryDays, fixedDepartureData, isAutosaveEnabled, id, loading]);
 
     // Refs for Trip Information textareas
     const inclusionsRef = useRef(null);
@@ -2601,10 +2599,9 @@ const HolidayPackageEdit = () => {
                                                                     setItineraryDays(copy);
                                                                 };
                                                                 const currentDest = getDestinationForDay(i);
-                                                                const allPackageDests = packageDestinations.map(d => d.destination).filter(Boolean);
-                                                                const validDests = Array.from(new Set([currentDest, ...allPackageDests]))
-                                                                    .filter(d => d && d !== "---")
-                                                                    .map(d => d.trim().toLowerCase());
+                                                                const validDests = currentDest && currentDest !== "---"
+                                                                    ? [currentDest.trim().toLowerCase()]
+                                                                    : [];
 
                                                                 const allowedHotels = validDests.length > 0
                                                                     ? hotelMasters.filter(hm => {

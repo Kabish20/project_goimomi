@@ -2042,10 +2042,9 @@ const HolidayPackageAdd = () => {
                               setItineraryDays(copy);
                             };
                             const currentDest = getDestinationForDay(i);
-                            const allPackageDests = packageDestinations.map(d => d.destination).filter(Boolean);
-                            const validDests = Array.from(new Set([currentDest, ...allPackageDests]))
-                              .filter(d => d && d !== "---")
-                              .map(d => d.trim().toLowerCase());
+                            const validDests = currentDest && currentDest !== "---"
+                              ? [currentDest.trim().toLowerCase()]
+                              : [];
 
                             const allowedHotels = validDests.length > 0
                               ? hotelMasters.filter(hm => {
