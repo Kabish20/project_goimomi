@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Plus, Search, Package, Image as ImageIcon, Filter } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Package, Image as ImageIcon, Filter, Eye, X } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
@@ -18,6 +18,7 @@ const HolidayPackageManage = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
   const navigate = useNavigate();
   const API_BASE_URL = "/api";
@@ -281,7 +282,7 @@ const HolidayPackageManage = () => {
                               </div>
                               <div className="min-w-0 overflow-hidden">
                                 <p className="text-[13px] font-black text-gray-900 tracking-tight truncate uppercase" title={pkg.title || pkg.name}>{pkg.title || pkg.name}</p>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">ID: #{pkg.h_id || pkg.id}</p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">ID: GO-PA-{String(pkg.h_id || pkg.id).padStart(4, '0')}</p>
                               </div>
                             </div>
                           </td>
@@ -315,14 +316,23 @@ const HolidayPackageManage = () => {
                           <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
+                                onClick={() => setSelectedPackage(pkg)}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
+                                title="View Details"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button
                                 onClick={() => handleEdit(pkg)}
                                 className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-[#14532d] hover:text-white transition-all shadow-sm group/btn"
+                                title="Edit"
                               >
                                 <Edit2 size={14} />
                               </button>
                               <button
                                 onClick={() => handleDelete(pkg.id)}
                                 className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group/btn"
+                                title="Delete"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -354,6 +364,137 @@ const HolidayPackageManage = () => {
           </div>
         </div>
       </div>
+
+      {/* View Details Modal */}
+      {selectedPackage && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="p-6 bg-[#14532d] text-white flex justify-between items-center shrink-0">
+              <div>
+                <span className="px-2.5 py-0.5 rounded bg-white/10 text-green-300 text-[9px] font-black uppercase tracking-widest border border-white/10">
+                  {selectedPackage.category || "Global"}
+                </span>
+                <h2 className="text-lg font-black uppercase tracking-tight mt-2">{selectedPackage.title || selectedPackage.name}</h2>
+                <p className="text-[10px] font-bold text-green-200/80 uppercase tracking-widest mt-1">ID: GO-PA-{String(selectedPackage.h_id || selectedPackage.id).padStart(4, '0')}</p>
+              </div>
+              <button
+                onClick={() => setSelectedPackage(null)}
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-all active:scale-95 border border-white/5"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar bg-[#fcfdfc]">
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Duration</p>
+                  <p className="text-base font-black text-gray-900 mt-1">{selectedPackage.days} Days</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Starting City</p>
+                  <p className="text-base font-black text-[#14532d] mt-1">{selectedPackage.starting_city || "Any City"}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Ending City</p>
+                  <p className="text-base font-black text-gray-900 mt-1">{selectedPackage.ending_city || "N/A"}</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm text-center">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Price</p>
+                  <p className="text-base font-black text-gray-900 mt-1">₹{Number(selectedPackage.Offer_price || selectedPackage.offer_price || selectedPackage.price || 0).toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedPackage.description && (
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-2">
+                  <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Description</h4>
+                  <p className="text-xs font-medium text-gray-700 leading-relaxed whitespace-pre-line">{selectedPackage.description}</p>
+                </div>
+              )}
+
+              {/* Highlights, Inclusions, Exclusions */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Highlights */}
+                {((selectedPackage.highlights_raw && selectedPackage.highlights_raw.length > 0 && selectedPackage.highlights_raw[0]) || (selectedPackage.highlights && selectedPackage.highlights.length > 0)) && (
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                    <h4 className="text-[10px] font-black text-[#14532d] uppercase tracking-widest">Highlights</h4>
+                    <ul className="space-y-2">
+                      {(selectedPackage.highlights_raw || selectedPackage.highlights || []).map((h, i) => {
+                        const txt = typeof h === 'string' ? h : h.text;
+                        return txt && <li key={i} className="text-[11px] font-bold text-gray-600 flex gap-2"><span className="text-green-500">✦</span> {txt}</li>;
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Inclusions */}
+                {((selectedPackage.inclusions_raw && selectedPackage.inclusions_raw.length > 0 && selectedPackage.inclusions_raw[0]) || (selectedPackage.inclusions && selectedPackage.inclusions.length > 0)) && (
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                    <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Inclusions</h4>
+                    <ul className="space-y-2">
+                      {(selectedPackage.inclusions_raw || selectedPackage.inclusions || []).map((inc, i) => {
+                        const txt = typeof inc === 'string' ? inc : inc.text;
+                        return txt && <li key={i} className="text-[11px] font-bold text-gray-600 flex gap-2"><span className="text-blue-500">✓</span> {txt}</li>;
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Exclusions */}
+                {((selectedPackage.exclusions_raw && selectedPackage.exclusions_raw.length > 0 && selectedPackage.exclusions_raw[0]) || (selectedPackage.exclusions && selectedPackage.exclusions.length > 0)) && (
+                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+                    <h4 className="text-[10px] font-black text-red-600 uppercase tracking-widest">Exclusions</h4>
+                    <ul className="space-y-2">
+                      {(selectedPackage.exclusions_raw || selectedPackage.exclusions || []).map((exc, i) => {
+                        const txt = typeof exc === 'string' ? exc : exc.text;
+                        return txt && <li key={i} className="text-[11px] font-bold text-gray-600 flex gap-2"><span className="text-red-500">✕</span> {txt}</li>;
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Day Wise Itinerary */}
+              {selectedPackage.itinerary && selectedPackage.itinerary.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-[#14532d] uppercase tracking-[0.2em]">Day Wise Itinerary</h4>
+                  <div className="space-y-4">
+                    {selectedPackage.itinerary.map((day, idx) => (
+                      <div key={idx} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex gap-4 hover:border-green-100 transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-green-50 text-[#14532d] flex items-center justify-center font-black text-xs shrink-0 border border-green-100">
+                          {idx + 1}
+                        </div>
+                        <div className="space-y-2 flex-1">
+                          <h5 className="text-xs font-black text-gray-900 uppercase tracking-wide">{day.title || `Day ${idx + 1}`}</h5>
+                          <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-line">{day.description || "No description provided."}</p>
+                          {/* Daily details (sightseeing, meals, transfers) if they exist */}
+                          {day.details_json && (day.details_json.sightseeing?.length > 0 || day.details_json.meals?.length > 0 || day.details_json.transfers?.length > 0) && (
+                            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-50">
+                              {day.details_json.meals && day.details_json.meals.filter(m => m && m !== 'No Meals').map((m, mi) => (
+                                <span key={`meal-${mi}`} className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 text-[8px] font-black uppercase tracking-wider border border-amber-100">🍽 {m}</span>
+                              ))}
+                              {day.details_json.sightseeing && day.details_json.sightseeing.filter(Boolean).map((s, si) => (
+                                <span key={`sight-${si}`} className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[8px] font-black uppercase tracking-wider border border-indigo-100">👁 {s}</span>
+                              ))}
+                              {day.details_json.transfers && day.details_json.transfers.filter(Boolean).map((t, ti) => (
+                                <span key={`trans-${ti}`} className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[8px] font-black uppercase tracking-wider border border-blue-100">🚗 {t}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

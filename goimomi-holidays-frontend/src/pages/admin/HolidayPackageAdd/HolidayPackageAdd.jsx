@@ -256,6 +256,96 @@ const HolidayPackageAdd = () => {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
+
+  const [isAutosaveEnabled, setIsAutosaveEnabled] = useState(() => {
+    const saved = localStorage.getItem("goimomi_package_add_autosave_enabled");
+    return saved !== "false";
+  });
+  const [autosaveStatus, setAutosaveStatus] = useState("");
+  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
+
+  // Check for unsaved drafts on mount
+  useEffect(() => {
+    const draft = localStorage.getItem("goimomi_package_add_draft");
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        if (parsed.formData?.title || parsed.formData?.description || parsed.itineraryDays?.length > 1 || parsed.itineraryDays?.[0]?.title) {
+          setShowRestorePrompt(true);
+        }
+      } catch (e) {
+        console.error("Error checking draft:", e);
+      }
+    }
+  }, []);
+
+  const handleRestoreDraft = () => {
+    const draft = localStorage.getItem("goimomi_package_add_draft");
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        if (parsed.formData) setFormData(parsed.formData);
+        if (parsed.packageDestinations) setPackageDestinations(parsed.packageDestinations);
+        if (parsed.highlights) setHighlights(parsed.highlights);
+        if (parsed.inclusions) setInclusions(parsed.inclusions);
+        if (parsed.exclusions) setExclusions(parsed.exclusions);
+        if (parsed.cancellationPolicies) setCancellationPolicies(parsed.cancellationPolicies);
+        if (parsed.itineraryDays) setItineraryDays(parsed.itineraryDays);
+        if (parsed.fixedDepartureData) setFixedDepartureData(parsed.fixedDepartureData);
+        if (parsed.currentPage) setCurrentPage(parsed.currentPage);
+        setMessage("Draft restored successfully!");
+        setTimeout(() => setMessage(""), 3000);
+      } catch (e) {
+        console.error("Error restoring draft:", e);
+        setError("Failed to restore draft.");
+      }
+    }
+    setShowRestorePrompt(false);
+  };
+
+  const handleDiscardDraft = () => {
+    localStorage.removeItem("goimomi_package_add_draft");
+    setShowRestorePrompt(false);
+  };
+
+  // Autosave Debounced Hook
+  useEffect(() => {
+    if (!isAutosaveEnabled) {
+      localStorage.setItem("goimomi_package_add_autosave_enabled", "false");
+      return;
+    }
+    localStorage.setItem("goimomi_package_add_autosave_enabled", "true");
+
+    const saveTimeout = setTimeout(() => {
+      // Don't save completely empty forms
+      if (!formData.title && !formData.description && itineraryDays.length === 1 && !itineraryDays[0].title) {
+        return;
+      }
+      
+      setAutosaveStatus("Saving...");
+      try {
+        const draftData = {
+          formData,
+          packageDestinations,
+          highlights,
+          inclusions,
+          exclusions,
+          cancellationPolicies,
+          itineraryDays,
+          fixedDepartureData,
+          currentPage
+        };
+        localStorage.setItem("goimomi_package_add_draft", JSON.stringify(draftData));
+        setAutosaveStatus("Saved");
+        setTimeout(() => setAutosaveStatus(""), 1500);
+      } catch (e) {
+        console.error("Autosave error:", e);
+        setAutosaveStatus("Save failed");
+      }
+    }, 1000);
+
+    return () => clearTimeout(saveTimeout);
+  }, [formData, packageDestinations, highlights, inclusions, exclusions, cancellationPolicies, itineraryDays, fixedDepartureData, currentPage, isAutosaveEnabled]);
   const totalPages = 5;
 
   const TITLE_LIMIT = 200;
@@ -987,6 +1077,8 @@ const HolidayPackageAdd = () => {
         setHighlights([""]);
         setCancellationPolicies([""]);
         setVehicles([""]);
+        localStorage.removeItem("goimomi_package_add_draft");
+        setCurrentPage(1);
       }
     } catch (err) {
       console.error("Error adding package:", err);
@@ -1035,11 +1127,29 @@ const HolidayPackageAdd = () => {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => navigate('/admin/packages')}
-              className="px-6 py-2 rounded-xl border-2 border-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-95 shadow-sm"
+              onClick={() => navigate("/admin/packages")}
+              className="px-6 py-2.5 rounded-full border border-gray-200 text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-50 active:scale-95 transition-all"
             >
-              Cancel
+              CANCEL
             </button>
+            {/* Autosave Status UI */}
+            <div className="flex items-center gap-2.5 bg-gray-50 px-4 py-2 rounded-full border border-gray-100 shadow-sm shrink-0">
+              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Autosave</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isAutosaveEnabled}
+                  onChange={(e) => setIsAutosaveEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-8 h-4.5 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[#14532d]"></div>
+              </label>
+              {autosaveStatus && (
+                <span className="text-[8px] font-bold text-[#14532d] uppercase tracking-wider animate-pulse min-w-[50px] text-right">
+                  {autosaveStatus}
+                </span>
+              )}
+            </div>
 
             {currentPage === totalPages && (
               <button
@@ -1119,8 +1229,36 @@ const HolidayPackageAdd = () => {
           </div>
 
           {/* Form Content Area */}
-          <div className="flex-1 overflow-y-auto px-4 md:px-12 py-6 md:py-10 custom-scrollbar bg-[#fcfdfc]">
+          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 custom-scrollbar bg-[#fcfdfc]">
             <div className="max-w-4xl mx-auto pb-12">
+              {/* Restore Draft Banner */}
+              {showRestorePrompt && (
+                <div className="p-6 bg-green-50 border-2 border-green-100 rounded-[2rem] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-300 shadow-sm mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-green-100 p-2.5 rounded-2xl text-xl shrink-0">📝</div>
+                    <div>
+                      <h4 className="font-black text-xs text-[#14532d] uppercase tracking-wide">Unsaved Draft Found</h4>
+                      <p className="text-[10px] text-green-700/80 font-bold mt-1">We found a previously unsaved package draft in your browser. Would you like to restore your progress?</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleRestoreDraft}
+                      className="px-4 py-2 rounded-xl bg-[#14532d] text-white text-[9px] font-black uppercase tracking-wider shadow-md hover:bg-[#0f4022] active:scale-95 transition-all"
+                    >
+                      Restore Draft
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDiscardDraft}
+                      className="px-4 py-2 rounded-xl bg-white border border-red-200 text-red-600 text-[9px] font-black uppercase tracking-wider hover:bg-red-50 active:scale-95 transition-all"
+                    >
+                      Discard
+                    </button>
+                  </div>
+                </div>
+              )}
               {/* Success message */}
               {message && (
                 <div className="mb-6 p-4 bg-green-50 border-2 border-green-100 text-[#14532d] rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 shadow-xl shadow-green-900/5">
