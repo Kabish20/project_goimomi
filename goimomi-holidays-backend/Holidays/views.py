@@ -15,7 +15,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.decorators import authentication_classes, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, BasePermission
 from rest_framework.throttling import AnonRateThrottle
 
@@ -739,6 +739,19 @@ class CabBookingViewSet(ModelViewSet):
                 pass
 
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='send-email', permission_classes=[IsAuthenticated])
+    def send_email(self, request, pk=None):
+        booking = self.get_object()
+        try:
+            from .utils import send_booking_voucher
+            success = send_booking_voucher(booking)
+            if success:
+                return Response({"message": "Email sent successfully!"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Failed to send email. Check backend log for errors."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CabAdditionalDocumentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]

@@ -23,6 +23,7 @@ const CabBookingManage = () => {
     const [statusFilter, setStatusFilter] = useState("All");
     const [editSections, setEditSections] = useState({});
     const [invoiceSearch, setInvoiceSearch] = useState("");
+    const [sendingEmailId, setSendingEmailId] = useState(null);
 
     const API_BASE_URL = "/api";
 
@@ -97,6 +98,26 @@ const CabBookingManage = () => {
                 setError("Failed to delete booking. Please try again.");
             } finally {
                 setLoading(false);
+            }
+        }
+    };
+
+    const handleSendEmail = async (booking) => {
+        if (!booking.email) {
+            alert("No email address provided for this booking.");
+            return;
+        }
+        if (window.confirm(`Are you sure you want to send the booking voucher email to ${booking.email} and reservations@goimomi.com?`)) {
+            try {
+                setSendingEmailId(booking.id);
+                const response = await api.post(`${API_BASE_URL}/cab-bookings/${booking.id}/send-email/`);
+                alert(response.data.message || "Email sent successfully!");
+            } catch (err) {
+                console.error("Error sending email:", err);
+                const errMsg = err.response?.data?.error || err.response?.data?.detail || "Failed to send email.";
+                alert(errMsg);
+            } finally {
+                setSendingEmailId(null);
             }
         }
     };
@@ -663,6 +684,14 @@ const CabBookingManage = () => {
                                                     <td className="py-3 px-4">
                                                         <div className="flex justify-center gap-1.5">
                                                             <button
+                                                                onClick={() => handleSendEmail(booking)}
+                                                                disabled={sendingEmailId === booking.id}
+                                                                className={`p-2 text-purple-600 hover:bg-purple-50 rounded-md transition-colors ${sendingEmailId === booking.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                title="Send Email"
+                                                            >
+                                                                <Mail size={16} className={sendingEmailId === booking.id ? "animate-pulse" : ""} />
+                                                            </button>
+                                                            <button
                                                                 onClick={() => handleDownloadVoucher(booking)}
                                                                 className="p-2 text-green-600 hover:bg-green-50 rounded-md transition-colors"
                                                                 title="Download Voucher"
@@ -711,6 +740,16 @@ const CabBookingManage = () => {
                             <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-[#14532d] text-white">
                                 <h2 className="text-sm font-black uppercase tracking-tight">View / Edit Cab Booking</h2>
                                 <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSendEmail(editingBooking)}
+                                        disabled={sendingEmailId === editingBooking.id}
+                                        className={`text-white/60 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg flex items-center gap-1.5 ${sendingEmailId === editingBooking.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        title="Send Email"
+                                    >
+                                        <Mail size={14} className={sendingEmailId === editingBooking.id ? "animate-pulse" : ""} />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">{sendingEmailId === editingBooking.id ? "Sending..." : "Send Email"}</span>
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => handleDownloadVoucher(editingBooking)}
