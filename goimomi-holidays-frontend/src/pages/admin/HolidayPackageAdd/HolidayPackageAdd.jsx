@@ -137,6 +137,18 @@ const DynamicList = ({ label, items, setItems, placeholder, required }) => {
 
 const HolidayPackageAdd = () => {
   const navigate = useNavigate();
+  const getPreviewUrl = (file) => {
+    if (!file) return "";
+    if (file instanceof File || file instanceof Blob) {
+      try {
+        return URL.createObjectURL(file);
+      } catch (e) {
+        console.error("Error creating object URL:", e);
+        return "";
+      }
+    }
+    return "";
+  };
   const [packageDestinations, setPackageDestinations] = useState([
     { destination: "", nights: 1 },
   ]);
@@ -1389,9 +1401,9 @@ const HolidayPackageAdd = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className={`relative border-2 border-dashed rounded-2xl p-4 transition-all h-full min-h-[100px] flex flex-col items-center justify-center ${formData.header_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
-                          {formData.header_image ? (
+                          {formData.header_image && (formData.header_image instanceof File || formData.header_image instanceof Blob) ? (
                             <div className="text-center group/main w-full h-full relative">
-                              <img src={URL.createObjectURL(formData.header_image)} alt="H" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
+                              <img src={getPreviewUrl(formData.header_image)} alt="H" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
                               <button type="button" onClick={() => setFormData({ ...formData, header_image: null })} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-lg active:scale-90 transition-transform"><X size={10} /></button>
                             </div>
                           ) : (
@@ -1404,9 +1416,9 @@ const HolidayPackageAdd = () => {
                         </div>
 
                         <div className={`relative border-2 border-dashed rounded-2xl p-4 transition-all h-full min-h-[100px] flex flex-col items-center justify-center ${formData.card_image ? 'bg-green-50/30 border-green-200' : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-[#14532d]/40'} group cursor-pointer`}>
-                          {formData.card_image ? (
+                          {formData.card_image && (formData.card_image instanceof File || formData.card_image instanceof Blob) ? (
                             <div className="text-center group/card w-full h-full relative">
-                              <img src={URL.createObjectURL(formData.card_image)} alt="C" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
+                              <img src={getPreviewUrl(formData.card_image)} alt="C" className="h-full w-full object-cover rounded-xl border-2 border-white shadow-sm" />
                               <button type="button" onClick={() => setFormData({ ...formData, card_image: null })} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-lg active:scale-90 transition-transform"><X size={10} /></button>
                             </div>
                           ) : (
@@ -1762,9 +1774,9 @@ const HolidayPackageAdd = () => {
                                   <div>
                                     <FormLabel label="Day Visual (Image)" optional />
                                     <div className={`relative border-2 border-dashed rounded-3xl p-4 transition-all min-h-[120px] flex flex-col items-center justify-center ${row.image ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50 hover:bg-white hover:border-[#14532d]/40'}`}>
-                                      {row.image ? (
+                                      {row.image && (row.image instanceof File || row.image instanceof Blob) ? (
                                         <div className="relative group/dayimg">
-                                          <img src={URL.createObjectURL(row.image)} alt="Day" className="h-28 w-full object-cover rounded-2xl border-2 border-white shadow-xl transition-transform group-hover/dayimg:scale-[1.05]" />
+                                          <img src={getPreviewUrl(row.image)} alt="Day" className="h-28 w-full object-cover rounded-2xl border-2 border-white shadow-xl transition-transform group-hover/dayimg:scale-[1.05]" />
                                           <button type="button" onClick={() => { const copy = [...itineraryDays]; copy[i].image = null; setItineraryDays(copy); }} className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-1.5 shadow-xl opacity-0 group-hover/dayimg:opacity-100 transition-opacity"><X size={12} /></button>
                                         </div>
                                       ) : (
@@ -1956,7 +1968,7 @@ const HolidayPackageAdd = () => {
                                           </label>
                                           {(newSightseeingForm.images || []).map((img, imgIdx) => (
                                             <div key={imgIdx} className="relative w-[46px] h-[40px]">
-                                              <img src={URL.createObjectURL(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
+                                              <img src={getPreviewUrl(img)} alt="" className="w-full h-full object-cover rounded border border-gray-200" />
                                               <button type="button" onClick={() => setNewSightseeingForm(p => ({ ...p, images: p.images.filter((_, j) => j !== imgIdx) }))} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
                                             </div>
                                           ))}
@@ -2206,9 +2218,9 @@ const HolidayPackageAdd = () => {
                                         <p className="text-[9px] font-semibold text-gray-600 mb-0.5">Hotel Image</p>
                                         <div className="border border-dashed border-gray-300 rounded-sm p-2 flex items-center justify-center min-h-[44px] relative">
                                           <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { if (e.target.files?.[0]) setNewHotelForm(p => ({ ...p, image: e.target.files[0] })); }} />
-                                          {newHotelForm.image ? (
-                                            <div className="relative w-full h-16 rounded overflow-hidden">
-                                              <img src={URL.createObjectURL(newHotelForm.image)} alt="Preview" className="w-full h-full object-cover" />
+                                          {newHotelForm.image && (newHotelForm.image instanceof File || newHotelForm.image instanceof Blob) ? (
+                                            <div key={imgIdx || 0} className="relative w-full h-16 rounded overflow-hidden">
+                                              <img src={getPreviewUrl(newHotelForm.image)} alt="Preview" className="w-full h-full object-cover" />
                                               <button type="button" onClick={(e) => { e.stopPropagation(); setNewHotelForm(p => ({ ...p, image: null })); }} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
                                             </div>
                                           ) : (
