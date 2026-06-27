@@ -304,11 +304,6 @@ Goimomi Holidays
     recipients = []
     if booking.email:
         recipients.append(booking.email)
-    
-    # Add company email from settings (default to Reservations@goimomi.com if not defined)
-    company_email = getattr(settings, 'COMPANY_EMAIL', 'Reservations@goimomi.com')
-    if company_email:
-        recipients.append(company_email)
         
     # Ensure recipients is a list of unique non-empty emails
     recipients = list(set(recipients))
@@ -316,8 +311,12 @@ Goimomi Holidays
         print("Error: No email recipients found for booking.")
         return False
         
+    # Add company email from settings as BCC (default to Reservations@goimomi.com if not defined)
+    company_email = getattr(settings, 'COMPANY_EMAIL', 'Reservations@goimomi.com')
+    bcc_recipients = [company_email] if company_email else []
+        
     # Build email message
-    sender = getattr(settings, 'EMAIL_HOST_USER', 'Reservations@goimomi.com')
+    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Reservations@goimomi.com')
     if not sender:
         sender = 'Reservations@goimomi.com'
         
@@ -325,7 +324,8 @@ Goimomi Holidays
         subject=subject,
         body=text_content,
         from_email=sender,
-        to=recipients
+        to=recipients,
+        bcc=bcc_recipients
     )
     email.attach_alternative(html_content, "text/html")
     
