@@ -89,7 +89,7 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
             setActiveIndex(prev => (prev > 0 ? prev - 1 : prev === 0 ? -1 : prev));
         } else if (e.key === "Enter") {
             e.preventDefault();
-            if (activeIndex >= 0) {
+            if (activeIndex >= 0 && !currentList[activeIndex].disabled) {
                 onChange(currentList[activeIndex].value);
                 setIsOpen(false);
                 setSearchTerm("");
@@ -159,17 +159,26 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
     }, [isOpen, updateDropdownPosition]);
 
     const renderedItems = useMemo(() => {
-        const itemClass = (isMatch, idx, val, active) => `
-            px-3 py-1.5 text-[10px] cursor-pointer transition-all flex flex-col gap-0
-            ${val === value ? "bg-green-50 text-[#14532d]" : (idx === active ? "bg-gray-100 text-black border-l-4 border-[#14532d]" : "text-gray-900 hover:bg-gray-50 hover:text-black")}
+        const itemClass = (isMatch, idx, val, active, disabled) => `
+            px-3 py-1.5 text-[10px] transition-all flex flex-col gap-0
+            ${disabled ? "opacity-40 cursor-not-allowed bg-gray-50/50 text-gray-400" : "cursor-pointer"}
+            ${!disabled && val === value ? "bg-green-50 text-[#14532d]" : ""}
+            ${!disabled && val !== value && idx === active ? "bg-gray-100 text-black border-l-4 border-[#14532d]" : ""}
+            ${!disabled && val !== value && idx !== active ? "text-gray-900 hover:bg-gray-50 hover:text-black" : ""}
         `;
 
         if (debouncedTerm) {
             return filteredOptions.slice(0, displayCount).map((option, index) => (
                 <div key={option.value} ref={el => optionsRef.current[index] = el}
-                    className={itemClass(true, index, option.value, activeIndex)}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onMouseDown={(e) => { e.preventDefault(); onChange(option.value); setIsOpen(false); setSearchTerm(""); }}>
+                    className={itemClass(true, index, option.value, activeIndex, option.disabled)}
+                    onMouseEnter={() => !option.disabled && setActiveIndex(index)}
+                    onMouseDown={(e) => { 
+                        e.preventDefault(); 
+                        if (option.disabled) return;
+                        onChange(option.value); 
+                        setIsOpen(false); 
+                        setSearchTerm(""); 
+                    }}>
                     <div className="font-black tracking-tight leading-tight">{option.label}</div>
                     {option.subtitle && <div className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{option.subtitle}</div>}
                 </div>
@@ -186,9 +195,15 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
                     if (renderedCount >= displayCount) break;
                     groupOpts.push(
                         <div key={option.value} ref={el => optionsRef.current[option.overallIndex] = el}
-                            className={itemClass(false, option.overallIndex, option.value, activeIndex)}
-                            onMouseEnter={() => setActiveIndex(option.overallIndex)}
-                            onMouseDown={(e) => { e.preventDefault(); onChange(option.value); setIsOpen(false); setSearchTerm(""); }}>
+                            className={itemClass(false, option.overallIndex, option.value, activeIndex, option.disabled)}
+                            onMouseEnter={() => !option.disabled && setActiveIndex(option.overallIndex)}
+                            onMouseDown={(e) => { 
+                                e.preventDefault(); 
+                                if (option.disabled) return;
+                                onChange(option.value); 
+                                setIsOpen(false); 
+                                setSearchTerm(""); 
+                            }}>
                             <div className="font-black tracking-tight pl-2 leading-tight">{option.label}</div>
                             {option.subtitle && <div className="text-[8px] text-gray-400 font-bold uppercase tracking-widest pl-2">{option.subtitle}</div>}
                         </div>
@@ -201,9 +216,15 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
             } else {
                 items.push(
                     <div key={group.value} ref={el => optionsRef.current[group.overallIndex] = el}
-                        className={itemClass(false, group.overallIndex, group.value, activeIndex)}
-                        onMouseEnter={() => setActiveIndex(group.overallIndex)}
-                        onMouseDown={(e) => { e.preventDefault(); onChange(group.value); setIsOpen(false); setSearchTerm(""); }}>
+                        className={itemClass(false, group.overallIndex, group.value, activeIndex, group.disabled)}
+                        onMouseEnter={() => !group.disabled && setActiveIndex(group.overallIndex)}
+                        onMouseDown={(e) => { 
+                            e.preventDefault(); 
+                            if (group.disabled) return;
+                            onChange(group.value); 
+                            setIsOpen(false); 
+                            setSearchTerm(""); 
+                        }}>
                         <div className="font-black tracking-tight leading-tight">{group.label}</div>
                         {group.subtitle && <div className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{group.subtitle}</div>}
                     </div>
