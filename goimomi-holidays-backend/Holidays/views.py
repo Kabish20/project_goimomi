@@ -271,6 +271,14 @@ class HolidayEnquiryAPI(ModelViewSet):
     serializer_class = HolidayEnquirySerializer
     pagination_class = None
 
+    def perform_create(self, serializer):
+        enquiry = serializer.save()
+        try:
+            from .utils import send_enquiry_email
+            send_enquiry_email(enquiry, "Holiday Package")
+        except Exception as e:
+            print(f"Error calling send_enquiry_email: {e}")
+
 
 class UmrahEnquiryAPI(ModelViewSet):
     permission_classes = [IsAuthenticatedOrWriteOnly]
@@ -278,12 +286,29 @@ class UmrahEnquiryAPI(ModelViewSet):
     serializer_class = UmrahEnquirySerializer
     pagination_class = None
 
+    def perform_create(self, serializer):
+        enquiry = serializer.save()
+        try:
+            from .utils import send_enquiry_email
+            send_enquiry_email(enquiry, "Umrah")
+        except Exception as e:
+            print(f"Error calling send_enquiry_email: {e}")
+
 
 class EnquiryAPI(ModelViewSet):
     permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = Enquiry.objects.all()
     serializer_class = EnquirySerializer
     pagination_class = None
+
+    def perform_create(self, serializer):
+        enquiry = serializer.save()
+        try:
+            from .utils import send_enquiry_email
+            enquiry_type = getattr(enquiry, 'enquiry_type', 'General')
+            send_enquiry_email(enquiry, enquiry_type)
+        except Exception as e:
+            print(f"Error calling send_enquiry_email: {e}")
 
 
 class HolidayPackageViewSet(ModelViewSet):

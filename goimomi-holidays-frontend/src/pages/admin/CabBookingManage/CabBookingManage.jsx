@@ -107,7 +107,7 @@ const CabBookingManage = () => {
             alert("No email address provided for this booking.");
             return;
         }
-        if (window.confirm(`Are you sure you want to send the booking voucher email to ${booking.email} and reservations@goimomi.com?`)) {
+        if (window.confirm(`Are you sure you want to send the booking voucher email to ${booking.email}?`)) {
             try {
                 setSendingEmailId(booking.id);
                 const response = await api.post(`${API_BASE_URL}/cab-bookings/${booking.id}/send-email/`);

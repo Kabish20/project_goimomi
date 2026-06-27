@@ -193,10 +193,15 @@ def generate_booking_pdf(booking):
     
     # 6. Fare Block
     story.append(Spacer(1, 12))
+    try:
+        fare_val = f"₹{booking.price:,.2f}"
+    except (TypeError, ValueError):
+        fare_val = f"₹{booking.price}" if booking.price is not None else "₹0.00"
+
     fare_data = [
         [
             Paragraph("<b>TOTAL FARE AMOUNT (INR):</b>", ParagraphStyle('FareLabel', parent=normal_bold, fontSize=11, textColor=primary_color)),
-            Paragraph(f"<b>₹{booking.price:,.2f}</b>", ParagraphStyle('FareVal', parent=normal_bold, fontSize=14, textColor=primary_color, alignment=2))
+            Paragraph(f"<b>{fare_val}</b>", ParagraphStyle('FareVal', parent=normal_bold, fontSize=14, textColor=primary_color, alignment=2))
         ]
     ]
     fare_table = Table(fare_data, colWidths=[300, 240])
@@ -257,6 +262,17 @@ def send_booking_voucher(booking):
     """
     subject = f"Goimomi Holidays - Booking Confirmation - {booking.booking_id}"
     
+    # Prepare date and price formatting safely
+    try:
+        travel_date_str = booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "N/A"
+    except Exception:
+        travel_date_str = str(booking.pickup_date) if booking.pickup_date else "N/A"
+        
+    try:
+        total_amount_str = f"{booking.price:,.2f}"
+    except (TypeError, ValueError):
+        total_amount_str = str(booking.price) if booking.price is not None else "0.00"
+
     # Prepare booking context compatible with the new car_booking_voucher template
     booking_context = {
         'booking_id': booking.booking_id,
@@ -266,9 +282,9 @@ def send_booking_voucher(booking):
         'vehicle_type': f"{booking.vehicle_name} ({booking.vehicle_category})" if booking.vehicle_category else booking.vehicle_name,
         'pickup_location': booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city),
         'drop_location': booking.to_city,
-        'travel_date': booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "N/A",
+        'travel_date': travel_date_str,
         'pickup_time': booking.pickup_time or booking.arrival_time or "N/A",
-        'total_amount': f"{booking.price:,.2f}",
+        'total_amount': total_amount_str,
         'payment_status': booking.status,
     }
     
@@ -287,8 +303,8 @@ Thank you for choosing Goimomi Holidays. Your booking has been confirmed!
 Booking Reference ID: {booking.booking_id}
 Vehicle: {booking.vehicle_name} ({booking.vehicle_category})
 Route: {booking.from_city} to {booking.to_city}
-Travel Date: {booking.pickup_date}
-Fare Amount: INR {booking.price}
+Travel Date: {travel_date_str}
+Fare Amount: INR {total_amount_str}
 
 A professional PDF voucher is attached to this email.
 
@@ -300,6 +316,9 @@ Thank you,
 Goimomi Holidays
 """
     
+    # Add company email from settings (default to Reservations@goimomi.com if not defined)
+    company_email = getattr(settings, 'COMPANY_EMAIL', 'Reservations@goimomi.com')
+
     # Compile recipients list
     recipients = []
     if booking.email:
@@ -308,12 +327,14 @@ Goimomi Holidays
     # Ensure recipients is a list of unique non-empty emails
     recipients = list(set(recipients))
     if not recipients:
-        print("Error: No email recipients found for booking.")
-        return False
-        
-    # Add company email from settings as BCC (default to Reservations@goimomi.com if not defined)
-    company_email = getattr(settings, 'COMPANY_EMAIL', 'Reservations@goimomi.com')
-    bcc_recipients = [company_email] if company_email else []
+        if company_email:
+            recipients = [company_email]
+            bcc_recipients = []
+        else:
+            print("Error: No email recipients found for booking.")
+            return False
+    else:
+        bcc_recipients = [company_email] if company_email else []
         
     # Build email message
     sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Reservations@goimomi.com')
@@ -349,4 +370,141 @@ Goimomi Holidays
         return True
     except Exception as e:
         print(f"Error sending booking confirmation email: {e}")
+        return False
+
+
+def send_enquiry_email(enquiry, enquiry_type):
+    """
+    Sends an enquiry confirmation email to the customer and a BCC copy to the company.
+    """
+    # Build a clean subject line
+    subject = f"Goimomi Holidays - {enquiry_type} Enquiry Received - #{enquiry.id}"
+    
+    # Safely get full name
+    customer_name = getattr(enquiry, 'full_name', getattr(enquiry, 'name', 'Customer'))
+    
+    # Safely format date
+    travel_date_val = getattr(enquiry, 'travel_date', None)
+    try:
+        travel_date_str = travel_date_val.strftime('%d %b %Y') if travel_date_val else "N/A"
+    except Exception:
+        travel_date_str = str(travel_date_val) if travel_date_val else "N/A"
+
+    # Gather all fields into details based on what enquiry model has
+    details = []
+    
+    # Common fields
+    if hasattr(enquiry, 'email') and enquiry.email:
+        details.append({'label': 'Email Address', 'value': enquiry.email})
+    if hasattr(enquiry, 'phone') and enquiry.phone:
+        details.append({'label': 'Phone Number', 'value': enquiry.phone})
+    if hasattr(enquiry, 'nationality') and enquiry.nationality:
+        details.append({'label': 'Nationality', 'value': enquiry.nationality})
+        
+    # Travel parameters
+    if hasattr(enquiry, 'start_city') and enquiry.start_city:
+        details.append({'label': 'Starting City', 'value': enquiry.start_city})
+    elif hasattr(enquiry, 'from_city') and enquiry.from_city:
+        details.append({'label': 'From City', 'value': enquiry.from_city})
+        
+    if hasattr(enquiry, 'to_city') and enquiry.to_city:
+        details.append({'label': 'To City', 'value': enquiry.to_city})
+    elif hasattr(enquiry, 'destination') and enquiry.destination:
+        details.append({'label': 'Destination', 'value': enquiry.destination})
+        
+    if travel_date_val:
+        details.append({'label': 'Travel Date', 'value': travel_date_str})
+        
+    # Package specific details
+    if hasattr(enquiry, 'package_type') and enquiry.package_type:
+        details.append({'label': 'Package Type', 'value': enquiry.package_type})
+    if hasattr(enquiry, 'holiday_type') and enquiry.holiday_type:
+        details.append({'label': 'Holiday Type', 'value': enquiry.holiday_type})
+    if hasattr(enquiry, 'nights') and enquiry.nights:
+        details.append({'label': 'Number of Nights', 'value': str(enquiry.nights)})
+    if hasattr(enquiry, 'rooms') and enquiry.rooms:
+        details.append({'label': 'Rooms Required', 'value': str(enquiry.rooms)})
+    if hasattr(enquiry, 'star_rating') and enquiry.star_rating:
+        details.append({'label': 'Hotel Star Rating', 'value': enquiry.star_rating})
+    if hasattr(enquiry, 'room_type') and enquiry.room_type:
+        details.append({'label': 'Room Type Preference', 'value': enquiry.room_type})
+    if hasattr(enquiry, 'meal_plan') and enquiry.meal_plan:
+        details.append({'label': 'Meal Plan Preference', 'value': enquiry.meal_plan})
+    if hasattr(enquiry, 'transfer_details') and enquiry.transfer_details:
+        details.append({'label': 'Transfer Details', 'value': enquiry.transfer_details})
+        
+    # Passengers
+    passenger_info = []
+    if hasattr(enquiry, 'adults') and enquiry.adults:
+        passenger_info.append(f"{enquiry.adults} Adults")
+    if hasattr(enquiry, 'children') and enquiry.children:
+        passenger_info.append(f"{enquiry.children} Children")
+    if hasattr(enquiry, 'infants') and enquiry.infants:
+        passenger_info.append(f"{enquiry.infants} Infants")
+    if passenger_info:
+        details.append({'label': 'Travelers', 'value': ", ".join(passenger_info)})
+        
+    # Vehicle and Budget
+    if hasattr(enquiry, 'vehicle') and enquiry.vehicle:
+        details.append({'label': 'Vehicle Preference', 'value': enquiry.vehicle})
+    if hasattr(enquiry, 'budget') and enquiry.budget:
+        details.append({'label': 'Expected Budget', 'value': enquiry.budget})
+        
+    # Purpose / Message
+    if hasattr(enquiry, 'purpose') and enquiry.purpose:
+        details.append({'label': 'Purpose of Travel', 'value': enquiry.purpose})
+    if hasattr(enquiry, 'message') and enquiry.message:
+        details.append({'label': 'Additional Comments', 'value': enquiry.message})
+        
+    # Render HTML content
+    html_content = render_to_string(
+        'emails/enquiry_notification.html',
+        {
+            'enquiry_type': enquiry_type,
+            'customer_name': customer_name,
+            'details': details
+        }
+    )
+    
+    # Fallback plain text
+    text_content = f"Dear {customer_name},\n\nThank you for contacting Goimomi Holidays.\nWe have received your request for: {enquiry_type} Enquiry.\n\nOur travel experts will review your request and get back to you shortly.\n\nRegards,\nGoimomi Holidays"
+    
+    # Compile recipient list
+    company_email = getattr(settings, 'COMPANY_EMAIL', 'Reservations@goimomi.com')
+    customer_email = getattr(enquiry, 'email', None)
+    
+    recipients = []
+    if customer_email:
+        recipients.append(customer_email)
+        
+    recipients = list(set(recipients))
+    if not recipients:
+        if company_email:
+            recipients = [company_email]
+            bcc_recipients = []
+        else:
+            print(f"Error: No email recipients found for enquiry {enquiry.id}.")
+            return False
+    else:
+        bcc_recipients = [company_email] if company_email else []
+        
+    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Reservations@goimomi.com')
+    if not sender:
+        sender = 'Reservations@goimomi.com'
+        
+    email_msg = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=sender,
+        to=recipients,
+        bcc=bcc_recipients
+    )
+    email_msg.attach_alternative(html_content, "text/html")
+    
+    try:
+        email_msg.send(fail_silently=False)
+        print(f"Enquiry confirmation email sent successfully to {recipients} for enquiry {enquiry.id}")
+        return True
+    except Exception as e:
+        print(f"Error sending enquiry confirmation email: {e}")
         return False

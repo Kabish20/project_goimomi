@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goimomi Holidays - Enquiry Confirmation</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #14532d 0%, #15803d 100%);
+            padding: 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 8px 0 0 0;
+            font-size: 13px;
+            color: #d1fae5;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-weight: 600;
+        }
+        .content {
+            padding: 35px 30px;
+        }
+        .greeting {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #1e293b;
+            margin: 25px 0 12px 0;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            padding: 10px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .info-table .label {
+            color: #64748b;
+            font-weight: 600;
+            width: 35%;
+        }
+        .info-table .value {
+            color: #334155;
+            font-weight: 700;
+            text-align: right;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #f1f5f9;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .footer p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Goimomi Holidays</h1>
+            <p>{{ enquiry_type }} Enquiry Confirmation</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Dear <strong>{{ customer_name }}</strong>,<br><br>
+                Thank you for contacting Goimomi Holidays. We have received your request and our travel experts will review it and get back to you shortly.
+            </div>
+
+            <!-- Enquiry details -->
+            <div class="section-title">Enquiry Details</div>
+            <table class="info-table">
+                {% for item in details %}
+                {% if item.value %}
+                <tr>
+                    <td class="label">{{ item.label }}</td>
+                    <td class="value">{{ item.value }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>If you have any urgent questions, please feel free to reach out to us:</p>
+            <p><strong>Call:</strong> +91 81100 82222 | <strong>Email:</strong> <a href="mailto:hello@goimomi.com">hello@goimomi.com</a></p>
+            <p>&copy; 2026 Goimomi Holidays. All Rights Reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
