@@ -227,7 +227,7 @@ const Cab = () => {
       if (Array.isArray(response.data)) {
         const seen = new Set();
         const options = [];
-        const activeCities = ["jeddah", "makkah", "mecca", "madinah", "medina", "taif"];
+        const activeCities = ["jeddah", "makkah", "mecca", "madinah", "taif"];
         response.data.forEach(d => {
           const name = d.name || "";
           if (name.toLowerCase().trim() === "jeddah (jed)") {
