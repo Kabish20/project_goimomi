@@ -227,7 +227,7 @@ const Cab = () => {
       if (Array.isArray(response.data)) {
         const seen = new Set();
         const options = [];
-        const activeCities = ["jeddah", "makkah", "madinah", "taif"];
+        const activeCities = ["jeddah", "makkah", "mecca", "madinah", "medina", "taif"];
         response.data.forEach(d => {
           const name = d.name || "";
           if (name.toLowerCase().trim() === "jeddah (jed)") {
@@ -237,12 +237,13 @@ const Cab = () => {
           if (!seen.has(key)) {
             seen.add(key);
             const isActive = activeCities.includes(key);
-            options.push({
-              label: d.name,
-              value: d.id.toString(),
-              subtitle: d.region_name ? `${d.region_name}, ${d.country_name}` : d.country_name,
-              disabled: !isActive
-            });
+            if (isActive) {
+              options.push({
+                label: d.name,
+                value: d.id.toString(),
+                subtitle: d.region_name ? `${d.region_name}, ${d.country_name}` : d.country_name
+              });
+            }
           }
         });
         setDestinations(options);
