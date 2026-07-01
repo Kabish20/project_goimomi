@@ -720,11 +720,8 @@ const Cab = () => {
                           <input
                             type="date"
                             value={item.pickupDate}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupDate: val, arrivalDate: val, departureDate: val } : c));
-                            }}
-                            className="bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[10px] font-black text-gray-800 focus:outline-none"
+                            disabled={true}
+                            className="bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] font-black text-gray-500 cursor-not-allowed outline-none"
                           />
                         </div>
                       </div>

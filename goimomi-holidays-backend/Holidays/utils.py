@@ -1,4 +1,5 @@
 import io
+from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -274,6 +275,21 @@ def send_booking_voucher(booking):
         total_amount_str = str(booking.price) if booking.price is not None else "0.00"
 
     # Prepare booking context compatible with the new car_booking_voucher template
+    raw_time = booking.pickup_time or booking.arrival_time or "N/A"
+    formatted_time = "N/A"
+    if raw_time != "N/A":
+        parts = raw_time.strip().split()
+        time_part = parts[1] if len(parts) == 2 else parts[0]
+        try:
+            t_obj = datetime.strptime(time_part, "%H:%M")
+            formatted_time = t_obj.strftime("%I:%M %p")
+        except Exception:
+            try:
+                t_obj = datetime.strptime(time_part, "%H:%M:%S")
+                formatted_time = t_obj.strftime("%I:%M %p")
+            except Exception:
+                formatted_time = time_part
+
     booking_context = {
         'booking_id': booking.booking_id,
         'customer_name': f"{booking.title} {booking.first_name} {booking.last_name}".strip(),
@@ -283,7 +299,7 @@ def send_booking_voucher(booking):
         'pickup_location': booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city),
         'drop_location': booking.to_city,
         'travel_date': travel_date_str,
-        'pickup_time': booking.pickup_time or booking.arrival_time or "N/A",
+        'pickup_time': formatted_time,
         'total_amount': total_amount_str,
         'payment_status': booking.status,
     }
