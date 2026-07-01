@@ -13,12 +13,8 @@ from reportlab.lib import colors
 def generate_booking_pdf(booking):
     """
     Generates a highly-stylized, professional 1-page PDF voucher for the booking
-    using ReportLab SimpleDocTemplate that matches the ticket poster design.
+    using ReportLab SimpleDocTemplate.
     """
-    import os
-    import urllib.request
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-    
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -31,442 +27,229 @@ def generate_booking_pdf(booking):
     story = []
     styles = getSampleStyleSheet()
     
-    # Premium Color Palette
-    primary_green = colors.HexColor("#14532d")
-    pill_green = colors.HexColor("#16a34a")
-    pill_pink = colors.HexColor("#db2777")
-    pill_orange = colors.HexColor("#ea580c")
-    bg_pink_box = colors.HexColor("#fdf2f8")
-    border_pink_box = colors.HexColor("#fbcfe8")
-    bg_grey_box = colors.HexColor("#f8fafc")
-    border_grey = colors.HexColor("#cbd5e1")
-    text_slate = colors.HexColor("#1e293b")
-    text_muted = colors.HexColor("#64748b")
-    text_light_muted = colors.HexColor("#94a3b8")
-
-    # Define custom styles
-    voucher_title_style = ParagraphStyle(
-        'VoucherTitle',
+    # Premium Color Palette matching Goimomi theme
+    primary_color = colors.HexColor("#14532d") # Deep emerald
+    secondary_color = colors.HexColor("#15803d") # Lighter green accent
+    text_color = colors.HexColor("#334155") # Slate dark
+    bg_light = colors.HexColor("#f8fafc") # Slate light
+    border_color = colors.HexColor("#cbd5e1") # Slate borders
+    
+    title_style = ParagraphStyle(
+        'DocTitle',
         parent=styles['Heading1'],
         fontName='Helvetica-Bold',
-        fontSize=18,
-        textColor=primary_green,
-        alignment=1,
-        spaceAfter=1
-    )
-    voucher_subtitle_style = ParagraphStyle(
-        'VoucherSubtitle',
-        parent=styles['Normal'],
-        fontName='Helvetica-BoldOblique',
-        fontSize=8,
-        textColor=text_muted,
-        alignment=1
-    )
-    badge_label_style = ParagraphStyle(
-        'BadgeLabel',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=7,
+        fontSize=20,
         textColor=colors.white,
-        alignment=1
+        alignment=1, # Center
+        spaceAfter=5
     )
-    badge_val_style = ParagraphStyle(
-        'BadgeVal',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=11,
-        textColor=text_slate,
-        alignment=1
-    )
-    pill_text_style = ParagraphStyle(
-        'PillText',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=8,
-        textColor=colors.white,
-        alignment=1
-    )
-    info_label_style = ParagraphStyle(
-        'InfoLabel',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=8,
-        textColor=text_light_muted,
-        spaceAfter=1
-    )
-    info_val_style = ParagraphStyle(
-        'InfoVal',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=9,
-        textColor=text_slate,
-        spaceAfter=6
-    )
-    car_title_style = ParagraphStyle(
-        'CarTitle',
+    
+    subtitle_style = ParagraphStyle(
+        'DocSubtitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
         fontSize=10,
-        textColor=pill_pink,
-        alignment=1,
-        spaceAfter=4
+        textColor=colors.HexColor("#d1fae5"),
+        alignment=1, # Center
+        spaceAfter=0
     )
-    car_spec_style = ParagraphStyle(
-        'CarSpec',
+    
+    section_heading = ParagraphStyle(
+        'SectionHeading',
+        parent=styles['Heading2'],
+        fontName='Helvetica-Bold',
+        fontSize=11,
+        textColor=primary_color,
+        spaceBefore=14,
+        spaceAfter=6,
+        borderPadding=(0, 0, 2, 0),
+        borderColor=primary_color
+    )
+    
+    normal_bold = ParagraphStyle(
+        'NormalBold',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=7,
-        textColor=colors.HexColor("#475569")
+        fontSize=10,
+        textColor=text_color
     )
-    car_spec_right_style = ParagraphStyle(
-        'CarSpecRight',
-        parent=car_spec_style,
-        alignment=2
+    
+    normal_style = ParagraphStyle(
+        'NormalText',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        textColor=text_color
     )
-
-    # Date formatting safely
-    try:
-        travel_date_str = booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "N/A"
-    except Exception:
-        travel_date_str = str(booking.pickup_date) if booking.pickup_date else "N/A"
-        
-    try:
-        total_amount_str = f"{booking.price:,.2f}"
-    except (TypeError, ValueError):
-        total_amount_str = str(booking.price) if booking.price is not None else "0.00"
-
-    # Format pickup time
-    raw_time = booking.pickup_time or booking.arrival_time or "N/A"
-    formatted_time = "N/A"
-    if raw_time != "N/A":
-        parts = raw_time.strip().split()
-        time_part = parts[1] if len(parts) == 2 else parts[0]
-        try:
-            t_obj = datetime.strptime(time_part, "%H:%M")
-            formatted_time = t_obj.strftime("%I:%M %p")
-        except Exception:
-            try:
-                t_obj = datetime.strptime(time_part, "%H:%M:%S")
-                formatted_time = t_obj.strftime("%I:%M %p")
-            except Exception:
-                formatted_time = time_part
-
-    # Resolve vehicle details
-    from Holidays.models import VehicleMaster
-    v_name = booking.vehicle_name or ""
-    v_name_lower = v_name.lower()
     
-    photo_rel_path = "vehicles/download_2_YaJg5h3.jpeg"
-    seating_capacity = 4
-    luggage_capacity = 2
-    transmission = "Auto"
-    fuel_type = "Petrol"
-    
-    if 'coaster' in v_name_lower or 'coster' in v_name_lower:
-        photo_rel_path = "vehicles/Coaster.jpeg"
-        seating_capacity = 22
-        luggage_capacity = 15
-        transmission = "Manual"
-        fuel_type = "Diesel"
-    elif 'hiace' in v_name_lower:
-        photo_rel_path = "vehicles/Toyota_Hiace_Super_LWB_High_Roof_Van_-_AU_version_2004-10.jpeg"
-        seating_capacity = 10
-        luggage_capacity = 6
-        transmission = "Manual"
-        fuel_type = "Diesel"
-    elif 'gmc' in v_name_lower or 'yukon' in v_name_lower:
-        photo_rel_path = "vehicles/2020_Gmc_Yukon_Xl_Pictures__Engine.jpeg"
-        seating_capacity = 7
-        luggage_capacity = 5
-        transmission = "Auto"
-        fuel_type = "Petrol"
-    elif 'staria' in v_name_lower or 'starex' in v_name_lower or 'h1' in v_name_lower:
-        photo_rel_path = "vehicles/All_New_2025_HYUNDAI_GRAND_STAREX_LUXURY_-_The_Best_MPV_VAN_of_the_Year.jpeg"
-        seating_capacity = 9
-        luggage_capacity = 5
-        transmission = "Auto"
-        fuel_type = "Diesel"
-    elif 'taurus' in v_name_lower:
-        photo_rel_path = "vehicles/Owning_a_2011_Ford_Taurus_SEL__Common_Problems_and_Maintenance_Tips.jpeg"
-        seating_capacity = 5
-        luggage_capacity = 3
-        transmission = "Auto"
-        fuel_type = "Petrol"
-    elif 'camry' in v_name_lower or 'sonata' in v_name_lower or 'sedan' in v_name_lower:
-        photo_rel_path = "vehicles/download_2_YaJg5h3.jpeg"
-        seating_capacity = 4
-        luggage_capacity = 2
-        transmission = "Auto"
-        fuel_type = "Petrol"
-
-    # Query db overrides
-    for vm in VehicleMaster.objects.all():
-        if vm.name and (vm.name.lower() in v_name.lower() or v_name.lower() in vm.name.lower()):
-            if vm.photo:
-                photo_rel_path = vm.photo.name
-            seating_capacity = vm.seating_capacity or seating_capacity
-            luggage_capacity = vm.luggage_capacity or luggage_capacity
-            break
-
-    photo_abs_path = os.path.join(settings.MEDIA_ROOT, photo_rel_path)
-
     # 1. Header Banner Table
-    logo_img = None
-    try:
-        logo_url = "https://goimomi.com/logo-preview.png"
-        req = urllib.request.Request(logo_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=2) as response:
-            logo_data = io.BytesIO(response.read())
-            logo_img = Image(logo_data, width=110, height=33)
-    except Exception:
-        logo_img = Paragraph("<b>goimomi</b><br/>Holidays", ParagraphStyle('LogoTextFallback', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=primary_green))
-
-    title_area = [
-        Paragraph("CAB VOUCHER", voucher_title_style),
-        Paragraph("— Your Ride, Our Priority! —", voucher_subtitle_style)
+    header_data = [
+        [Paragraph("GOIMOMI HOLIDAYS", title_style)],
+        [Paragraph("CAB CONFIRMATION VOUCHER", subtitle_style)]
     ]
-    
-    badge_label_pill = Table([[Paragraph("BOOKING ID", badge_label_style)]], colWidths=[90])
-    badge_label_pill.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), pill_green),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 2),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-    ]))
-    
-    id_box_data = [
-        [badge_label_pill],
-        [Paragraph(booking.booking_id, badge_val_style)]
-    ]
-    id_box_table = Table(id_box_data, colWidths=[100])
-    id_box_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), bg_grey_box),
-        ('BOX', (0, 0), (-1, -1), 0.5, border_grey),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-    ]))
-
-    header_table = Table([[logo_img, title_area, id_box_table]], colWidths=[140, 260, 100])
+    header_table = Table(header_data, colWidths=[540])
     header_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-        ('ALIGN', (1, 0), (1, 0), 'CENTER'),
-        ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
-    ]))
-    
-    # 2. Dashed Divider Helper
-    def get_divider():
-        t = Table([[""]], colWidths=[500])
-        t.setStyle(TableStyle([
-            ('LINEBELOW', (0, 0), (-1, -1), 0.5, border_grey),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ]))
-        return t
-
-    # Helper for pills
-    def create_pdf_pill(text, bg_color):
-        t = Table([[Paragraph(text, pill_text_style)]], colWidths=[100])
-        t.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), bg_color),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-            ('TOPPADDING', (0, 0), (-1, -1), 3),
-        ]))
-        return t
-
-    # 3. 3-Column details
-    # Left Col (Pickup Details)
-    pickup_cell_data = [
-        [create_pdf_pill("Pickup Details", pill_green)],
-        [Spacer(1, 4)],
-        [Paragraph("📅 Date", info_label_style)],
-        [Paragraph(travel_date_str, info_val_style)],
-        [Paragraph("⏰ Time", info_label_style)],
-        [Paragraph(formatted_time, info_val_style)],
-        [Paragraph("📍 Pick Up At", info_label_style)],
-        [Paragraph(booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city), info_val_style)]
-    ]
-    pickup_table = Table(pickup_cell_data, colWidths=[150])
-    pickup_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-    ]))
-
-    # Center Col (Booked Car box)
-    car_img = None
-    if photo_abs_path and os.path.exists(photo_abs_path):
-        try:
-            car_img = Image(photo_abs_path, width=105, height=60)
-        except Exception:
-            pass
-    if not car_img:
-        car_img = Paragraph("<font size='24' color='#db2777'>🚗</font>", ParagraphStyle('CarFall', parent=styles['Normal'], alignment=1))
-
-    specs_table = Table([
-        [Paragraph(f"👤 {seating_capacity} Seater", car_spec_style), Paragraph(f"🧳 {luggage_capacity} Bags", car_spec_right_style)],
-        [Paragraph(f"⛽ {fuel_type}", car_spec_style), Paragraph(f"⚙️ {transmission}", car_spec_right_style)]
-    ], colWidths=[70, 70])
-    specs_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 1),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-    ]))
-
-    car_box_data = [
-        [create_pdf_pill("Your Booked Car", pill_pink)],
-        [Spacer(1, 4)],
-        [car_img],
-        [Spacer(1, 4)],
-        [Paragraph(booking.vehicle_name, car_title_style)],
-        [specs_table]
-    ]
-    car_box_table = Table(car_box_data, colWidths=[150])
-    car_box_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), bg_pink_box),
-        ('BOX', (0, 0), (-1, -1), 0.5, border_pink_box),
+        ('BACKGROUND', (0, 0), (-1, -1), primary_color),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 16),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 16),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 15))
+    
+    # 2. Reference Block
+    ref_data = [
+        [
+            Paragraph("<b>Voucher ID:</b>", normal_style),
+            Paragraph(f"<font color='#14532d'><b>{booking.booking_id}</b></font>", normal_bold),
+            Paragraph("<b>Issue Date:</b>", normal_style),
+            Paragraph(booking.created_at.strftime('%d %b %Y %H:%M') if booking.created_at else "", normal_style)
+        ]
+    ]
+    ref_table = Table(ref_data, colWidths=[90, 180, 90, 180])
+    ref_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), bg_light),
+        ('BOX', (0, 0), (-1, -1), 0.5, border_color),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 5),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-    ]))
-
-    # Right Col (Drop Details)
-    drop_cell_data = [
-        [create_pdf_pill("Drop Details", pill_orange)],
-        [Spacer(1, 4)],
-        [Paragraph("🏁 Drop At", info_label_style)],
-        [Paragraph(booking.to_city, info_val_style)],
-        [Paragraph("⏳ Info", info_label_style)],
-        [Paragraph("Verified Chauffeur", info_val_style)],
-        [Paragraph("🛣️ Service", info_label_style)],
-        [Paragraph("Private Transfer", info_val_style)]
-    ]
-    drop_table = Table(drop_cell_data, colWidths=[150])
-    drop_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-    ]))
-
-    # Grid columns
-    grid_table = Table([[pickup_table, car_box_table, drop_table]], colWidths=[165, 170, 165])
-    grid_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-    ]))
-
-    # 4. Map connector design
-    map_table = Table([["", "", Paragraph("🚗", ParagraphStyle('MapCar', parent=styles['Normal'], fontSize=11, alignment=1)), "", ""]], colWidths=[6, 170, 20, 170, 6])
-    map_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, 0), pill_green), 
-        ('BACKGROUND', (4, 0), (4, 0), pill_orange),
-        ('LINEBELOW', (1, 0), (1, 0), 1, text_light_muted), 
-        ('LINEBELOW', (3, 0), (3, 0), 1, text_light_muted),
-        ('ALIGN', (2, 0), (2, 0), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-        ('TOPPADDING', (0, 0), (-1, -1), 1),
-    ]))
-
-    # 5. Customer & Support Table (bottom part)
-    cust_pill = create_pdf_pill("Customer Details", primary_green)
-    
-    cust_grid_data = [
-        [Paragraph("Customer Name", info_label_style), Paragraph("Phone Number", info_label_style)],
-        [Paragraph(f"{booking.title} {booking.first_name} {booking.last_name}".strip(), info_val_style), Paragraph(booking.phone or "N/A", info_val_style)],
-        [Paragraph("Email ID", info_label_style), Paragraph("No. of Passengers", info_label_style)],
-        [Paragraph(booking.email or "N/A", info_val_style), Paragraph(f"{booking.guests or 2} Pax", info_val_style)],
-        [Paragraph("Booking Date", info_label_style), Paragraph("Special Request", info_label_style)],
-        [Paragraph(booking.created_at.strftime('%d %b %Y') if booking.created_at else "N/A", info_val_style), Paragraph(booking.special_requirements or "None", info_val_style)]
-    ]
-    cust_grid_table = Table(cust_grid_data, colWidths=[160, 160])
-    cust_grid_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-    ]))
-    
-    left_footer_content = Table([[cust_pill], [Spacer(1, 6)], [cust_grid_table]], colWidths=[320])
-    left_footer_content.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-    ]))
-
-    # Right footer: Fare & Status & Support
-    status_color = primary_green if booking.status in ['Confirmed', 'Tentative Confirmation'] else (pill_orange if booking.status == 'Booking Requested' else text_muted)
-    status_pill = Table([[Paragraph(booking.status.upper(), ParagraphStyle('StatTxt', parent=pill_text_style, fontSize=7))]], colWidths=[110])
-    status_pill.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), status_color),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 2),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-    ]))
-
-    right_footer_data = [
-        [Paragraph("Total Amount", info_label_style)],
-        [Paragraph(f"<font color='#14532d' size='14'><b>₹{total_amount_str}</b></font>", info_val_style)],
-        [Paragraph("Booking Status", info_label_style)],
-        [status_pill],
-        [Spacer(1, 10)],
-        [Paragraph("24/7 Support Desk", ParagraphStyle('SupTitle', parent=info_label_style, textColor=text_muted))],
-        [Paragraph("📞 +91 81100 82222", ParagraphStyle('SupItem', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, textColor=primary_green, spaceAfter=2))],
-        [Paragraph("✉️ hello@goimomi.com", ParagraphStyle('SupItem2', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, textColor=primary_green))]
-    ]
-    right_footer_table = Table(right_footer_data, colWidths=[140])
-    right_footer_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
     ]))
-
-    # Compile footer table
-    footer_table = Table([[left_footer_content, right_footer_table]], colWidths=[340, 160])
-    footer_table.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('LINEAFTER', (0, 0), (0, 0), 0.5, border_grey),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-    ]))
-
-    footer_note = Paragraph("Thank you for booking with us. Have a safe & pleasant journey!", ParagraphStyle('FootNote', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=text_muted, alignment=1))
-
-    # Outer Layout wrap (ticket border outline)
-    outer_content = [
-        [header_table],
-        [Spacer(1, 4)],
-        [get_divider()],
-        [Spacer(1, 6)],
-        [grid_table],
-        [Spacer(1, 8)],
-        [map_table],
-        [Spacer(1, 8)],
-        [get_divider()],
-        [Spacer(1, 6)],
-        [footer_table],
-        [Spacer(1, 12)],
-        [footer_note]
-    ]
+    story.append(ref_table)
     
-    outer_wrapper = Table(outer_content, colWidths=[510])
-    outer_wrapper.setStyle(TableStyle([
-        ('BOX', (0, 0), (-1, -1), 1, border_grey),
-        ('BACKGROUND', (0, 0), (-1, -1), colors.white),
-        ('TOPPADDING', (0, 0), (-1, -1), 15),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+    # 3. Passenger Details
+    story.append(Paragraph("PRIMARY GUEST DETAILS", section_heading))
+    guest_name = f"{booking.title} {booking.first_name} {booking.last_name}"
+    passenger_data = [
+        [Paragraph("Guest Name:", normal_bold), Paragraph(guest_name, normal_style)],
+        [Paragraph("Email ID:", normal_bold), Paragraph(booking.email or "N/A", normal_style)],
+        [Paragraph("Phone Number:", normal_bold), Paragraph(booking.phone or "N/A", normal_style)],
+    ]
+    if booking.special_requirements:
+        passenger_data.append([Paragraph("Special Req:", normal_bold), Paragraph(booking.special_requirements, normal_style)])
+        
+    passenger_table = Table(passenger_data, colWidths=[120, 420])
+    passenger_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#f1f5f9")),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(passenger_table)
+    
+    # 4. Trip Details
+    story.append(Paragraph("VEHICLE & ROUTE DETAILS", section_heading))
+    trip_data = [
+        [Paragraph("Vehicle Type:", normal_bold), Paragraph(f"{booking.vehicle_name} ({booking.vehicle_category})", normal_style)],
+        [Paragraph("From City:", normal_bold), Paragraph(booking.from_city, normal_style)],
+        [Paragraph("To City:", normal_bold), Paragraph(booking.to_city, normal_style)],
+        [Paragraph("Travel Date:", normal_bold), Paragraph(booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "", normal_style)],
+        [Paragraph("No. of Guests:", normal_bold), Paragraph(str(booking.guests), normal_style)],
+    ]
+    if booking.luggage_count:
+        trip_data.append([Paragraph("Luggage Count:", normal_bold), Paragraph(str(booking.luggage_count), normal_style)])
+        
+    trip_table = Table(trip_data, colWidths=[120, 420])
+    trip_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#f1f5f9")),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(trip_table)
+    
+    # 5. Transfer Specifics
+    story.append(Paragraph("TRANSFER SPECIFICS", section_heading))
+    spec_data = [
+        [Paragraph("Transfer Type:", normal_bold), Paragraph(booking.transfer_type.upper(), normal_style)]
+    ]
+    if booking.transfer_type == 'airport':
+        if booking.flight_number:
+            spec_data.append([Paragraph("Flight Number:", normal_bold), Paragraph(booking.flight_number, normal_style)])
+        if booking.terminal:
+            spec_data.append([Paragraph("Airport Terminal:", normal_bold), Paragraph(booking.terminal, normal_style)])
+        if booking.arrival_time:
+            spec_data.append([Paragraph("Arrival Date/Time:", normal_bold), Paragraph(booking.arrival_time, normal_style)])
+        if booking.departure_time:
+            spec_data.append([Paragraph("Departure Date/Time:", normal_bold), Paragraph(booking.departure_time, normal_style)])
+    else:
+        if booking.pickup_time:
+            spec_data.append([Paragraph("Pickup Time:", normal_bold), Paragraph(booking.pickup_time, normal_style)])
+        if booking.pickup_location_details:
+            spec_data.append([Paragraph("Pickup/Drop Details:", normal_bold), Paragraph(booking.pickup_location_details, normal_style)])
+            
+    spec_table = Table(spec_data, colWidths=[120, 420])
+    spec_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#f1f5f9")),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(spec_table)
+    
+    # 6. Fare Block
+    story.append(Spacer(1, 12))
+    try:
+        fare_val = f"₹{booking.price:,.2f}"
+    except (TypeError, ValueError):
+        fare_val = f"₹{booking.price}" if booking.price is not None else "₹0.00"
+
+    fare_data = [
+        [
+            Paragraph("<b>TOTAL FARE AMOUNT (INR):</b>", ParagraphStyle('FareLabel', parent=normal_bold, fontSize=11, textColor=primary_color)),
+            Paragraph(f"<b>{fare_val}</b>", ParagraphStyle('FareVal', parent=normal_bold, fontSize=14, textColor=primary_color, alignment=2))
+        ]
+    ]
+    fare_table = Table(fare_data, colWidths=[300, 240])
+    fare_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#ecfdf5")),
+        ('BOX', (0, 0), (-1, -1), 1, primary_color),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
         ('LEFTPADDING', (0, 0), (-1, -1), 15),
         ('RIGHTPADDING', (0, 0), (-1, -1), 15),
     ]))
-
-    story.append(outer_wrapper)
+    story.append(fare_table)
+    
+    # 7. Terms & Support Footer
+    story.append(Spacer(1, 15))
+    terms_title_style = ParagraphStyle(
+        'TermsTitle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        textColor=colors.HexColor("#475569")
+    )
+    terms_body_style = ParagraphStyle(
+        'TermsBody',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=8,
+        textColor=colors.HexColor("#64748b"),
+        leading=11
+    )
+    
+    story.append(Paragraph("IMPORTANT INFORMATION", terms_title_style))
+    story.append(Paragraph("1. Please present this voucher (printed or digital copy) to your driver upon pickup.<br/>"
+                           "2. In case of any flight delays or schedule changes, please contact the helpline immediately.<br/>"
+                           "3. Free cancellation is allowed up to 48 hours prior to the scheduled pickup time.", terms_body_style))
+    
+    story.append(Spacer(1, 12))
+    support_style = ParagraphStyle(
+        'SupportInfo',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        textColor=primary_color,
+        alignment=1
+    )
+    story.append(Paragraph("Goimomi 24/7 Helpline: +91 81100 82222  |  Email: hello@goimomi.com  |  Website: www.goimomi.com", support_style))
     
     doc.build(story)
     pdf_bytes = buffer.getvalue()
@@ -507,75 +290,18 @@ def send_booking_voucher(booking):
             except Exception:
                 formatted_time = time_part
 
-    # Resolve vehicle details for the voucher design
-    v_name = booking.vehicle_name or ""
-    v_name_lower = v_name.lower()
-    
-    vehicle_image_url = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
-    seating_capacity = 4
-    luggage_capacity = 2
-    transmission = "Auto"
-    fuel_type = "Petrol"
-    
-    if 'coaster' in v_name_lower or 'coster' in v_name_lower:
-        vehicle_image_url = "https://goimomi.com/media/vehicles/Coaster.jpeg"
-        seating_capacity = 22
-        luggage_capacity = 15
-        transmission = "Manual"
-        fuel_type = "Diesel"
-    elif 'hiace' in v_name_lower:
-        vehicle_image_url = "https://goimomi.com/media/vehicles/Toyota_Hiace_Super_LWB_High_Roof_Van_-_AU_version_2004-10.jpeg"
-        seating_capacity = 10
-        luggage_capacity = 6
-        transmission = "Manual"
-        fuel_type = "Diesel"
-    elif 'gmc' in v_name_lower or 'yukon' in v_name_lower:
-        vehicle_image_url = "https://goimomi.com/media/vehicles/2020_Gmc_Yukon_Xl_Pictures__Engine.jpeg"
-        seating_capacity = 7
-        luggage_capacity = 5
-        transmission = "Auto"
-        fuel_type = "Petrol"
-    elif 'staria' in v_name_lower or 'starex' in v_name_lower or 'h1' in v_name_lower:
-        vehicle_image_url = "https://goimomi.com/media/vehicles/All_New_2025_HYUNDAI_GRAND_STAREX_LUXURY_-_The_Best_MPV_VAN_of_the_Year.jpeg"
-        seating_capacity = 9
-        luggage_capacity = 5
-        transmission = "Auto"
-        fuel_type = "Diesel"
-    elif 'taurus' in v_name_lower:
-        vehicle_image_url = "https://goimomi.com/media/vehicles/Owning_a_2011_Ford_Taurus_SEL__Common_Problems_and_Maintenance_Tips.jpeg"
-        seating_capacity = 5
-        luggage_capacity = 3
-        transmission = "Auto"
-        fuel_type = "Petrol"
-    elif 'camry' in v_name_lower or 'sonata' in v_name_lower or 'sedan' in v_name_lower:
-        vehicle_image_url = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
-        seating_capacity = 4
-        luggage_capacity = 2
-        transmission = "Auto"
-        fuel_type = "Petrol"
-
-    # Prepare booking context compatible with the new car_booking_voucher template
     booking_context = {
         'booking_id': booking.booking_id,
         'customer_name': f"{booking.title} {booking.first_name} {booking.last_name}".strip(),
         'customer_email': booking.email or "N/A",
         'phone': booking.phone or "N/A",
         'vehicle_type': f"{booking.vehicle_name} ({booking.vehicle_category})" if booking.vehicle_category else booking.vehicle_name,
-        'vehicle_name_only': booking.vehicle_name,
         'pickup_location': booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city),
         'drop_location': booking.to_city,
         'travel_date': travel_date_str,
         'pickup_time': formatted_time,
         'total_amount': total_amount_str,
         'payment_status': booking.status,
-        'vehicle_image_url': vehicle_image_url,
-        'seating_capacity': seating_capacity,
-        'luggage_capacity': luggage_capacity,
-        'transmission': transmission,
-        'fuel_type': fuel_type,
-        'booking_date': booking.created_at.strftime('%d %b %Y') if booking.created_at else "N/A",
-        'special_requirements': booking.special_requirements or "None",
-        'guests': booking.guests or 2,
     }
     
     # Render HTML content
