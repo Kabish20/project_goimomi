@@ -290,18 +290,75 @@ def send_booking_voucher(booking):
             except Exception:
                 formatted_time = time_part
 
+    # Resolve vehicle details for the voucher design
+    v_name = booking.vehicle_name or ""
+    v_name_lower = v_name.lower()
+    
+    vehicle_image_url = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
+    seating_capacity = 4
+    luggage_capacity = 2
+    transmission = "Auto"
+    fuel_type = "Petrol"
+    
+    if 'coaster' in v_name_lower or 'coster' in v_name_lower:
+        vehicle_image_url = "https://goimomi.com/media/vehicles/Coaster.jpeg"
+        seating_capacity = 22
+        luggage_capacity = 15
+        transmission = "Manual"
+        fuel_type = "Diesel"
+    elif 'hiace' in v_name_lower:
+        vehicle_image_url = "https://goimomi.com/media/vehicles/Toyota_Hiace_Super_LWB_High_Roof_Van_-_AU_version_2004-10.jpeg"
+        seating_capacity = 10
+        luggage_capacity = 6
+        transmission = "Manual"
+        fuel_type = "Diesel"
+    elif 'gmc' in v_name_lower or 'yukon' in v_name_lower:
+        vehicle_image_url = "https://goimomi.com/media/vehicles/2020_Gmc_Yukon_Xl_Pictures__Engine.jpeg"
+        seating_capacity = 7
+        luggage_capacity = 5
+        transmission = "Auto"
+        fuel_type = "Petrol"
+    elif 'staria' in v_name_lower or 'starex' in v_name_lower or 'h1' in v_name_lower:
+        vehicle_image_url = "https://goimomi.com/media/vehicles/All_New_2025_HYUNDAI_GRAND_STAREX_LUXURY_-_The_Best_MPV_VAN_of_the_Year.jpeg"
+        seating_capacity = 9
+        luggage_capacity = 5
+        transmission = "Auto"
+        fuel_type = "Diesel"
+    elif 'taurus' in v_name_lower:
+        vehicle_image_url = "https://goimomi.com/media/vehicles/Owning_a_2011_Ford_Taurus_SEL__Common_Problems_and_Maintenance_Tips.jpeg"
+        seating_capacity = 5
+        luggage_capacity = 3
+        transmission = "Auto"
+        fuel_type = "Petrol"
+    elif 'camry' in v_name_lower or 'sonata' in v_name_lower or 'sedan' in v_name_lower:
+        vehicle_image_url = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
+        seating_capacity = 4
+        luggage_capacity = 2
+        transmission = "Auto"
+        fuel_type = "Petrol"
+
+    # Prepare booking context compatible with the new car_booking_voucher template
     booking_context = {
         'booking_id': booking.booking_id,
         'customer_name': f"{booking.title} {booking.first_name} {booking.last_name}".strip(),
         'customer_email': booking.email or "N/A",
         'phone': booking.phone or "N/A",
         'vehicle_type': f"{booking.vehicle_name} ({booking.vehicle_category})" if booking.vehicle_category else booking.vehicle_name,
+        'vehicle_name_only': booking.vehicle_name,
         'pickup_location': booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city),
         'drop_location': booking.to_city,
         'travel_date': travel_date_str,
         'pickup_time': formatted_time,
         'total_amount': total_amount_str,
         'payment_status': booking.status,
+        'vehicle_image_url': vehicle_image_url,
+        'seating_capacity': seating_capacity,
+        'luggage_capacity': luggage_capacity,
+        'transmission': transmission,
+        'fuel_type': fuel_type,
+        'booking_date': booking.created_at.strftime('%d %b %Y') if booking.created_at else "N/A",
+        'special_requirements': booking.special_requirements or "None",
+        'guests': booking.guests or 2,
     }
     
     # Render HTML content

@@ -2,64 +2,447 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Car Booking Voucher</title>
+    <title>Cab Booking Voucher</title>
+    <style>
+        body {
+            font-family: 'Outfit', 'Inter', Arial, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+        .ticket-container {
+            max-width: 680px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        /* Top Header Banner */
+        .ticket-header {
+            padding: 25px;
+            border-bottom: 2px dashed #cbd5e1;
+            position: relative;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .logo-img {
+            height: 48px;
+            display: block;
+        }
+        .voucher-title-area {
+            text-align: center;
+        }
+        .voucher-main-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #14532d;
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .voucher-subtitle {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            margin: 2px 0 0 0;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+        .booking-id-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 12px;
+            text-align: center;
+            min-width: 120px;
+        }
+        .booking-id-label {
+            background-color: #16a34a;
+            color: #ffffff;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        .booking-id-value {
+            font-size: 13px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Middle Grid Details */
+        .details-section {
+            padding: 25px;
+        }
+        .grid-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .col-card {
+            width: 32%;
+            vertical-align: top;
+        }
+        .pill-badge {
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .pill-green { background-color: #16a34a; }
+        .pill-pink { background-color: #db2777; }
+        .pill-orange { background-color: #ea580c; }
+        .pill-dark-green { background-color: #14532d; }
+        
+        .info-label {
+            font-size: 9px;
+            font-weight: 900;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 2px 0;
+        }
+        .info-value {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 0 0 12px 0;
+            line-height: 1.3;
+        }
+        
+        /* Center Vehicle Card styling */
+        .car-card-box {
+            border: 1px solid #fbcfe8;
+            background-color: #fdf2f8;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin: 0 6px;
+        }
+        .car-img {
+            width: 100%;
+            max-width: 140px;
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
+        .car-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: #db2777;
+            text-transform: uppercase;
+            margin: 0 0 8px 0;
+            letter-spacing: 0.5px;
+        }
+        .car-spec-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .car-spec-cell {
+            width: 50%;
+            font-size: 8px;
+            font-weight: 900;
+            color: #475569;
+            padding: 2px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+        
+        /* Dotted Route Line (Map Structure) */
+        .route-map-container {
+            text-align: center;
+            margin: 25px 0 15px 0;
+            padding: 0 20px;
+        }
+        .dot-green {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #16a34a;
+            vertical-align: middle;
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+        }
+        .dot-orange {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ea580c;
+            vertical-align: middle;
+            box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.15);
+        }
+        .route-line-dashed {
+            display: inline-block;
+            border-top: 2px dashed #cbd5e1;
+            width: 70%;
+            vertical-align: middle;
+            margin: 0 10px;
+            position: relative;
+            height: 1px;
+        }
+        .car-emoji {
+            position: absolute;
+            top: -11px;
+            left: 48%;
+            font-size: 16px;
+        }
+
+        /* Bottom Section divider */
+        .bottom-divider {
+            border-top: 2px dashed #cbd5e1;
+            margin: 0;
+        }
+
+        /* Customer & Support Footer */
+        .footer-section {
+            padding: 25px;
+            background-color: #fafbfc;
+        }
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .footer-left-col {
+            width: 68%;
+            vertical-align: top;
+            padding-right: 15px;
+        }
+        .footer-right-col {
+            width: 32%;
+            vertical-align: top;
+            border-left: 1px solid #e2e8f0;
+            padding-left: 15px;
+        }
+        .cust-detail-label {
+            font-size: 8px;
+            font-weight: 900;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .cust-detail-value {
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+        .status-badge {
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            text-align: center;
+        }
+        .status-confirmed { background-color: #15803d; }
+        .status-requested { background-color: #f59e0b; }
+        .status-other { background-color: #64748b; }
+        
+        .support-info-title {
+            font-size: 10px;
+            font-weight: 900;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        .support-item {
+            font-size: 11px;
+            font-weight: 800;
+            color: #14532d;
+            margin-bottom: 8px;
+            display: block;
+            text-decoration: none;
+        }
+        
+        .footer-note {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            margin-top: 25px;
+            letter-spacing: 0.5px;
+            font-style: italic;
+        }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
+<body>
 
-<table width="600" align="center" style="background:#ffffff; border-radius:8px; padding:20px;">
-    <tr>
-        <td align="center">
-            <h1 style="color:#0d6efd;">Booking Confirmed</h1>
-            <p>Thank you for choosing our service.</p>
-        </td>
-    </tr>
+<div class="ticket-container">
+    <!-- Header banner -->
+    <div class="ticket-header">
+        <table class="header-table">
+            <tr>
+                <td width="30%">
+                    <img src="https://goimomi.com/logo-preview.png" alt="Goimomi Holidays" class="logo-img">
+                </td>
+                <td width="45%" class="voucher-title-area">
+                    <h1 class="voucher-main-title">Cab Voucher</h1>
+                    <p class="voucher-subtitle">— Your Ride, Our Priority! —</p>
+                </td>
+                <td width="25%" align="right">
+                    <div class="booking-id-box">
+                        <span class="booking-id-label">Booking ID</span>
+                        <p class="booking-id-value">{{ booking.booking_id }}</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-    <tr>
-        <td>
-            <h3>Booking Voucher</h3>
-            <hr>
+    <!-- Main Trip/Details grid section -->
+    <div class="details-section">
+        <table class="grid-table">
+            <tr>
+                <!-- Left: Pickup Details -->
+                <td class="col-card">
+                    <span class="pill-badge pill-green">Pickup Details</span>
+                    
+                    <p class="info-label">📅 Date</p>
+                    <p class="info-value">{{ booking.travel_date }}</p>
+                    
+                    <p class="info-label">⏰ Time</p>
+                    <p class="info-value">{{ booking.pickup_time }}</p>
+                    
+                    <p class="info-label">📍 Pick Up At</p>
+                    <p class="info-value">{{ booking.pickup_location }}</p>
+                </td>
 
-            <p><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
-            <p><strong>Customer Name:</strong> {{ booking.customer_name }}</p>
-            <p><strong>Email:</strong> {{ booking.customer_email }}</p>
-            <p><strong>Phone:</strong> {{ booking.phone }}</p>
+                <!-- Center: Booked Car Card -->
+                <td class="col-card">
+                    <div class="car-card-box">
+                        <span class="pill-badge pill-pink">Your Booked Car</span>
+                        <img src="{{ booking.vehicle_image_url }}" alt="{{ booking.vehicle_name_only }}" class="car-img">
+                        <p class="car-title">{{ booking.vehicle_name_only }}</p>
+                        
+                        <table class="car-spec-table">
+                            <tr>
+                                <td class="car-spec-cell" align="left">👤 {{ booking.seating_capacity }} Seater</td>
+                                <td class="car-spec-cell" align="right">🧳 {{ booking.luggage_capacity }} Bags</td>
+                            </tr>
+                            <tr>
+                                <td class="car-spec-cell" align="left">⛽ {{ booking.fuel_type }}</td>
+                                <td class="car-spec-cell" align="right">⚙️ {{ booking.transmission }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
 
-            <h4>Trip Details</h4>
+                <!-- Right: Drop Details -->
+                <td class="col-card" style="padding-left: 10px;">
+                    <span class="pill-badge pill-orange">Drop Details</span>
+                    
+                    <p class="info-label">🏁 Drop At</p>
+                    <p class="info-value">{{ booking.drop_location }}</p>
+                    
+                    <p class="info-label">⏳ Info</p>
+                    <p class="info-value">Verified Chauffeur</p>
+                    
+                    <p class="info-label">🛣️ Service</p>
+                    <p class="info-value">Private Airport/Intercity Transfer</p>
+                </td>
+            </tr>
+        </table>
 
-            <p><strong>Vehicle Type:</strong> {{ booking.vehicle_type }}</p>
-            <p><strong>Pick Up At:</strong> {{ booking.pickup_location }}</p>
-            <p><strong>Drop At:</strong> {{ booking.drop_location }}</p>
-            <p><strong>Travel Date:</strong> {{ booking.travel_date }}</p>
-            <p><strong>Pickup Time:</strong> {{ booking.pickup_time }}</p>
+        <!-- Connecting map design -->
+        <div class="route-map-container">
+            <span class="dot-green" title="Pickup"></span>
+            <span class="route-line-dashed">
+                <span class="car-emoji">🚗</span>
+            </span>
+            <span class="dot-orange" title="Drop"></span>
+        </div>
+    </div>
 
-            <h4>Payment Information</h4>
+    <!-- Divider line -->
+    <div class="bottom-divider"></div>
 
-            <p><strong>Total Amount:</strong> ₹{{ booking.total_amount }}</p>
-            <p><strong>Payment Status:</strong> {{ booking.payment_status }}</p>
+    <!-- Footer details / customer info -->
+    <div class="footer-section">
+        <table class="footer-table">
+            <tr>
+                <!-- Left: Customer Details -->
+                <td class="footer-left-col">
+                    <span class="pill-badge pill-dark-green" style="margin-bottom: 15px;">Customer Details</span>
+                    
+                    <table width="100%" style="border-collapse: collapse;">
+                        <tr>
+                            <td width="50%">
+                                <p class="cust-detail-label">Customer Name</p>
+                                <p class="cust-detail-value">{{ booking.customer_name }}</p>
+                            </td>
+                            <td width="50%">
+                                <p class="cust-detail-label">Phone Number</p>
+                                <p class="cust-detail-value">{{ booking.phone }}</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p class="cust-detail-label">Email ID</p>
+                                <p class="cust-detail-value">{{ booking.customer_email }}</p>
+                            </td>
+                            <td>
+                                <p class="cust-detail-label">No. of Passengers</p>
+                                <p class="cust-detail-value">{{ booking.guests }} Pax</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p class="cust-detail-label">Booking Date</p>
+                                <p class="cust-detail-value">{{ booking.booking_date }}</p>
+                            </td>
+                            <td>
+                                <p class="cust-detail-label">Special Request</p>
+                                <p class="cust-detail-value">{{ booking.special_requirements }}</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
 
-            <hr>
+                <!-- Right: Support & Fare -->
+                <td class="footer-right-col">
+                    <p class="cust-detail-label">Total Amount</p>
+                    <p class="cust-detail-value" style="font-size: 16px; font-weight: 900; color: #14532d; margin-bottom: 12px;">₹{{ booking.total_amount }}</p>
+                    
+                    <p class="cust-detail-label" style="margin-bottom: 6px;">Booking Status</p>
+                    <span class="status-badge {% if booking.payment_status == 'Confirmed' or booking.payment_status == 'Tentative Confirmation' %}status-confirmed{% elif booking.payment_status == 'Booking Requested' %}status-requested{% else %}status-other{% endif %}" style="margin-bottom: 15px;">
+                        {{ booking.payment_status }}
+                    </span>
 
-            <p>
-                <strong>Important:</strong><br>
-                Please carry this voucher during your journey. For any modifications or cancellations, contact our support team.
-            </p>
+                    <p class="support-info-title">24/7 Support Desk</p>
+                    <a href="tel:+918110082222" class="support-item">📞 +91 81100 82222</a>
+                    <a href="mailto:hello@goimomi.com" class="support-item">✉️ hello@goimomi.com</a>
+                </td>
+            </tr>
+        </table>
 
-            <br>
-
-            <p>
-                Regards,<br>
-                <strong>Goimomi Holidays</strong><br>
-                Customer Support Team
-            </p>
-        </td>
-    </tr>
-
-    <tr>
-        <td align="center" style="padding-top:20px; color:#666;">
-            © 2026 Goimomi Holidays. All Rights Reserved.
-        </td>
-    </tr>
-</table>
+        <p class="footer-note">Thank you for booking with us. Have a safe & pleasant journey!</p>
+    </div>
+</div>
 
 </body>
 </html>
