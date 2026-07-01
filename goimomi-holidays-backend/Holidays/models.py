@@ -712,6 +712,7 @@ class CabBooking(models.Model):
         choices=[
             ('Booking Requested', 'Booking Requested'),
             ('Tentative Confirmation', 'Tentative Confirmation'),
+            ('defined', 'defined'),
             ('Confirmed', 'Confirmed'),
             ('Completed', 'Completed'),
             ('Cancelled', 'Cancelled')
