@@ -272,6 +272,7 @@ const AdminDashboard = () => {
                           <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Type</th>
                           <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Email</th>
                           <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Phone</th>
+                          <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Date</th>
                           <th className="text-left py-2 px-3 uppercase text-[9px] font-black tracking-[0.2em] bg-white">Purpose</th>
                           <th className="py-2 px-3 text-center uppercase text-[9px] font-black tracking-[0.2em] bg-white">Action</th>
                         </tr>
@@ -295,6 +296,7 @@ const AdminDashboard = () => {
                             </td>
                             <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{getEnquiryContact(enquiry).email}</td>
                             <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{getEnquiryContact(enquiry).phone}</td>
+                            <td className="py-2.5 px-3 text-[10px] font-bold text-slate-500 border-y border-slate-50/50 group-hover:border-slate-100">{formatDate(enquiry.created_at)}</td>
                             <td className="py-2.5 px-3 text-[9px] font-bold text-slate-400 italic max-w-[150px] truncate border-y border-slate-50/50 group-hover:border-slate-100">
                               {getEnquiryPurpose(enquiry)}
                             </td>
