@@ -236,7 +236,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-wider">
-                        {stats.cabEnquiries} enq
+                        {stats.cabBookings} enq
                       </span>
                       <div className="w-5 h-5 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
                         <ArrowRight size={11} />
