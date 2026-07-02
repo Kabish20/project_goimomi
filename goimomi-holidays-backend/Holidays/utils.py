@@ -428,6 +428,9 @@ def send_booking_voucher(booking):
 
         bookings_contexts.append({
             'booking_id': b.booking_id,
+            'customer_name': f"{b.title} {b.first_name} {b.last_name}".strip(),
+            'customer_email': b.email or "N/A",
+            'phone': b.phone or "N/A",
             'vehicle_type': f"{b.vehicle_name} ({b.vehicle_category})" if b.vehicle_category else b.vehicle_name,
             'vehicle_name': b.vehicle_name,
             'vehicle_category': b.vehicle_category or "Sedan",
