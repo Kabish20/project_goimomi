@@ -114,40 +114,46 @@ def generate_booking_pdf(booking):
     pages = []
     white = (255, 255, 255)
 
-    # 2. Generate a ticket page for each related booking
+    # 2. Generate a consolidated single-page ticket containing all related bookings
     template_path = os.path.join(os.path.dirname(__file__), 'cab_voucher.png')
+    template_img = Image.open(template_path).convert('RGB')
 
-    for b in related_bookings:
-        img = Image.open(template_path).convert('RGB')
-        draw = ImageDraw.Draw(img)
+    N = len(related_bookings)
+    consolidated_height = 570 + N * 330
+    consolidated_img = Image.new('RGB', (1530, consolidated_height), (238, 242, 246))
 
-        # Cover old text fields with white rectangles
+    # Paste Header
+    header_crop = template_img.crop((0, 0, 1530, 290))
+    consolidated_img.paste(header_crop, (0, 0))
+
+    # Draw each booking's ticket card
+    card_box = (0, 290, 1530, 620)
+    for i, b in enumerate(related_bookings):
+        card_crop = template_img.crop(card_box)
+        shift_y = i * 330
+        consolidated_img.paste(card_crop, (0, 290 + shift_y))
+        
+        card_draw = ImageDraw.Draw(consolidated_img)
+        
+        # Cover old template text fields with white rectangles (shifted by shift_y)
         # Left Barcode Label
-        draw.rectangle((80, 375, 115, 605), fill=white)
+        card_draw.rectangle((80, 375 + shift_y, 115, 605 + shift_y), fill=white)
 
         # Pickup Column
-        draw.rectangle((210, 340, 500, 390), fill=white)
-        draw.rectangle((210, 440, 500, 520), fill=white)
-        draw.rectangle((210, 540, 500, 595), fill=white)
+        card_draw.rectangle((210, 340 + shift_y, 500, 390 + shift_y), fill=white)
+        card_draw.rectangle((210, 440 + shift_y, 500, 520 + shift_y), fill=white)
+        card_draw.rectangle((210, 540 + shift_y, 500, 595 + shift_y), fill=white)
 
         # Car Column
-        draw.rectangle((580, 305, 920, 350), fill=white)
-        draw.rectangle((580, 350, 920, 395), fill=white)
-        draw.rectangle((600, 535, 710, 580), fill=white)
-        draw.rectangle((840, 535, 950, 580), fill=white)
+        card_draw.rectangle((580, 305 + shift_y, 920, 350 + shift_y), fill=white)
+        card_draw.rectangle((580, 350 + shift_y, 920, 395 + shift_y), fill=white)
+        card_draw.rectangle((600, 535 + shift_y, 710, 580 + shift_y), fill=white)
+        card_draw.rectangle((840, 535 + shift_y, 950, 580 + shift_y), fill=white)
 
         # Drop Column
-        draw.rectangle((1110, 335, 1420, 420), fill=white)
-        draw.rectangle((1110, 440, 1420, 490), fill=white)
-        draw.rectangle((1110, 540, 1420, 595), fill=white)
-
-        # Customer details
-        draw.rectangle((200, 710, 470, 745), fill=white)
-        draw.rectangle((200, 790, 470, 825), fill=white)
-        draw.rectangle((530, 710, 800, 745), fill=white)
-        draw.rectangle((530, 790, 800, 825), fill=white)
-        draw.rectangle((900, 710, 1140, 745), fill=white)
-        draw.rectangle((900, 790, 1140, 825), fill=white)
+        card_draw.rectangle((1110, 335 + shift_y, 1420, 420 + shift_y), fill=white)
+        card_draw.rectangle((1110, 440 + shift_y, 1420, 490 + shift_y), fill=white)
+        card_draw.rectangle((1110, 540 + shift_y, 1420, 595 + shift_y), fill=white)
 
         # Draw vertical barcode text
         b_id = b.booking_id or f"GO-TRN-{str(b.pk).zfill(4)}"
@@ -155,14 +161,14 @@ def generate_booking_pdf(booking):
         txt_draw = ImageDraw.Draw(txt_img)
         txt_draw.text((0, 0), b_id, font=font_bold_sm, fill=(71, 85, 105))
         rotated_txt = txt_img.rotate(90, expand=True)
-        img.paste(rotated_txt, (85, 380), rotated_txt)
+        consolidated_img.paste(rotated_txt, (85, 380 + shift_y), rotated_txt)
 
         # Pickup details
         try:
             travel_date_str = b.pickup_date.strftime('%d %b %Y') if b.pickup_date else "N/A"
         except Exception:
             travel_date_str = str(b.pickup_date) if b.pickup_date else "N/A"
-        draw.text((215, 345), travel_date_str, font=font_bold_xs, fill=(12, 35, 64))
+        card_draw.text((215, 345 + shift_y), travel_date_str, font=font_bold_xs, fill=(12, 35, 64))
         
         # Extract location types (e.g. "Airport" or "CITY") from pickup_location_details
         pickup_type = ""
@@ -188,39 +194,27 @@ def generate_booking_pdf(booking):
         else:
             drop_point = b.to_city
 
-        draw_wrapped_text(draw, pickup_point, (215, 445, 490, 515), font_bold_xs, fill=(12, 35, 64))
+        draw_wrapped_text(card_draw, pickup_point, (215, 445 + shift_y, 490, 515 + shift_y), font_bold_xs, fill=(12, 35, 64))
         
         formatted_time = format_time_field(b.pickup_time or b.arrival_time)
-        draw.text((215, 545), formatted_time, font=font_bold_xs, fill=(12, 35, 64))
+        card_draw.text((215, 545 + shift_y), formatted_time, font=font_bold_xs, fill=(12, 35, 64))
 
         # Car details
         cat_text = b.vehicle_category.upper() if b.vehicle_category else "SEDAN"
         w = get_text_width(cat_text, font_bold_sm)
-        draw.text((580 + (340 - w) // 2, 315), cat_text, font=font_bold_sm, fill=(12, 35, 64))
+        card_draw.text((580 + (340 - w) // 2, 315 + shift_y), cat_text, font=font_bold_sm, fill=(12, 35, 64))
 
         name_text = b.vehicle_name
         w = get_text_width(name_text, font_reg_xs)
-        draw.text((580 + (340 - w) // 2, 355), name_text, font=font_reg_xs, fill=(100, 116, 139))
+        card_draw.text((580 + (340 - w) // 2, 355 + shift_y), name_text, font=font_reg_xs, fill=(100, 116, 139))
 
-        draw.text((610, 545), f"{b.guests} Seats", font=font_bold_xs, fill=(71, 85, 105))
-        draw.text((850, 545), f"{b.luggage_count or 0} Bags", font=font_bold_xs, fill=(71, 85, 105))
+        card_draw.text((610, 545 + shift_y), f"{b.guests} Seats", font=font_bold_xs, fill=(71, 85, 105))
+        card_draw.text((850, 545 + shift_y), f"{b.luggage_count or 0} Bags", font=font_bold_xs, fill=(71, 85, 105))
 
         # Drop details
-        draw_wrapped_text(draw, drop_point, (1115, 335, 1410, 415), font_bold_xs, fill=(12, 35, 64))
-        draw.text((1115, 445), "As per travel schedule", font=font_bold_xs, fill=(12, 35, 64))
-        draw.text((1115, 545), "Approx. standard route", font=font_bold_xs, fill=(12, 35, 64))
-
-        # Customer details
-        customer_name = f"{b.title} {b.first_name} {b.last_name}".strip()
-        draw.text((200, 710), customer_name, font=font_bold_xs, fill=(12, 35, 64))
-        draw.text((200, 790), b.phone or "N/A", font=font_bold_xs, fill=(12, 35, 64))
-        draw.text((530, 710), b.email or "N/A", font=font_bold_xs, fill=(12, 35, 64))
-        draw.text((530, 790), b_id, font=font_bold_xs, fill=(12, 35, 64))
-        draw.text((900, 710), f"{b.guests} Guest(s)", font=font_bold_xs, fill=(12, 35, 64))
-        
-        status_text = b.status.upper()
-        status_color = (19, 128, 72) if b.status in ["Confirmed", "Completed", "defined"] else (209, 38, 22)
-        draw.text((900, 790), status_text, font=font_bold_xs, fill=status_color)
+        draw_wrapped_text(card_draw, drop_point, (1115, 335 + shift_y, 1410, 415 + shift_y), font_bold_xs, fill=(12, 35, 64))
+        card_draw.text((1115, 445 + shift_y), "As per travel schedule", font=font_bold_xs, fill=(12, 35, 64))
+        card_draw.text((1115, 545 + shift_y), "Approx. standard route", font=font_bold_xs, fill=(12, 35, 64))
 
         # Dynamic car image
         try:
@@ -251,15 +245,88 @@ def generate_booking_pdf(booking):
                     else:
                         car_img = None
                 if car_img:
-                    draw.rectangle((580, 405, 920, 525), fill=white)
+                    card_draw.rectangle((580, 405 + shift_y, 920, 525 + shift_y), fill=white)
                     car_img.thumbnail((340, 120), Image.Resampling.LANCZOS)
                     cx = 580 + (340 - car_img.width) // 2
-                    cy = 405 + (120 - car_img.height) // 2
-                    img.paste(car_img, (cx, cy), car_img.convert("RGBA") if "transparency" in car_img.info or car_img.mode == "RGBA" else None)
+                    cy = 405 + (120 - car_img.height) // 2 + shift_y
+                    consolidated_img.paste(car_img, (cx, cy), car_img.convert("RGBA") if "transparency" in car_img.info or car_img.mode == "RGBA" else None)
         except Exception as e:
             print(f"Error drawing vehicle image on PDF: {e}")
 
-        pages.append(img)
+    # Paste Customer Details Panel
+    y_cust_offset = 290 + N * 330
+    cust_crop = template_img.crop((0, 620, 1530, 840))
+    consolidated_img.paste(cust_crop, (0, y_cust_offset))
+    
+    cust_draw = ImageDraw.Draw(consolidated_img)
+    shift_cust_y = y_cust_offset - 620
+
+    # Clear template customer fields
+    cust_draw.rectangle((200, 710 + shift_cust_y, 470, 745 + shift_cust_y), fill=white)
+    cust_draw.rectangle((200, 790 + shift_cust_y, 470, 825 + shift_cust_y), fill=white)
+    cust_draw.rectangle((530, 710 + shift_cust_y, 800, 745 + shift_cust_y), fill=white)
+    cust_draw.rectangle((530, 790 + shift_cust_y, 800, 825 + shift_cust_y), fill=white)
+    cust_draw.rectangle((900, 710 + shift_cust_y, 1140, 745 + shift_cust_y), fill=white)
+    cust_draw.rectangle((900, 790 + shift_cust_y, 1140, 825 + shift_cust_y), fill=white)
+
+    # Draw customer details
+    customer_name = f"{booking.title} {booking.first_name} {booking.last_name}".strip()
+    cust_draw.text((200, 710 + shift_cust_y), customer_name, font=font_bold_xs, fill=(12, 35, 64))
+    cust_draw.text((200, 790 + shift_cust_y), booking.phone or "N/A", font=font_bold_xs, fill=(12, 35, 64))
+    cust_draw.text((530, 710 + shift_cust_y), booking.email or "N/A", font=font_bold_xs, fill=(12, 35, 64))
+    
+    # Comma-separated Booking IDs list
+    all_booking_ids = ", ".join([rb.booking_id or f"GO-TRN-{str(rb.pk).zfill(4)}" for rb in related_bookings])
+    cust_draw.text((530, 790 + shift_cust_y), all_booking_ids, font=font_bold_xs, fill=(12, 35, 64))
+    
+    cust_draw.text((900, 710 + shift_cust_y), f"{booking.guests} Guest(s)", font=font_bold_xs, fill=(12, 35, 64))
+    
+    status_text = booking.status.upper()
+    status_color = (19, 128, 72) if booking.status in ["Confirmed", "Completed", "defined"] else (209, 38, 22)
+    cust_draw.text((900, 790 + shift_cust_y), status_text, font=font_bold_xs, fill=status_color)
+
+    # Construct dynamic QR code text containing all bookings
+    qr_text = f"Goimomi Holidays Cab Booking\n"
+    qr_text += f"-----------------------------\n"
+    for rb in related_bookings:
+        p_type = ""
+        d_type = ""
+        if rb.pickup_location_details:
+            try:
+                if "Pickup:" in rb.pickup_location_details:
+                    p_type = rb.pickup_location_details.split("Pickup:")[1].split(",")[0].strip()
+                if "Drop:" in rb.pickup_location_details:
+                    d_type = rb.pickup_location_details.split("Drop:")[1].split(".")[0].strip()
+            except Exception:
+                pass
+        p_loc = f"{rb.from_city} ({p_type.title()})" if p_type else rb.from_city
+        d_loc = f"{rb.to_city} ({d_type.title()})" if d_type else rb.to_city
+        
+        qr_text += f"ID: {rb.booking_id}\n"
+        qr_text += f"Vehicle: {rb.vehicle_name} ({rb.vehicle_category or 'Sedan'})\n"
+        qr_text += f"Route: {p_loc} to {d_loc}\n\n"
+    
+    qr_text += f"Guest: {customer_name}\n"
+    qr_text += f"Phone: {booking.phone or 'N/A'}\n"
+    qr_text += f"Status: {booking.status.upper()}"
+
+    try:
+        import urllib.parse
+        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=138048&data={urllib.parse.quote(qr_text)}"
+        resp = requests.get(qr_url, timeout=5)
+        if resp.status_code == 200:
+            qr_img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+            qr_img = qr_img.resize((150, 150), Image.Resampling.LANCZOS)
+            consolidated_img.paste(qr_img, (1200, 670 + shift_cust_y))
+    except Exception as e:
+        print(f"Error drawing QR code on PDF: {e}")
+
+    # Paste Support Footer
+    y_footer_offset = 290 + N * 330 + 220
+    footer_crop = template_img.crop((0, 840, 1530, 900))
+    consolidated_img.paste(footer_crop, (0, y_footer_offset))
+
+    pages.append(consolidated_img)
 
     # 3. Generate the Terms & Conditions Page
     append_images = []
