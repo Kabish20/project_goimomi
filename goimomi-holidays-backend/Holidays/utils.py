@@ -426,6 +426,23 @@ def send_booking_voucher(booking):
         else:
             drop_location_formatted = b.to_city
 
+        # Construct detailed QR code text
+        qr_text = (
+            f"Goimomi Holidays Cab Booking\n"
+            f"-----------------------------\n"
+            f"Booking ID: {b.booking_id}\n"
+            f"Guest: {b.title} {b.first_name} {b.last_name}\n"
+            f"Phone: {b.phone or 'N/A'}\n"
+            f"Date: {travel_date_str}\n"
+            f"Time: {formatted_time}\n"
+            f"Vehicle: {b.vehicle_name} ({b.vehicle_category or 'Sedan'})\n"
+            f"Pickup: {pickup_location_formatted}\n"
+            f"Dropoff: {drop_location_formatted}\n"
+            f"Status: {b.status.upper()}"
+        )
+        import urllib.parse
+        qr_data_encoded = urllib.parse.quote(qr_text)
+
         bookings_contexts.append({
             'booking_id': b.booking_id,
             'customer_name': f"{b.title} {b.first_name} {b.last_name}".strip(),
@@ -445,6 +462,7 @@ def send_booking_voucher(booking):
             'luggage_count': b.luggage_count or "0",
             'special_requirements': b.special_requirements or "None",
             'driver': b.driver or "Not Assigned Yet",
+            'qr_data': qr_data_encoded,
         })
         
     try:
