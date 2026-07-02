@@ -29,18 +29,28 @@ def format_time_field(raw_time):
 
 def generate_booking_pdf(booking):
     """
-    Generates a highly-stylized, pixel-perfect 1-page PDF voucher for the booking
-    by overlaying dynamic details on top of the designed voucher template image.
+    Generates a highly-stylized, pixel-perfect multi-page PDF voucher for the booking.
+    If the booking is part of multiple parallel bookings created together, 
+    all of them are included as separate ticket pages, followed by a final Terms & Conditions page.
     """
     import os
     import sys
     import requests
+    import io
+    import django.utils.timezone as timezone
+    from datetime import timedelta
     from PIL import Image, ImageDraw, ImageFont
+    from Holidays.models import CabBooking
 
-    # 1. Load the template image
-    template_path = os.path.join(os.path.dirname(__file__), 'cab_voucher.png')
-    img = Image.open(template_path).convert('RGB')
-    draw = ImageDraw.Draw(img)
+    # 1. Fetch related bookings created in the last 10 seconds for this email
+    time_threshold = booking.created_at - timedelta(seconds=10) if booking.created_at else timezone.now() - timedelta(seconds=10)
+    related_bookings = CabBooking.objects.filter(
+        email=booking.email,
+        created_at__gte=time_threshold
+    ).order_by('id')
+
+    if not related_bookings.exists():
+        related_bookings = [booking]
 
     # Helper to load standard fonts
     def get_font(font_name, size):
@@ -79,7 +89,13 @@ def generate_booking_pdf(booking):
         current_line = []
         for word in words:
             test_line = " ".join(current_line + [word])
-            if get_text_width(test_line, font) <= max_w:
+            # Use draw_obj-independent length if possible, or fallback
+            try:
+                w_len = draw_obj.textlength(test_line, font=font)
+            except Exception:
+                w_len = font.getbbox(test_line)[2] - font.getbbox(test_line)[0]
+                
+            if w_len <= max_w:
                 current_line.append(word)
             else:
                 if current_line:
@@ -95,129 +111,134 @@ def generate_booking_pdf(booking):
             y += font.getbbox(line)[3] - font.getbbox(line)[1] + 6
         return y
 
-    # 2. Cover old text fields with white rectangles
+    pages = []
     white = (255, 255, 255)
-    
-    # Left Barcode Label
-    draw.rectangle((80, 375, 115, 605), fill=white)
 
-    # Pickup Column
-    draw.rectangle((210, 340, 500, 390), fill=white)
-    draw.rectangle((210, 440, 500, 520), fill=white)
-    draw.rectangle((210, 540, 500, 595), fill=white)
+    # 2. Generate a ticket page for each related booking
+    template_path = os.path.join(os.path.dirname(__file__), 'cab_voucher.png')
 
-    # Car Column
-    draw.rectangle((580, 305, 920, 350), fill=white)
-    draw.rectangle((580, 350, 920, 395), fill=white)
-    draw.rectangle((600, 535, 710, 580), fill=white)
-    draw.rectangle((840, 535, 950, 580), fill=white)
+    for b in related_bookings:
+        img = Image.open(template_path).convert('RGB')
+        draw = ImageDraw.Draw(img)
 
-    # Drop Column
-    draw.rectangle((1110, 335, 1420, 420), fill=white)
-    draw.rectangle((1110, 440, 1420, 490), fill=white)
-    draw.rectangle((1110, 540, 1420, 595), fill=white)
+        # Cover old text fields with white rectangles
+        # Left Barcode Label
+        draw.rectangle((80, 375, 115, 605), fill=white)
 
-    # Customer details
-    draw.rectangle((200, 710, 470, 745), fill=white)
-    draw.rectangle((200, 790, 470, 825), fill=white)
-    draw.rectangle((530, 710, 800, 745), fill=white)
-    draw.rectangle((530, 790, 800, 825), fill=white)
-    draw.rectangle((900, 710, 1140, 745), fill=white)
-    draw.rectangle((900, 790, 1140, 825), fill=white)
+        # Pickup Column
+        draw.rectangle((210, 340, 500, 390), fill=white)
+        draw.rectangle((210, 440, 500, 520), fill=white)
+        draw.rectangle((210, 540, 500, 595), fill=white)
 
-    # 3. Draw new texts
-    # Vertical Barcode Text
-    booking_id = booking.booking_id or f"GO-TRN-{str(booking.pk).zfill(4)}"
-    txt_img = Image.new('RGBA', (250, 40), (255, 255, 255, 0))
-    txt_draw = ImageDraw.Draw(txt_img)
-    txt_draw.text((0, 0), booking_id, font=font_bold_sm, fill=(71, 85, 105))
-    rotated_txt = txt_img.rotate(90, expand=True)
-    img.paste(rotated_txt, (85, 380), rotated_txt)
+        # Car Column
+        draw.rectangle((580, 305, 920, 350), fill=white)
+        draw.rectangle((580, 350, 920, 395), fill=white)
+        draw.rectangle((600, 535, 710, 580), fill=white)
+        draw.rectangle((840, 535, 950, 580), fill=white)
 
-    # Pickup details
-    travel_date_str = booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "N/A"
-    draw.text((215, 345), travel_date_str, font=font_bold_xs, fill=(12, 35, 64))
-    
-    pickup_point = booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city)
-    draw_wrapped_text(draw, pickup_point, (215, 445, 490, 515), font_bold_xs, fill=(12, 35, 64))
-    
-    formatted_time = format_time_field(booking.pickup_time or booking.arrival_time)
-    draw.text((215, 545), formatted_time, font=font_bold_xs, fill=(12, 35, 64))
+        # Drop Column
+        draw.rectangle((1110, 335, 1420, 420), fill=white)
+        draw.rectangle((1110, 440, 1420, 490), fill=white)
+        draw.rectangle((1110, 540, 1420, 595), fill=white)
 
-    # Car details
-    cat_text = booking.vehicle_category.upper() if booking.vehicle_category else "SEDAN"
-    w = get_text_width(cat_text, font_bold_sm)
-    draw.text((580 + (340 - w) // 2, 315), cat_text, font=font_bold_sm, fill=(12, 35, 64))
+        # Customer details
+        draw.rectangle((200, 710, 470, 745), fill=white)
+        draw.rectangle((200, 790, 470, 825), fill=white)
+        draw.rectangle((530, 710, 800, 745), fill=white)
+        draw.rectangle((530, 790, 800, 825), fill=white)
+        draw.rectangle((900, 710, 1140, 745), fill=white)
+        draw.rectangle((900, 790, 1140, 825), fill=white)
 
-    name_text = booking.vehicle_name
-    w = get_text_width(name_text, font_reg_xs)
-    draw.text((580 + (340 - w) // 2, 355), name_text, font=font_reg_xs, fill=(100, 116, 139))
+        # Draw vertical barcode text
+        b_id = b.booking_id or f"GO-TRN-{str(b.pk).zfill(4)}"
+        txt_img = Image.new('RGBA', (250, 40), (255, 255, 255, 0))
+        txt_draw = ImageDraw.Draw(txt_img)
+        txt_draw.text((0, 0), b_id, font=font_bold_sm, fill=(71, 85, 105))
+        rotated_txt = txt_img.rotate(90, expand=True)
+        img.paste(rotated_txt, (85, 380), rotated_txt)
 
-    draw.text((610, 545), f"{booking.guests} Seats", font=font_bold_xs, fill=(71, 85, 105))
-    draw.text((850, 545), f"{booking.luggage_count or 0} Bags", font=font_bold_xs, fill=(71, 85, 105))
-
-    # Drop details
-    draw_wrapped_text(draw, booking.to_city, (1115, 335, 1410, 415), font_bold_xs, fill=(12, 35, 64))
-    draw.text((1115, 445), "As per travel schedule", font=font_bold_xs, fill=(12, 35, 64))
-    draw.text((1115, 545), "Approx. standard route", font=font_bold_xs, fill=(12, 35, 64))
-
-    # Customer details
-    customer_name = f"{booking.title} {booking.first_name} {booking.last_name}".strip()
-    draw.text((200, 710), customer_name, font=font_bold_xs, fill=(12, 35, 64))
-    draw.text((200, 790), booking.phone or "N/A", font=font_bold_xs, fill=(12, 35, 64))
-    draw.text((530, 710), booking.email or "N/A", font=font_bold_xs, fill=(12, 35, 64))
-    draw.text((530, 790), booking_id, font=font_bold_xs, fill=(12, 35, 64))
-    draw.text((900, 710), f"{booking.guests} Guest(s)", font=font_bold_xs, fill=(12, 35, 64))
-    
-    status_text = booking.status.upper()
-    status_color = (19, 128, 72) if booking.status in ["Confirmed", "Completed", "defined"] else (209, 38, 22)
-    draw.text((900, 790), status_text, font=font_bold_xs, fill=status_color)
-
-    # 4. Fetch and paste dynamic car image
-    try:
-        from Holidays.models import VehicleMaster
-        from django.db.models import Q
-        vm = VehicleMaster.objects.filter(
-            Q(name__icontains=booking.vehicle_name) | 
-            Q(brand__name__icontains=booking.vehicle_name)
-        ).first()
+        # Pickup details
+        try:
+            travel_date_str = b.pickup_date.strftime('%d %b %Y') if b.pickup_date else "N/A"
+        except Exception:
+            travel_date_str = str(b.pickup_date) if b.pickup_date else "N/A"
+        draw.text((215, 345), travel_date_str, font=font_bold_xs, fill=(12, 35, 64))
         
-        if not vm and booking.vehicle_category:
-            vm = VehicleMaster.objects.filter(
-                Q(name__icontains=booking.vehicle_category) | 
-                Q(brand__name__icontains=booking.vehicle_category)
-            ).first()
-            
-        vehicle_photo = None
-        if vm and vm.photo:
-            if hasattr(vm.photo, 'path') and os.path.exists(vm.photo.path):
-                vehicle_photo = vm.photo.path
-            else:
-                vehicle_photo = f"https://goimomi.com{vm.photo.url}"
-                
-        if vehicle_photo:
-            if os.path.exists(vehicle_photo):
-                car_img = Image.open(vehicle_photo)
-            else:
-                resp = requests.get(vehicle_photo, timeout=5)
-                if resp.status_code == 200:
-                    car_img = Image.open(io.BytesIO(resp.content))
-                else:
-                    car_img = None
-                    
-            if car_img:
-                # Cover old car image
-                draw.rectangle((580, 405, 920, 525), fill=white)
-                # Resize car image to fit the 340x120 area
-                car_img.thumbnail((340, 120), Image.Resampling.LANCZOS)
-                # Center and paste
-                cx = 580 + (340 - car_img.width) // 2
-                cy = 405 + (120 - car_img.height) // 2
-                img.paste(car_img, (cx, cy), car_img.convert("RGBA") if "transparency" in car_img.info or car_img.mode == "RGBA" else None)
-    except Exception as e:
-        print(f"Error drawing vehicle image on PDF: {e}")
+        pickup_point = b.airport_name or b.from_city if b.transfer_type == 'airport' else (f"{b.from_city} ({b.pickup_location_details})" if b.pickup_location_details else b.from_city)
+        draw_wrapped_text(draw, pickup_point, (215, 445, 490, 515), font_bold_xs, fill=(12, 35, 64))
+        
+        formatted_time = format_time_field(b.pickup_time or b.arrival_time)
+        draw.text((215, 545), formatted_time, font=font_bold_xs, fill=(12, 35, 64))
 
-    # 4.5. Generate Page 2 (Terms & Conditions)
+        # Car details
+        cat_text = b.vehicle_category.upper() if b.vehicle_category else "SEDAN"
+        w = get_text_width(cat_text, font_bold_sm)
+        draw.text((580 + (340 - w) // 2, 315), cat_text, font=font_bold_sm, fill=(12, 35, 64))
+
+        name_text = b.vehicle_name
+        w = get_text_width(name_text, font_reg_xs)
+        draw.text((580 + (340 - w) // 2, 355), name_text, font=font_reg_xs, fill=(100, 116, 139))
+
+        draw.text((610, 545), f"{b.guests} Seats", font=font_bold_xs, fill=(71, 85, 105))
+        draw.text((850, 545), f"{b.luggage_count or 0} Bags", font=font_bold_xs, fill=(71, 85, 105))
+
+        # Drop details
+        draw_wrapped_text(draw, b.to_city, (1115, 335, 1410, 415), font_bold_xs, fill=(12, 35, 64))
+        draw.text((1115, 445), "As per travel schedule", font=font_bold_xs, fill=(12, 35, 64))
+        draw.text((1115, 545), "Approx. standard route", font=font_bold_xs, fill=(12, 35, 64))
+
+        # Customer details
+        customer_name = f"{b.title} {b.first_name} {b.last_name}".strip()
+        draw.text((200, 710), customer_name, font=font_bold_xs, fill=(12, 35, 64))
+        draw.text((200, 790), b.phone or "N/A", font=font_bold_xs, fill=(12, 35, 64))
+        draw.text((530, 710), b.email or "N/A", font=font_bold_xs, fill=(12, 35, 64))
+        draw.text((530, 790), b_id, font=font_bold_xs, fill=(12, 35, 64))
+        draw.text((900, 710), f"{b.guests} Guest(s)", font=font_bold_xs, fill=(12, 35, 64))
+        
+        status_text = b.status.upper()
+        status_color = (19, 128, 72) if b.status in ["Confirmed", "Completed", "defined"] else (209, 38, 22)
+        draw.text((900, 790), status_text, font=font_bold_xs, fill=status_color)
+
+        # Dynamic car image
+        try:
+            from Holidays.models import VehicleMaster
+            from django.db.models import Q
+            vm = VehicleMaster.objects.filter(
+                Q(name__icontains=b.vehicle_name) | 
+                Q(brand__name__icontains=b.vehicle_name)
+            ).first()
+            if not vm and b.vehicle_category:
+                vm = VehicleMaster.objects.filter(
+                    Q(name__icontains=b.vehicle_category) | 
+                    Q(brand__name__icontains=b.vehicle_category)
+                ).first()
+            vehicle_photo = None
+            if vm and vm.photo:
+                if hasattr(vm.photo, 'path') and os.path.exists(vm.photo.path):
+                    vehicle_photo = vm.photo.path
+                else:
+                    vehicle_photo = f"https://goimomi.com{vm.photo.url}"
+            if vehicle_photo:
+                if os.path.exists(vehicle_photo):
+                    car_img = Image.open(vehicle_photo)
+                else:
+                    resp = requests.get(vehicle_photo, timeout=5)
+                    if resp.status_code == 200:
+                        car_img = Image.open(io.BytesIO(resp.content))
+                    else:
+                        car_img = None
+                if car_img:
+                    draw.rectangle((580, 405, 920, 525), fill=white)
+                    car_img.thumbnail((340, 120), Image.Resampling.LANCZOS)
+                    cx = 580 + (340 - car_img.width) // 2
+                    cy = 405 + (120 - car_img.height) // 2
+                    img.paste(car_img, (cx, cy), car_img.convert("RGBA") if "transparency" in car_img.info or car_img.mode == "RGBA" else None)
+        except Exception as e:
+            print(f"Error drawing vehicle image on PDF: {e}")
+
+        pages.append(img)
+
+    # 3. Generate the Terms & Conditions Page
     append_images = []
     try:
         terms_img = Image.new('RGB', (1536, 1024), (255, 255, 255))
@@ -226,17 +247,16 @@ def generate_booking_pdf(booking):
         # Deep green sidebar
         terms_draw.rectangle((0, 0, 20, 1024), fill=(20, 83, 45))
 
-        # Fonts for Page 2
+        # Fonts for Terms Page
         font_title = get_font("bold", 32)
         font_reg_sm = get_font("regular", 16)
 
         # Title
         terms_draw.text((100, 80), "TERMS & CONDITIONS", font=font_title, fill=(20, 83, 45))
 
-        # Decorative line under title
+        # Decorative line
         terms_draw.line((100, 135, 1436, 135), fill=(229, 231, 235), width=2)
 
-        # List of terms
         terms = [
             "1. Booking is confirmed only after receipt of the required advance or full payment.",
             "2. The quoted fare includes only the services mentioned in the booking confirmation. Toll, parking, permit, entry tax, and other applicable charges are extra unless specified.",
@@ -250,11 +270,9 @@ def generate_booking_pdf(booking):
             "10. By confirming the booking, the customer agrees to abide by these Terms & Conditions and accepts the company's policies."
         ]
 
-        # Draw columns: Left (1-5), Right (6-10)
+        # Draw columns
         y_left = 180
         y_right = 180
-
-        # Column widths
         left_col_box = (100, 0, 740, 0)
         right_col_box = (800, 0, 1440, 0)
 
@@ -266,107 +284,153 @@ def generate_booking_pdf(booking):
                 y_right = draw_wrapped_text(terms_draw, term, (right_col_box[0], y_right, right_col_box[2], 0), font_reg_sm, fill=(12, 35, 64), max_lines=None)
                 y_right += 20
 
-        # Decorative line for footer
+        # Footer
         terms_draw.line((100, 900, 1436, 900), fill=(229, 231, 235), width=2)
-        # Footer text
         footer_text = "24/7 Helpline: +91 81100 82222  |  Email: hello@goimomi.com  |  Website: www.goimomi.com"
-        fw = get_text_width(footer_text, font_reg_sm)
+        try:
+            fw = terms_draw.textlength(footer_text, font=font_reg_sm)
+        except Exception:
+            fw = font_reg_sm.getbbox(footer_text)[2] - font_reg_sm.getbbox(footer_text)[0]
         terms_draw.text((100 + (1336 - fw) // 2, 925), footer_text, font=font_reg_sm, fill=(71, 85, 105))
         
-        append_images = [terms_img]
+        append_images = pages[1:] + [terms_img]
     except Exception as e:
         print(f"Error creating Terms page on PDF: {e}")
-        append_images = []
+        append_images = pages[1:]
 
-    # 5. Export to PDF bytes
+    # 4. Export to PDF bytes
     buffer = io.BytesIO()
-    img.save(buffer, "PDF", save_all=True, append_images=append_images)
+    pages[0].save(buffer, "PDF", save_all=True, append_images=append_images)
     return buffer.getvalue()
+
 
 def send_booking_voucher(booking):
     """
     Sends the booking voucher HTML email with generated PDF attachment to
     both the customer and the company email.
+    Consolidates parallel bookings created by the same user within 10 seconds into a single email.
     """
-    subject = f"Goimomi Holidays - Booking Confirmation - {booking.booking_id}"
-    
-    # Prepare date and price formatting safely
-    try:
-        travel_date_str = booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "N/A"
-    except Exception:
-        travel_date_str = str(booking.pickup_date) if booking.pickup_date else "N/A"
-        
-    try:
-        total_amount_str = f"{booking.price:,.2f}"
-    except (TypeError, ValueError):
-        total_amount_str = str(booking.price) if booking.price is not None else "0.00"
-
-    # Prepare booking context compatible with the new car_booking_voucher template
-    formatted_time = format_time_field(booking.pickup_time or booking.arrival_time)
-
-    # Look up matching VehicleMaster for photo and capacities
-    from Holidays.models import VehicleMaster
+    import time
+    import io
+    import requests
+    from PIL import Image
+    import django.utils.timezone as timezone
+    from datetime import timedelta
+    from django.core.mail import EmailMultiAlternatives
+    from django.conf import settings
+    from django.template.loader import render_to_string
+    from Holidays.models import CabBooking, VehicleMaster
     from django.db.models import Q
     
-    vehicle_photo = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
-    vm = None
-    try:
-        vm = VehicleMaster.objects.filter(
-            Q(name__icontains=booking.vehicle_name) | 
-            Q(brand__name__icontains=booking.vehicle_name)
-        ).first()
+    # 1. Debounce to let all parallel bookings complete their DB insert
+    time.sleep(1.8)
+    
+    # 2. Get all bookings created by this email in the last 10 seconds
+    time_threshold = timezone.now() - timedelta(seconds=10)
+    related_bookings = CabBooking.objects.filter(
+        email=booking.email,
+        created_at__gte=time_threshold
+    ).order_by('id')
+    
+    if not related_bookings.exists():
+        related_bookings = [booking]
         
-        if not vm and booking.vehicle_category:
+    # 3. Only send from the last booking request in the batch to avoid duplicate emails
+    if booking.id != related_bookings.last().id:
+        print(f"Skipping email for booking {booking.booking_id} as it is part of a batch. Latest is {related_bookings.last().booking_id}.")
+        return True
+        
+    # 4. Prepare consolidated context
+    bookings_contexts = []
+    total_amount = 0
+    booking_ids = []
+    
+    for b in related_bookings:
+        try:
+            travel_date_str = b.pickup_date.strftime('%d %b %Y') if b.pickup_date else "N/A"
+        except Exception:
+            travel_date_str = str(b.pickup_date) if b.pickup_date else "N/A"
+            
+        try:
+            price_str = f"{b.price:,.2f}"
+        except (TypeError, ValueError):
+            price_str = str(b.price) if b.price is not None else "0.00"
+            
+        total_amount += b.price if b.price is not None else 0
+        booking_ids.append(b.booking_id)
+        
+        formatted_time = format_time_field(b.pickup_time or b.arrival_time)
+        
+        # Vehicle Photo
+        vehicle_photo = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
+        vm = None
+        try:
             vm = VehicleMaster.objects.filter(
-                Q(name__icontains=booking.vehicle_category) | 
-                Q(brand__name__icontains=booking.vehicle_category)
+                Q(name__icontains=b.vehicle_name) | 
+                Q(brand__name__icontains=b.vehicle_name)
             ).first()
-    except Exception:
-        pass
+            if not vm and b.vehicle_category:
+                vm = VehicleMaster.objects.filter(
+                    Q(name__icontains=b.vehicle_category) | 
+                    Q(brand__name__icontains=b.vehicle_category)
+                ).first()
+        except Exception:
+            pass
+        if vm and vm.photo:
+            vehicle_photo = f"https://goimomi.com{vm.photo.url}"
+            
+        bookings_contexts.append({
+            'booking_id': b.booking_id,
+            'vehicle_type': f"{b.vehicle_name} ({b.vehicle_category})" if b.vehicle_category else b.vehicle_name,
+            'vehicle_name': b.vehicle_name,
+            'vehicle_category': b.vehicle_category or "Sedan",
+            'vehicle_photo': vehicle_photo,
+            'pickup_location': b.airport_name or b.from_city if b.transfer_type == 'airport' else (f"{b.from_city} ({b.pickup_location_details})" if b.pickup_location_details else b.from_city),
+            'drop_location': b.to_city,
+            'travel_date': travel_date_str,
+            'pickup_time': formatted_time,
+            'total_amount': price_str,
+            'payment_status': b.status,
+            'guests': b.guests or 1,
+            'luggage_count': b.luggage_count or "0",
+            'special_requirements': b.special_requirements or "None",
+            'driver': b.driver or "Not Assigned Yet",
+        })
         
-    if vm and vm.photo:
-        vehicle_photo = f"https://goimomi.com{vm.photo.url}"
-
-    booking_context = {
-        'booking_id': booking.booking_id,
-        'customer_name': f"{booking.title} {booking.first_name} {booking.last_name}".strip(),
-        'customer_email': booking.email or "N/A",
-        'phone': booking.phone or "N/A",
-        'vehicle_type': f"{booking.vehicle_name} ({booking.vehicle_category})" if booking.vehicle_category else booking.vehicle_name,
-        'vehicle_name': booking.vehicle_name,
-        'vehicle_category': booking.vehicle_category or "Sedan",
-        'vehicle_photo': vehicle_photo,
-        'pickup_location': booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city),
-        'drop_location': booking.to_city,
-        'travel_date': travel_date_str,
-        'pickup_time': formatted_time,
-        'total_amount': total_amount_str,
-        'payment_status': booking.status,
-        'guests': booking.guests or 1,
-        'luggage_count': booking.luggage_count or "0",
-        'special_requirements': booking.special_requirements or "None",
-        'driver': booking.driver or "Not Assigned Yet",
-    }
+    try:
+        total_amount_str = f"{total_amount:,.2f}"
+    except Exception:
+        total_amount_str = str(total_amount)
+        
+    customer_name = f"{booking.title} {booking.first_name} {booking.last_name}".strip()
+    customer_email = booking.email or "N/A"
+    phone = booking.phone or "N/A"
     
     # Render HTML content
     html_content = render_to_string(
         'emails/car_booking_voucher.html',
-        {'booking': booking_context}
+        {
+            'bookings': bookings_contexts,
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'phone': phone,
+            'total_amount': total_amount_str,
+        }
     )
+    
+    # Subject line listing all booking IDs
+    subject = f"Goimomi Holidays - Booking Confirmation - {', '.join(booking_ids)}"
     
     # Fallback plain text message
     text_content = f"""
-Dear {booking.title} {booking.first_name} {booking.last_name},
+Dear {customer_name},
 
-Thank you for choosing Goimomi Holidays. Your booking has been confirmed!
+Thank you for choosing Goimomi Holidays. Your booking(s) have been confirmed!
 
-Booking Reference ID: {booking.booking_id}
-Vehicle: {booking.vehicle_name} ({booking.vehicle_category})
-Route: {booking.from_city} to {booking.to_city}
-Travel Date: {travel_date_str}
-Fare Amount: INR {total_amount_str}
+Booking Reference(s): {', '.join(booking_ids)}
+Total Fare Amount: INR {total_amount_str}
 
-A professional PDF voucher is attached to this email.
+A professional PDF voucher containing all booking tickets is attached to this email.
 
 For support, contact our 24/7 Travel Desk:
 Call: +91 81100 82222
@@ -413,8 +477,10 @@ Goimomi Holidays
     # Generate PDF and attach
     try:
         pdf_bytes = generate_booking_pdf(booking)
+        # Use first booking ID or generic name for file
+        pdf_filename = f"Voucher_{'_'.join(booking_ids[:2])}.pdf"
         email.attach(
-            filename=f"Voucher_{booking.booking_id}.pdf",
+            filename=pdf_filename,
             content=pdf_bytes,
             mimetype="application/pdf"
         )
@@ -426,7 +492,7 @@ Goimomi Holidays
     # Send email
     try:
         email.send(fail_silently=False)
-        print(f"Booking confirmation email sent successfully to {recipients} for booking {booking.booking_id}")
+        print(f"Booking confirmation email sent successfully to {recipients} for bookings {booking_ids}")
         return True
     except Exception as e:
         print(f"Error sending booking confirmation email: {e}")
