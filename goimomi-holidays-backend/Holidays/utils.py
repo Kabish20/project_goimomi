@@ -10,251 +10,215 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
+def format_time_field(raw_time):
+    if not raw_time or raw_time == "N/A":
+        return "N/A"
+    parts = raw_time.strip().split()
+    time_part = parts[1] if len(parts) == 2 else parts[0]
+    if ":" in time_part:
+        try:
+            t_obj = datetime.strptime(time_part, "%H:%M")
+            return t_obj.strftime("%I:%M %p")
+        except Exception:
+            try:
+                t_obj = datetime.strptime(time_part, "%H:%M:%S")
+                return t_obj.strftime("%I:%M %p")
+            except Exception:
+                return time_part
+    return "N/A"
+
 def generate_booking_pdf(booking):
     """
-    Generates a highly-stylized, professional 1-page PDF voucher for the booking
-    using ReportLab SimpleDocTemplate.
+    Generates a highly-stylized, pixel-perfect 1-page PDF voucher for the booking
+    by overlaying dynamic details on top of the designed voucher template image.
     """
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=letter,
-        leftMargin=36,
-        rightMargin=36,
-        topMargin=36,
-        bottomMargin=36
-    )
-    story = []
-    styles = getSampleStyleSheet()
-    
-    # Premium Color Palette matching Goimomi theme
-    primary_color = colors.HexColor("#14532d") # Deep emerald
-    secondary_color = colors.HexColor("#15803d") # Lighter green accent
-    text_color = colors.HexColor("#334155") # Slate dark
-    bg_light = colors.HexColor("#f8fafc") # Slate light
-    border_color = colors.HexColor("#cbd5e1") # Slate borders
-    
-    title_style = ParagraphStyle(
-        'DocTitle',
-        parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
-        fontSize=20,
-        textColor=colors.white,
-        alignment=1, # Center
-        spaceAfter=5
-    )
-    
-    subtitle_style = ParagraphStyle(
-        'DocSubtitle',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=10,
-        textColor=colors.HexColor("#d1fae5"),
-        alignment=1, # Center
-        spaceAfter=0
-    )
-    
-    section_heading = ParagraphStyle(
-        'SectionHeading',
-        parent=styles['Heading2'],
-        fontName='Helvetica-Bold',
-        fontSize=11,
-        textColor=primary_color,
-        spaceBefore=14,
-        spaceAfter=6,
-        borderPadding=(0, 0, 2, 0),
-        borderColor=primary_color
-    )
-    
-    normal_bold = ParagraphStyle(
-        'NormalBold',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=10,
-        textColor=text_color
-    )
-    
-    normal_style = ParagraphStyle(
-        'NormalText',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=10,
-        textColor=text_color
-    )
-    
-    # 1. Header Banner Table
-    header_data = [
-        [Paragraph("GOIMOMI HOLIDAYS", title_style)],
-        [Paragraph("CAB CONFIRMATION VOUCHER", subtitle_style)]
-    ]
-    header_table = Table(header_data, colWidths=[540])
-    header_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), primary_color),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 16),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 16),
-    ]))
-    story.append(header_table)
-    story.append(Spacer(1, 15))
-    
-    # 2. Reference Block
-    ref_data = [
-        [
-            Paragraph("<b>Voucher ID:</b>", normal_style),
-            Paragraph(f"<font color='#14532d'><b>{booking.booking_id}</b></font>", normal_bold),
-            Paragraph("<b>Issue Date:</b>", normal_style),
-            Paragraph(booking.created_at.strftime('%d %b %Y %H:%M') if booking.created_at else "", normal_style)
-        ]
-    ]
-    ref_table = Table(ref_data, colWidths=[90, 180, 90, 180])
-    ref_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), bg_light),
-        ('BOX', (0, 0), (-1, -1), 0.5, border_color),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-    ]))
-    story.append(ref_table)
-    
-    # 3. Passenger Details
-    story.append(Paragraph("PRIMARY GUEST DETAILS", section_heading))
-    guest_name = f"{booking.title} {booking.first_name} {booking.last_name}"
-    passenger_data = [
-        [Paragraph("Guest Name:", normal_bold), Paragraph(guest_name, normal_style)],
-        [Paragraph("Email ID:", normal_bold), Paragraph(booking.email or "N/A", normal_style)],
-        [Paragraph("Phone Number:", normal_bold), Paragraph(booking.phone or "N/A", normal_style)],
-    ]
-    if booking.special_requirements:
-        passenger_data.append([Paragraph("Special Req:", normal_bold), Paragraph(booking.special_requirements, normal_style)])
-        
-    passenger_table = Table(passenger_data, colWidths=[120, 420])
-    passenger_table.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#f1f5f9")),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(passenger_table)
-    
-    # 4. Trip Details
-    story.append(Paragraph("VEHICLE & ROUTE DETAILS", section_heading))
-    trip_data = [
-        [Paragraph("Vehicle Type:", normal_bold), Paragraph(f"{booking.vehicle_name} ({booking.vehicle_category})", normal_style)],
-        [Paragraph("From City:", normal_bold), Paragraph(booking.from_city, normal_style)],
-        [Paragraph("To City:", normal_bold), Paragraph(booking.to_city, normal_style)],
-        [Paragraph("Travel Date:", normal_bold), Paragraph(booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "", normal_style)],
-        [Paragraph("No. of Guests:", normal_bold), Paragraph(str(booking.guests), normal_style)],
-    ]
-    if booking.luggage_count:
-        trip_data.append([Paragraph("Luggage Count:", normal_bold), Paragraph(str(booking.luggage_count), normal_style)])
-        
-    trip_table = Table(trip_data, colWidths=[120, 420])
-    trip_table.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#f1f5f9")),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(trip_table)
-    
-    # 5. Transfer Specifics
-    story.append(Paragraph("TRANSFER SPECIFICS", section_heading))
-    spec_data = [
-        [Paragraph("Transfer Type:", normal_bold), Paragraph(booking.transfer_type.upper(), normal_style)]
-    ]
-    if booking.transfer_type == 'airport':
-        if booking.flight_number:
-            spec_data.append([Paragraph("Flight Number:", normal_bold), Paragraph(booking.flight_number, normal_style)])
-        if booking.terminal:
-            spec_data.append([Paragraph("Airport Terminal:", normal_bold), Paragraph(booking.terminal, normal_style)])
-        if booking.arrival_time:
-            spec_data.append([Paragraph("Arrival Date/Time:", normal_bold), Paragraph(booking.arrival_time, normal_style)])
-        if booking.departure_time:
-            spec_data.append([Paragraph("Departure Date/Time:", normal_bold), Paragraph(booking.departure_time, normal_style)])
-    else:
-        if booking.pickup_time:
-            spec_data.append([Paragraph("Pickup Time:", normal_bold), Paragraph(booking.pickup_time, normal_style)])
-        if booking.pickup_location_details:
-            spec_data.append([Paragraph("Pickup/Drop Details:", normal_bold), Paragraph(booking.pickup_location_details, normal_style)])
-            
-    spec_table = Table(spec_data, colWidths=[120, 420])
-    spec_table.setStyle(TableStyle([
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#f1f5f9")),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(spec_table)
-    
-    # 6. Fare Block
-    story.append(Spacer(1, 12))
-    try:
-        fare_val = f"₹{booking.price:,.2f}"
-    except (TypeError, ValueError):
-        fare_val = f"₹{booking.price}" if booking.price is not None else "₹0.00"
+    import os
+    import sys
+    import requests
+    from PIL import Image, ImageDraw, ImageFont
 
-    fare_data = [
-        [
-            Paragraph("<b>TOTAL FARE AMOUNT (INR):</b>", ParagraphStyle('FareLabel', parent=normal_bold, fontSize=11, textColor=primary_color)),
-            Paragraph(f"<b>{fare_val}</b>", ParagraphStyle('FareVal', parent=normal_bold, fontSize=14, textColor=primary_color, alignment=2))
-        ]
-    ]
-    fare_table = Table(fare_data, colWidths=[300, 240])
-    fare_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#ecfdf5")),
-        ('BOX', (0, 0), (-1, -1), 1, primary_color),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-        ('LEFTPADDING', (0, 0), (-1, -1), 15),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-    ]))
-    story.append(fare_table)
+    # 1. Load the template image
+    template_path = os.path.join(os.path.dirname(__file__), 'cab_voucher.png')
+    img = Image.open(template_path).convert('RGB')
+    draw = ImageDraw.Draw(img)
+
+    # Helper to load standard fonts
+    def get_font(font_name, size):
+        try:
+            if sys.platform.startswith('win'):
+                if "bold" in font_name.lower():
+                    return ImageFont.truetype("arialbd.ttf", size)
+                return ImageFont.truetype("arial.ttf", size)
+            else:
+                paths = [
+                    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if "bold" in font_name.lower() else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if "bold" in font_name.lower() else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+                ]
+                for p in paths:
+                    if os.path.exists(p):
+                        return ImageFont.truetype(p, size)
+        except Exception:
+            pass
+        return ImageFont.load_default()
+
+    font_bold_sm = get_font("bold", 16)
+    font_bold_xs = get_font("bold", 14)
+    font_reg_xs = get_font("regular", 14)
+
+    def get_text_width(txt, fnt):
+        try:
+            return draw.textlength(txt, font=fnt)
+        except Exception:
+            return fnt.getbbox(txt)[2] - fnt.getbbox(txt)[0]
+
+    def draw_wrapped_text(draw_obj, text, box, font, fill):
+        x1, y1, x2, y2 = box
+        max_w = x2 - x1
+        words = text.split()
+        lines = []
+        current_line = []
+        for word in words:
+            test_line = " ".join(current_line + [word])
+            if get_text_width(test_line, font) <= max_w:
+                current_line.append(word)
+            else:
+                if current_line:
+                    lines.append(" ".join(current_line))
+                current_line = [word]
+        if current_line:
+            lines.append(" ".join(current_line))
+            
+        y = y1
+        for line in lines[:2]: # Max 2 lines
+            draw_obj.text((x1, y), line, font=font, fill=fill)
+            y += font.getbbox(line)[3] - font.getbbox(line)[1] + 4
+
+    # 2. Cover old text fields with white rectangles
+    white = (255, 255, 255)
     
-    # 7. Terms & Support Footer
-    story.append(Spacer(1, 15))
-    terms_title_style = ParagraphStyle(
-        'TermsTitle',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=9,
-        textColor=colors.HexColor("#475569")
-    )
-    terms_body_style = ParagraphStyle(
-        'TermsBody',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=8,
-        textColor=colors.HexColor("#64748b"),
-        leading=11
-    )
+    # Left Barcode Label
+    draw.rectangle((80, 375, 115, 605), fill=white)
+
+    # Pickup Column
+    draw.rectangle((210, 340, 500, 390), fill=white)
+    draw.rectangle((210, 440, 500, 520), fill=white)
+    draw.rectangle((210, 540, 500, 595), fill=white)
+
+    # Car Column
+    draw.rectangle((580, 305, 920, 350), fill=white)
+    draw.rectangle((580, 350, 920, 395), fill=white)
+    draw.rectangle((600, 535, 710, 580), fill=white)
+    draw.rectangle((840, 535, 950, 580), fill=white)
+
+    # Drop Column
+    draw.rectangle((1110, 335, 1420, 420), fill=white)
+    draw.rectangle((1110, 440, 1420, 490), fill=white)
+    draw.rectangle((1110, 540, 1420, 595), fill=white)
+
+    # Customer details
+    draw.rectangle((200, 710, 470, 745), fill=white)
+    draw.rectangle((200, 790, 470, 825), fill=white)
+    draw.rectangle((530, 710, 800, 745), fill=white)
+    draw.rectangle((530, 790, 800, 825), fill=white)
+    draw.rectangle((900, 710, 1140, 745), fill=white)
+    draw.rectangle((900, 790, 1140, 825), fill=white)
+
+    # 3. Draw new texts
+    # Vertical Barcode Text
+    booking_id = booking.booking_id or f"GO-TRN-{str(booking.pk).zfill(4)}"
+    txt_img = Image.new('RGBA', (250, 40), (255, 255, 255, 0))
+    txt_draw = ImageDraw.Draw(txt_img)
+    txt_draw.text((0, 0), booking_id, font=font_bold_sm, fill=(71, 85, 105))
+    rotated_txt = txt_img.rotate(90, expand=True)
+    img.paste(rotated_txt, (85, 380), rotated_txt)
+
+    # Pickup details
+    travel_date_str = booking.pickup_date.strftime('%d %b %Y') if booking.pickup_date else "N/A"
+    draw.text((215, 345), travel_date_str, font=font_bold_xs, fill=(12, 35, 64))
     
-    story.append(Paragraph("IMPORTANT INFORMATION", terms_title_style))
-    story.append(Paragraph("1. Please present this voucher (printed or digital copy) to your driver upon pickup.<br/>"
-                           "2. In case of any flight delays or schedule changes, please contact the helpline immediately.<br/>"
-                           "3. Free cancellation is allowed up to 48 hours prior to the scheduled pickup time.", terms_body_style))
+    pickup_point = booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city)
+    draw_wrapped_text(draw, pickup_point, (215, 445, 490, 515), font_bold_xs, fill=(12, 35, 64))
     
-    story.append(Spacer(1, 12))
-    support_style = ParagraphStyle(
-        'SupportInfo',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=9,
-        textColor=primary_color,
-        alignment=1
-    )
-    story.append(Paragraph("Goimomi 24/7 Helpline: +91 81100 82222  |  Email: hello@goimomi.com  |  Website: www.goimomi.com", support_style))
+    formatted_time = format_time_field(booking.pickup_time or booking.arrival_time)
+    draw.text((215, 545), formatted_time, font=font_bold_xs, fill=(12, 35, 64))
+
+    # Car details
+    cat_text = booking.vehicle_category.upper() if booking.vehicle_category else "SEDAN"
+    w = get_text_width(cat_text, font_bold_sm)
+    draw.text((580 + (340 - w) // 2, 315), cat_text, font=font_bold_sm, fill=(12, 35, 64))
+
+    name_text = booking.vehicle_name
+    w = get_text_width(name_text, font_reg_xs)
+    draw.text((580 + (340 - w) // 2, 355), name_text, font=font_reg_xs, fill=(100, 116, 139))
+
+    draw.text((610, 545), f"{booking.guests} Seats", font=font_bold_xs, fill=(71, 85, 105))
+    draw.text((850, 545), f"{booking.luggage_count or 0} Bags", font=font_bold_xs, fill=(71, 85, 105))
+
+    # Drop details
+    draw_wrapped_text(draw, booking.to_city, (1115, 335, 1410, 415), font_bold_xs, fill=(12, 35, 64))
+    draw.text((1115, 445), "As per travel schedule", font=font_bold_xs, fill=(12, 35, 64))
+    draw.text((1115, 545), "Approx. standard route", font=font_bold_xs, fill=(12, 35, 64))
+
+    # Customer details
+    customer_name = f"{booking.title} {booking.first_name} {booking.last_name}".strip()
+    draw.text((200, 710), customer_name, font=font_bold_xs, fill=(12, 35, 64))
+    draw.text((200, 790), booking.phone or "N/A", font=font_bold_xs, fill=(12, 35, 64))
+    draw.text((530, 710), booking.email or "N/A", font=font_bold_xs, fill=(12, 35, 64))
+    draw.text((530, 790), booking_id, font=font_bold_xs, fill=(12, 35, 64))
+    draw.text((900, 710), f"{booking.guests} Guest(s)", font=font_bold_xs, fill=(12, 35, 64))
     
-    doc.build(story)
-    pdf_bytes = buffer.getvalue()
-    buffer.close()
-    return pdf_bytes
+    status_text = booking.status.upper()
+    status_color = (19, 128, 72) if booking.status in ["Confirmed", "Completed", "defined"] else (209, 38, 22)
+    draw.text((900, 790), status_text, font=font_bold_xs, fill=status_color)
+
+    # 4. Fetch and paste dynamic car image
+    try:
+        from Holidays.models import VehicleMaster
+        from django.db.models import Q
+        vm = VehicleMaster.objects.filter(
+            Q(name__icontains=booking.vehicle_name) | 
+            Q(brand__name__icontains=booking.vehicle_name)
+        ).first()
+        
+        if not vm and booking.vehicle_category:
+            vm = VehicleMaster.objects.filter(
+                Q(name__icontains=booking.vehicle_category) | 
+                Q(brand__name__icontains=booking.vehicle_category)
+            ).first()
+            
+        vehicle_photo = None
+        if vm and vm.photo:
+            if hasattr(vm.photo, 'path') and os.path.exists(vm.photo.path):
+                vehicle_photo = vm.photo.path
+            else:
+                vehicle_photo = f"https://goimomi.com{vm.photo.url}"
+                
+        if vehicle_photo:
+            if os.path.exists(vehicle_photo):
+                car_img = Image.open(vehicle_photo)
+            else:
+                resp = requests.get(vehicle_photo, timeout=5)
+                if resp.status_code == 200:
+                    car_img = Image.open(io.BytesIO(resp.content))
+                else:
+                    car_img = None
+                    
+            if car_img:
+                # Cover old car image
+                draw.rectangle((580, 405, 920, 525), fill=white)
+                # Resize car image to fit the 340x120 area
+                car_img.thumbnail((340, 120), Image.Resampling.LANCZOS)
+                # Center and paste
+                cx = 580 + (340 - car_img.width) // 2
+                cy = 405 + (120 - car_img.height) // 2
+                img.paste(car_img, (cx, cy), car_img.convert("RGBA") if "transparency" in car_img.info or car_img.mode == "RGBA" else None)
+    except Exception as e:
+        print(f"Error drawing vehicle image on PDF: {e}")
+
+    # 5. Export to PDF bytes
+    buffer = io.BytesIO()
+    img.save(buffer, "PDF")
+    return buffer.getvalue()
 
 def send_booking_voucher(booking):
     """
@@ -275,20 +239,7 @@ def send_booking_voucher(booking):
         total_amount_str = str(booking.price) if booking.price is not None else "0.00"
 
     # Prepare booking context compatible with the new car_booking_voucher template
-    raw_time = booking.pickup_time or booking.arrival_time or "N/A"
-    formatted_time = "N/A"
-    if raw_time != "N/A":
-        parts = raw_time.strip().split()
-        time_part = parts[1] if len(parts) == 2 else parts[0]
-        try:
-            t_obj = datetime.strptime(time_part, "%H:%M")
-            formatted_time = t_obj.strftime("%I:%M %p")
-        except Exception:
-            try:
-                t_obj = datetime.strptime(time_part, "%H:%M:%S")
-                formatted_time = t_obj.strftime("%I:%M %p")
-            except Exception:
-                formatted_time = time_part
+    formatted_time = format_time_field(booking.pickup_time or booking.arrival_time)
 
     # Look up matching VehicleMaster for photo and capacities
     from Holidays.models import VehicleMaster
