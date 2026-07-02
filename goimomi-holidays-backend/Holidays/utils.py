@@ -71,7 +71,7 @@ def generate_booking_pdf(booking):
         except Exception:
             return fnt.getbbox(txt)[2] - fnt.getbbox(txt)[0]
 
-    def draw_wrapped_text(draw_obj, text, box, font, fill):
+    def draw_wrapped_text(draw_obj, text, box, font, fill, max_lines=2):
         x1, y1, x2, y2 = box
         max_w = x2 - x1
         words = text.split()
@@ -89,9 +89,11 @@ def generate_booking_pdf(booking):
             lines.append(" ".join(current_line))
             
         y = y1
-        for line in lines[:2]: # Max 2 lines
+        lines_to_draw = lines[:max_lines] if max_lines is not None else lines
+        for line in lines_to_draw:
             draw_obj.text((x1, y), line, font=font, fill=fill)
-            y += font.getbbox(line)[3] - font.getbbox(line)[1] + 4
+            y += font.getbbox(line)[3] - font.getbbox(line)[1] + 6
+        return y
 
     # 2. Cover old text fields with white rectangles
     white = (255, 255, 255)
@@ -215,9 +217,70 @@ def generate_booking_pdf(booking):
     except Exception as e:
         print(f"Error drawing vehicle image on PDF: {e}")
 
+    # 4.5. Generate Page 2 (Terms & Conditions)
+    append_images = []
+    try:
+        terms_img = Image.new('RGB', (1536, 1024), (255, 255, 255))
+        terms_draw = ImageDraw.Draw(terms_img)
+
+        # Deep green sidebar
+        terms_draw.rectangle((0, 0, 20, 1024), fill=(20, 83, 45))
+
+        # Fonts for Page 2
+        font_title = get_font("bold", 32)
+        font_reg_sm = get_font("regular", 16)
+
+        # Title
+        terms_draw.text((100, 80), "TERMS & CONDITIONS", font=font_title, fill=(20, 83, 45))
+
+        # Decorative line under title
+        terms_draw.line((100, 135, 1436, 135), fill=(229, 231, 235), width=2)
+
+        # List of terms
+        terms = [
+            "1. Booking is confirmed only after receipt of the required advance or full payment.",
+            "2. The quoted fare includes only the services mentioned in the booking confirmation. Toll, parking, permit, entry tax, and other applicable charges are extra unless specified.",
+            "3. Customers must be present at the pickup location on time. Waiting beyond 15 minutes (city pickups) or 30 minutes (airport pickups) may incur additional charges.",
+            "4. Any change in pickup location, destination, route, duration, or travel plan after confirmation may result in additional charges.",
+            "5. Extra kilometers and extra hours will be charged as per the applicable rates for the selected vehicle.",
+            "6. Cancellation, no-show, or cancellation after vehicle dispatch may attract cancellation charges, and refunds (if applicable) will be processed as per company policy.",
+            "7. GOIMOMI HOLIDAYS is not responsible for delays caused by traffic, weather, road conditions, government restrictions, vehicle breakdowns due to unforeseen circumstances, or any force majeure events.",
+            "8. Customers are responsible for their personal belongings. GOIMOMI HOLIDAYS shall not be liable for any loss, theft, or damage to luggage or valuables.",
+            "9. Any damage caused to the vehicle by the customer or passengers will be chargeable to the customer.",
+            "10. By confirming the booking, the customer agrees to abide by these Terms & Conditions and accepts the company's policies."
+        ]
+
+        # Draw columns: Left (1-5), Right (6-10)
+        y_left = 180
+        y_right = 180
+
+        # Column widths
+        left_col_box = (100, 0, 740, 0)
+        right_col_box = (800, 0, 1440, 0)
+
+        for i, term in enumerate(terms):
+            if i < 5:
+                y_left = draw_wrapped_text(terms_draw, term, (left_col_box[0], y_left, left_col_box[2], 0), font_reg_sm, fill=(12, 35, 64), max_lines=None)
+                y_left += 20
+            else:
+                y_right = draw_wrapped_text(terms_draw, term, (right_col_box[0], y_right, right_col_box[2], 0), font_reg_sm, fill=(12, 35, 64), max_lines=None)
+                y_right += 20
+
+        # Decorative line for footer
+        terms_draw.line((100, 900, 1436, 900), fill=(229, 231, 235), width=2)
+        # Footer text
+        footer_text = "24/7 Helpline: +91 81100 82222  |  Email: hello@goimomi.com  |  Website: www.goimomi.com"
+        fw = get_text_width(footer_text, font_reg_sm)
+        terms_draw.text((100 + (1336 - fw) // 2, 925), footer_text, font=font_reg_sm, fill=(71, 85, 105))
+        
+        append_images = [terms_img]
+    except Exception as e:
+        print(f"Error creating Terms page on PDF: {e}")
+        append_images = []
+
     # 5. Export to PDF bytes
     buffer = io.BytesIO()
-    img.save(buffer, "PDF")
+    img.save(buffer, "PDF", save_all=True, append_images=append_images)
     return buffer.getvalue()
 
 def send_booking_voucher(booking):
