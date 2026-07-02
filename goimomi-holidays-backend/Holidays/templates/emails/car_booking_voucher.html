@@ -2,61 +2,416 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Booking Voucher</title>
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Playball&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #eef2f6;
+            font-family: 'Montserrat', 'Segoe UI', Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        @media only screen and (max-width: 768px) {
+            .ticket-card {
+                width: 95% !important;
+            }
+            .column-cell {
+                display: block !important;
+                width: 100% !important;
+                border-right: none !important;
+                border-bottom: 1px dashed #e2e8f0 !important;
+                padding: 15px 0 !important;
+            }
+            .column-cell:last-child {
+                border-bottom: none !important;
+            }
+            .customer-cell {
+                display: block !important;
+                width: 100% !important;
+                border-left: none !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                padding: 10px 0 !important;
+            }
+            .customer-cell:last-child {
+                border-bottom: none !important;
+            }
+            .barcode-cell {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; background-color:#f4f4f4; padding:20px;">
+<body style="margin: 0; padding: 0; background-color: #eef2f6; font-family: 'Montserrat', 'Segoe UI', Helvetica, Arial, sans-serif;">
 
-<table width="600" align="center" style="background:#ffffff; border-radius:8px; padding:20px;">
+<table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #eef2f6; padding: 40px 0;">
     <tr>
         <td align="center">
-            <h1 style="color:#0d6efd;">Booking Confirmed</h1>
-            <p>Thank you for choosing our service.</p>
-        </td>
-    </tr>
-
-    <tr>
-        <td>
-            <h3>Booking Voucher</h3>
-            <hr>
-
-            <p><strong>Booking ID:</strong> {{ booking.booking_id }}</p>
-            <p><strong>Customer Name:</strong> {{ booking.customer_name }}</p>
-            <p><strong>Email:</strong> {{ booking.customer_email }}</p>
-            <p><strong>Phone:</strong> {{ booking.phone }}</p>
-
-            <h4>Trip Details</h4>
-
-            <p><strong>Vehicle Type:</strong> {{ booking.vehicle_type }}</p>
-            <p><strong>Pick Up At:</strong> {{ booking.pickup_location }}</p>
-            <p><strong>Drop At:</strong> {{ booking.drop_location }}</p>
-            <p><strong>Travel Date:</strong> {{ booking.travel_date }}</p>
-            <p><strong>Pickup Time:</strong> {{ booking.pickup_time }}</p>
-
-            <h4>Payment Information</h4>
-
-            <p><strong>Total Amount:</strong> ₹{{ booking.total_amount }}</p>
-            <p><strong>Payment Status:</strong> {{ booking.payment_status }}</p>
-
-            <hr>
-
-            <p>
-                <strong>Important:</strong><br>
-                Please carry this voucher during your journey. For any modifications or cancellations, contact our support team.
-            </p>
-
-            <br>
-
-            <p>
-                Regards,<br>
-                <strong>Goimomi Holidays</strong><br>
-                    Customer Support Team
-            </p>
-        </td>
-    </tr>
-
-    <tr>
-        <td align="center" style="padding-top:20px; color:#666;">
-            © 2026 Goimomi Holidays. All Rights Reserved.
+            
+            <!-- TICKET CONTAINER -->
+            <table class="ticket-card" width="720" border="0" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-collapse: collapse; border-radius: 24px; border: 1px solid #d0dbe5; box-shadow: 0 12px 35px rgba(12, 35, 64, 0.08); overflow: hidden;">
+                
+                <!-- UPPER SECTION -->
+                <tr>
+                    <td colspan="3" style="padding: 35px 40px 20px 40px;">
+                        
+                        <!-- HEADER BAR -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <!-- Logo -->
+                                <td width="30%" valign="middle">
+                                    <img src="https://goimomi.com/logo.png" height="48" alt="Goimomi Holidays" style="display: block; border: 0; outline: none; height: 48px;">
+                                </td>
+                                <!-- Title -->
+                                <td width="40%" align="center" valign="middle">
+                                    <div style="line-height: 1;">
+                                        <span style="font-size: 26px; font-weight: 800; color: #0c2340; letter-spacing: 1.5px; font-family: 'Outfit', sans-serif; text-transform: uppercase;">CAB BOOKING</span><br>
+                                        <span style="font-size: 28px; font-weight: bold; color: #d12616; font-family: 'Playball', cursive; margin-top: 2px; display: inline-block;">Voucher</span>
+                                    </div>
+                                </td>
+                                <!-- Top-Right Priority Badge -->
+                                <td width="30%" align="right" valign="middle">
+                                    <div style="background-color: #0c2340; border-radius: 12px; padding: 8px 12px; width: 135px; text-align: center;">
+                                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td align="center" style="padding-bottom: 2px;">
+                                                    <!-- White Car Icon -->
+                                                    <svg width="20" height="15" viewBox="0 0 24 18" fill="none" style="display: inline-block; vertical-align: middle;">
+                                                        <path d="M19 8h-14l1.36-4.08C6.67 3.32 7.23 3 7.85 3h8.3c.62 0 1.18.32 1.49.92L19 8z" fill="#ffffff"/>
+                                                        <path d="M21 8h-18c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2v-6c0-1.1-.9-2-2-2z" fill="#ffffff"/>
+                                                        <circle cx="6" cy="13" r="1.5" fill="#0c2340"/>
+                                                        <circle cx="18" cy="13" r="1.5" fill="#0c2340"/>
+                                                    </svg>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center" style="font-size: 8px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">YOUR JOURNEY</td>
+                                            </tr>
+                                            <tr>
+                                                <td align="center" style="font-size: 8px; font-weight: 800; color: #ff5722; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">OUR PRIORITY</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- MAIN TRIP CARD -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: 1.5px solid #bfdbfe; border-radius: 18px; background-color: #ffffff; overflow: hidden; margin-top: 25px;">
+                            <tr>
+                                <!-- Left Barcode Column -->
+                                <td class="barcode-cell" width="45" style="border-right: 1.5px dashed #cbd5e1; background-color: #ffffff; padding: 20px 0; text-align: center; vertical-align: middle;">
+                                    <div style="width: 24px; height: 125px; display: inline-block; background: repeating-linear-gradient(90deg, #111827, #111827 2px, #ffffff 2px, #ffffff 4px, #111827 4px, #111827 5px, #ffffff 5px, #ffffff 7px); margin-bottom: 8px;"></div>
+                                    <div style="font-size: 9px; font-weight: bold; color: #475569; writing-mode: vertical-rl; transform: rotate(180deg); font-family: 'Outfit', sans-serif; letter-spacing: 1px;">
+                                        {{ booking.booking_id }}
+                                    </div>
+                                </td>
+                                
+                                <!-- Trip Columns Main Area -->
+                                <td style="padding: 24px;">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <!-- Column 1: PICKUP DETAILS -->
+                                            <td class="column-cell" width="31%" valign="top" style="padding-right: 15px; border-right: 1.5px dashed #e2e8f0;">
+                                                <!-- Pill -->
+                                                <div style="background-color: #138048; color: #ffffff; padding: 6px; border-radius: 6px; font-size: 10px; font-weight: bold; font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+                                                    📍 PICKUP DETAILS
+                                                </div>
+                                                
+                                                <!-- Date -->
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                                                    <tr>
+                                                        <td width="24" valign="top" style="padding-top: 2px;">
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#138048" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <div style="font-size: 9px; font-weight: bold; color: #138048; letter-spacing: 0.5px; text-transform: uppercase;">DATE</div>
+                                                            <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 2px; font-family: 'Outfit', sans-serif;">{{ booking.travel_date }}</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                
+                                                <!-- Pickup Point -->
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                                                    <tr>
+                                                        <td width="24" valign="top" style="padding-top: 2px;">
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#138048" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <div style="font-size: 9px; font-weight: bold; color: #138048; letter-spacing: 0.5px; text-transform: uppercase;">PICKUP POINT</div>
+                                                            <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 2px; font-family: 'Outfit', sans-serif; line-height: 1.3;">{{ booking.pickup_location }}</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                
+                                                <!-- Pickup Time -->
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                                                    <tr>
+                                                        <td width="24" valign="top" style="padding-top: 2px;">
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#138048" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <div style="font-size: 9px; font-weight: bold; color: #138048; letter-spacing: 0.5px; text-transform: uppercase;">PICKUP TIME</div>
+                                                            <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 2px; font-family: 'Outfit', sans-serif;">{{ booking.pickup_time }}</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            
+                                            <!-- Column 2: YOUR CAR -->
+                                            <td class="column-cell" width="38%" valign="top" style="padding: 0 15px; border-right: 1.5px dashed #e2e8f0; text-align: center;">
+                                                <!-- Pill -->
+                                                <div style="background-color: #0c2340; color: #ffffff; padding: 6px; border-radius: 6px; font-size: 10px; font-weight: bold; font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+                                                    🚗 YOUR CAR
+                                                </div>
+                                                
+                                                <div style="margin-top: 15px;">
+                                                    <div style="font-size: 14px; font-weight: 800; color: #0c2340; font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                        {{ booking.vehicle_category }}
+                                                    </div>
+                                                    <div style="font-size: 11px; font-weight: 500; color: #64748b; margin-top: 1px; font-family: 'Montserrat', sans-serif;">
+                                                        {{ booking.vehicle_name }} / Similar
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Car Image -->
+                                                <div style="margin: 10px 0;">
+                                                    <img src="{{ booking.vehicle_photo }}" width="135" alt="Car" style="width: 135px; height: auto; display: inline-block;">
+                                                </div>
+                                                
+                                                <!-- Specifications -->
+                                                <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin-top: 6px;">
+                                                    <tr>
+                                                        <td style="padding-right: 10px; font-size: 10px; font-weight: 700; color: #475569; font-family: 'Outfit', sans-serif; white-space: nowrap;">
+                                                            👥 {{ booking.guests }} Seats
+                                                        </td>
+                                                        <td style="padding-right: 10px; font-size: 10px; font-weight: 700; color: #475569; font-family: 'Outfit', sans-serif; white-space: nowrap;">
+                                                            ❄️ AC
+                                                        </td>
+                                                        <td style="font-size: 10px; font-weight: 700; color: #475569; font-family: 'Outfit', sans-serif; white-space: nowrap;">
+                                                            💼 {{ booking.luggage_count }} Bags
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            
+                                            <!-- Column 3: DROP DETAILS -->
+                                            <td class="column-cell" width="31%" valign="top" style="padding-left: 15px;">
+                                                <!-- Pill -->
+                                                <div style="background-color: #d12616; color: #ffffff; padding: 6px; border-radius: 6px; font-size: 10px; font-weight: bold; font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; text-align: center;">
+                                                    🏁 DROP DETAILS
+                                                </div>
+                                                
+                                                <!-- Drop Point -->
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                                                    <tr>
+                                                        <td width="24" valign="top" style="padding-top: 2px;">
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d12616" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <div style="font-size: 9px; font-weight: bold; color: #d12616; letter-spacing: 0.5px; text-transform: uppercase;">DROP POINT</div>
+                                                            <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 2px; font-family: 'Outfit', sans-serif; line-height: 1.3;">{{ booking.drop_location }}</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                
+                                                <!-- Est Drop Time -->
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                                                    <tr>
+                                                        <td width="24" valign="top" style="padding-top: 2px;">
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d12616" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <div style="font-size: 9px; font-weight: bold; color: #d12616; letter-spacing: 0.5px; text-transform: uppercase;">ESTIMATED DROP TIME</div>
+                                                            <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 2px; font-family: 'Outfit', sans-serif;">As per travel schedule</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                                
+                                                <!-- Distance -->
+                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                                                    <tr>
+                                                        <td width="24" valign="top" style="padding-top: 2px;">
+                                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d12616" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <div style="font-size: 9px; font-weight: bold; color: #d12616; letter-spacing: 0.5px; text-transform: uppercase;">DISTANCE</div>
+                                                            <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 2px; font-family: 'Outfit', sans-serif;">Approx. standard route</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                    </td>
+                </tr>
+                
+                <!-- SCALLOP BITE ROW WITH DASHED SEPARATOR -->
+                <tr>
+                    <!-- Left Bite -->
+                    <td width="15" style="vertical-align: middle; text-align: left; padding: 0; line-height: 0; font-size: 0;">
+                        <svg width="15" height="30" style="display: block;">
+                            <path d="M0,0 C8.3,0 15,6.7 15,15 C15,23.3 8.3,30 0,30 Z" fill="#eef2f6" />
+                        </svg>
+                    </td>
+                    <!-- Dashed line -->
+                    <td style="border-bottom: 2px dashed #cbd5e1; padding: 0; line-height: 0; font-size: 0; height: 2px; vertical-align: middle;">
+                        &nbsp;
+                    </td>
+                    <!-- Right Bite -->
+                    <td width="15" style="vertical-align: middle; text-align: right; padding: 0; line-height: 0; font-size: 0;">
+                        <svg width="15" height="30" style="display: block; float: right;">
+                            <path d="M15,0 C6.7,0 0,6.7 0,15 C0,23.3 6.7,30 15,30 Z" fill="#eef2f6" />
+                        </svg>
+                    </td>
+                </tr>
+                
+                <!-- LOWER SECTION -->
+                <tr>
+                    <td colspan="3" style="padding: 20px 40px 35px 40px;">
+                        
+                        <!-- CUSTOMER DETAILS PANEL -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: 1.5px solid #bfdbfe; border-radius: 18px; background-color: #f8fafc; padding: 22px;">
+                            <tr>
+                                <td colspan="4" style="padding-bottom: 18px;">
+                                    <span style="background-color: #0c2340; color: #ffffff; padding: 6px 16px; border-radius: 20px; font-size: 10px; font-weight: bold; font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">CUSTOMER DETAILS</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <!-- Customer Name & Phone -->
+                                <td class="customer-cell" width="30%" valign="top" style="padding-right: 10px;">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td valign="top" style="padding-bottom: 12px;">
+                                                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">CUSTOMER NAME</div>
+                                                <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                    👤 {{ booking.customer_name }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td valign="top">
+                                                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">PHONE NUMBER</div>
+                                                <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif;">
+                                                    📞 {{ booking.phone }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                
+                                <!-- Email & Booking ID -->
+                                <td class="customer-cell" width="30%" valign="top" style="padding-right: 10px;">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td valign="top" style="padding-bottom: 12px;">
+                                                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">EMAIL ID</div>
+                                                <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif; word-break: break-all;">
+                                                    ✉️ {{ booking.customer_email }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td valign="top">
+                                                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">BOOKING ID</div>
+                                                <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif;">
+                                                    🎫 {{ booking.booking_id }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                
+                                <!-- Passengers & Payment Status -->
+                                <td class="customer-cell" width="23%" valign="top" style="padding-right: 10px;">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td valign="top" style="padding-bottom: 12px;">
+                                                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">NO. OF PASSENGERS</div>
+                                                <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif;">
+                                                    👥 {{ booking.guests }} Guest(s)
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td valign="top">
+                                                <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">PAYMENT STATUS</div>
+                                                <div style="font-size: 12px; font-weight: 800; color: #138048; margin-top: 3px; font-family: 'Outfit', sans-serif;">
+                                                    💳 {{ booking.payment_status|upper }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                
+                                <!-- QR Code -->
+                                <td class="customer-cell" width="17%" valign="middle" align="center" style="border-left: 1.5px solid #cbd5e1; padding-left: 12px;">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=72x72&color=138048&data={{ booking.booking_id }}" width="72" height="72" alt="QR Code" style="display: block; border: 0; outline: none; border-radius: 4px;">
+                                    <div style="font-size: 7px; font-weight: 800; color: #138048; margin-top: 6px; letter-spacing: 0.5px; text-transform: uppercase; font-family: 'Outfit', sans-serif; text-align: center; line-height: 1.2;">
+                                        SCAN FOR<br>TRIP DETAILS
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- PAYMENT AMOUNT SUMMARY -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px; border: 1.5px solid #bfdbfe; border-radius: 12px; background-color: #ffffff; padding: 12px 20px;">
+                            <tr>
+                                <td align="left" style="font-size: 12px; font-weight: bold; color: #0c2340; font-family: 'Outfit', sans-serif;">
+                                    💵 TOTAL BOOKING FARE
+                                </td>
+                                <td align="right" style="font-size: 16px; font-weight: 800; color: #138048; font-family: 'Outfit', sans-serif;">
+                                    ₹{{ booking.total_amount }}
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- FOOTER ACTIONS & SUPPORT -->
+                        <div style="text-align: center; margin-top: 30px;">
+                            
+                            <!-- Support Badge & Contact Details -->
+                            <table align="center" border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding-right: 12px;">
+                                        <span style="background-color: #0c2340; color: #ffffff; padding: 5px 12px; border-radius: 20px; font-size: 9px; font-weight: bold; font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">24/7 SUPPORT</span>
+                                    </td>
+                                    <td style="font-size: 11px; font-weight: 700; color: #475569; font-family: 'Outfit', sans-serif; padding-right: 12px;">
+                                        📞 +91 81100 82222
+                                    </td>
+                                    <td style="font-size: 11px; font-weight: 700; color: #475569; font-family: 'Outfit', sans-serif; padding-right: 12px;">
+                                        ✉️ hello@goimomi.com
+                                    </td>
+                                    <td style="font-size: 11px; font-weight: 700; color: #475569; font-family: 'Outfit', sans-serif;">
+                                        🌐 www.goimomi.com
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Divider and Copryight / Thank You -->
+                            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 25px; border-top: 1.5px solid #e2e8f0; padding-top: 20px;">
+                                <tr>
+                                    <td align="left" style="font-size: 10px; color: #94a3b8; font-family: 'Outfit', sans-serif;">
+                                        &copy; 2026 Goimomi Holidays. All Rights Reserved.
+                                    </td>
+                                    <td align="right" valign="middle">
+                                        <span style="font-size: 20px; font-weight: bold; color: #138048; font-family: 'Playball', cursive; vertical-align: middle;">Thank You!</span>
+                                        <span style="font-size: 10px; font-weight: 700; color: #64748b; font-family: 'Outfit', sans-serif; margin-left: 5px; vertical-align: middle; text-transform: uppercase; letter-spacing: 0.5px;">Have a Safe Journey</span>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                        </div>
+                        
+                    </td>
+                </tr>
+            </table>
+            
         </td>
     </tr>
 </table>

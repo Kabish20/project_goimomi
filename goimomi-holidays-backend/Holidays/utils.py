@@ -290,18 +290,48 @@ def send_booking_voucher(booking):
             except Exception:
                 formatted_time = time_part
 
+    # Look up matching VehicleMaster for photo and capacities
+    from Holidays.models import VehicleMaster
+    from django.db.models import Q
+    
+    vehicle_photo = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
+    vm = None
+    try:
+        vm = VehicleMaster.objects.filter(
+            Q(name__icontains=booking.vehicle_name) | 
+            Q(brand__name__icontains=booking.vehicle_name)
+        ).first()
+        
+        if not vm and booking.vehicle_category:
+            vm = VehicleMaster.objects.filter(
+                Q(name__icontains=booking.vehicle_category) | 
+                Q(brand__name__icontains=booking.vehicle_category)
+            ).first()
+    except Exception:
+        pass
+        
+    if vm and vm.photo:
+        vehicle_photo = f"https://goimomi.com{vm.photo.url}"
+
     booking_context = {
         'booking_id': booking.booking_id,
         'customer_name': f"{booking.title} {booking.first_name} {booking.last_name}".strip(),
         'customer_email': booking.email or "N/A",
         'phone': booking.phone or "N/A",
         'vehicle_type': f"{booking.vehicle_name} ({booking.vehicle_category})" if booking.vehicle_category else booking.vehicle_name,
+        'vehicle_name': booking.vehicle_name,
+        'vehicle_category': booking.vehicle_category or "Sedan",
+        'vehicle_photo': vehicle_photo,
         'pickup_location': booking.airport_name or booking.from_city if booking.transfer_type == 'airport' else (f"{booking.from_city} ({booking.pickup_location_details})" if booking.pickup_location_details else booking.from_city),
         'drop_location': booking.to_city,
         'travel_date': travel_date_str,
         'pickup_time': formatted_time,
         'total_amount': total_amount_str,
         'payment_status': booking.status,
+        'guests': booking.guests or 1,
+        'luggage_count': booking.luggage_count or "0",
+        'special_requirements': booking.special_requirements or "None",
+        'driver': booking.driver or "Not Assigned Yet",
     }
     
     # Render HTML content
