@@ -50,7 +50,6 @@
     <tr>
         <td align="center">
             
-            {% for booking in bookings %}
             <!-- TICKET CONTAINER -->
             <table class="ticket-card" width="720" border="0" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-collapse: collapse; border-radius: 24px; border: 1px solid #d0dbe5; box-shadow: 0 12px 35px rgba(12, 35, 64, 0.08); overflow: hidden; margin-bottom: 30px;">
                 
@@ -99,6 +98,7 @@
                             </tr>
                         </table>
                         
+                        {% for booking in bookings %}
                         <!-- MAIN TRIP CARD -->
                         <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: 1.5px solid #bfdbfe; border-radius: 18px; background-color: #ffffff; overflow: hidden; margin-top: 25px;">
                             <tr>
@@ -249,6 +249,7 @@
                                 </td>
                             </tr>
                         </table>
+                        {% endfor %}
                         
                     </td>
                 </tr>
@@ -292,7 +293,7 @@
                                             <td valign="top" style="padding-bottom: 12px;">
                                                 <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">CUSTOMER NAME</div>
                                                 <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                    👤 {{ booking.customer_name }}
+                                                    👤 {{ customer_name }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -300,7 +301,7 @@
                                             <td valign="top">
                                                 <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">PHONE NUMBER</div>
                                                 <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif;">
-                                                    📞 {{ booking.phone }}
+                                                    📞 {{ phone }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -314,7 +315,7 @@
                                             <td valign="top" style="padding-bottom: 12px;">
                                                 <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">EMAIL ID</div>
                                                 <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif; word-break: break-all;">
-                                                    ✉️ {{ booking.customer_email }}
+                                                    ✉️ {{ customer_email }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -322,7 +323,7 @@
                                             <td valign="top">
                                                 <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">BOOKING ID</div>
                                                 <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif;">
-                                                    🎫 {{ booking.booking_id }}
+                                                    🎫 {{ booking_ids }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -336,7 +337,7 @@
                                             <td valign="top" style="padding-bottom: 12px;">
                                                 <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">NO. OF PASSENGERS</div>
                                                 <div style="font-size: 12px; font-weight: 700; color: #0c2340; margin-top: 3px; font-family: 'Outfit', sans-serif;">
-                                                    👥 {{ booking.guests }} Guest(s)
+                                                    👥 {{ total_guests }} Guest(s)
                                                 </div>
                                             </td>
                                         </tr>
@@ -344,7 +345,7 @@
                                             <td valign="top">
                                                 <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">PAYMENT STATUS</div>
                                                 <div style="font-size: 12px; font-weight: 800; color: #138048; margin-top: 3px; font-family: 'Outfit', sans-serif;">
-                                                    💳 {{ booking.payment_status|upper }}
+                                                    💳 {{ payment_status|upper }}
                                                 </div>
                                             </td>
                                         </tr>
@@ -353,7 +354,7 @@
                                 
                                 <!-- QR Code -->
                                 <td class="customer-cell" width="17%" valign="middle" align="center" style="border-left: 1.5px solid #cbd5e1; padding-left: 12px;">
-                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=138048&data={{ booking.qr_data }}" width="72" height="72" alt="QR Code" style="display: block; border: 0; outline: none; border-radius: 4px;">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=138048&data={{ qr_data }}" width="72" height="72" alt="QR Code" style="display: block; border: 0; outline: none; border-radius: 4px;">
                                     <div style="font-size: 7px; font-weight: 800; color: #138048; margin-top: 6px; letter-spacing: 0.5px; text-transform: uppercase; font-family: 'Outfit', sans-serif; text-align: center; line-height: 1.2;">
                                         SCAN FOR<br>TRIP DETAILS
                                     </div>
@@ -363,7 +364,6 @@
                     </td>
                 </tr>
             </table>
-            {% endfor %}
             
             <!-- Consolidated Footer Table -->
             <table width="720" border="0" cellpadding="0" cellspacing="0" style="padding: 0 20px 20px 20px;">

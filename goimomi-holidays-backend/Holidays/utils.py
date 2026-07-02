@@ -119,19 +119,19 @@ def generate_booking_pdf(booking):
     template_img = Image.open(template_path).convert('RGB')
 
     N = len(related_bookings)
-    consolidated_height = 570 + N * 330
+    consolidated_height = 500 + N * 400
     consolidated_img = Image.new('RGB', (1530, consolidated_height), (238, 242, 246))
 
     # Paste Header
-    header_crop = template_img.crop((0, 0, 1530, 290))
+    header_crop = template_img.crop((0, 0, 1530, 220))
     consolidated_img.paste(header_crop, (0, 0))
 
     # Draw each booking's ticket card
-    card_box = (0, 290, 1530, 620)
+    card_box = (0, 220, 1530, 620)
     for i, b in enumerate(related_bookings):
         card_crop = template_img.crop(card_box)
-        shift_y = i * 330
-        consolidated_img.paste(card_crop, (0, 290 + shift_y))
+        shift_y = i * 400
+        consolidated_img.paste(card_crop, (0, 220 + shift_y))
         
         card_draw = ImageDraw.Draw(consolidated_img)
         
@@ -254,7 +254,7 @@ def generate_booking_pdf(booking):
             print(f"Error drawing vehicle image on PDF: {e}")
 
     # Paste Customer Details Panel
-    y_cust_offset = 290 + N * 330
+    y_cust_offset = 220 + N * 400
     cust_crop = template_img.crop((0, 620, 1530, 840))
     consolidated_img.paste(cust_crop, (0, y_cust_offset))
     
@@ -322,7 +322,7 @@ def generate_booking_pdf(booking):
         print(f"Error drawing QR code on PDF: {e}")
 
     # Paste Support Footer
-    y_footer_offset = 290 + N * 330 + 220
+    y_footer_offset = 220 + N * 400 + 220
     footer_crop = template_img.crop((0, 840, 1530, 900))
     consolidated_img.paste(footer_crop, (0, y_footer_offset))
 
@@ -541,6 +541,34 @@ def send_booking_voucher(booking):
     customer_email = booking.email or "N/A"
     phone = booking.phone or "N/A"
     
+    # Construct consolidated QR code text for email
+    qr_text = f"Goimomi Holidays Cab Booking\n"
+    qr_text += f"-----------------------------\n"
+    for rb in related_bookings:
+        p_type = ""
+        d_type = ""
+        if rb.pickup_location_details:
+            try:
+                if "Pickup:" in rb.pickup_location_details:
+                    p_type = rb.pickup_location_details.split("Pickup:")[1].split(",")[0].strip()
+                if "Drop:" in rb.pickup_location_details:
+                    d_type = rb.pickup_location_details.split("Drop:")[1].split(".")[0].strip()
+            except Exception:
+                pass
+        p_loc = f"{rb.from_city} ({p_type.title()})" if p_type else rb.from_city
+        d_loc = f"{rb.to_city} ({d_type.title()})" if d_type else rb.to_city
+        
+        qr_text += f"ID: {rb.booking_id}\n"
+        qr_text += f"Vehicle: {rb.vehicle_name} ({rb.vehicle_category or 'Sedan'})\n"
+        qr_text += f"Route: {p_loc} to {d_loc}\n\n"
+    
+    qr_text += f"Guest: {customer_name}\n"
+    qr_text += f"Phone: {phone}\n"
+    qr_text += f"Status: {booking.status.upper()}"
+
+    import urllib.parse
+    email_qr_data = urllib.parse.quote(qr_text)
+
     # Render HTML content
     html_content = render_to_string(
         'emails/car_booking_voucher.html',
@@ -550,6 +578,10 @@ def send_booking_voucher(booking):
             'customer_email': customer_email,
             'phone': phone,
             'total_amount': total_amount_str,
+            'booking_ids': ", ".join(booking_ids),
+            'payment_status': booking.status,
+            'total_guests': sum([rb.guests or 1 for rb in related_bookings]),
+            'qr_data': email_qr_data,
         }
     )
     
