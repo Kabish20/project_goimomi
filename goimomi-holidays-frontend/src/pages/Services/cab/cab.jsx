@@ -799,35 +799,25 @@ const Cab = () => {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Arrival Date & Time</label>
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Arrival Time</label>
                           <input
-                            type="datetime-local"
-                            value={(item.arrivalDate && item.arrivalTime) ? `${item.arrivalDate}T${item.arrivalTime}` : ''}
+                            type="time"
+                            value={item.arrivalTime || ""}
                             onChange={(e) => {
                               const val = e.target.value;
-                              if (val) {
-                                const [d, t] = val.split("T");
-                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, arrivalDate: d, arrivalTime: t || "" } : c));
-                              } else {
-                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, arrivalDate: '', arrivalTime: '' } : c));
-                              }
+                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, arrivalTime: val } : c));
                             }}
                             className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Departure Date & Time</label>
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Departure Time</label>
                           <input
-                            type="datetime-local"
-                            value={(item.departureDate && item.departureTime) ? `${item.departureDate}T${item.departureTime}` : ''}
+                            type="time"
+                            value={item.departureTime || ""}
                             onChange={(e) => {
                               const val = e.target.value;
-                              if (val) {
-                                const [d, t] = val.split("T");
-                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, departureDate: d, departureTime: t || "" } : c));
-                              } else {
-                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, departureDate: '', departureTime: '' } : c));
-                              }
+                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, departureTime: val } : c));
                             }}
                             className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
                           />
@@ -849,18 +839,13 @@ const Cab = () => {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pickup Date & Time</label>
+                          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Pickup Time</label>
                           <input
-                            type="datetime-local"
-                            value={(item.pickupDate && item.pickupTime) ? `${item.pickupDate}T${item.pickupTime}` : ''}
+                            type="time"
+                            value={item.pickupTime || ""}
                             onChange={(e) => {
                               const val = e.target.value;
-                              if (val) {
-                                const [d, t] = val.split("T");
-                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupDate: d, pickupTime: t || "" } : c));
-                              } else {
-                                setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupDate: '', pickupTime: '' } : c));
-                              }
+                              setCart(prev => prev.map(c => c.cartId === item.cartId ? { ...c, pickupTime: val } : c));
                             }}
                             className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs font-black text-gray-800 focus:outline-none"
                           />
