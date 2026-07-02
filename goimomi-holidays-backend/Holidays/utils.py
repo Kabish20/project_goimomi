@@ -164,7 +164,30 @@ def generate_booking_pdf(booking):
             travel_date_str = str(b.pickup_date) if b.pickup_date else "N/A"
         draw.text((215, 345), travel_date_str, font=font_bold_xs, fill=(12, 35, 64))
         
-        pickup_point = b.airport_name or b.from_city if b.transfer_type == 'airport' else (f"{b.from_city} ({b.pickup_location_details})" if b.pickup_location_details else b.from_city)
+        # Extract location types (e.g. "Airport" or "CITY") from pickup_location_details
+        pickup_type = ""
+        drop_type = ""
+        if b.pickup_location_details:
+            try:
+                if "Pickup:" in b.pickup_location_details:
+                    pickup_type = b.pickup_location_details.split("Pickup:")[1].split(",")[0].strip()
+                if "Drop:" in b.pickup_location_details:
+                    drop_type = b.pickup_location_details.split("Drop:")[1].split(".")[0].strip()
+            except Exception:
+                pass
+
+        if pickup_type:
+            pickup_point = f"{b.from_city} ({pickup_type.title()})"
+        elif b.airport_name and b.transfer_type == 'airport':
+            pickup_point = b.airport_name
+        else:
+            pickup_point = b.from_city
+
+        if drop_type:
+            drop_point = f"{b.to_city} ({drop_type.title()})"
+        else:
+            drop_point = b.to_city
+
         draw_wrapped_text(draw, pickup_point, (215, 445, 490, 515), font_bold_xs, fill=(12, 35, 64))
         
         formatted_time = format_time_field(b.pickup_time or b.arrival_time)
@@ -183,7 +206,7 @@ def generate_booking_pdf(booking):
         draw.text((850, 545), f"{b.luggage_count or 0} Bags", font=font_bold_xs, fill=(71, 85, 105))
 
         # Drop details
-        draw_wrapped_text(draw, b.to_city, (1115, 335, 1410, 415), font_bold_xs, fill=(12, 35, 64))
+        draw_wrapped_text(draw, drop_point, (1115, 335, 1410, 415), font_bold_xs, fill=(12, 35, 64))
         draw.text((1115, 445), "As per travel schedule", font=font_bold_xs, fill=(12, 35, 64))
         draw.text((1115, 545), "Approx. standard route", font=font_bold_xs, fill=(12, 35, 64))
 
@@ -379,14 +402,38 @@ def send_booking_voucher(booking):
         if vm and vm.photo:
             vehicle_photo = f"https://goimomi.com{vm.photo.url}"
             
+        # Extract location types (e.g. "Airport" or "CITY") from pickup_location_details
+        pickup_type = ""
+        drop_type = ""
+        if b.pickup_location_details:
+            try:
+                if "Pickup:" in b.pickup_location_details:
+                    pickup_type = b.pickup_location_details.split("Pickup:")[1].split(",")[0].strip()
+                if "Drop:" in b.pickup_location_details:
+                    drop_type = b.pickup_location_details.split("Drop:")[1].split(".")[0].strip()
+            except Exception:
+                pass
+
+        if pickup_type:
+            pickup_location_formatted = f"{b.from_city} ({pickup_type.title()})"
+        elif b.airport_name and b.transfer_type == 'airport':
+            pickup_location_formatted = b.airport_name
+        else:
+            pickup_location_formatted = b.from_city
+
+        if drop_type:
+            drop_location_formatted = f"{b.to_city} ({drop_type.title()})"
+        else:
+            drop_location_formatted = b.to_city
+
         bookings_contexts.append({
             'booking_id': b.booking_id,
             'vehicle_type': f"{b.vehicle_name} ({b.vehicle_category})" if b.vehicle_category else b.vehicle_name,
             'vehicle_name': b.vehicle_name,
             'vehicle_category': b.vehicle_category or "Sedan",
             'vehicle_photo': vehicle_photo,
-            'pickup_location': b.airport_name or b.from_city if b.transfer_type == 'airport' else (f"{b.from_city} ({b.pickup_location_details})" if b.pickup_location_details else b.from_city),
-            'drop_location': b.to_city,
+            'pickup_location': pickup_location_formatted,
+            'drop_location': drop_location_formatted,
             'travel_date': travel_date_str,
             'pickup_time': formatted_time,
             'total_amount': price_str,
