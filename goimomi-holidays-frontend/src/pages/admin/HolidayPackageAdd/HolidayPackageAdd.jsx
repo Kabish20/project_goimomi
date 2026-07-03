@@ -2219,7 +2219,7 @@ const HolidayPackageAdd = () => {
                                         <div className="border border-dashed border-gray-300 rounded-sm p-2 flex items-center justify-center min-h-[44px] relative">
                                           <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => { if (e.target.files?.[0]) setNewHotelForm(p => ({ ...p, image: e.target.files[0] })); }} />
                                           {newHotelForm.image && (newHotelForm.image instanceof File || newHotelForm.image instanceof Blob) ? (
-                                            <div key={imgIdx || 0} className="relative w-full h-16 rounded overflow-hidden">
+                                            <div key="hotel-image-preview" className="relative w-full h-16 rounded overflow-hidden">
                                               <img src={getPreviewUrl(newHotelForm.image)} alt="Preview" className="w-full h-full object-cover" />
                                               <button type="button" onClick={(e) => { e.stopPropagation(); setNewHotelForm(p => ({ ...p, image: null })); }} className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full text-[8px] flex items-center justify-center">×</button>
                                             </div>

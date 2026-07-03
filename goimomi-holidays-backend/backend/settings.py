@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 CORS_ALLOW_ALL_ORIGINS = True
 
 
@@ -207,6 +207,7 @@ SIMPLE_JWT = {
 
 # Production Security Hardening
 if not DEBUG:
+    # SECURE_SSL_REDIRECT is enabled for production security
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000 # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
