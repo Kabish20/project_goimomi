@@ -4,11 +4,10 @@ import api from "../../../api";
 import {
   MapPin, Zap, ShieldCheck, Headphones, Star, Award, Clock, Globe,
   Users, CheckCircle2, Briefcase, CreditCard, Plane, FileText,
-  PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays, Car, Ticket, ChevronRight, User
+  PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays, Car, Ticket
 } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
-import { blogCategories, blogPosts } from "../Blog/blogData";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -1009,82 +1008,6 @@ const Home = () => {
               </SwiperSlide>
             ))}
           </Swiper>
-        </div>
-      </section>
-
-
-      {/* -------------------- FROM OUR BLOG / INSIGHTS -------------------- */}
-      <section className="py-24 px-6 bg-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.4em] text-[#14532d] font-black">Travel Insights</span>
-              <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase italic tracking-tighter mt-2">
-                Latest From <span className="text-[#14532d]">Our Blog</span>
-              </h2>
-              <p className="text-slate-500 text-sm max-w-xl mt-2">
-                Stay updated with expert visa rules, step-by-step checklists, pilgrimage planning tips, and outstation taxi routes.
-              </p>
-            </div>
-            <Link
-              to="/blog"
-              className="inline-flex items-center gap-2 bg-[#14532d] hover:bg-green-800 text-white text-xs font-black uppercase tracking-widest px-6 py-3.5 rounded-full shadow-lg transition-all active:scale-95 shrink-0"
-            >
-              Explore All Guides <ArrowRight size={14} />
-            </Link>
-          </div>
-
-          {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {blogPosts.slice(0, 3).map((post, idx) => {
-              const cat = blogCategories.find(c => c.id === post.category);
-              return (
-                <motion.div
-                  key={post.slug}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  className="bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-350 flex flex-col justify-between group cursor-pointer"
-                  onClick={() => navigate(`/blog?post=${post.slug}`)}
-                >
-                  <div>
-                    <div className="relative aspect-video overflow-hidden">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <span className={`absolute bottom-3 left-3 bg-gradient-to-r ${cat?.gradient} text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider shadow-md`}>
-                        {cat?.title}
-                      </span>
-                    </div>
-                    <div className="p-6 space-y-3">
-                      <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                        <span className="flex items-center gap-1"><CalendarDays size={12} /> {post.date}</span>
-                        <span className="flex items-center gap-1"><Clock size={12} /> {post.readTime}</span>
-                      </div>
-                      <h4 className="text-base font-bold text-slate-800 leading-snug group-hover:text-[#14532d] transition-colors line-clamp-2">
-                        {post.title}
-                      </h4>
-                      <p className="text-slate-500 text-xs line-clamp-3 leading-relaxed">
-                        {post.excerpt}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="px-6 pb-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                      <User size={12} className="text-[#14532d]" /> By {post.author}
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#14532d] group-hover:text-[#e9b343] flex items-center gap-0.5 transition-colors">
-                      Read Article <ChevronRight size={14} />
-                    </span>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
         </div>
       </section>
 
