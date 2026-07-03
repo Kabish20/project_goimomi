@@ -33,6 +33,7 @@ const MegaShowBangkok = lazyRetry(() => import("./pages/Business/MegaShowBangkok
 const HolidayHome = lazyRetry(() => import("./pages/Holidays/holidayhome/holidayhome.jsx"));
 const PackageEnquiryPage = lazyRetry(() => import("./pages/Holidays/PackageEnquiryPage/PackageEnquiryPage.jsx"));
 const BusinessHome = lazyRetry(() => import("./pages/Business/businesshome/businesshome.jsx"));
+const Blog = lazyRetry(() => import("./pages/General/Blog/Blog.jsx"));
 
 // Admin Pages
 const AdminDashboard = lazyRetry(() => import("./pages/admin/AdminDashboard/AdminDashboard.jsx"));
@@ -245,6 +246,7 @@ const App = () => {
             <Route path="/visa/results" element={<VisaResults />} />
             <Route path="/visa/apply/:id" element={<VisaApplication />} />
             <Route path="/Europeantours" element={<Europeantours />} />
+            <Route path="/blog" element={<Blog />} />
 
 
 
