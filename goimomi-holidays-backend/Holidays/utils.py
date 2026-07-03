@@ -122,15 +122,15 @@ def generate_booking_pdf(booking):
     template_img = Image.open(template_path).convert('RGB')
 
     N = len(related_bookings)
-    consolidated_height = 500 + N * 400
-    consolidated_img = Image.new('RGB', (1530, consolidated_height), (238, 242, 246))
+    consolidated_height = 624 + N * 400
+    consolidated_img = Image.new('RGB', (1536, consolidated_height), (238, 242, 246))
 
     # Paste Header
-    header_crop = template_img.crop((0, 0, 1530, 220))
+    header_crop = template_img.crop((0, 0, 1536, 220))
     consolidated_img.paste(header_crop, (0, 0))
 
     # Draw each booking's ticket card
-    card_box = (0, 220, 1530, 620)
+    card_box = (0, 220, 1536, 620)
     for i, b in enumerate(related_bookings):
         card_crop = template_img.crop(card_box)
         shift_y = i * 400
@@ -258,7 +258,7 @@ def generate_booking_pdf(booking):
 
     # Paste Customer Details Panel
     y_cust_offset = 220 + N * 400
-    cust_crop = template_img.crop((0, 620, 1530, 840))
+    cust_crop = template_img.crop((0, 620, 1536, 840))
     consolidated_img.paste(cust_crop, (0, y_cust_offset))
     
     cust_draw = ImageDraw.Draw(consolidated_img)
@@ -326,7 +326,7 @@ def generate_booking_pdf(booking):
 
     # Paste Support Footer
     y_footer_offset = 220 + N * 400 + 220
-    footer_crop = template_img.crop((0, 840, 1530, 900))
+    footer_crop = template_img.crop((0, 840, 1536, 1024))
     consolidated_img.paste(footer_crop, (0, y_footer_offset))
 
     # Scale consolidated_img to standard A4 size (1240 x 1754)
