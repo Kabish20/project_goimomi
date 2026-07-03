@@ -76,10 +76,13 @@ def generate_booking_pdf(booking):
     font_reg_xs = get_font("regular", 14)
 
     def get_text_width(txt, fnt):
+        if not txt:
+            return 0
         try:
-            return draw.textlength(txt, font=fnt)
+            bbox = fnt.getbbox(txt)
+            return bbox[2] - bbox[0]
         except Exception:
-            return fnt.getbbox(txt)[2] - fnt.getbbox(txt)[0]
+            return 0
 
     def draw_wrapped_text(draw_obj, text, box, font, fill, max_lines=2):
         x1, y1, x2, y2 = box
