@@ -453,17 +453,18 @@ def send_booking_voucher(booking):
     
     # 2. Get all bookings created by this email in the last 10 seconds
     time_threshold = timezone.now() - timedelta(seconds=10)
-    related_bookings = CabBooking.objects.filter(
+    related_bookings_qs = CabBooking.objects.filter(
         email=booking.email,
         created_at__gte=time_threshold
     ).order_by('id')
     
-    if not related_bookings.exists():
+    related_bookings = list(related_bookings_qs)
+    if not related_bookings:
         related_bookings = [booking]
         
     # 3. Only send from the last booking request in the batch to avoid duplicate emails
-    if booking.id != related_bookings.last().id:
-        print(f"Skipping email for booking {booking.booking_id} as it is part of a batch. Latest is {related_bookings.last().booking_id}.")
+    if booking.id != related_bookings[-1].id:
+        print(f"Skipping email for booking {booking.booking_id} as it is part of a batch. Latest is {related_bookings[-1].booking_id}.")
         return True
         
     # 4. Prepare consolidated context
