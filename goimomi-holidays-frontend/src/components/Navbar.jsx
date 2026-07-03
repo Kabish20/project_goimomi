@@ -353,10 +353,9 @@ const Navbar = () => {
             </svg>
           </button>
         </div>
-
         {/* Mobile Menu */}
         {mobileOpen && (
-          <div className="lg:hidden border-t bg-white shadow-md animate-slideDown">
+          <div className="lg:hidden border-t bg-white shadow-lg animate-slideDown max-h-[calc(100vh-90px)] overflow-y-auto custom-scrollbar">
             <div className="px-5 py-4 space-y-3 text-base font-medium">
 
               <a
@@ -542,6 +541,44 @@ const Navbar = () => {
                 Contact Us
               </NavLink>
 
+              {/* Mobile Support & Logins Block (Visible only on mobile/tablet) */}
+              <div className="pt-4 border-t border-gray-100 space-y-4 text-left">
+                {/* Contact info cards */}
+                <div className="bg-slate-50 rounded-2xl p-4 space-y-2.5 border border-slate-100">
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-black text-[#14532d]/80 block">24/7 Travel Desk</span>
+                  <div className="flex flex-col gap-2 text-sm text-slate-600">
+                    <a href="tel:+918110082222" className="flex items-center gap-2 hover:text-[#14532d] transition-colors">
+                      <span className="text-base shrink-0">📞</span>
+                      <span className="font-bold">+91 81100 82222</span>
+                    </a>
+                    <a href="mailto:hello@goimomi.com" className="flex items-center gap-2 hover:text-[#14532d] transition-colors">
+                      <span className="text-base shrink-0">✉️</span>
+                      <span className="font-bold">hello@goimomi.com</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Login buttons */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a
+                    href="https://b2b.goimomi.com/"
+                    className="flex-1 text-center bg-slate-100 text-[#14532d] rounded-xl py-2.5 font-bold hover:bg-slate-200 transition-all text-xs uppercase tracking-wide border border-slate-200"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Agent Login
+                  </a>
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setIsAdminLoginOpen(true);
+                    }}
+                    className="flex-1 text-center bg-[#14532d] text-white rounded-xl py-2.5 font-bold hover:bg-[#1a6338] transition-all text-xs uppercase tracking-wide shadow-sm"
+                  >
+                    Admin Login
+                  </button>
+                </div>
+              </div>
 
               {/* Social Links for "Instagram Part" */}
 
