@@ -673,6 +673,7 @@ Goimomi Holidays
         body=text_content,
         from_email=sender,
         to=recipients,
+        cc=['hello@goimomi.com'],
         bcc=bcc_recipients
     )
     email.attach_alternative(html_content, "text/html")
