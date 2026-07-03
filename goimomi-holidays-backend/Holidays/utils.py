@@ -71,6 +71,8 @@ def generate_booking_pdf(booking):
             pass
         return ImageFont.load_default()
 
+    font_bold_lg = get_font("bold", 24)
+    font_bold_md = get_font("bold", 20)
     font_bold_sm = get_font("bold", 16)
     font_bold_xs = get_font("bold", 14)
     font_reg_xs = get_font("regular", 14)
@@ -122,7 +124,7 @@ def generate_booking_pdf(booking):
     template_img = Image.open(template_path).convert('RGB')
 
     N = len(related_bookings)
-    consolidated_height = 624 + N * 400
+    consolidated_height = 744 + N * 400
     consolidated_img = Image.new('RGB', (1536, consolidated_height), (238, 242, 246))
 
     # Paste Header
@@ -152,6 +154,9 @@ def generate_booking_pdf(booking):
         card_draw.rectangle((580, 350 + shift_y, 920, 395 + shift_y), fill=white)
         card_draw.rectangle((600, 535 + shift_y, 710, 580 + shift_y), fill=white)
         card_draw.rectangle((840, 535 + shift_y, 950, 580 + shift_y), fill=white)
+        
+        # Cover default template car image (completely cover roof and wheels)
+        card_draw.rectangle((530, 360 + shift_y, 1000, 540 + shift_y), fill=white)
 
         # Drop Column
         card_draw.rectangle((1110, 335 + shift_y, 1420, 420 + shift_y), fill=white)
@@ -248,7 +253,6 @@ def generate_booking_pdf(booking):
                     else:
                         car_img = None
                 if car_img:
-                    card_draw.rectangle((580, 405 + shift_y, 920, 525 + shift_y), fill=white)
                     car_img.thumbnail((340, 120), Image.Resampling.LANCZOS)
                     cx = 580 + (340 - car_img.width) // 2
                     cy = 405 + (120 - car_img.height) // 2 + shift_y
@@ -324,8 +328,33 @@ def generate_booking_pdf(booking):
     except Exception as e:
         print(f"Error drawing QR code on PDF: {e}")
 
+    # Draw Total Booking Fare Block (matches email UI design)
+    y_fare_offset = y_cust_offset + 220 + 20
+    cust_draw.rounded_rectangle(
+        [(80, y_fare_offset), (1456, y_fare_offset + 80)],
+        radius=12,
+        fill=(255, 255, 255),
+        outline=(191, 219, 254),
+        width=2
+    )
+    cust_draw.text((120, y_fare_offset + 25), "TOTAL BOOKING FARE", font=font_bold_sm, fill=(12, 35, 64))
+    
+    total_amount = sum([float(rb.price or 0) for rb in related_bookings])
+    try:
+        total_amount_str = f"{total_amount:,.2f}"
+    except Exception:
+        total_amount_str = str(total_amount)
+    
+    # Check if bookings are INR (represented by Rs/INR)
+    fare_text = f"INR {total_amount_str}"
+    try:
+        tw = font_bold_lg.getbbox(fare_text)[2] - font_bold_lg.getbbox(fare_text)[0]
+    except Exception:
+        tw = 200
+    cust_draw.text((1416 - tw, y_fare_offset + 22), fare_text, font=font_bold_lg, fill=(19, 128, 72))
+
     # Paste Support Footer
-    y_footer_offset = 220 + N * 400 + 220
+    y_footer_offset = y_fare_offset + 80 + 20
     footer_crop = template_img.crop((0, 840, 1536, 1024))
     consolidated_img.paste(footer_crop, (0, y_footer_offset))
 
