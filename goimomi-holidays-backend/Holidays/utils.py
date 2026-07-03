@@ -329,26 +329,38 @@ def generate_booking_pdf(booking):
     footer_crop = template_img.crop((0, 840, 1530, 900))
     consolidated_img.paste(footer_crop, (0, y_footer_offset))
 
-    pages.append(consolidated_img)
+    # Scale consolidated_img to standard A4 size (1240 x 1754)
+    a4_width = 1240
+    a4_height = 1754
+    scale = a4_width / consolidated_img.width  # 1240 / 1530 = 0.81045
+    scaled_w = a4_width
+    scaled_h = int(consolidated_img.height * scale)
+
+    scaled_consolidated = consolidated_img.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
+
+    a4_page1 = Image.new('RGB', (a4_width, a4_height), (255, 255, 255))
+    a4_page1.paste(scaled_consolidated, (0, 0))
+
+    pages.append(a4_page1)
 
     # 3. Generate the Terms & Conditions Page
     append_images = []
     try:
-        terms_img = Image.new('RGB', (1536, 1024), (255, 255, 255))
+        terms_img = Image.new('RGB', (1240, 1754), (255, 255, 255))
         terms_draw = ImageDraw.Draw(terms_img)
 
         # Deep green sidebar
-        terms_draw.rectangle((0, 0, 20, 1024), fill=(20, 83, 45))
+        terms_draw.rectangle((0, 0, 20, 1754), fill=(20, 83, 45))
 
         # Fonts for Terms Page
-        font_title = get_font("bold", 32)
-        font_reg_sm = get_font("regular", 16)
+        font_title = get_font("bold", 36)
+        font_reg_sm = get_font("regular", 18)
 
         # Title
-        terms_draw.text((100, 80), "TERMS & CONDITIONS", font=font_title, fill=(20, 83, 45))
+        terms_draw.text((100, 100), "TERMS & CONDITIONS", font=font_title, fill=(20, 83, 45))
 
         # Decorative line
-        terms_draw.line((100, 135, 1436, 135), fill=(229, 231, 235), width=2)
+        terms_draw.line((100, 160, 1140, 160), fill=(229, 231, 235), width=2)
 
         terms = [
             "1. Booking is confirmed only after receipt of the required advance or full payment.",
@@ -363,37 +375,29 @@ def generate_booking_pdf(booking):
             "10. By confirming the booking, the customer agrees to abide by these Terms & Conditions and accepts the company's policies."
         ]
 
-        # Draw columns
-        y_left = 180
-        y_right = 180
-        left_col_box = (100, 0, 740, 0)
-        right_col_box = (800, 0, 1440, 0)
-
-        for i, term in enumerate(terms):
-            if i < 5:
-                y_left = draw_wrapped_text(terms_draw, term, (left_col_box[0], y_left, left_col_box[2], 0), font_reg_sm, fill=(12, 35, 64), max_lines=None)
-                y_left += 20
-            else:
-                y_right = draw_wrapped_text(terms_draw, term, (right_col_box[0], y_right, right_col_box[2], 0), font_reg_sm, fill=(12, 35, 64), max_lines=None)
-                y_right += 20
+        # Draw terms in single column for clean A4 reading
+        y_pos = 220
+        for term in terms:
+            y_pos = draw_wrapped_text(terms_draw, term, (100, y_pos, 1140, 0), font_reg_sm, fill=(12, 35, 64), max_lines=None)
+            y_pos += 30
 
         # Footer
-        terms_draw.line((100, 900, 1436, 900), fill=(229, 231, 235), width=2)
+        terms_draw.line((100, 1600, 1140, 1600), fill=(229, 231, 235), width=2)
         footer_text = "24/7 Helpline: +91 81100 82222  |  Email: hello@goimomi.com  |  Website: www.goimomi.com"
         try:
             fw = terms_draw.textlength(footer_text, font=font_reg_sm)
         except Exception:
             fw = font_reg_sm.getbbox(footer_text)[2] - font_reg_sm.getbbox(footer_text)[0]
-        terms_draw.text((100 + (1336 - fw) // 2, 925), footer_text, font=font_reg_sm, fill=(71, 85, 105))
+        terms_draw.text((100 + (1040 - fw) // 2, 1630), footer_text, font=font_reg_sm, fill=(71, 85, 105))
         
-        append_images = pages[1:] + [terms_img]
+        append_images = [terms_img]
     except Exception as e:
         print(f"Error creating Terms page on PDF: {e}")
-        append_images = pages[1:]
+        append_images = []
 
     # 4. Export to PDF bytes
     buffer = io.BytesIO()
-    pages[0].save(buffer, "PDF", save_all=True, append_images=append_images)
+    pages[0].save(buffer, "PDF", save_all=True, append_images=append_images, resolution=150.0)
     return buffer.getvalue()
 
 
