@@ -42,14 +42,16 @@ def generate_booking_pdf(booking):
     from PIL import Image, ImageDraw, ImageFont
     from Holidays.models import CabBooking
 
-    # 1. Fetch related bookings created in the last 10 seconds for this email
-    time_threshold = booking.created_at - timedelta(seconds=10) if booking.created_at else timezone.now() - timedelta(seconds=10)
-    related_bookings = CabBooking.objects.filter(
+    # 1. Fetch related bookings created around the same time (within 10 seconds)
+    start_time = booking.created_at - timedelta(seconds=10) if booking.created_at else timezone.now() - timedelta(seconds=10)
+    end_time = booking.created_at + timedelta(seconds=10) if booking.created_at else timezone.now() + timedelta(seconds=10)
+    related_bookings_qs = CabBooking.objects.filter(
         email=booking.email,
-        created_at__gte=time_threshold
+        created_at__range=(start_time, end_time)
     ).order_by('id')
-
-    if not related_bookings.exists():
+    
+    related_bookings = list(related_bookings_qs)
+    if not related_bookings:
         related_bookings = [booking]
 
     # Helper to load standard fonts
@@ -451,11 +453,12 @@ def send_booking_voucher(booking):
     # 1. Debounce to let all parallel bookings complete their DB insert
     time.sleep(1.8)
     
-    # 2. Get all bookings created by this email in the last 10 seconds
-    time_threshold = timezone.now() - timedelta(seconds=10)
+    # 2. Get all bookings created by this email around the same time (within 10 seconds)
+    start_time = booking.created_at - timedelta(seconds=10) if booking.created_at else timezone.now() - timedelta(seconds=10)
+    end_time = booking.created_at + timedelta(seconds=10) if booking.created_at else timezone.now() + timedelta(seconds=10)
     related_bookings_qs = CabBooking.objects.filter(
         email=booking.email,
-        created_at__gte=time_threshold
+        created_at__range=(start_time, end_time)
     ).order_by('id')
     
     related_bookings = list(related_bookings_qs)
