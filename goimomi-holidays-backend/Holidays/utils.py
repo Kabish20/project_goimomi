@@ -146,8 +146,8 @@ def generate_booking_pdf(booking):
 
         # Pickup Column
         card_draw.rectangle((210, 340 + shift_y, 500, 390 + shift_y), fill=white)
-        card_draw.rectangle((210, 440 + shift_y, 500, 520 + shift_y), fill=white)
-        card_draw.rectangle((210, 540 + shift_y, 500, 595 + shift_y), fill=white)
+        card_draw.rectangle((210, 444 + shift_y, 500, 520 + shift_y), fill=white)
+        card_draw.rectangle((210, 544 + shift_y, 500, 595 + shift_y), fill=white)
 
         # Car Column
         card_draw.rectangle((580, 305 + shift_y, 920, 350 + shift_y), fill=white)
@@ -160,8 +160,8 @@ def generate_booking_pdf(booking):
 
         # Drop Column
         card_draw.rectangle((1110, 335 + shift_y, 1420, 420 + shift_y), fill=white)
-        card_draw.rectangle((1110, 440 + shift_y, 1420, 490 + shift_y), fill=white)
-        card_draw.rectangle((1110, 540 + shift_y, 1420, 595 + shift_y), fill=white)
+        card_draw.rectangle((1110, 444 + shift_y, 1420, 490 + shift_y), fill=white)
+        card_draw.rectangle((1110, 544 + shift_y, 1420, 595 + shift_y), fill=white)
 
         # Draw vertical barcode text
         b_id = b.booking_id or f"GO-TRN-{str(b.pk).zfill(4)}"
