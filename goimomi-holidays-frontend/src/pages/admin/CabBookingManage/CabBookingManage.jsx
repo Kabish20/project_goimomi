@@ -20,6 +20,7 @@ const CabBookingManage = () => {
     const [newAdditionalDocs, setNewAdditionalDocs] = useState([]);
     const [docsToRemove, setDocsToRemove] = useState([]);
     const [sortOrder, setSortOrder] = useState("desc"); // 'asc' or 'desc'
+    const [sortBy, setSortBy] = useState("created"); // 'created' or 'pickup'
     const [statusFilter, setStatusFilter] = useState("All");
     const [editSections, setEditSections] = useState({});
     const [invoiceSearch, setInvoiceSearch] = useState("");
@@ -77,15 +78,19 @@ const CabBookingManage = () => {
             return matchesSearch && matchesStatus && matchesInvoice;
         });
 
-        // Sort by pickup_date
+        // Sort by id or pickup_date
         filtered.sort((a, b) => {
-            const dateA = new Date(a.pickup_date);
-            const dateB = new Date(b.pickup_date);
-            return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+            if (sortBy === "created") {
+                return sortOrder === "asc" ? a.id - b.id : b.id - a.id;
+            } else {
+                const dateA = new Date(a.pickup_date);
+                const dateB = new Date(b.pickup_date);
+                return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+            }
         });
 
         setFilteredBookings(filtered);
-    }, [searchTerm, bookings, sortOrder, statusFilter, invoiceSearch]);
+    }, [searchTerm, bookings, sortOrder, sortBy, statusFilter, invoiceSearch]);
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this booking?")) {
@@ -556,19 +561,47 @@ const CabBookingManage = () => {
                                 <table className="w-full">
                                     <thead className="bg-[#14532d] text-white">
                                         <tr>
-                                            <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider whitespace-nowrap">Booking ID</th>
+                                            <th 
+                                                className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider whitespace-nowrap cursor-pointer hover:bg-[#0d2f1f] transition-colors"
+                                                onClick={() => {
+                                                    if (sortBy === "created") {
+                                                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                                                    } else {
+                                                        setSortBy("created");
+                                                        setSortOrder("desc");
+                                                    }
+                                                }}
+                                            >
+                                                <div className="flex items-center gap-1.5">
+                                                    Booking ID
+                                                    {sortBy === "created" && (
+                                                        <span className="text-[9px] opacity-70">
+                                                            {sortOrder === "asc" ? "▲" : "▼"}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider">Guest</th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider">Route & Vehicle</th>
                                             <th className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider">Type & Time</th>
                                             <th
                                                 className="text-left py-3 px-4 font-semibold uppercase text-xs tracking-wider cursor-pointer hover:bg-[#0d2f1f] transition-colors"
-                                                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                                                onClick={() => {
+                                                    if (sortBy === "pickup") {
+                                                        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+                                                    } else {
+                                                        setSortBy("pickup");
+                                                        setSortOrder("desc");
+                                                    }
+                                                }}
                                             >
                                                 <div className="flex items-center gap-1.5">
                                                     Pickup Date
-                                                    <span className="text-[9px] opacity-70">
-                                                        {sortOrder === "asc" ? "▲" : "▼"}
-                                                    </span>
+                                                    {sortBy === "pickup" && (
+                                                        <span className="text-[9px] opacity-70">
+                                                            {sortOrder === "asc" ? "▲" : "▼"}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </th>
                                             <th className="text-center py-3 px-4 font-semibold uppercase text-xs tracking-wider">Status</th>
