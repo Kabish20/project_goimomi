@@ -198,7 +198,7 @@ const Cab = () => {
   });
 
   useEffect(() => {
-    fetchDestinations();
+    loadDestinations();
     fetchPickupPoints();
     fetchAirports();
   }, []);
@@ -221,39 +221,18 @@ const Cab = () => {
     }
   };
 
-  const fetchDestinations = async () => {
-    try {
-      const response = await api.get("/api/cities/");
-      console.log("Cities API response data length:", response.data?.length);
-      if (Array.isArray(response.data)) {
-        const seen = new Set();
-        const options = [];
-        const activeCities = ["jeddah", "makkah", "mecca", "madinah", "taif"];
-        response.data.forEach(d => {
-          const name = d.name || "";
-          if (name.toLowerCase().trim() === "jeddah (jed)") {
-            return;
-          }
-          const key = name.toLowerCase().trim();
-          if (!seen.has(key)) {
-            seen.add(key);
-            const isActive = activeCities.includes(key);
-            if (isActive) {
-              options.push({
-                label: d.name,
-                value: d.id.toString(),
-                subtitle: d.region_name ? `${d.region_name}, ${d.country_name}` : d.country_name
-              });
-            }
-          }
-        });
-        console.log("Filtered destinations options:", options);
-        setDestinations(options);
-      }
-    } catch (err) {
-      console.error("Error fetching cities:", err);
-    }
+  // Hardcoded destinations for cab service (Saudi Arabia cities only)
+  // These are fixed cities where Goimomi provides cab transfers
+  const loadDestinations = () => {
+    const cabCities = [
+      { label: "Jeddah",  value: "10243", subtitle: "Mecca Region, Saudi Arabia" },
+      { label: "Makkah",  value: "13797", subtitle: "Mecca Region, Saudi Arabia" },
+      { label: "Madinah", value: "13628", subtitle: "Medina Region, Saudi Arabia" },
+      { label: "Taif",    value: "30048", subtitle: "Saudi Arabia" },
+    ];
+    setDestinations(cabCities);
   };
+
 
   const handleSwap = () => {
     setSearchParams(prev => ({
