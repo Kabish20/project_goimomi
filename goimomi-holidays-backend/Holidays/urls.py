@@ -41,6 +41,7 @@ router.register("vehicle-rate-cards", views.VehicleRateCardViewSet, basename="ve
 router.register("pickup-point-masters", views.PickupPointMasterViewSet, basename="pickup-point-master")
 router.register("cab-bookings", views.CabBookingViewSet, basename="cab-booking")
 router.register("cab-additional-documents", views.CabAdditionalDocumentViewSet, basename="cab-additional-document")
+router.register("payment-webhook", views.ZohoPaymentWebhookViewSet, basename="payment-webhook")
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -49,7 +50,6 @@ urlpatterns = [
     path('send-visa-details/', views.SendVisaDetailsAPI.as_view(), name='send-visa-details'),
     path('cab-search/', views.CabSearchAPI.as_view(), name='cab-search'),
     path('destination-hierarchy/', views.DestinationHierarchyAPI.as_view(), name='destination-hierarchy'),
-    path('payment-webhook/', views.ZohoPaymentWebhookView.as_view(), name='payment-webhook'),
     
     # Catch-all for Frontend pages to provide dynamic SEO for crawlers
     # Warning: Only use this if you want Django to handle the initial page load

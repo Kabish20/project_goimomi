@@ -11,7 +11,7 @@ from django.db.models import Q, F
 
 # Rest Framework Imports
 from rest_framework import status, serializers
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -1346,15 +1346,338 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 
 @method_decorator(csrf_exempt, name='dispatch')
-class ZohoPaymentWebhookView(View):
+class ZohoPaymentWebhookViewSet(ViewSet):
     """
     API Webhook Endpoint for Zoho Payments
     """
-    def post(self, request, *args, **kwargs):
-        # 1. Signature Verification (If provided in headers)
+    permission_classes = [AllowAny]
+
+    def list(self, request, *args, **kwargs):
+        # Only allow simulator in debug mode
+        if not settings.DEBUG:
+            return JsonResponse({'error': 'Method not allowed'}, status=405)
+            
+        from django.http import HttpResponse
+        
+        recent_cabs = CabBooking.objects.all().order_by('-created_at')[:15]
+        recent_cantons = CantonEnquiry.objects.all().order_by('-created_at')[:15]
+        
+        # Populate selector options
+        cab_options = ""
+        cab_table_rows = ""
+        for cab in recent_cabs:
+            cab_options += f'<option value="{cab.booking_id}" data-amount="{cab.price}" data-name="{cab.first_name} {cab.last_name}" data-email="{cab.email or ""}" data-phone="{cab.phone or ""}">{cab.booking_id} - {cab.first_name} {cab.last_name} (INR {cab.price})</option>\n'
+            
+            status_class = "badge-success" if cab.status == "Confirmed" else ("badge-failed" if cab.status == "Cancelled" else "badge-pending")
+            cab_table_rows += f"""
+            <tr>
+                <td><b>{cab.booking_id}</b></td>
+                <td>{cab.first_name} {cab.last_name}<br><small style="color: #64748b;">{cab.email or ''} | {cab.phone}</small></td>
+                <td>{cab.vehicle_name}</td>
+                <td>INR {cab.price}</td>
+                <td><span class="badge {status_class}">{cab.status}</span></td>
+            </tr>
+            """
+            
+        canton_options = ""
+        canton_table_rows = ""
+        for canton in recent_cantons:
+            canton_options += f'<option value="{canton.id}" data-amount="500.00" data-name="{canton.full_name}" data-email="" data-phone="{canton.whatsapp_number}">Enquiry #{canton.id} - {canton.full_name} (INR 500.00)</option>\n'
+            
+            status_class = "badge-success" if canton.payment_status == "Success" else ("badge-failed" if canton.payment_status == "Failed" else "badge-pending")
+            canton_table_rows += f"""
+            <tr>
+                <td><b>Enquiry #{canton.id}</b></td>
+                <td>{canton.full_name}<br><small style="color: #64748b;">{canton.whatsapp_number}</small></td>
+                <td>{canton.business_name} - {canton.selected_phase}</td>
+                <td><span class="badge {status_class}">{canton.payment_status}</span></td>
+            </tr>
+            """
+            
+        html_template = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Goimomi Holidays - Zoho Webhook Test Dashboard</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 20px; }}
+        .container {{ max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }}
+        @media(max-width: 900px) {{ .container {{ grid-template-columns: 1fr; }} }}
+        .card {{ background: #ffffff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; margin-bottom: 24px; }}
+        h1, h2, h3 {{ color: #14532d; font-weight: 800; margin-top: 0; }}
+        .form-group {{ margin-bottom: 16px; }}
+        label {{ display: block; font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 6px; }}
+        input, select, textarea {{ width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; box-sizing: border-box; }}
+        input:focus, select:focus {{ outline: none; border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }}
+        .btn {{ background-color: #14532d; color: white; border: none; padding: 12px 20px; font-size: 0.875rem; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; width: 100%; transition: all 0.2s; }}
+        .btn:hover {{ background-color: #0f4a24; }}
+        .btn:active {{ transform: scale(0.98); }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.875rem; }}
+        th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }}
+        th {{ background-color: #f1f5f9; color: #475569; font-weight: 700; }}
+        .badge {{ display: inline-block; padding: 2px 8px; font-size: 0.75rem; font-weight: 700; border-radius: 9999px; text-transform: uppercase; }}
+        .badge-pending {{ background-color: #fef3c7; color: #d97706; }}
+        .badge-success {{ background-color: #dcfce7; color: #15803d; }}
+        .badge-info {{ background-color: #e0f2fe; color: #0369a1; }}
+        .badge-failed {{ background-color: #fee2e2; color: #b91c1c; }}
+        pre {{ background-color: #0f172a; color: #38bdf8; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.8125rem; max-height: 250px; }}
+        .header {{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; }}
+        .status-pill {{ font-size: 0.875rem; font-weight: 700; padding: 4px 12px; border-radius: 9999px; background-color: #dcfce7; color: #15803d; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 32px;">🌴</span>
+            <div>
+                <h1 style="margin: 0; font-size: 1.5rem;">Goimomi Holidays</h1>
+                <p style="margin: 0; font-size: 0.875rem; color: #64748b;">Zoho Payments Webhook Simulation Center</p>
+            </div>
+        </div>
+        <span class="status-pill">Localhost Development Mode</span>
+    </div>
+    
+    <div class="container">
+        <!-- Simulator Form -->
+        <div>
+            <div class="card">
+                <h2>Simulate Webhook Event</h2>
+                <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 20px;">Use this form to send a simulated Zoho Payments webhook call to the local backend. This triggers database updates, voucher PDFs, CRM contacts, and notifications.</p>
+                
+                <form id="webhookForm">
+                    <div class="form-group">
+                        <label>Target Type</label>
+                        <select id="targetType" onchange="handleTargetTypeChange()">
+                            <option value="cab">Cab Booking</option>
+                            <option value="canton">Canton Enquiry</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="cabSelectorGroup">
+                        <label>Select Cab Booking Record</label>
+                        <select id="cabSelect" onchange="fillFromCab()">
+                            <option value="">-- Choose Recent Cab Booking --</option>
+                            {cab_options}
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="cantonSelectorGroup" style="display: none;">
+                        <label>Select Canton Enquiry Record</label>
+                        <select id="cantonSelect" onchange="fillFromCanton()">
+                            <option value="">-- Choose Recent Canton Enquiry --</option>
+                            {canton_options}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label id="idLabel">Booking ID</label>
+                        <input type="text" id="targetId" placeholder="e.g. GO-TRN-0001" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Event Type</label>
+                        <select id="eventType">
+                            <option value="payment.succeeded">payment.succeeded (Standard Payment Success)</option>
+                            <option value="payment_link.paid">payment_link.paid (Link Completed)</option>
+                            <option value="payment.failed">payment.failed (Failure - Ignored by View)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Transaction / Payment ID</label>
+                        <input type="text" id="paymentId" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Amount (INR)</label>
+                        <input type="number" step="0.01" id="amount" required>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    <h3 style="font-size: 1rem; margin-bottom: 12px;">Customer Details</h3>
+
+                    <div class="form-group">
+                        <label>Customer Name</label>
+                        <input type="text" id="custName" value="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Customer Email</label>
+                        <input type="email" id="custEmail" value="customer@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Customer Phone</label>
+                        <input type="text" id="custPhone" value="+919876543210">
+                    </div>
+
+                    <button type="submit" class="btn">Send Simulated Webhook</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Simulation Output</h2>
+                <pre id="output">No simulation run yet. Click "Send Simulated Webhook" to execute.</pre>
+            </div>
+        </div>
+        
+        <!-- Live Database View -->
+        <div>
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h2 style="margin: 0;">Recent Cab Bookings</h2>
+                    <a href="javascript:location.reload()" style="font-size: 0.875rem; color: #16a34a; font-weight: 600; text-decoration: none;">🔄 Refresh</a>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Name</th>
+                                <th>Vehicle</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {cab_table_rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h2 style="margin: 0;">Recent Canton Enquiries</h2>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Business</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {canton_table_rows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set a random mock payment ID on load
+        document.getElementById('paymentId').value = 'PAY_MOCK_' + Math.floor(1000000 + Math.random() * 9000000);
+
+        function handleTargetTypeChange() {{
+            const type = document.getElementById('targetType').value;
+            if (type === 'cab') {{
+                document.getElementById('cabSelectorGroup').style.display = 'block';
+                document.getElementById('cantonSelectorGroup').style.display = 'none';
+                document.getElementById('idLabel').innerText = 'Booking ID';
+                document.getElementById('targetId').placeholder = 'e.g. GO-TRN-0001';
+                fillFromCab();
+            }} else {{
+                document.getElementById('cabSelectorGroup').style.display = 'none';
+                document.getElementById('cantonSelectorGroup').style.display = 'block';
+                document.getElementById('idLabel').innerText = 'Enquiry ID';
+                document.getElementById('targetId').placeholder = 'e.g. 5';
+                fillFromCanton();
+            }}
+        }}
+
+        function fillFromCab() {{
+            const select = document.getElementById('cabSelect');
+            const selectedOpt = select.options[select.selectedIndex];
+            if (!selectedOpt || selectedOpt.value === '') {{
+                document.getElementById('targetId').value = '';
+                return;
+            }}
+            document.getElementById('targetId').value = selectedOpt.value;
+            document.getElementById('amount').value = selectedOpt.getAttribute('data-amount');
+            document.getElementById('custName').value = selectedOpt.getAttribute('data-name');
+            document.getElementById('custEmail').value = selectedOpt.getAttribute('data-email');
+            document.getElementById('custPhone').value = selectedOpt.getAttribute('data-phone');
+        }}
+
+        function fillFromCanton() {{
+            const select = document.getElementById('cantonSelect');
+            const selectedOpt = select.options[select.selectedIndex];
+            if (!selectedOpt || selectedOpt.value === '') {{
+                document.getElementById('targetId').value = '';
+                return;
+            }}
+            document.getElementById('targetId').value = selectedOpt.value;
+            document.getElementById('amount').value = selectedOpt.getAttribute('data-amount');
+            document.getElementById('custName').value = selectedOpt.getAttribute('data-name');
+            document.getElementById('custEmail').value = selectedOpt.getAttribute('data-email');
+            document.getElementById('custPhone').value = selectedOpt.getAttribute('data-phone');
+        }}
+
+        document.getElementById('webhookForm').addEventListener('submit', async (e) => {{
+            e.preventDefault();
+            const output = document.getElementById('output');
+            output.innerText = 'Sending request...';
+            
+            const targetType = document.getElementById('targetType').value;
+            const targetId = document.getElementById('targetId').value;
+            const eventType = document.getElementById('eventType').value;
+            const paymentId = document.getElementById('paymentId').value;
+            const amount = document.getElementById('amount').value;
+            const custName = document.getElementById('custName').value;
+            const custEmail = document.getElementById('custEmail').value;
+            const custPhone = document.getElementById('custPhone').value;
+
+            const payload = {{
+                event_type: eventType,
+                payload: {{
+                    id: paymentId,
+                    payment_id: paymentId,
+                    amount: parseFloat(amount),
+                    metadata: {{
+                        booking_id: targetType === 'cab' ? targetId : undefined,
+                        enquiry_id: targetType === 'canton' ? targetId : undefined
+                    }},
+                    customer_details: {{
+                        email: custEmail,
+                        phone: custPhone,
+                        name: custName
+                    }}
+                }}
+            }};
+
+            try {{
+                const response = await fetch('/api/payment-webhook/', {{
+                    method: 'POST',
+                    headers: {{
+                        'Content-Type': 'application/json',
+                    }},
+                    body: JSON.stringify(payload)
+                }});
+                
+                const data = await response.json();
+                output.innerText = `HTTP Status: ${{response.status}} ${{response.statusText}}\\n\\n` + JSON.stringify(data, null, 2);
+            }} catch (err) {{
+                output.innerText = 'Error calling local API:\\n' + err.toString();
+            }}
+        }});
+    </script>
+</body>
+</html>"""
+        return HttpResponse(html_template)
+
+    def create(self, request, *args, **kwargs):
+        # 1. Signature Verification (Mandatory in production)
         received_signature = request.headers.get('X-Zoho-Webhook-Signature')
         raw_body = request.body
         
+        if not settings.DEBUG and not received_signature:
+            return JsonResponse({'error': 'Signature required in production.'}, status=401)
+            
         if received_signature:
             is_valid = verify_zoho_signature(raw_body, received_signature)
             if not is_valid:
