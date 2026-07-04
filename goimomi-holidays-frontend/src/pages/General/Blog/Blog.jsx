@@ -63,10 +63,10 @@ const Blog = () => {
   const filteredPosts = blogPosts.filter((post) => {
     const matchesCategory = categoryParam === "all" || post.category === categoryParam;
     const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.author.toLowerCase().includes(searchQuery.toLowerCase());
+      (post.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.excerpt || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.content || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (post.author || "").toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
