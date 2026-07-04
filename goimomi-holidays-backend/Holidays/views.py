@@ -1,4 +1,5 @@
 import json
+import requests as http_requests
 
 # Django Imports
 from django.contrib.auth import authenticate
@@ -705,7 +706,98 @@ class PickupPointMasterViewSet(ModelViewSet):
             queryset = queryset.filter(city__country_id=country_id)
         return queryset
 
+
+def generate_zoho_payment_link(booking):
+    """
+    Generates a Zoho Payments checkout link for the given CabBooking.
+    Falls back to a local simulation URL when Zoho credentials are not yet configured.
+    Returns the payment URL string, or None on unexpected failure.
+    """
+    zoho_client_id = getattr(settings, 'ZOHO_CRM_CLIENT_ID', '').strip()
+    zoho_client_secret = getattr(settings, 'ZOHO_CRM_CLIENT_SECRET', '').strip()
+    zoho_refresh_token = getattr(settings, 'ZOHO_CRM_REFRESH_TOKEN', '').strip()
+
+    customer_name = f"{booking.first_name} {booking.last_name}".strip()
+    amount = float(booking.price or 0)
+
+    # ── DEVELOPMENT FALLBACK ───────────────────────────────────────────────────
+    # If Zoho OAuth credentials aren't set, redirect to the built-in simulation
+    # centre so the checkout flow can be tested without a live Zoho account.
+    if not (zoho_client_id and zoho_client_secret and zoho_refresh_token):
+        import urllib.parse
+        params = urllib.parse.urlencode({
+            'booking_id': booking.booking_id,
+            'amount':     amount,
+            'name':       customer_name,
+            'email':      booking.email or '',
+            'phone':      booking.phone or '',
+            'type':       'cab',
+        })
+        base = 'http://127.0.0.1:8000' if settings.DEBUG else 'https://goimomi.com'
+        sim_url = f"{base}/api/payment-webhook/?{params}"
+        print(f"[Payment] Zoho creds not set — redirecting to local sim: {sim_url}")
+        return sim_url
+
+    # ── LIVE ZOHO PAYMENTS FLOW ───────────────────────────────────────────────
+    try:
+        # 1. Get a fresh OAuth2 access token via refresh token
+        token_resp = http_requests.post(
+            'https://accounts.zoho.com/oauth/v2/token',
+            data={
+                'refresh_token': zoho_refresh_token,
+                'client_id':     zoho_client_id,
+                'client_secret': zoho_client_secret,
+                'grant_type':    'refresh_token',
+            },
+            timeout=10,
+        )
+        token_data = token_resp.json()
+        access_token = token_data.get('access_token')
+        if not access_token:
+            print(f"[Payment] Failed to get Zoho access token: {token_data}")
+            return None
+
+        # 2. Create the payment link in Zoho Payments
+        redirect_url = f"https://goimomi.com/payment-success/?booking_id={booking.booking_id}"
+        link_resp = http_requests.post(
+            'https://payments.zoho.com/api/v1/paymentlinks',
+            json={
+                'amount':           amount,
+                'currency':         'INR',
+                'reference_number': booking.booking_id,
+                'description':      f"Goimomi Cab Booking: {booking.booking_id}",
+                'customer': {
+                    'name':  customer_name,
+                    'email': booking.email or '',
+                    'phone': booking.phone or '',
+                },
+                # metadata is echoed back in the webhook payload so our
+                # webhook handler can identify the booking
+                'metadata': {'booking_id': booking.booking_id},
+                'redirect_url': redirect_url,
+            },
+            headers={
+                'Authorization': f'Zoho-oauthtoken {access_token}',
+                'Content-Type':  'application/json',
+            },
+            timeout=15,
+        )
+        link_data = link_resp.json()
+        payment_url = link_data.get('payment_url') or link_data.get('link_url')
+        if payment_url:
+            print(f"[Payment] Zoho payment link generated for {booking.booking_id}: {payment_url}")
+            return payment_url
+        else:
+            print(f"[Payment] Zoho did not return a URL: {link_data}")
+            return None
+
+    except Exception as exc:
+        print(f"[Payment] Exception generating Zoho payment link: {exc}")
+        return None
+
+
 class CabBookingViewSet(ModelViewSet):
+
     permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = CabBooking.objects.all().order_by('-created_at')
     serializer_class = CabBookingSerializer
@@ -816,7 +908,24 @@ class CabBookingViewSet(ModelViewSet):
                 otp_obj.delete()
             except OTPVerification.DoesNotExist:
                 return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
-        return super().create(request, *args, **kwargs)
+
+        # Create the booking record via the parent class
+        response = super().create(request, *args, **kwargs)
+
+        # After successful creation, generate Zoho payment link
+        if response.status_code == 201:
+            try:
+                booking_id = response.data.get('booking_id')
+                booking_pk = response.data.get('id')
+                if booking_id and booking_pk:
+                    booking_obj = CabBooking.objects.get(pk=booking_pk)
+                    payment_url = generate_zoho_payment_link(booking_obj)
+                    if payment_url:
+                        response.data['payment_url'] = payment_url
+            except Exception as e:
+                print(f"Error generating payment link: {e}")
+
+        return response
 
     def perform_create(self, serializer):
         booking = serializer.save()
@@ -1679,6 +1788,42 @@ class ZohoPaymentWebhookViewSet(ViewSet):
     <script>
         // Set a random mock payment ID on load
         document.getElementById('paymentId').value = 'PAY_MOCK_' + Math.floor(1000000 + Math.random() * 9000000);
+
+        // Pre-fill query parameters if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const qType = urlParams.get('type');
+        const qBookingId = urlParams.get('booking_id');
+        const qAmount = urlParams.get('amount');
+        const qName = urlParams.get('name');
+        const qEmail = urlParams.get('email');
+        const qPhone = urlParams.get('phone');
+
+        if (qType) {{
+            document.getElementById('targetType').value = qType;
+            if (qType === 'canton') {{
+                document.getElementById('cabSelectorGroup').style.display = 'none';
+                document.getElementById('cantonSelectorGroup').style.display = 'block';
+                document.getElementById('idLabel').innerText = 'Enquiry ID';
+                document.getElementById('targetId').placeholder = 'e.g. 5';
+            }}
+        }}
+        if (qBookingId) {{
+            document.getElementById('targetId').value = qBookingId;
+            document.getElementById('cabSelectorGroup').style.display = 'none';
+            document.getElementById('cantonSelectorGroup').style.display = 'none';
+        }}
+        if (qAmount) {{
+            document.getElementById('amount').value = qAmount;
+        }}
+        if (qName) {{
+            document.getElementById('custName').value = qName;
+        }}
+        if (qEmail) {{
+            document.getElementById('custEmail').value = qEmail;
+        }}
+        if (qPhone) {{
+            document.getElementById('custPhone').value = qPhone;
+        }}
 
         function handleTargetTypeChange() {{
             const type = document.getElementById('targetType').value;

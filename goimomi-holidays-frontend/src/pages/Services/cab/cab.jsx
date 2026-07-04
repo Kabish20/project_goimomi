@@ -199,12 +199,28 @@ const Cab = () => {
       });
 
       const responses = await Promise.all(bookingPromises);
+
       // Extract booking_ids from responses
       const ids = responses
         .filter(r => r?.data?.booking_id)
         .map(r => r.data.booking_id);
       setConfirmedBookingIds(ids);
+
+      // If any response contains a payment_url, redirect the customer to pay now.
+      // We use the first booking's payment link (for multi-cart, the first link covers all).
+      const firstPaymentUrl = responses.find(r => r?.data?.payment_url)?.data?.payment_url;
+      if (firstPaymentUrl) {
+        // Brief status update so user sees feedback before redirect
+        setBookingStatus({ loading: true, success: false, error: null });
+        setTimeout(() => {
+          window.location.href = firstPaymentUrl;
+        }, 800);
+        return;
+      }
+
+      // Fallback: no payment link — show booking request confirmed modal
       setBookingStatus({ loading: false, success: true, error: null });
+
     } catch (err) {
       console.error("Booking error:", err);
       setBookingStatus({ loading: false, success: false, error: "Failed to confirm booking. Please try again." });
