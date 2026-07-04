@@ -711,9 +711,102 @@ class CabBookingViewSet(ModelViewSet):
     serializer_class = CabBookingSerializer
     pagination_class = None
 
+    @action(detail=False, methods=['post'], url_path='send-otp', permission_classes=[AllowAny])
+    def send_otp(self, request):
+        email = request.data.get('email', '').strip().lower()
+        if not email:
+            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Generate 6 digit OTP
+        import random
+        otp = str(random.randint(100000, 999999))
+        
+        # Cache OTP for 5 minutes
+        from django.core.cache import cache
+        cache.set(f"cab_otp_{email}", otp, 300)
+        
+        subject = "Your Goimomi Cab Booking Verification OTP"
+        message = f"Hello,\n\nYour OTP code for verifying your email on Goimomi Holidays is: {otp}\n\nThis OTP is valid for 5 minutes.\n\nThank you,\nGoimomi Holidays Team"
+        
+        # HTML template matching the premium design system
+        html_message = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+            <div style="background-color: #14532d; padding: 24px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.05em; text-transform: uppercase;">GOIMOMI HOLIDAYS</h1>
+            </div>
+            <div style="padding: 32px; background-color: #ffffff; color: #1e293b;">
+                <h2 style="margin-top: 0; color: #14532d; font-size: 20px; font-weight: bold; border-bottom: 2px solid #f0fdf4; padding-bottom: 12px;">Email Verification Code</h2>
+                <p style="font-size: 15px; line-height: 1.6; color: #475569;">Hello,</p>
+                <p style="font-size: 15px; line-height: 1.6; color: #475569;">Thank you for choosing Goimomi Holidays. To proceed with your cab booking, please use the verification code below to verify your email address:</p>
+                
+                <div style="text-align: center; margin: 32px 0;">
+                    <span style="display: inline-block; background-color: #f0fdf4; border: 1px dashed #14532d; color: #14532d; font-size: 32px; font-weight: 800; letter-spacing: 0.15em; padding: 12px 36px; border-radius: 8px;">{otp}</span>
+                </div>
+                
+                <p style="font-size: 13px; color: #64748b; line-height: 1.6; background-color: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #cbd5e1;">
+                    <strong>Notice:</strong> This code is highly confidential and is valid for <strong>5 minutes</strong>. If you did not request this code, please ignore this email.
+                </p>
+            </div>
+            <div style="background-color: #f8fafc; padding: 16px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
+                <p style="margin: 0;">&copy; 2026 Goimomi Holidays. All rights reserved.</p>
+                <p style="margin: 4px 0 0 0;">Need help? Contact our 24/7 Travel Desk: <a href="tel:+918110082222" style="color: #14532d; text-decoration: none; font-weight: bold;">+91 81100 82222</a></p>
+            </div>
+        </div>
+        """
+        
+        try:
+            from django.core.mail import EmailMultiAlternatives
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[email]
+            )
+            msg.attach_alternative(html_message, "text/html")
+            msg.send()
+            return Response({'message': 'OTP sent successfully.'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [email],
+                    fail_silently=False,
+                )
+                return Response({'message': 'OTP sent successfully.'}, status=status.HTTP_200_OK)
+            except Exception as mail_err:
+                print(f"Error sending OTP email: {mail_err}")
+                return Response({'error': 'Failed to send OTP email.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], url_path='verify-otp', permission_classes=[AllowAny])
+    def verify_otp(self, request):
+        email = request.data.get('email', '').strip().lower()
+        otp_input = request.data.get('otp', '').strip()
+        
+        if not email or not otp_input:
+            return Response({'error': 'Email and OTP are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        from django.core.cache import cache
+        cached_otp = cache.get(f"cab_otp_{email}")
+        
+        if cached_otp and cached_otp == otp_input:
+            cache.set(f"cab_verified_{email}", True, 1800)
+            cache.delete(f"cab_otp_{email}")
+            return Response({'message': 'OTP verified successfully.'}, status=status.HTTP_200_OK)
+        
+        return Response({'error': 'Invalid or expired OTP.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def create(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            email = request.data.get('email', '').strip().lower()
+            from django.core.cache import cache
+            if not cache.get(f"cab_verified_{email}"):
+                return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         booking = serializer.save()
-        # Refresh from DB to ensure booking_id generated in save() is loaded
         booking.refresh_from_db()
         try:
             from .utils import send_booking_voucher

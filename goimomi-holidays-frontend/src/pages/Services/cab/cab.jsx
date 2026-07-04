@@ -42,6 +42,15 @@ const Cab = () => {
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
+  // OTP Verification States
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpSuccess, setOtpSuccess] = useState("");
+
   // Form State
   const [bookingFormData, setBookingFormData] = useState({
     title: "Mr.",
@@ -66,6 +75,69 @@ const Cab = () => {
 
   const guestPopoverRef = useRef(null);
 
+  const handleSendOtp = async () => {
+    if (!bookingFormData.email) {
+      alert("Please enter your email address first.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(bookingFormData.email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    setSendingOtp(true);
+    setOtpError("");
+    setOtpSuccess("");
+
+    try {
+      await api.post("/api/cab-bookings/send-otp/", { email: bookingFormData.email });
+      setIsOtpSent(true);
+      setOtpSuccess("OTP sent successfully. Please check your email inbox/spam folder.");
+    } catch (err) {
+      console.error("Error sending OTP:", err);
+      setOtpError(err.response?.data?.error || "Failed to send OTP. Please check your email and try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpValue || otpValue.trim().length !== 6) {
+      alert("Please enter the 6-digit OTP code.");
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setOtpError("");
+    setOtpSuccess("");
+
+    try {
+      await api.post("/api/cab-bookings/verify-otp/", {
+        email: bookingFormData.email,
+        otp: otpValue.trim()
+      });
+      setIsEmailVerified(true);
+      setOtpSuccess("Email verified successfully!");
+    } catch (err) {
+      console.error("Error verifying OTP:", err);
+      setOtpError(err.response?.data?.error || "Invalid or expired OTP code.");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    setBookingFormData(prev => ({ ...prev, email: val }));
+    // Reset verification state if they modify the email
+    setIsOtpSent(false);
+    setIsEmailVerified(false);
+    setOtpValue("");
+    setOtpError("");
+    setOtpSuccess("");
+  };
+
   const handleConfirmBooking = async () => {
     if (!isAgreed) {
       alert("Please agree to the Terms & Conditions");
@@ -76,6 +148,11 @@ const Cab = () => {
     const phoneDigits = (phone || "").replace(/\D/g, "");
     if (!bookingFormData.firstName || !bookingFormData.lastName || !phone || !bookingFormData.email) {
       alert("Please fill in all mandatory fields (First Name, Last Name, Email, Phone)");
+      return;
+    }
+
+    if (!isEmailVerified) {
+      alert("Please verify your email address via OTP before requesting a booking.");
       return;
     }
     
@@ -877,15 +954,57 @@ const Cab = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Email ID</label>
-                    <input
-                      type="email"
-                      placeholder="Enter Email Address"
-                      value={bookingFormData.email}
-                      onChange={(e) => setBookingFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
-                    />
+                  <div className="space-y-1 relative">
+                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1 flex justify-between items-center">
+                      <span>Email ID</span>
+                      {isEmailVerified && <span className="text-[9px] text-green-600 font-black uppercase tracking-widest flex items-center gap-0.5"><CheckCircle size={10} /> Verified</span>}
+                    </label>
+                    <div className="relative flex items-center">
+                      <input
+                        type="email"
+                        placeholder="Enter Email Address"
+                        value={bookingFormData.email}
+                        onChange={handleEmailChange}
+                        disabled={isEmailVerified}
+                        className={`w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 pr-20 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10 ${isEmailVerified ? "bg-green-50/50 border-green-200 text-green-800 cursor-not-allowed" : ""}`}
+                      />
+                      {!isEmailVerified && (
+                        <button
+                          type="button"
+                          onClick={handleSendOtp}
+                          disabled={sendingOtp || !bookingFormData.email}
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[#14532d] hover:bg-[#0f4022] disabled:bg-gray-300 text-white rounded px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-all"
+                        >
+                          {sendingOtp ? "Sending..." : isOtpSent ? "Resend" : "Send OTP"}
+                        </button>
+                      )}
+                    </div>
+                    {/* OTP Entry Block */}
+                    {isOtpSent && !isEmailVerified && (
+                      <div className="mt-2 p-3 bg-green-50/30 border border-green-100/50 rounded-xl space-y-2 animate-in slide-in-from-top-2 duration-200">
+                        <p className="text-[9px] font-black text-[#14532d] uppercase tracking-widest">Enter 6-Digit Code</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            maxLength="6"
+                            placeholder="------"
+                            value={otpValue}
+                            onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                            className="flex-1 bg-white border border-gray-200 rounded-lg p-2 text-center text-xs font-black tracking-[0.5em] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyOtp}
+                            disabled={verifyingOtp || otpValue.length !== 6}
+                            className="bg-[#14532d] hover:bg-[#0f4022] disabled:bg-gray-300 text-white rounded-lg px-4 py-2 text-[9px] font-black uppercase tracking-wider transition-all"
+                          >
+                            {verifyingOtp ? "Verifying..." : "Verify Code"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {otpError && <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mt-1 px-1">{otpError}</p>}
+                    {otpSuccess && <p className="text-[9px] font-black text-green-600 uppercase tracking-widest mt-1 px-1">{otpSuccess}</p>}
                   </div>
                   <div className="space-y-1">
                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Guest Phone Number</label>
