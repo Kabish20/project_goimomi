@@ -41,7 +41,7 @@ from .models import (
     SightseeingImage, MealMaster, VehicleBrand, Accommodation,
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
-    CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal
+    CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -721,9 +721,11 @@ class CabBookingViewSet(ModelViewSet):
         import random
         otp = str(random.randint(100000, 999999))
         
-        # Cache OTP for 5 minutes
-        from django.core.cache import cache
-        cache.set(f"cab_otp_{email}", otp, 300)
+        # Save or update OTP in the database
+        OTPVerification.objects.update_or_create(
+            email=email,
+            defaults={'otp': otp, 'is_verified': False}
+        )
         
         subject = "Your Goimomi Cab Booking Verification OTP"
         message = f"Hello,\n\nYour OTP code for verifying your email on Goimomi Holidays is: {otp}\n\nThis OTP is valid for 5 minutes.\n\nThank you,\nGoimomi Holidays Team"
@@ -787,21 +789,32 @@ class CabBookingViewSet(ModelViewSet):
         if not email or not otp_input:
             return Response({'error': 'Email and OTP are required.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        from django.core.cache import cache
-        cached_otp = cache.get(f"cab_otp_{email}")
-        
-        if cached_otp and cached_otp == otp_input:
-            cache.set(f"cab_verified_{email}", True, 1800)
-            cache.delete(f"cab_otp_{email}")
-            return Response({'message': 'OTP verified successfully.'}, status=status.HTTP_200_OK)
-        
+        from datetime import timedelta
+        try:
+            otp_obj = OTPVerification.objects.get(email=email)
+            # Check if expired (5 minutes = 300 seconds)
+            if timezone.now() - otp_obj.created_at > timedelta(minutes=5):
+                return Response({'error': 'OTP has expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if otp_obj.otp == otp_input:
+                otp_obj.is_verified = True
+                otp_obj.save()
+                return Response({'message': 'OTP verified successfully.'}, status=status.HTTP_200_OK)
+        except OTPVerification.DoesNotExist:
+            pass
+            
         return Response({'error': 'Invalid or expired OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             email = request.data.get('email', '').strip().lower()
-            from django.core.cache import cache
-            if not cache.get(f"cab_verified_{email}"):
+            try:
+                otp_obj = OTPVerification.objects.get(email=email)
+                from datetime import timedelta
+                if not otp_obj.is_verified or (timezone.now() - otp_obj.created_at > timedelta(minutes=30)):
+                    return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
+                otp_obj.delete()
+            except OTPVerification.DoesNotExist:
                 return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
         return super().create(request, *args, **kwargs)
 

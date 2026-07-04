@@ -758,3 +758,12 @@ class CantonEnquiry(models.Model):
 
     def __str__(self):
         return f"{self.full_name} - {self.selected_phase}"
+
+class OTPVerification(models.Model):
+    email = models.EmailField(unique=True)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now=True)
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.email} - {self.otp} (Verified: {self.is_verified})"
