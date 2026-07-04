@@ -2,7 +2,7 @@ unzip -o update_package.zip -d /home/ubuntu/goimomi
 cd /home/ubuntu/goimomi/goimomi-holidays-backend
 
 # Update ALLOWED_HOSTS and DB_PASSWORD
-python3 -c "import os; p = '.env'; c = open(p).read(); open(p, 'w').write(c.replace('DB_PASSWORD=Goimomi@123', 'DB_PASSWORD=\"DCXServer321$\"'))"
+python3 -c "import os; p = '.env'; c = open(p).read(); open(p, 'w').write(c.replace('DB_PASSWORD=Goimomi@123', 'DB_PASSWORD=\"DCXServer321$\"').replace('DEBUG=True', 'DEBUG=False'))"
 cp .env /home/ubuntu/.env
 
 # Restart backend
