@@ -1013,6 +1013,17 @@ class CabSearchAPI(APIView):
         to_city = request.query_params.get('to_city', '').split('(')[0].split(',')[0].strip().lower()
         if not to_city:
             to_city = request.query_params.get('to_city', '').strip().lower()
+
+        # Normalize city name aliases so search always matches DB records
+        CITY_ALIASES = {
+            'makkah': 'mecca',
+            'mekka':  'mecca',
+            'medina': 'madinah',
+            'madina': 'madinah',
+        }
+        from_city = CITY_ALIASES.get(from_city, from_city)
+        to_city   = CITY_ALIASES.get(to_city,   to_city)
+
             
         pickup_date = request.query_params.get('pickup_date')
         pickup_point = request.query_params.get('pickup_point', '').strip().lower()

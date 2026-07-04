@@ -319,12 +319,13 @@ const Cab = () => {
   const loadDestinations = () => {
     const cabCities = [
       { label: "Jeddah",  value: "10243", subtitle: "Mecca Region, Saudi Arabia" },
-      { label: "Makkah",  value: "13797", subtitle: "Mecca Region, Saudi Arabia" },
+      { label: "Mecca",   value: "13797", subtitle: "Mecca Region, Saudi Arabia" },
       { label: "Madinah", value: "13628", subtitle: "Medina Region, Saudi Arabia" },
       { label: "Taif",    value: "30048", subtitle: "Saudi Arabia" },
     ];
     setDestinations(cabCities);
   };
+
 
 
   const handleSwap = () => {
