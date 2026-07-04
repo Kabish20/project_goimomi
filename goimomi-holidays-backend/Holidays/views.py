@@ -724,17 +724,7 @@ def generate_zoho_payment_link(booking):
     # If Zoho OAuth credentials aren't set, redirect to the built-in simulation
     # centre so the checkout flow can be tested without a live Zoho account.
     if not (zoho_client_id and zoho_client_secret and zoho_refresh_token):
-        import urllib.parse
-        params = urllib.parse.urlencode({
-            'booking_id': booking.booking_id,
-            'amount':     amount,
-            'name':       customer_name,
-            'email':      booking.email or '',
-            'phone':      booking.phone or '',
-            'type':       'cab',
-        })
-        base = 'http://127.0.0.1:8000' if settings.DEBUG else 'https://goimomi.com'
-        sim_url = f"{base}/api/payment-webhook/?{params}"
+        sim_url = _generate_simulation_url(booking, amount, customer_name)
         print(f"[Payment] Zoho creds not set — redirecting to local sim: {sim_url}")
         return sim_url
 
@@ -788,12 +778,27 @@ def generate_zoho_payment_link(booking):
             print(f"[Payment] Zoho payment link generated for {booking.booking_id}: {payment_url}")
             return payment_url
         else:
-            print(f"[Payment] Zoho did not return a URL: {link_data}")
-            return None
+            print(f"[Payment] Zoho did not return a URL: {link_data}. Falling back to simulation URL.")
+            return _generate_simulation_url(booking, amount, customer_name)
 
     except Exception as exc:
-        print(f"[Payment] Exception generating Zoho payment link: {exc}")
-        return None
+        print(f"[Payment] Exception generating Zoho payment link: {exc}. Falling back to simulation URL.")
+        return _generate_simulation_url(booking, amount, customer_name)
+
+
+def _generate_simulation_url(booking, amount, customer_name):
+    import urllib.parse
+    params = urllib.parse.urlencode({
+        'booking_id': booking.booking_id,
+        'amount':     amount,
+        'name':       customer_name,
+        'email':      booking.email or '',
+        'phone':      booking.phone or '',
+        'type':       'cab',
+    })
+    base = 'http://127.0.0.1:8000' if settings.DEBUG else 'https://goimomi.com'
+    return f"{base}/api/payment-webhook/?{params}"
+
 
 
 class CabBookingViewSet(ModelViewSet):
