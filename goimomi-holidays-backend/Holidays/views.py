@@ -1329,3 +1329,148 @@ class DestinationHierarchyAPI(APIView):
             "cruise_terminals_count": 1
         }
 
+
+import json
+from django.http import JsonResponse
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from Holidays.models import CabBooking, CantonEnquiry
+from Holidays.utils import (
+    verify_zoho_signature,
+    upsert_zoho_crm_contact,
+    send_whatsapp_confirmation,
+    generate_booking_pdf
+)
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ZohoPaymentWebhookView(View):
+    """
+    API Webhook Endpoint for Zoho Payments
+    """
+    def post(self, request, *args, **kwargs):
+        # 1. Signature Verification (If provided in headers)
+        received_signature = request.headers.get('X-Zoho-Webhook-Signature')
+        raw_body = request.body
+        
+        if received_signature:
+            is_valid = verify_zoho_signature(raw_body, received_signature)
+            if not is_valid:
+                return JsonResponse({'error': 'Invalid signature signature verification failed.'}, status=401)
+        
+        # 2. Parse Webhook Event JSON
+        try:
+            event_data = json.loads(raw_body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+            
+        event_type = event_data.get('event_type')
+        payload = event_data.get('payload', {})
+        
+        # Only process successful payments
+        if event_type not in ['payment.succeeded', 'payment_link.paid']:
+            return JsonResponse({'status': 'ignored', 'message': f'Event type {event_type} not handled'}, status=200)
+
+        # 3. Retrieve payment details
+        payment_id = payload.get('payment_id') or payload.get('id')
+        amount = payload.get('amount')
+        
+        # Retrieve metadata or custom fields to locate original booking
+        metadata = payload.get('metadata', {})
+        booking_id = metadata.get('booking_id')
+        enquiry_id = metadata.get('enquiry_id')
+        
+        customer_email = payload.get('customer_details', {}).get('email')
+        customer_phone = payload.get('customer_details', {}).get('phone')
+        customer_name = payload.get('customer_details', {}).get('name', 'Valued Customer')
+        
+        # Split customer name for CRM Contact requirements
+        name_parts = customer_name.strip().split(' ', 1)
+        first_name = name_parts[0] if len(name_parts) > 0 else ""
+        last_name = name_parts[1] if len(name_parts) > 1 else "Customer"
+
+        target_booking = None
+        
+        # 4. Database updates
+        if booking_id:
+            try:
+                target_booking = CabBooking.objects.get(booking_id=booking_id)
+                target_booking.status = 'Confirmed'
+                target_booking.invoice_number = payment_id  # Save transaction ID
+                target_booking.save()
+            except CabBooking.DoesNotExist:
+                print(f"Booking {booking_id} not found.")
+                
+        elif enquiry_id:
+            try:
+                enquiry = CantonEnquiry.objects.get(id=enquiry_id)
+                enquiry.payment_status = 'Success'
+                enquiry.transaction_id = payment_id
+                enquiry.save()
+            except CantonEnquiry.DoesNotExist:
+                print(f"Enquiry {enquiry_id} not found.")
+
+        # 5. Zoho CRM Customer Sync
+        crm_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': customer_email or (target_booking.email if target_booking else ''),
+            'phone': customer_phone or (target_booking.phone if target_booking else '')
+        }
+        if crm_data['email']:
+            upsert_zoho_crm_contact(crm_data)
+
+        # 6. Notifications (Email & WhatsApp)
+        # Send Confirmation Email with PDF attachment if CabBooking was updated
+        if target_booking and target_booking.email:
+            self.send_confirmation_email(target_booking, amount, payment_id)
+
+        # Send WhatsApp Confirmation
+        phone_to_notify = customer_phone or (target_booking.phone if target_booking else None)
+        if phone_to_notify and booking_id:
+            send_whatsapp_confirmation(phone_to_notify, booking_id, str(amount))
+
+        return JsonResponse({'status': 'success', 'message': 'Webhook processed successfully'}, status=200)
+
+    def send_confirmation_email(self, booking, amount, payment_id):
+        """
+        Sends booking confirmation email with PDF voucher.
+        """
+        subject = f"Goimomi Holidays - Booking Confirmed - {booking.booking_id}"
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
+                <h2 style="color: #0284c7;">Payment Successful!</h2>
+                <p>Dear {booking.first_name},</p>
+                <p>Thank you for booking with Goimomi Holidays. Your payment has been successfully processed.</p>
+                <p><strong>Booking ID:</strong> {booking.booking_id}</p>
+                <p><strong>Transaction ID:</strong> {payment_id}</p>
+                <p><strong>Amount Paid:</strong> INR {amount}</p>
+                <p>Your PDF confirmation voucher is attached to this email.</p>
+                <p>If you have any questions, please contact our support team.</p>
+                <p>Warm regards,<br>Goimomi Holidays</p>
+            </body>
+        </html>
+        """
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body="Thank you for your payment. Your booking has been confirmed.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[booking.email]
+        )
+        email.attach_alternative(html_content, "text/html")
+        
+        try:
+            pdf_bytes = generate_booking_pdf(booking)
+            email.attach(f"Voucher_{booking.booking_id}.pdf", pdf_bytes, "application/pdf")
+        except Exception as e:
+            print(f"Error attaching PDF to email: {e}")
+            
+        try:
+            email.send()
+        except Exception as e:
+            print(f"Error sending email: {e}")
+
+

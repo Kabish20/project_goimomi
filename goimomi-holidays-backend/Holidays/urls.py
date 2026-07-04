@@ -49,6 +49,7 @@ urlpatterns = [
     path('send-visa-details/', views.SendVisaDetailsAPI.as_view(), name='send-visa-details'),
     path('cab-search/', views.CabSearchAPI.as_view(), name='cab-search'),
     path('destination-hierarchy/', views.DestinationHierarchyAPI.as_view(), name='destination-hierarchy'),
+    path('payment-webhook/', views.ZohoPaymentWebhookView.as_view(), name='payment-webhook'),
     
     # Catch-all for Frontend pages to provide dynamic SEO for crawlers
     # Warning: Only use this if you want Django to handle the initial page load

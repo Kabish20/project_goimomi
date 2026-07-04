@@ -842,3 +842,111 @@ def send_enquiry_email(enquiry, enquiry_type):
     except Exception as e:
         print(f"Error sending enquiry confirmation email: {e}")
         return False
+
+
+def verify_zoho_signature(raw_payload: bytes, received_signature: str) -> bool:
+    """
+    Verifies that the webhook request came from Zoho Payments using HMAC-SHA256.
+    """
+    import hmac
+    import hashlib
+    signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
+    if not signing_key or not received_signature:
+        return False
+        
+    computed_hmac = hmac.new(
+        signing_key.encode('utf-8'),
+        msg=raw_payload,
+        digestmod=hashlib.sha256
+    )
+    computed_signature = computed_hmac.hexdigest()
+    return hmac.compare_digest(computed_signature, received_signature)
+
+
+def get_zoho_crm_access_token() -> str:
+    """
+    Gets a fresh OAuth2 access token for Zoho CRM using client credentials and refresh token.
+    """
+    import requests
+    url = "https://accounts.zoho.com/oauth/v2/token"
+    params = {
+        'refresh_token': settings.ZOHO_CRM_REFRESH_TOKEN,
+        'client_id': settings.ZOHO_CRM_CLIENT_ID,
+        'client_secret': settings.ZOHO_CRM_CLIENT_SECRET,
+        'grant_type': 'refresh_token'
+    }
+    response = requests.post(url, data=params)
+    response.raise_for_status()
+    return response.json()['access_token']
+
+
+def upsert_zoho_crm_contact(customer_data: dict) -> dict:
+    """
+    Creates or updates (upserts) a contact in Zoho CRM based on email address.
+    """
+    import requests
+    try:
+        access_token = get_zoho_crm_access_token()
+        headers = {
+            'Authorization': f'Zoho-oauthtoken {access_token}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Prepare payload for upsert
+        payload = {
+            "data": [
+                {
+                    "First_Name": customer_data.get('first_name', ''),
+                    "Last_Name": customer_data.get('last_name', 'Customer'),  # Last_Name is mandatory in Zoho CRM
+                    "Email": customer_data.get('email', ''),
+                    "Phone": customer_data.get('phone', ''),
+                    "Lead_Source": "Website Payment"
+                }
+            ],
+            "duplicate_check_fields": ["Email"]
+        }
+        
+        url = "https://www.zohoapis.com/crm/v6/Contacts/upsert"
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Error upserting Zoho CRM contact: {e}")
+        return {}
+
+
+def send_whatsapp_confirmation(phone_number: str, booking_id: str, amount: str):
+    """
+    Sends a WhatsApp booking confirmation message to the customer.
+    This example uses Twilio API; replace with your WhatsApp API provider.
+    """
+    try:
+        import importlib
+        try:
+            twilio_rest = importlib.import_module('twilio.rest')
+            Client = twilio_rest.Client
+        except ImportError:
+            print("twilio package is not installed. Skipping WhatsApp message.")
+            return None
+            
+        account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', '')
+        auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
+        whatsapp_number = getattr(settings, 'TWILIO_WHATSAPP_NUMBER', '')
+        
+        if not (account_sid and auth_token and whatsapp_number):
+            print("Twilio credentials not fully configured. Skipping WhatsApp message.")
+            return None
+            
+        client = Client(account_sid, auth_token)
+        
+        # Format phone number to E.164 if necessary
+        message = client.messages.create(
+            from_=f"whatsapp:{whatsapp_number}",
+            body=f"Hi! Your payment of INR {amount} for Booking ID {booking_id} has been received and confirmed. Thank you for booking with Goimomi Holidays!",
+            to=f"whatsapp:{phone_number}"
+        )
+        return message.sid
+    except Exception as e:
+        print(f"Error sending WhatsApp notification: {e}")
+        return None
+
