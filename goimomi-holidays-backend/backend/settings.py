@@ -223,3 +223,33 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+# Suppress noisy "HTTPS-over-HTTP" probe warnings in the dev server terminal.
+# These come from browser extensions, antivirus tools, or Chrome HSTS probing
+# port 8000 with HTTPS. They are harmless but very noisy.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'suppress_https_noise': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: not (
+                'Bad request version' in str(record.getMessage()) or
+                'Bad HTTP/0.9 request type' in str(record.getMessage()) or
+                "You're accessing the development server over HTTPS" in str(record.getMessage())
+            ),
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['suppress_https_noise'],
+        },
+    },
+    'loggers': {
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
