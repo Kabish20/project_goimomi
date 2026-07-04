@@ -868,7 +868,7 @@ def get_zoho_crm_access_token() -> str:
     Gets a fresh OAuth2 access token for Zoho CRM using client credentials and refresh token.
     """
     import requests
-    url = "https://accounts.zoho.com/oauth/v2/token"
+    url = "https://accounts.zoho.in/oauth/v2/token"
     params = {
         'refresh_token': settings.ZOHO_CRM_REFRESH_TOKEN,
         'client_id': settings.ZOHO_CRM_CLIENT_ID,
@@ -906,7 +906,7 @@ def upsert_zoho_crm_contact(customer_data: dict) -> dict:
             "duplicate_check_fields": ["Email"]
         }
         
-        url = "https://www.zohoapis.com/crm/v6/Contacts/upsert"
+        url = "https://www.zohoapis.in/crm/v6/Contacts/upsert"
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
         return response.json()

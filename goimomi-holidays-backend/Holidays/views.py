@@ -742,7 +742,7 @@ def generate_zoho_payment_link(booking):
     try:
         # 1. Get a fresh OAuth2 access token via refresh token
         token_resp = http_requests.post(
-            'https://accounts.zoho.com/oauth/v2/token',
+            'https://accounts.zoho.in/oauth/v2/token',
             data={
                 'refresh_token': zoho_refresh_token,
                 'client_id':     zoho_client_id,
@@ -760,7 +760,7 @@ def generate_zoho_payment_link(booking):
         # 2. Create the payment link in Zoho Payments
         redirect_url = f"https://goimomi.com/payment-success/?booking_id={booking.booking_id}"
         link_resp = http_requests.post(
-            'https://payments.zoho.com/api/v1/paymentlinks',
+            'https://payments.zoho.in/api/v1/paymentlinks',
             json={
                 'amount':           amount,
                 'currency':         'INR',
