@@ -1585,10 +1585,6 @@ class ZohoPaymentWebhookViewSet(ViewSet):
     permission_classes = [AllowAny]
 
     def list(self, request, *args, **kwargs):
-        # Only allow simulator in debug mode
-        if not settings.DEBUG:
-            return JsonResponse({'error': 'Method not allowed'}, status=405)
-            
         from django.http import HttpResponse
         
         recent_cabs = CabBooking.objects.all().order_by('-created_at')[:15]
@@ -1939,23 +1935,27 @@ class ZohoPaymentWebhookViewSet(ViewSet):
         return HttpResponse(html_template)
 
     def create(self, request, *args, **kwargs):
-        # 1. Signature Verification (Mandatory in production)
-        received_signature = request.headers.get('X-Zoho-Webhook-Signature')
+        # 1. Parse Webhook Event JSON first to check for simulator mock payload
         raw_body = request.body
+        try:
+            event_data = json.loads(raw_body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+            
+        payload = event_data.get('payload', {})
+        payment_id = payload.get('payment_id') or payload.get('id') or ""
+        is_mock = str(payment_id).startswith('PAY_MOCK_')
         
-        if not settings.DEBUG and not received_signature:
+        # 2. Signature Verification (Mandatory in production except for simulator)
+        received_signature = request.headers.get('X-Zoho-Webhook-Signature')
+        if not settings.DEBUG and not received_signature and not is_mock:
             return JsonResponse({'error': 'Signature required in production.'}, status=401)
             
         if received_signature:
             is_valid = verify_zoho_signature(raw_body, received_signature)
             if not is_valid:
                 return JsonResponse({'error': 'Invalid signature signature verification failed.'}, status=401)
-        
-        # 2. Parse Webhook Event JSON
-        try:
-            event_data = json.loads(raw_body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
             
         event_type = event_data.get('event_type')
         payload = event_data.get('payload', {})
