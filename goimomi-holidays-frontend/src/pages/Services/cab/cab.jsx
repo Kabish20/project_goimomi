@@ -224,6 +224,7 @@ const Cab = () => {
   const fetchDestinations = async () => {
     try {
       const response = await api.get("/api/cities/");
+      console.log("Cities API response data length:", response.data?.length);
       if (Array.isArray(response.data)) {
         const seen = new Set();
         const options = [];
@@ -246,6 +247,7 @@ const Cab = () => {
             }
           }
         });
+        console.log("Filtered destinations options:", options);
         setDestinations(options);
       }
     } catch (err) {

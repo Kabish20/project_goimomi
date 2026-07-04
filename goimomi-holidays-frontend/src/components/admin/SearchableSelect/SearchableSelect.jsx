@@ -127,7 +127,7 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
             left: rect.left,
             width: rect.width,
             zIndex: 999999,
-            maxHeight: maxHeight,
+            maxHeightVal: maxHeight,
             ...(openUpward ? { bottom: viewportHeight - rect.top + 4, top: "auto" } : { top: rect.bottom + 4, bottom: "auto" }),
         });
     }, []);
@@ -237,8 +237,10 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
 
     const selectedOption = allOptionsFlat.find(opt => opt.value === value);
 
+    const { maxHeightVal, ...parentStyle } = dropdownStyle;
+
     const dropdown = isOpen && !disabled ? (
-        <div ref={dropdownRef} style={dropdownStyle} className="bg-white border-2 border-gray-100 rounded-xl shadow-[0_30px_70px_-10px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div ref={dropdownRef} style={parentStyle} className="bg-white border-2 border-gray-100 rounded-xl shadow-[0_30px_70px_-10px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
             <div className="sticky top-0 z-[100] bg-white border-b border-gray-100 p-1.5 shadow-sm">
                 <div className="relative group">
                     <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-300 group-focus-within:text-[#14532d] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +258,7 @@ const SearchableSelect = ({ options = [], value, onChange, placeholder = "Select
                     />
                 </div>
             </div>
-            <div ref={scrollContainerRef} onScroll={handleScroll} className="overflow-y-auto flex-1 custom-scrollbar" style={{ scrollBehavior: 'smooth' }}>
+            <div ref={scrollContainerRef} onScroll={handleScroll} className="overflow-y-auto flex-1 custom-scrollbar" style={{ scrollBehavior: 'smooth', maxHeight: maxHeightVal ? `${maxHeightVal - 48}px` : '300px' }}>
                 {renderedItems}
                 {(debouncedTerm ? filteredOptions : allOptionsFlat).length > displayCount && (
                     <div className="px-3 py-3 text-center">

@@ -140,14 +140,15 @@ class CityViewSet(ModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        # Optimization: Use values() to avoid model instantiation and fast serialization
-        # for large datasets (32,000+ cities)
+        print("DEBUG: CityViewSet list called!")
         queryset = self.get_queryset().select_related('country', 'region').values(
             'id', 'name', 
             country_name=F('country__name'), 
             region_name=F('region__name')
         )
-        return Response(list(queryset))
+        res_list = list(queryset)
+        print(f"DEBUG: CityViewSet returning {len(res_list)} cities.")
+        return Response(res_list)
 
 class DashboardStatsAPI(APIView):
     """
