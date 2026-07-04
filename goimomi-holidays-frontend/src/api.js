@@ -6,9 +6,22 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("accessToken");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+        // Skip Authorization header for public endpoints or when skipAuth is set
+        const publicEndpoints = [
+            '/api/cities/',
+            '/api/pickup-point-masters/',
+            '/api/airports/',
+            '/api/payment-webhook/',
+            '/api/payment-success/',
+            '/api/payment-failed/'
+        ];
+        const isPublic = publicEndpoints.some(url => config.url && config.url.includes(url)) || config.skipAuth;
+
+        if (!isPublic) {
+            const token = localStorage.getItem("accessToken");
+            if (token && token !== "undefined" && token !== "null") {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
         }
         return config;
     },
