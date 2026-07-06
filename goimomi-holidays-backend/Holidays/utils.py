@@ -844,23 +844,7 @@ def send_enquiry_email(enquiry, enquiry_type):
         return False
 
 
-def verify_zoho_signature(raw_payload: bytes, received_signature: str) -> bool:
-    """
-    Verifies that the webhook request came from Zoho Payments using HMAC-SHA256.
-    """
-    import hmac
-    import hashlib
-    signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
-    if not signing_key or not received_signature:
-        return False
-        
-    computed_hmac = hmac.new(
-        signing_key.encode('utf-8'),
-        msg=raw_payload,
-        digestmod=hashlib.sha256
-    )
-    computed_signature = computed_hmac.hexdigest()
-    return hmac.compare_digest(computed_signature, received_signature)
+
 
 
 def get_zoho_crm_access_token() -> str:

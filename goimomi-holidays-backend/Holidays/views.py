@@ -60,6 +60,8 @@ from .serializers import (
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
 )
 
+from Holidays.services.zoho_payment import ZohoPaymentService
+
 
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -707,79 +709,7 @@ class PickupPointMasterViewSet(ModelViewSet):
         return queryset
 
 
-def generate_zoho_payment_link(booking):
-    """
-    Generates a Zoho Payments checkout link for the given CabBooking.
-    Falls back to a local simulation URL when Zoho credentials are not yet configured.
-    Returns the payment URL string, or None on unexpected failure.
-    """
-    zoho_client_id = getattr(settings, 'ZOHO_CRM_CLIENT_ID', '').strip()
-    zoho_client_secret = getattr(settings, 'ZOHO_CRM_CLIENT_SECRET', '').strip()
-    zoho_refresh_token = getattr(settings, 'ZOHO_CRM_REFRESH_TOKEN', '').strip()
 
-    customer_name = f"{booking.first_name} {booking.last_name}".strip()
-    amount = float(booking.price or 0)
-
-    if not (zoho_client_id and zoho_client_secret and zoho_refresh_token):
-        print(f"[Payment] Zoho credentials not configured.")
-        return None
-
-    # ── LIVE ZOHO PAYMENTS FLOW ───────────────────────────────────────────────
-    try:
-        # 1. Get a fresh OAuth2 access token via refresh token
-        token_resp = http_requests.post(
-            'https://accounts.zoho.in/oauth/v2/token',
-            data={
-                'refresh_token': zoho_refresh_token,
-                'client_id':     zoho_client_id,
-                'client_secret': zoho_client_secret,
-                'grant_type':    'refresh_token',
-            },
-            timeout=10,
-        )
-        token_data = token_resp.json()
-        access_token = token_data.get('access_token')
-        if not access_token:
-            print(f"[Payment] Failed to get Zoho access token: {token_data}")
-            return None
-
-        # 2. Create the payment link in Zoho Payments
-        redirect_url = f"https://goimomi.com/payment-success/?booking_id={booking.booking_id}"
-        link_resp = http_requests.post(
-            'https://payments.zoho.in/api/v1/paymentlinks',
-            json={
-                'amount':           amount,
-                'currency':         'INR',
-                'reference_number': booking.booking_id,
-                'description':      f"Goimomi Cab Booking: {booking.booking_id}",
-                'customer': {
-                    'name':  customer_name,
-                    'email': booking.email or '',
-                    'phone': booking.phone or '',
-                },
-                # metadata is echoed back in the webhook payload so our
-                # webhook handler can identify the booking
-                'metadata': {'booking_id': booking.booking_id},
-                'redirect_url': redirect_url,
-            },
-            headers={
-                'Authorization': f'Zoho-oauthtoken {access_token}',
-                'Content-Type':  'application/json',
-            },
-            timeout=15,
-        )
-        link_data = link_resp.json()
-        payment_url = link_data.get('payment_url') or link_data.get('link_url')
-        if payment_url:
-            print(f"[Payment] Zoho payment link generated for {booking.booking_id}: {payment_url}")
-            return payment_url
-        else:
-            print(f"[Payment] Zoho did not return a URL: {link_data}")
-            return None
-
-    except Exception as exc:
-        print(f"[Payment] Exception generating Zoho payment link: {exc}")
-        return None
 
 
 
@@ -907,7 +837,7 @@ class CabBookingViewSet(ModelViewSet):
                 booking_pk = response.data.get('id')
                 if booking_id and booking_pk:
                     booking_obj = CabBooking.objects.get(pk=booking_pk)
-                    payment_url = generate_zoho_payment_link(booking_obj)
+                    payment_url = ZohoPaymentService.create_payment(booking_obj)
                     if payment_url:
                         response.data['payment_url'] = payment_url
             except Exception as e:
@@ -918,11 +848,6 @@ class CabBookingViewSet(ModelViewSet):
     def perform_create(self, serializer):
         booking = serializer.save()
         booking.refresh_from_db()
-        try:
-            from .utils import send_booking_voucher
-            send_booking_voucher(booking)
-        except Exception as e:
-            print(f"Error calling send_booking_voucher: {e}")
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -1552,10 +1477,10 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from Holidays.models import CabBooking, CantonEnquiry
 from Holidays.utils import (
-    verify_zoho_signature,
     upsert_zoho_crm_contact,
     send_whatsapp_confirmation,
-    generate_booking_pdf
+    generate_booking_pdf,
+    send_booking_voucher
 )
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
@@ -1576,7 +1501,7 @@ class ZohoPaymentWebhookViewSet(ViewSet):
             return JsonResponse({'error': 'Signature required in production.'}, status=401)
             
         if received_signature:
-            is_valid = verify_zoho_signature(raw_body, received_signature)
+            is_valid = ZohoPaymentService.verify_signature(raw_body, received_signature)
             if not is_valid:
                 return JsonResponse({'error': 'Invalid signature signature verification failed.'}, status=401)
         
@@ -1645,7 +1570,10 @@ class ZohoPaymentWebhookViewSet(ViewSet):
         # 6. Notifications (Email & WhatsApp)
         # Send Confirmation Email with PDF attachment if CabBooking was updated
         if target_booking and target_booking.email:
-            self.send_confirmation_email(target_booking, amount, payment_id)
+            try:
+                send_booking_voucher(target_booking)
+            except Exception as e:
+                print(f"Error calling send_booking_voucher in webhook: {e}")
 
         # Send WhatsApp Confirmation
         phone_to_notify = customer_phone or (target_booking.phone if target_booking else None)
@@ -1653,44 +1581,5 @@ class ZohoPaymentWebhookViewSet(ViewSet):
             send_whatsapp_confirmation(phone_to_notify, booking_id, str(amount))
 
         return JsonResponse({'status': 'success', 'message': 'Webhook processed successfully'}, status=200)
-
-    def send_confirmation_email(self, booking, amount, payment_id):
-        """
-        Sends booking confirmation email with PDF voucher.
-        """
-        subject = f"Goimomi Holidays - Booking Confirmed - {booking.booking_id}"
-        html_content = f"""
-        <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
-                <h2 style="color: #0284c7;">Payment Successful!</h2>
-                <p>Dear {booking.first_name},</p>
-                <p>Thank you for booking with Goimomi Holidays. Your payment has been successfully processed.</p>
-                <p><strong>Booking ID:</strong> {booking.booking_id}</p>
-                <p><strong>Transaction ID:</strong> {payment_id}</p>
-                <p><strong>Amount Paid:</strong> INR {amount}</p>
-                <p>Your PDF confirmation voucher is attached to this email.</p>
-                <p>If you have any questions, please contact our support team.</p>
-                <p>Warm regards,<br>Goimomi Holidays</p>
-            </body>
-        </html>
-        """
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body="Thank you for your payment. Your booking has been confirmed.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[booking.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        
-        try:
-            pdf_bytes = generate_booking_pdf(booking)
-            email.attach(f"Voucher_{booking.booking_id}.pdf", pdf_bytes, "application/pdf")
-        except Exception as e:
-            print(f"Error attaching PDF to email: {e}")
-            
-        try:
-            email.send()
-        except Exception as e:
-            print(f"Error sending email: {e}")
 
 
