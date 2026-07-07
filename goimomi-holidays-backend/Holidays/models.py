@@ -724,12 +724,30 @@ class CabBooking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # First save to get the PK, then assign booking_id
         is_new = self.pk is None
+        old_status = None
+        if not is_new:
+            try:
+                old_status = CabBooking.objects.get(pk=self.pk).status
+            except CabBooking.DoesNotExist:
+                pass
+
+        # First save to get the PK, then assign booking_id
         super().save(*args, **kwargs)
         if is_new and not self.booking_id:
             self.booking_id = f'GO-TRN-{str(self.pk).zfill(4)}'
             CabBooking.objects.filter(pk=self.pk).update(booking_id=self.booking_id)
+            self.booking_id = f'GO-TRN-{str(self.pk).zfill(4)}'
+
+        # Trigger email auto-send on status change to Confirmed or Tentative Confirmation
+        if self.status in ['Confirmed', 'Tentative Confirmation']:
+            if is_new or (old_status not in ['Confirmed', 'Tentative Confirmation']):
+                try:
+                    from Holidays.utils import send_booking_voucher
+                    import threading
+                    threading.Thread(target=send_booking_voucher, args=(self,)).start()
+                except Exception as thread_err:
+                    print(f"Error starting background email thread: {thread_err}")
 
     def __str__(self):
         return f"{self.booking_id or self.pk} - {self.first_name} {self.last_name} ({self.vehicle_name})"

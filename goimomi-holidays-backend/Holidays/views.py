@@ -1568,12 +1568,8 @@ class ZohoPaymentWebhookViewSet(ViewSet):
             upsert_zoho_crm_contact(crm_data)
 
         # 6. Notifications (Email & WhatsApp)
-        # Send Confirmation Email with PDF attachment if CabBooking was updated
-        if target_booking and target_booking.email:
-            try:
-                send_booking_voucher(target_booking)
-            except Exception as e:
-                print(f"Error calling send_booking_voucher in webhook: {e}")
+        # Booking confirmation email is now automatically sent via CabBooking's save() model method
+        # when the status transitions to 'Confirmed' or 'Tentative Confirmation'.
 
         # Send WhatsApp Confirmation
         phone_to_notify = customer_phone or (target_booking.phone if target_booking else None)
