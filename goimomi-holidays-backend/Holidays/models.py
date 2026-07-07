@@ -739,9 +739,9 @@ class CabBooking(models.Model):
             CabBooking.objects.filter(pk=self.pk).update(booking_id=self.booking_id)
             self.booking_id = f'GO-TRN-{str(self.pk).zfill(4)}'
 
-        # Trigger email auto-send on status change to Confirmed or Tentative Confirmation
-        if self.status in ['Confirmed', 'Tentative Confirmation']:
-            if is_new or (old_status not in ['Confirmed', 'Tentative Confirmation']):
+        # Trigger email auto-send on status change to Confirmed, Tentative Confirmation, or Booking Requested
+        if self.status in ['Booking Requested', 'Confirmed', 'Tentative Confirmation']:
+            if is_new or (self.status != old_status and old_status not in ['Confirmed', 'Tentative Confirmation']):
                 try:
                     from Holidays.utils import send_booking_voucher
                     import threading

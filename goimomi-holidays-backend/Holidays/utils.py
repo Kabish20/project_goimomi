@@ -609,6 +609,16 @@ def send_booking_voucher(booking):
     import urllib.parse
     email_qr_data = urllib.parse.quote(qr_text)
 
+    # Fetch QR code bytes for inline embedding
+    qr_img_bytes = None
+    try:
+        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=138048&data={email_qr_data}"
+        resp = requests.get(qr_url, timeout=5)
+        if resp.status_code == 200:
+            qr_img_bytes = resp.content
+    except Exception as e:
+        print(f"Error fetching QR code for inline email attachment: {e}")
+
     # Render HTML content
     html_content = render_to_string(
         'emails/car_booking_voucher.html',
@@ -681,6 +691,17 @@ Goimomi Holidays
         bcc=bcc_recipients
     )
     email.attach_alternative(html_content, "text/html")
+
+    # Attach QR Code inline
+    if qr_img_bytes:
+        from email.mime.image import MIMEImage
+        try:
+            mime_image = MIMEImage(qr_img_bytes)
+            mime_image.add_header('Content-ID', '<qrcode>')
+            mime_image.add_header('Content-Disposition', 'inline', filename='qrcode.png')
+            email.attach(mime_image)
+        except Exception as e:
+            print(f"Error attaching inline QR code: {e}")
     
     # Generate PDF and attach
     try:
