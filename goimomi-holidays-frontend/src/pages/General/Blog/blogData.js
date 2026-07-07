@@ -9,6 +9,11 @@ import flightsImg from "../../../assets/images/blog_flights.png";
 import cabImg from "../../../assets/images/blog_cab.png";
 import cruiseImg from "../../../assets/images/blog_cruise.png";
 import packingImg from "../../../assets/images/blog_packing.png";
+import kashmirWinterImg from "../../../assets/images/blog_kashmir_winter.png";
+import singaporeVisaImg from "../../../assets/images/blog_singapore_visa.png";
+import dubaiVisaImg from "../../../assets/images/blog_dubai_visa.png";
+import dubaiVsSingaporeImg from "../../../assets/images/blog_dubai_vs_singapore.png";
+import ramadanUmrahImg from "../../../assets/images/blog_ramadan_umrah.png";
 
 export const blogCategories = [
   {
@@ -132,7 +137,7 @@ export const blogPosts = [
     date: "June 25, 2026",
     readTime: "5 min read",
     excerpt: "Should you experience the frozen magic of winter or the vibrant bloom of summer? Let's compare Kashmir in both seasons.",
-    image: kashmirImg,
+    image: kashmirWinterImg,
     content: `
       Choosing between Kashmir in summer and Kashmir in winter is a delightful dilemma. Both seasons paint this paradise in completely different hues. Here is a side-by-side comparison to help you decide.
 
@@ -239,7 +244,7 @@ export const blogPosts = [
     date: "July 02, 2026",
     readTime: "7 min read",
     excerpt: "Everything you need to know about applying for a Singapore tourist visa, including forms, documents, processing fees, and tips.",
-    image: singaporeImg,
+    image: singaporeVisaImg,
     isVisaGuide: true,
     visaDetails: {
       eligibility: "Indian passport holders intending to visit Singapore for tourism, leisure, or visiting friends/family. Passport must be valid for at least 6 months from the date of entry.",
@@ -294,7 +299,7 @@ export const blogPosts = [
     date: "June 28, 2026",
     readTime: "6 min read",
     excerpt: "Planning a trip to Dubai? Read this comprehensive guide to secure your UAE e-Visa smoothly and avoid rejection.",
-    image: dubaiImg,
+    image: dubaiVisaImg,
     isVisaGuide: true,
     visaDetails: {
       eligibility: "Indian passport holders visiting UAE for tourism, transit, or visiting family. Passport must be valid for at least 6 months.",
@@ -517,7 +522,7 @@ export const blogPosts = [
     date: "June 17, 2026",
     readTime: "6 min read",
     excerpt: "We compare budget, attractions, climate, and food to help you pick between Singapore and Dubai.",
-    image: packingImg,
+    image: dubaiVsSingaporeImg,
     content: `
       Both Dubai and Singapore are prime modern tourist destinations, but they offer completely different vibes. Let's compare them across key parameters.
 
@@ -544,7 +549,7 @@ export const blogPosts = [
     date: "June 14, 2026",
     readTime: "7 min read",
     excerpt: "Performing Umrah in Ramadan holds immense spiritual reward. Plan your travel, hotel bookings, and daily schedule.",
-    image: umrahImg,
+    image: ramadanUmrahImg,
     content: `
       Performing Umrah during the holy month of Ramadan is an experience of a lifetime. The Prophet Muhammad (peace be upon him) said:
       > *"An Umrah performed in Ramadan is equal to performing Hajj with me."*
