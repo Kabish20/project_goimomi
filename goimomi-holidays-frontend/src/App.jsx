@@ -219,7 +219,9 @@ const App = () => {
             <Route path="/contactus" element={<Contact />} />
             <Route path="/contact/success" element={<ContactSuccess />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment-failed" element={<PaymentFailed />} />
+            <Route path="/payment/failed" element={<PaymentFailed />} />
             <Route path="/holidayhome" element={<HolidayHome />} />
             <Route path="/businesshome" element={<BusinessHome />} />
             <Route path="/holidays" element={<Holidays />} />

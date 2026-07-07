@@ -52,7 +52,7 @@ class ZohoPaymentService:
         customer_name = f"{booking.first_name} {booking.last_name}".strip()
         amount = float(booking.price or 0)
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
-        redirect_url = f"{frontend_url}/payment-success/?booking_id={booking.booking_id}"
+        redirect_url = f"{frontend_url}/payment/success?booking_id={booking.booking_id}"
 
         headers = {
             'Authorization': f'Zoho-oauthtoken {access_token}',
