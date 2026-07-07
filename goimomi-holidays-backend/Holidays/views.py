@@ -1579,3 +1579,63 @@ class ZohoPaymentWebhookViewSet(ViewSet):
         return JsonResponse({'status': 'success', 'message': 'Webhook processed successfully'}, status=200)
 
 
+def payment_callback(request):
+    from django.http import HttpResponse
+    import requests
+    from django.conf import settings
+
+    code = request.GET.get('code')
+    if not code:
+        return HttpResponse("Zoho OAuth Callback reached, but no code query parameter was provided. Visit the Zoho Developer Console to start the OAuth flow.")
+
+    zoho_client_id = getattr(settings, 'ZOHO_CLIENT_ID', '').strip()
+    zoho_client_secret = getattr(settings, 'ZOHO_CLIENT_SECRET', '').strip()
+    zoho_redirect_uri = getattr(settings, 'ZOHO_REDIRECT_URI', '').strip()
+
+    if not zoho_redirect_uri:
+        zoho_redirect_uri = request.build_absolute_uri(request.path)
+
+    payload = {
+        'code': code,
+        'client_id': zoho_client_id,
+        'client_secret': zoho_client_secret,
+        'redirect_uri': zoho_redirect_uri,
+        'grant_type': 'authorization_code',
+    }
+
+    try:
+        response = requests.post('https://accounts.zoho.in/oauth/v2/token', data=payload, timeout=15)
+        token_data = response.json()
+        
+        if 'error' in token_data:
+            return HttpResponse(f"Zoho OAuth Failed: {token_data.get('error')}<br>Details: {token_data}")
+            
+        refresh_token = token_data.get('refresh_token')
+        
+        html_content = f"""
+        <html>
+        <head>
+            <title>Zoho OAuth Successful</title>
+            <style>
+                body {{ font-family: sans-serif; padding: 40px; background-color: #f9f9f9; }}
+                .container {{ background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }}
+                h1 {{ color: #2e7d32; }}
+                .token-box {{ background: #f1f8e9; border: 1px solid #c5e1a5; padding: 15px; border-radius: 4px; font-family: monospace; word-break: break-all; margin: 15px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Zoho OAuth Successful!</h1>
+                <p>Add the following refresh token to your <code>.env</code> file:</p>
+                <div class="token-box">ZOHO_REFRESH_TOKEN={refresh_token}</div>
+                <p>Also, CRM/Payments can use this under:</p>
+                <div class="token-box">ZOHO_CRM_REFRESH_TOKEN={refresh_token}</div>
+                <p><strong>Raw Response:</strong></p>
+                <div class="token-box">{token_data}</div>
+            </div>
+        </body>
+        </html>
+        """
+        return HttpResponse(html_content)
+    except Exception as e:
+        return HttpResponse(f"Error exchanging authorization code: {e}")
