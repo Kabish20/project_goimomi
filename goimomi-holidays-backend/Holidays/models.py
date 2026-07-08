@@ -749,6 +749,16 @@ class CabBooking(models.Model):
                 except Exception as thread_err:
                     print(f"Error starting background email thread: {thread_err}")
 
+        # Trigger invoice email on status change to Confirmed
+        if self.status == 'Confirmed':
+            if is_new or (self.status != old_status and old_status != 'Confirmed'):
+                try:
+                    from Holidays.utils import send_booking_invoice
+                    import threading
+                    threading.Thread(target=send_booking_invoice, args=(self,)).start()
+                except Exception as thread_err:
+                    print(f"Error starting background invoice thread: {thread_err}")
+
     def __str__(self):
         return f"{self.booking_id or self.pk} - {self.first_name} {self.last_name} ({self.vehicle_name})"
 

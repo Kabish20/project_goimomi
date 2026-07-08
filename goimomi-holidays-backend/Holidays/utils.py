@@ -762,3 +762,358 @@ def send_whatsapp_confirmation(phone_number: str, booking_id: str, amount: str):
         print(f"Error sending WhatsApp notification: {e}")
         return None
 
+
+def generate_booking_invoice_pdf(booking):
+    """
+    Generates a billing invoice PDF voucher for the booking
+    using a dedicated HTML template and xhtml2pdf.
+    """
+    import os
+    import io
+    import base64
+    import requests
+    import urllib.parse
+    import django.utils.timezone as timezone
+    from datetime import timedelta
+    from django.template.loader import render_to_string
+    from django.db.models import Q
+    from xhtml2pdf import pisa
+    from Holidays.models import CabBooking, VehicleMaster
+
+    # Helper to convert image (file path or remote URL) to base64 Data URI
+    def get_image_as_base64_uri(image_url_or_path):
+        if not image_url_or_path:
+            return ""
+        if os.path.exists(image_url_or_path):
+            try:
+                with open(image_url_or_path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode("utf-8")
+                    ext = os.path.splitext(image_url_or_path)[1].lower()
+                    mime = "image/png"
+                    if ext in [".jpg", ".jpeg"]:
+                        mime = "image/jpeg"
+                    elif ext == ".gif":
+                        mime = "image/gif"
+                    return f"data:{mime};base64,{encoded}"
+            except Exception as e:
+                print(f"Error reading local image {image_url_or_path}: {e}")
+                return ""
+        if image_url_or_path.startswith("http"):
+            try:
+                resp = requests.get(image_url_or_path, timeout=5)
+                if resp.status_code == 200:
+                    encoded = base64.b64encode(resp.content).decode("utf-8")
+                    content_type = resp.headers.get("content-type", "image/png")
+                    return f"data:{content_type};base64,{encoded}"
+            except Exception as e:
+                print(f"Error downloading remote image {image_url_or_path}: {e}")
+        return ""
+
+    # Fetch related bookings created around the same time (within 10 seconds)
+    start_time = booking.created_at - timedelta(seconds=10) if booking.created_at else timezone.now() - timedelta(seconds=10)
+    end_time = booking.created_at + timedelta(seconds=10) if booking.created_at else timezone.now() + timedelta(seconds=10)
+    related_bookings_qs = CabBooking.objects.filter(
+        email=booking.email,
+        created_at__range=(start_time, end_time)
+    ).order_by('id')
+    
+    related_bookings = list(related_bookings_qs)
+    if not related_bookings:
+        related_bookings = [booking]
+
+    bookings_contexts = []
+    total_amount = 0
+    booking_ids = []
+    
+    for b in related_bookings:
+        try:
+            travel_date_str = b.pickup_date.strftime('%d %b %Y') if b.pickup_date else "N/A"
+        except Exception:
+            travel_date_str = str(b.pickup_date) if b.pickup_date else "N/A"
+            
+        total_amount += b.price if b.price is not None else 0
+        b_id = b.booking_id or f"GO-TRN-{str(b.pk).zfill(4)}"
+        booking_ids.append(b_id)
+        
+        # Extract location types (e.g. "Airport" or "CITY") from pickup_location_details
+        pickup_type = ""
+        drop_type = ""
+        if b.pickup_location_details:
+            try:
+                if "Pickup:" in b.pickup_location_details:
+                    pickup_type = b.pickup_location_details.split("Pickup:")[1].split(",")[0].strip()
+                if "Drop:" in b.pickup_location_details:
+                    drop_type = b.pickup_location_details.split("Drop:")[1].split(".")[0].strip()
+            except Exception:
+                pass
+
+        if pickup_type:
+            pickup_location_formatted = f"{b.from_city} ({pickup_type.title()})"
+        elif b.airport_name and b.transfer_type == 'airport':
+            pickup_location_formatted = b.airport_name
+        else:
+            pickup_location_formatted = b.from_city
+
+        if drop_type:
+            drop_location_formatted = f"{b.to_city} ({drop_type.title()})"
+        else:
+            drop_location_formatted = b.to_city
+
+        try:
+            price_str = f"{b.price:,.2f}"
+        except Exception:
+            price_str = str(b.price)
+
+        bookings_contexts.append({
+            'booking_id': b_id,
+            'travel_date': travel_date_str,
+            'pickup_location': pickup_location_formatted,
+            'drop_location': drop_location_formatted,
+            'vehicle_category': b.vehicle_category or "Sedan",
+            'vehicle_name': b.vehicle_name,
+            'total_amount': price_str,
+        })
+        
+    try:
+        total_amount_str = f"{total_amount:,.2f}"
+    except Exception:
+        total_amount_str = str(total_amount)
+        
+    customer_name = f"{booking.title} {booking.first_name} {booking.last_name}".strip()
+    customer_email = booking.email or "N/A"
+    phone = booking.phone or "N/A"
+    
+    # Fetch and encode Logo
+    logo_data_uri = get_image_as_base64_uri("https://goimomi.com/logo.png")
+    
+    try:
+        invoice_date_str = booking.created_at.strftime('%d %b %Y') if booking.created_at else timezone.now().strftime('%d %b %Y')
+    except Exception:
+        invoice_date_str = timezone.now().strftime('%d %b %Y')
+
+    # Render HTML content
+    html_content = render_to_string(
+        'emails/car_booking_invoice_pdf.html',
+        {
+            'bookings': bookings_contexts,
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'phone': phone,
+            'total_amount': total_amount_str,
+            'booking_ids': ", ".join(booking_ids),
+            'invoice_number': booking.invoice_number or f"INV-{booking_ids[0]}",
+            'invoice_date': invoice_date_str,
+            'logo_data_uri': logo_data_uri,
+        }
+    )
+
+    # Generate PDF from HTML content
+    pdf_buffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(
+        io.BytesIO(html_content.encode("utf-8")),
+        dest=pdf_buffer
+    )
+    
+    if pisa_status.err:
+        print(f"xhtml2pdf invoice generation failed with error code: {pisa_status.err}")
+    
+    return pdf_buffer.getvalue()
+
+
+def send_booking_invoice(booking):
+    """
+    Sends the payment invoice HTML email with generated PDF attachment to
+    both the customer and the company email.
+    Consolidates parallel bookings created by the same user within 10 seconds.
+    """
+    import time
+    import io
+    import requests
+    import django.utils.timezone as timezone
+    from datetime import timedelta
+    from django.core.mail import EmailMultiAlternatives
+    from django.conf import settings
+    from django.template.loader import render_to_string
+    from Holidays.models import CabBooking
+
+    # 1. Debounce to let all parallel bookings complete their DB insert / status updates
+    time.sleep(1.8)
+    
+    # 2. Get all bookings created by this email around the same time (within 10 seconds)
+    start_time = booking.created_at - timedelta(seconds=10) if booking.created_at else timezone.now() - timedelta(seconds=10)
+    end_time = booking.created_at + timedelta(seconds=10) if booking.created_at else timezone.now() + timedelta(seconds=10)
+    related_bookings_qs = CabBooking.objects.filter(
+        email=booking.email,
+        created_at__range=(start_time, end_time)
+    ).order_by('id')
+    
+    related_bookings = list(related_bookings_qs)
+    if not related_bookings:
+        related_bookings = [booking]
+        
+    # 3. Only send from the last booking request in the batch to avoid duplicate emails
+    if booking.id != related_bookings[-1].id:
+        print(f"Skipping invoice email for booking {booking.booking_id} as it is part of a batch.")
+        return True
+        
+    # 4. Prepare consolidated context
+    bookings_contexts = []
+    total_amount = 0
+    booking_ids = []
+    
+    for b in related_bookings:
+        try:
+            travel_date_str = b.pickup_date.strftime('%d %b %Y') if b.pickup_date else "N/A"
+        except Exception:
+            travel_date_str = str(b.pickup_date) if b.pickup_date else "N/A"
+            
+        try:
+            price_str = f"{b.price:,.2f}"
+        except Exception:
+            price_str = str(b.price) if b.price is not None else "0.00"
+            
+        total_amount += b.price if b.price is not None else 0
+        b_id = b.booking_id or f"GO-TRN-{str(b.pk).zfill(4)}"
+        booking_ids.append(b_id)
+        
+        # Extract location types (e.g. "Airport" or "CITY") from pickup_location_details
+        pickup_type = ""
+        drop_type = ""
+        if b.pickup_location_details:
+            try:
+                if "Pickup:" in b.pickup_location_details:
+                    pickup_type = b.pickup_location_details.split("Pickup:")[1].split(",")[0].strip()
+                if "Drop:" in b.pickup_location_details:
+                    drop_type = b.pickup_location_details.split("Drop:")[1].split(".")[0].strip()
+            except Exception:
+                pass
+
+        if pickup_type:
+            pickup_location_formatted = f"{b.from_city} ({pickup_type.title()})"
+        elif b.airport_name and b.transfer_type == 'airport':
+            pickup_location_formatted = b.airport_name
+        else:
+            pickup_location_formatted = b.from_city
+
+        if drop_type:
+            drop_location_formatted = f"{b.to_city} ({drop_type.title()})"
+        else:
+            drop_location_formatted = b.to_city
+
+        bookings_contexts.append({
+            'booking_id': b_id,
+            'travel_date': travel_date_str,
+            'pickup_location': pickup_location_formatted,
+            'drop_location': drop_location_formatted,
+            'vehicle_category': b.vehicle_category or "Sedan",
+            'vehicle_name': b.vehicle_name,
+            'total_amount': price_str,
+        })
+        
+    try:
+        total_amount_str = f"{total_amount:,.2f}"
+    except Exception:
+        total_amount_str = str(total_amount)
+        
+    customer_name = f"{booking.title} {booking.first_name} {booking.last_name}".strip()
+    customer_email = booking.email or "N/A"
+    phone = booking.phone or "N/A"
+    
+    try:
+        invoice_date_str = booking.created_at.strftime('%d %b %Y') if booking.created_at else timezone.now().strftime('%d %b %Y')
+    except Exception:
+        invoice_date_str = timezone.now().strftime('%d %b %Y')
+
+    invoice_no = booking.invoice_number or f"INV-{booking_ids[0]}"
+
+    # Render HTML content
+    html_content = render_to_string(
+        'emails/car_booking_invoice.html',
+        {
+            'bookings': bookings_contexts,
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'phone': phone,
+            'total_amount': total_amount_str,
+            'booking_ids': ", ".join(booking_ids),
+            'invoice_number': invoice_no,
+            'invoice_date': invoice_date_str,
+        }
+    )
+    
+    subject = f"Goimomi Holidays - Payment Invoice & Receipt - {invoice_no}"
+    
+    # Fallback plain text message
+    text_content = f"""
+Dear {customer_name},
+
+Thank you for choosing Goimomi Holidays. We have successfully received your payment.
+
+Invoice Number: {invoice_no}
+Invoice Date: {invoice_date_str}
+Total Amount Paid: INR {total_amount_str}
+
+A copy of your official PDF Invoice receipt is attached to this email.
+
+For support, contact our 24/7 Travel Desk:
+Call: +91 81100 82222
+Email: hello@goimomi.com
+
+Thank you,
+Goimomi Holidays
+"""
+    
+    # Add company email from settings
+    company_email = getattr(settings, 'COMPANY_EMAIL', 'Reservations@goimomi.com')
+
+    # Compile recipients list
+    recipients = []
+    if booking.email:
+        recipients.append(booking.email)
+        
+    recipients = list(set(recipients))
+    if not recipients:
+        if company_email:
+            recipients = [company_email]
+            bcc_recipients = []
+        else:
+            print("Error: No email recipients found for invoice.")
+            return False
+    else:
+        bcc_recipients = [company_email] if company_email else []
+        
+    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Reservations@goimomi.com')
+    if not sender:
+        sender = 'Reservations@goimomi.com'
+        
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=sender,
+        to=recipients,
+        cc=['hello@goimomi.com'],
+        bcc=bcc_recipients
+    )
+    email.attach_alternative(html_content, "text/html")
+    
+    # Generate Invoice PDF and attach
+    try:
+        pdf_bytes = generate_booking_invoice_pdf(booking)
+        pdf_filename = f"Invoice_{invoice_no}.pdf"
+        email.attach(
+            filename=pdf_filename,
+            content=pdf_bytes,
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        print(f"Error generating or attaching PDF invoice: {e}")
+        pass
+        
+    try:
+        email.send()
+        print(f"Invoice email sent successfully for booking: {booking.booking_id}")
+        return True
+    except Exception as e:
+        print(f"Failed to send invoice email: {e}")
+        return False
+
