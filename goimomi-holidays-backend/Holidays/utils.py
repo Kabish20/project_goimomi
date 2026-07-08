@@ -29,20 +29,51 @@ def format_time_field(raw_time):
 
 def generate_booking_pdf(booking):
     """
-    Generates a highly-stylized, pixel-perfect multi-page PDF voucher for the booking.
-    If the booking is part of multiple parallel bookings created together, 
-    all of them are included as separate ticket pages, followed by a final Terms & Conditions page.
+    Generates a highly-stylized, vector-based PDF voucher for the booking
+    using a dedicated HTML template and xhtml2pdf.
     """
     import os
-    import sys
-    import requests
     import io
+    import base64
+    import requests
+    import urllib.parse
     import django.utils.timezone as timezone
     from datetime import timedelta
-    from PIL import Image, ImageDraw, ImageFont
-    from Holidays.models import CabBooking
+    from django.template.loader import render_to_string
+    from django.db.models import Q
+    from xhtml2pdf import pisa
+    from Holidays.models import CabBooking, VehicleMaster
 
-    # 1. Fetch related bookings created around the same time (within 10 seconds)
+    # Helper to convert image (file path or remote URL) to base64 Data URI
+    def get_image_as_base64_uri(image_url_or_path):
+        if not image_url_or_path:
+            return ""
+        if os.path.exists(image_url_or_path):
+            try:
+                with open(image_url_or_path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode("utf-8")
+                    ext = os.path.splitext(image_url_or_path)[1].lower()
+                    mime = "image/png"
+                    if ext in [".jpg", ".jpeg"]:
+                        mime = "image/jpeg"
+                    elif ext == ".gif":
+                        mime = "image/gif"
+                    return f"data:{mime};base64,{encoded}"
+            except Exception as e:
+                print(f"Error reading local image {image_url_or_path}: {e}")
+                return ""
+        if image_url_or_path.startswith("http"):
+            try:
+                resp = requests.get(image_url_or_path, timeout=5)
+                if resp.status_code == 200:
+                    encoded = base64.b64encode(resp.content).decode("utf-8")
+                    content_type = resp.headers.get("content-type", "image/png")
+                    return f"data:{content_type};base64,{encoded}"
+            except Exception as e:
+                print(f"Error downloading remote image {image_url_or_path}: {e}")
+        return ""
+
+    # Fetch related bookings created around the same time (within 10 seconds)
     start_time = booking.created_at - timedelta(seconds=10) if booking.created_at else timezone.now() - timedelta(seconds=10)
     end_time = booking.created_at + timedelta(seconds=10) if booking.created_at else timezone.now() + timedelta(seconds=10)
     related_bookings_qs = CabBooking.objects.filter(
@@ -54,132 +85,47 @@ def generate_booking_pdf(booking):
     if not related_bookings:
         related_bookings = [booking]
 
-    # Helper to load standard fonts
-    def get_font(font_name, size):
-        try:
-            if sys.platform.startswith('win'):
-                if "bold" in font_name.lower():
-                    return ImageFont.truetype("arialbd.ttf", size)
-                return ImageFont.truetype("arial.ttf", size)
-            else:
-                paths = [
-                    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if "bold" in font_name.lower() else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-                    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if "bold" in font_name.lower() else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-                ]
-                for p in paths:
-                    if os.path.exists(p):
-                        return ImageFont.truetype(p, size)
-        except Exception:
-            pass
-        return ImageFont.load_default()
-
-    font_bold_lg = get_font("bold", 24)
-    font_bold_md = get_font("bold", 20)
-    font_bold_sm = get_font("bold", 16)
-    font_bold_xs = get_font("bold", 14)
-    font_reg_xs = get_font("regular", 14)
-
-    def get_text_width(txt, fnt):
-        if not txt:
-            return 0
-        try:
-            bbox = fnt.getbbox(txt)
-            return bbox[2] - bbox[0]
-        except Exception:
-            return 0
-
-    def draw_wrapped_text(draw_obj, text, box, font, fill, max_lines=2):
-        x1, y1, x2, y2 = box
-        max_w = x2 - x1
-        words = text.split()
-        lines = []
-        current_line = []
-        for word in words:
-            test_line = " ".join(current_line + [word])
-            # Use draw_obj-independent length if possible, or fallback
-            try:
-                w_len = draw_obj.textlength(test_line, font=font)
-            except Exception:
-                w_len = font.getbbox(test_line)[2] - font.getbbox(test_line)[0]
-                
-            if w_len <= max_w:
-                current_line.append(word)
-            else:
-                if current_line:
-                    lines.append(" ".join(current_line))
-                current_line = [word]
-        if current_line:
-            lines.append(" ".join(current_line))
-            
-        y = y1
-        lines_to_draw = lines[:max_lines] if max_lines is not None else lines
-        for line in lines_to_draw:
-            draw_obj.text((x1, y), line, font=font, fill=fill)
-            y += font.getbbox(line)[3] - font.getbbox(line)[1] + 6
-        return y
-
-    pages = []
-    white = (255, 255, 255)
-
-    # 2. Generate a consolidated single-page ticket containing all related bookings
-    template_path = os.path.join(os.path.dirname(__file__), 'cab_voucher.png')
-    template_img = Image.open(template_path).convert('RGB')
-
-    N = len(related_bookings)
-    consolidated_height = 744 + N * 400
-    consolidated_img = Image.new('RGB', (1536, consolidated_height), (238, 242, 246))
-
-    # Paste Header
-    header_crop = template_img.crop((0, 0, 1536, 220))
-    consolidated_img.paste(header_crop, (0, 0))
-
-    # Draw each booking's ticket card
-    card_box = (0, 220, 1536, 620)
-    for i, b in enumerate(related_bookings):
-        card_crop = template_img.crop(card_box)
-        shift_y = i * 400
-        consolidated_img.paste(card_crop, (0, 220 + shift_y))
-        
-        card_draw = ImageDraw.Draw(consolidated_img)
-        
-        # Cover old template text fields with white rectangles (shifted by shift_y)
-        # Left Barcode Label
-        card_draw.rectangle((80, 375 + shift_y, 115, 605 + shift_y), fill=white)
-
-        # Pickup Column
-        card_draw.rectangle((210, 340 + shift_y, 500, 390 + shift_y), fill=white)
-        card_draw.rectangle((210, 444 + shift_y, 500, 520 + shift_y), fill=white)
-        card_draw.rectangle((210, 544 + shift_y, 500, 595 + shift_y), fill=white)
-
-        # Car Column
-        card_draw.rectangle((580, 305 + shift_y, 920, 350 + shift_y), fill=white)
-        card_draw.rectangle((580, 350 + shift_y, 920, 395 + shift_y), fill=white)
-        card_draw.rectangle((600, 535 + shift_y, 710, 580 + shift_y), fill=white)
-        card_draw.rectangle((840, 535 + shift_y, 950, 580 + shift_y), fill=white)
-        
-        # Cover default template car image (completely cover roof and wheels)
-        card_draw.rectangle((530, 360 + shift_y, 1000, 540 + shift_y), fill=white)
-
-        # Drop Column
-        card_draw.rectangle((1110, 335 + shift_y, 1420, 420 + shift_y), fill=white)
-        card_draw.rectangle((1110, 444 + shift_y, 1420, 490 + shift_y), fill=white)
-        card_draw.rectangle((1110, 544 + shift_y, 1420, 595 + shift_y), fill=white)
-
-        # Draw vertical barcode text
-        b_id = b.booking_id or f"GO-TRN-{str(b.pk).zfill(4)}"
-        txt_img = Image.new('RGBA', (250, 40), (255, 255, 255, 0))
-        txt_draw = ImageDraw.Draw(txt_img)
-        txt_draw.text((0, 0), b_id, font=font_bold_sm, fill=(71, 85, 105))
-        rotated_txt = txt_img.rotate(90, expand=True)
-        consolidated_img.paste(rotated_txt, (85, 380 + shift_y), rotated_txt)
-
-        # Pickup details
+    bookings_contexts = []
+    total_amount = 0
+    booking_ids = []
+    
+    for b in related_bookings:
         try:
             travel_date_str = b.pickup_date.strftime('%d %b %Y') if b.pickup_date else "N/A"
         except Exception:
             travel_date_str = str(b.pickup_date) if b.pickup_date else "N/A"
-        card_draw.text((215, 345 + shift_y), travel_date_str, font=font_bold_xs, fill=(12, 35, 64))
+            
+        total_amount += b.price if b.price is not None else 0
+        b_id = b.booking_id or f"GO-TRN-{str(b.pk).zfill(4)}"
+        booking_ids.append(b_id)
         
+        formatted_time = format_time_field(b.pickup_time or b.arrival_time)
+        
+        # Vehicle Photo
+        vehicle_photo = "https://goimomi.com/media/vehicles/download_2_YaJg5h3.jpeg"
+        vm = None
+        try:
+            vm = VehicleMaster.objects.filter(
+                Q(name__icontains=b.vehicle_name) | 
+                Q(brand__name__icontains=b.vehicle_name)
+            ).first()
+            if not vm and b.vehicle_category:
+                vm = VehicleMaster.objects.filter(
+                    Q(name__icontains=b.vehicle_category) | 
+                    Q(brand__name__icontains=b.vehicle_category)
+                ).first()
+        except Exception:
+            pass
+            
+        if vm and vm.photo:
+            if hasattr(vm.photo, 'path') and os.path.exists(vm.photo.path):
+                vehicle_photo = vm.photo.path
+            else:
+                vehicle_photo = f"https://goimomi.com{vm.photo.url}"
+
+        # Convert vehicle photo to base64 Data URI
+        vehicle_photo_uri = get_image_as_base64_uri(vehicle_photo)
+            
         # Extract location types (e.g. "Airport" or "CITY") from pickup_location_details
         pickup_type = ""
         drop_type = ""
@@ -193,111 +139,43 @@ def generate_booking_pdf(booking):
                 pass
 
         if pickup_type:
-            pickup_point = f"{b.from_city} ({pickup_type.title()})"
+            pickup_location_formatted = f"{b.from_city} ({pickup_type.title()})"
         elif b.airport_name and b.transfer_type == 'airport':
-            pickup_point = b.airport_name
+            pickup_location_formatted = b.airport_name
         else:
-            pickup_point = b.from_city
+            pickup_location_formatted = b.from_city
 
         if drop_type:
-            drop_point = f"{b.to_city} ({drop_type.title()})"
+            drop_location_formatted = f"{b.to_city} ({drop_type.title()})"
         else:
-            drop_point = b.to_city
+            drop_location_formatted = b.to_city
 
-        draw_wrapped_text(card_draw, pickup_point, (215, 445 + shift_y, 490, 515 + shift_y), font_bold_xs, fill=(12, 35, 64))
+        bookings_contexts.append({
+            'booking_id': b_id,
+            'travel_date': travel_date_str,
+            'pickup_location': pickup_location_formatted,
+            'pickup_time': formatted_time,
+            'vehicle_category': b.vehicle_category or "Sedan",
+            'vehicle_name': b.vehicle_name,
+            'vehicle_photo': vehicle_photo_uri,
+            'guests': b.guests or 1,
+            'luggage_count': b.luggage_count or "0",
+            'drop_location': drop_location_formatted,
+        })
         
-        formatted_time = format_time_field(b.pickup_time or b.arrival_time)
-        card_draw.text((215, 545 + shift_y), formatted_time, font=font_bold_xs, fill=(12, 35, 64))
-
-        # Car details
-        cat_text = b.vehicle_category.upper() if b.vehicle_category else "SEDAN"
-        w = get_text_width(cat_text, font_bold_sm)
-        card_draw.text((580 + (340 - w) // 2, 315 + shift_y), cat_text, font=font_bold_sm, fill=(12, 35, 64))
-
-        name_text = b.vehicle_name
-        w = get_text_width(name_text, font_reg_xs)
-        card_draw.text((580 + (340 - w) // 2, 355 + shift_y), name_text, font=font_reg_xs, fill=(100, 116, 139))
-
-        card_draw.text((610, 545 + shift_y), f"{b.guests} Seats", font=font_bold_xs, fill=(71, 85, 105))
-        card_draw.text((850, 545 + shift_y), f"{b.luggage_count or 0} Bags", font=font_bold_xs, fill=(71, 85, 105))
-
-        # Drop details
-        draw_wrapped_text(card_draw, drop_point, (1115, 335 + shift_y, 1410, 415 + shift_y), font_bold_xs, fill=(12, 35, 64))
-        card_draw.text((1115, 445 + shift_y), "As per travel schedule", font=font_bold_xs, fill=(12, 35, 64))
-        card_draw.text((1115, 545 + shift_y), "Approx. standard route", font=font_bold_xs, fill=(12, 35, 64))
-
-        # Dynamic car image
-        try:
-            from Holidays.models import VehicleMaster
-            from django.db.models import Q
-            vm = VehicleMaster.objects.filter(
-                Q(name__icontains=b.vehicle_name) | 
-                Q(brand__name__icontains=b.vehicle_name)
-            ).first()
-            if not vm and b.vehicle_category:
-                vm = VehicleMaster.objects.filter(
-                    Q(name__icontains=b.vehicle_category) | 
-                    Q(brand__name__icontains=b.vehicle_category)
-                ).first()
-            vehicle_photo = None
-            if vm and vm.photo:
-                if hasattr(vm.photo, 'path') and os.path.exists(vm.photo.path):
-                    vehicle_photo = vm.photo.path
-                else:
-                    vehicle_photo = f"https://goimomi.com{vm.photo.url}"
-            if vehicle_photo:
-                if os.path.exists(vehicle_photo):
-                    car_img = Image.open(vehicle_photo)
-                else:
-                    resp = requests.get(vehicle_photo, timeout=5)
-                    if resp.status_code == 200:
-                        car_img = Image.open(io.BytesIO(resp.content))
-                    else:
-                        car_img = None
-                if car_img:
-                    car_img.thumbnail((340, 120), Image.Resampling.LANCZOS)
-                    cx = 580 + (340 - car_img.width) // 2
-                    cy = 405 + (120 - car_img.height) // 2 + shift_y
-                    consolidated_img.paste(car_img, (cx, cy), car_img.convert("RGBA") if "transparency" in car_img.info or car_img.mode == "RGBA" else None)
-        except Exception as e:
-            print(f"Error drawing vehicle image on PDF: {e}")
-
-    # Paste Customer Details Panel
-    y_cust_offset = 220 + N * 400
-    cust_crop = template_img.crop((0, 620, 1536, 840))
-    consolidated_img.paste(cust_crop, (0, y_cust_offset))
-    
-    cust_draw = ImageDraw.Draw(consolidated_img)
-    shift_cust_y = y_cust_offset - 620
-
-    # Clear template customer fields
-    cust_draw.rectangle((200, 710 + shift_cust_y, 470, 745 + shift_cust_y), fill=white)
-    cust_draw.rectangle((200, 790 + shift_cust_y, 470, 825 + shift_cust_y), fill=white)
-    cust_draw.rectangle((530, 710 + shift_cust_y, 800, 745 + shift_cust_y), fill=white)
-    cust_draw.rectangle((530, 790 + shift_cust_y, 800, 825 + shift_cust_y), fill=white)
-    cust_draw.rectangle((900, 710 + shift_cust_y, 1140, 745 + shift_cust_y), fill=white)
-    cust_draw.rectangle((900, 790 + shift_cust_y, 1140, 825 + shift_cust_y), fill=white)
-
-    # Draw customer details
+    try:
+        total_amount_str = f"{total_amount:,.2f}"
+    except Exception:
+        total_amount_str = str(total_amount)
+        
     customer_name = f"{booking.title} {booking.first_name} {booking.last_name}".strip()
-    cust_draw.text((200, 710 + shift_cust_y), customer_name, font=font_bold_xs, fill=(12, 35, 64))
-    cust_draw.text((200, 790 + shift_cust_y), booking.phone or "N/A", font=font_bold_xs, fill=(12, 35, 64))
-    cust_draw.text((530, 710 + shift_cust_y), booking.email or "N/A", font=font_bold_xs, fill=(12, 35, 64))
+    customer_email = booking.email or "N/A"
+    phone = booking.phone or "N/A"
     
-    # Comma-separated Booking IDs list
-    all_booking_ids = ", ".join([rb.booking_id or f"GO-TRN-{str(rb.pk).zfill(4)}" for rb in related_bookings])
-    cust_draw.text((530, 790 + shift_cust_y), all_booking_ids, font=font_bold_xs, fill=(12, 35, 64))
-    
-    cust_draw.text((900, 710 + shift_cust_y), f"{booking.guests} Guest(s)", font=font_bold_xs, fill=(12, 35, 64))
-    
-    status_text = booking.status.upper()
-    status_color = (19, 128, 72) if booking.status in ["Confirmed", "Completed", "defined"] else (209, 38, 22)
-    cust_draw.text((900, 790 + shift_cust_y), status_text, font=font_bold_xs, fill=status_color)
-
-    # Construct dynamic QR code text containing all bookings
+    # Construct consolidated QR code text
     qr_text = f"Goimomi Holidays Cab Booking\n"
     qr_text += f"-----------------------------\n"
-    for rb in related_bookings:
+    for idx, rb in enumerate(related_bookings):
         p_type = ""
         d_type = ""
         if rb.pickup_location_details:
@@ -310,126 +188,55 @@ def generate_booking_pdf(booking):
                 pass
         p_loc = f"{rb.from_city} ({p_type.title()})" if p_type else rb.from_city
         d_loc = f"{rb.to_city} ({d_type.title()})" if d_type else rb.to_city
+        b_id = booking_ids[idx]
         
-        qr_text += f"ID: {rb.booking_id}\n"
+        qr_text += f"ID: {b_id}\n"
         qr_text += f"Vehicle: {rb.vehicle_name} ({rb.vehicle_category or 'Sedan'})\n"
         qr_text += f"Route: {p_loc} to {d_loc}\n\n"
     
     qr_text += f"Guest: {customer_name}\n"
-    qr_text += f"Phone: {booking.phone or 'N/A'}\n"
+    qr_text += f"Phone: {phone}\n"
     qr_text += f"Status: {booking.status.upper()}"
 
+    # Fetch and encode QR Code
+    qr_code_data_uri = ""
     try:
-        import urllib.parse
         qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=138048&data={urllib.parse.quote(qr_text)}"
-        resp = requests.get(qr_url, timeout=5)
-        if resp.status_code == 200:
-            qr_img = Image.open(io.BytesIO(resp.content)).convert("RGB")
-            qr_img = qr_img.resize((150, 150), Image.Resampling.LANCZOS)
-            consolidated_img.paste(qr_img, (1200, 670 + shift_cust_y))
+        qr_code_data_uri = get_image_as_base64_uri(qr_url)
     except Exception as e:
-        print(f"Error drawing QR code on PDF: {e}")
+        print(f"Error generating QR code base64 for PDF: {e}")
 
-    # Draw Total Booking Fare Block (matches email UI design)
-    y_fare_offset = y_cust_offset + 220 + 20
-    cust_draw.rounded_rectangle(
-        [(80, y_fare_offset), (1456, y_fare_offset + 80)],
-        radius=12,
-        fill=(255, 255, 255),
-        outline=(191, 219, 254),
-        width=2
+    # Fetch and encode Logo
+    logo_data_uri = get_image_as_base64_uri("https://goimomi.com/logo.png")
+
+    # Render HTML content
+    html_content = render_to_string(
+        'emails/car_booking_voucher_pdf.html',
+        {
+            'bookings': bookings_contexts,
+            'customer_name': customer_name,
+            'customer_email': customer_email,
+            'phone': phone,
+            'total_amount': total_amount_str,
+            'booking_ids': ", ".join(booking_ids),
+            'payment_status': booking.status,
+            'total_guests': sum([rb.guests or 1 for rb in related_bookings]),
+            'qr_code_data_uri': qr_code_data_uri,
+            'logo_data_uri': logo_data_uri,
+        }
     )
-    cust_draw.text((120, y_fare_offset + 25), "TOTAL BOOKING FARE", font=font_bold_sm, fill=(12, 35, 64))
+
+    # Generate PDF from HTML content
+    pdf_buffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(
+        io.BytesIO(html_content.encode("utf-8")),
+        dest=pdf_buffer
+    )
     
-    total_amount = sum([float(rb.price or 0) for rb in related_bookings])
-    try:
-        total_amount_str = f"{total_amount:,.2f}"
-    except Exception:
-        total_amount_str = str(total_amount)
+    if pisa_status.err:
+        print(f"xhtml2pdf generation failed with error code: {pisa_status.err}")
     
-    # Check if bookings are INR (represented by Rs/INR)
-    fare_text = f"INR {total_amount_str}"
-    try:
-        tw = font_bold_lg.getbbox(fare_text)[2] - font_bold_lg.getbbox(fare_text)[0]
-    except Exception:
-        tw = 200
-    cust_draw.text((1416 - tw, y_fare_offset + 22), fare_text, font=font_bold_lg, fill=(19, 128, 72))
-
-    # Paste Support Footer
-    y_footer_offset = y_fare_offset + 80 + 20
-    footer_crop = template_img.crop((0, 840, 1536, 1024))
-    consolidated_img.paste(footer_crop, (0, y_footer_offset))
-
-    # Scale consolidated_img to standard A4 size (1240 x 1754)
-    a4_width = 1240
-    a4_height = 1754
-    scale = a4_width / consolidated_img.width  # 1240 / 1530 = 0.81045
-    scaled_w = a4_width
-    scaled_h = int(consolidated_img.height * scale)
-
-    scaled_consolidated = consolidated_img.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
-
-    a4_page1 = Image.new('RGB', (a4_width, a4_height), (255, 255, 255))
-    a4_page1.paste(scaled_consolidated, (0, 0))
-
-    pages.append(a4_page1)
-
-    # 3. Generate the Terms & Conditions Page
-    append_images = []
-    try:
-        terms_img = Image.new('RGB', (1240, 1754), (255, 255, 255))
-        terms_draw = ImageDraw.Draw(terms_img)
-
-        # Deep green sidebar
-        terms_draw.rectangle((0, 0, 20, 1754), fill=(20, 83, 45))
-
-        # Fonts for Terms Page
-        font_title = get_font("bold", 36)
-        font_reg_sm = get_font("regular", 18)
-
-        # Title
-        terms_draw.text((100, 100), "TERMS & CONDITIONS", font=font_title, fill=(20, 83, 45))
-
-        # Decorative line
-        terms_draw.line((100, 160, 1140, 160), fill=(229, 231, 235), width=2)
-
-        terms = [
-            "1. Booking is confirmed only after receipt of the required advance or full payment.",
-            "2. The quoted fare includes only the services mentioned in the booking confirmation. Toll, parking, permit, entry tax, and other applicable charges are extra unless specified.",
-            "3. Customers must be present at the pickup location on time. Waiting beyond 15 minutes (city pickups) or 30 minutes (airport pickups) may incur additional charges.",
-            "4. Any change in pickup location, destination, route, duration, or travel plan after confirmation may result in additional charges.",
-            "5. Extra kilometers and extra hours will be charged as per the applicable rates for the selected vehicle.",
-            "6. Cancellation, no-show, or cancellation after vehicle dispatch may attract cancellation charges, and refunds (if applicable) will be processed as per company policy.",
-            "7. GOIMOMI HOLIDAYS is not responsible for delays caused by traffic, weather, road conditions, government restrictions, vehicle breakdowns due to unforeseen circumstances, or any force majeure events.",
-            "8. Customers are responsible for their personal belongings. GOIMOMI HOLIDAYS shall not be liable for any loss, theft, or damage to luggage or valuables.",
-            "9. Any damage caused to the vehicle by the customer or passengers will be chargeable to the customer.",
-            "10. By confirming the booking, the customer agrees to abide by these Terms & Conditions and accepts the company's policies."
-        ]
-
-        # Draw terms in single column for clean A4 reading
-        y_pos = 220
-        for term in terms:
-            y_pos = draw_wrapped_text(terms_draw, term, (100, y_pos, 1140, 0), font_reg_sm, fill=(12, 35, 64), max_lines=None)
-            y_pos += 30
-
-        # Footer
-        terms_draw.line((100, 1600, 1140, 1600), fill=(229, 231, 235), width=2)
-        footer_text = "24/7 Helpline: +91 81100 82222  |  Email: hello@goimomi.com  |  Website: www.goimomi.com"
-        try:
-            fw = terms_draw.textlength(footer_text, font=font_reg_sm)
-        except Exception:
-            fw = font_reg_sm.getbbox(footer_text)[2] - font_reg_sm.getbbox(footer_text)[0]
-        terms_draw.text((100 + (1040 - fw) // 2, 1630), footer_text, font=font_reg_sm, fill=(71, 85, 105))
-        
-        append_images = [terms_img]
-    except Exception as e:
-        print(f"Error creating Terms page on PDF: {e}")
-        append_images = []
-
-    # 4. Export to PDF bytes
-    buffer = io.BytesIO()
-    pages[0].save(buffer, "PDF", save_all=True, append_images=append_images, resolution=150.0)
-    return buffer.getvalue()
+    return pdf_buffer.getvalue()
 
 
 def send_booking_voucher(booking):

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle, ShieldCheck, Clock, Headphones, Award, CreditCard, Star, Plane, ArrowRight, BadgeCheck, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../../api";
@@ -18,6 +19,7 @@ const Cab = () => {
     null,
     "Premium cab service, airport transfers, intercity taxi, Goimomi Holidays, Jeddah airport transfer, Makkah taxi service, Madinah cab booking, professional travel transfers, luxury car rental with driver"
   );
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState("");
   const [destinations, setDestinations] = useState([]);
@@ -213,7 +215,18 @@ const Cab = () => {
         // Brief status update so user sees feedback before redirect
         setBookingStatus({ loading: true, success: false, error: null });
         setTimeout(() => {
-          window.location.href = firstPaymentUrl;
+          if (firstPaymentUrl.includes("/payment-checkout")) {
+            try {
+              // Extract the path and query parameters for local navigation
+              const urlObj = new URL(firstPaymentUrl);
+              navigate(`${urlObj.pathname}${urlObj.search}`);
+            } catch (e) {
+              // Fallback to direct navigation if parsing fails
+              window.location.href = firstPaymentUrl;
+            }
+          } else {
+            window.location.href = firstPaymentUrl;
+          }
         }, 800);
         return;
       }

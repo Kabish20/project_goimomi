@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Car Booking Voucher</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 25px;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 9pt;
+            background-color: #ffffff;
+            color: #0c2340;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+<body>
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center">
+            
+            <!-- HEADER BAR -->
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+                <tr>
+                    <!-- Logo -->
+                    <td width="30%" valign="middle">
+                        {% if logo_data_uri %}
+                        <img src="{{ logo_data_uri }}" height="38" alt="Goimomi Holidays" style="display: block;">
+                        {% endif %}
+                    </td>
+                    <!-- Title -->
+                    <td width="40%" align="center" valign="middle">
+                        <div style="line-height: 1.2; text-align: center;">
+                            <span style="font-size: 18pt; font-weight: bold; color: #0c2340; letter-spacing: 1px; text-transform: uppercase;">CAB BOOKING</span><br>
+                            <span style="font-size: 16pt; font-weight: bold; color: #d12616; font-style: italic;">Voucher</span>
+                        </div>
+                    </td>
+                    <!-- Top-Right Priority Badge -->
+                    <td width="30%" align="right" valign="middle">
+                        <table border="0" cellpadding="0" cellspacing="0" style="background-color: #0c2340; padding: 6px 12px; width: 120px; text-align: center;">
+                            <tr>
+                                <td align="center" style="font-size: 7pt; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;">YOUR JOURNEY</td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="font-size: 7pt; font-weight: bold; color: #ff5722; letter-spacing: 0.5px;">OUR PRIORITY</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            {% for booking in bookings %}
+            <!-- MAIN TRIP CARD -->
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: 1px solid #bfdbfe; background-color: #ffffff; margin-bottom: 15px;">
+                <tr>
+                    <!-- Left Barcode/ID Column -->
+                    <td width="10%" style="border-right: 1px dashed #cbd5e1; background-color: #ffffff; padding: 15px 0; text-align: center; vertical-align: middle;">
+                        <div style="font-size: 8pt; font-weight: bold; color: #475569; letter-spacing: 0.5px;">
+                            ID:<br>{{ booking.booking_id }}
+                        </div>
+                    </td>
+                    
+                    <!-- Trip Columns Main Area -->
+                    <td width="90%" style="padding: 15px;">
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <!-- Column 1: PICKUP DETAILS -->
+                                <td width="32%" valign="top" style="padding-right: 10px; border-right: 1px dashed #e2e8f0;">
+                                    <div style="background-color: #138048; color: #ffffff; padding: 4px; font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; margin-bottom: 8px;">
+                                        PICKUP DETAILS
+                                    </div>
+                                    
+                                    <!-- Date -->
+                                    <div style="margin-bottom: 6px;">
+                                        <span style="font-size: 7pt; font-weight: bold; color: #138048; display: block; text-transform: uppercase;">DATE</span>
+                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.travel_date }}</span>
+                                    </div>
+                                    
+                                    <!-- Pickup Point -->
+                                    <div style="margin-bottom: 6px;">
+                                        <span style="font-size: 7pt; font-weight: bold; color: #138048; display: block; text-transform: uppercase;">PICKUP POINT</span>
+                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340; line-height: 1.2;">{{ booking.pickup_location }}</span>
+                                    </div>
+                                    
+                                    <!-- Pickup Time -->
+                                    <div>
+                                        <span style="font-size: 7pt; font-weight: bold; color: #138048; display: block; text-transform: uppercase;">PICKUP TIME</span>
+                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_time }}</span>
+                                    </div>
+                                </td>
+                                
+                                <!-- Column 2: YOUR CAR -->
+                                <td width="36%" valign="top" style="padding: 0 10px; border-right: 1px dashed #e2e8f0; text-align: center;">
+                                    <div style="background-color: #0c2340; color: #ffffff; padding: 4px; font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; margin-bottom: 8px;">
+                                        YOUR CAR
+                                    </div>
+                                    
+                                    <div style="font-size: 10pt; font-weight: bold; color: #0c2340; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        {{ booking.vehicle_category }}
+                                    </div>
+                                    <div style="font-size: 8pt; font-weight: 500; color: #64748b; margin-top: 1px; margin-bottom: 5px;">
+                                        {{ booking.vehicle_name }} / Similar
+                                    </div>
+                                    
+                                    <!-- Car Image -->
+                                    {% if booking.vehicle_photo %}
+                                    <div style="margin: 4px 0; text-align: center;">
+                                        <img src="{{ booking.vehicle_photo }}" height="50" alt="Car" style="display: inline-block;">
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Specifications -->
+                                    <div style="font-size: 8pt; font-weight: bold; color: #475569; margin-top: 4px;">
+                                        Seats: {{ booking.guests }} &nbsp;|&nbsp; AC &nbsp;|&nbsp; Bags: {{ booking.luggage_count }}
+                                    </div>
+                                </td>
+                                
+                                <!-- Column 3: DROP DETAILS -->
+                                <td width="32%" valign="top" style="padding-left: 10px;">
+                                    <div style="background-color: #d12616; color: #ffffff; padding: 4px; font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; margin-bottom: 8px;">
+                                        DROP DETAILS
+                                    </div>
+                                    
+                                    <!-- Drop Point -->
+                                    <div style="margin-bottom: 6px;">
+                                        <span style="font-size: 7pt; font-weight: bold; color: #d12616; display: block; text-transform: uppercase;">DROP POINT</span>
+                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340; line-height: 1.2;">{{ booking.drop_location }}</span>
+                                    </div>
+                                    
+                                    <!-- Est Drop Time -->
+                                    <div style="margin-bottom: 6px;">
+                                        <span style="font-size: 7pt; font-weight: bold; color: #d12616; display: block; text-transform: uppercase;">ESTIMATED DROP TIME</span>
+                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">As per travel schedule</span>
+                                    </div>
+                                    
+                                    <!-- Distance -->
+                                    <div>
+                                        <span style="font-size: 7pt; font-weight: bold; color: #d12616; display: block; text-transform: uppercase;">DISTANCE</span>
+                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">Approx. standard route</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            {% endfor %}
+            
+            <!-- CUSTOMER DETAILS PANEL -->
+            <table width="100%" border="0" cellpadding="10" cellspacing="0" style="border: 1px solid #bfdbfe; background-color: #f8fafc; margin-bottom: 15px;">
+                <tr>
+                    <td colspan="4" style="padding-bottom: 8px;">
+                        <span style="background-color: #0c2340; color: #ffffff; padding: 4px 10px; font-size: 8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">CUSTOMER DETAILS</span>
+                    </td>
+                </tr>
+                <tr>
+                    <!-- Customer Name & Phone -->
+                    <td width="30%" valign="top">
+                        <div style="margin-bottom: 6px;">
+                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">CUSTOMER NAME</span>
+                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
+                                {{ customer_name }}
+                            </div>
+                        </div>
+                        <div>
+                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">PHONE NUMBER</span>
+                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
+                                {{ phone }}
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <!-- Email & Booking ID -->
+                    <td width="30%" valign="top">
+                        <div style="margin-bottom: 6px;">
+                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">EMAIL ID</span>
+                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px; word-break: break-all;">
+                                {{ customer_email }}
+                            </div>
+                        </div>
+                        <div>
+                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">BOOKING ID</span>
+                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
+                                {{ booking_ids }}
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <!-- Passengers & Payment Status -->
+                    <td width="23%" valign="top">
+                        <div style="margin-bottom: 6px;">
+                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">NO. OF PASSENGERS</span>
+                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
+                                {{ total_guests }} Guest(s)
+                            </div>
+                        </div>
+                        <div>
+                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">PAYMENT STATUS</span>
+                            <div style="font-size: 9pt; font-weight: bold; color: #138048; margin-top: 2px;">
+                                {{ payment_status|upper }}
+                            </div>
+                        </div>
+                    </td>
+                    
+                    <!-- QR Code -->
+                    <td width="17%" valign="middle" align="center" style="border-left: 1px solid #cbd5e1; padding-left: 8px;">
+                        {% if qr_code_data_uri %}
+                        <img src="{{ qr_code_data_uri }}" width="65" height="65" alt="QR Code" style="display: block;">
+                        {% endif %}
+                        <div style="font-size: 6pt; font-weight: bold; color: #138048; margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; text-align: center;">
+                            SCAN FOR TRIP DETAILS
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- TOTAL FARE BLOCK -->
+            <table width="100%" border="0" cellpadding="8" cellspacing="0" style="border: 1px solid #bfdbfe; background-color: #ffffff; margin-bottom: 20px;">
+                <tr>
+                    <td align="left" style="font-size: 10pt; font-weight: bold; color: #0c2340;">
+                        TOTAL BOOKING FARE
+                    </td>
+                    <td align="right" style="font-size: 11pt; font-weight: bold; color: #138048;">
+                        INR {{ total_amount }}
+                    </td>
+                </tr>
+            </table>
+
+            <!-- TERMS & CONDITIONS -->
+            <div style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px; text-align: left;">
+                <div style="font-size: 10pt; font-weight: bold; color: #0c2340; text-transform: uppercase; margin-bottom: 8px;">
+                    Terms & Conditions
+                </div>
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="font-size: 7.5pt; color: #475569; line-height: 1.45;">
+                            1. Booking is confirmed only after receipt of the required advance or full payment.<br>
+                            2. The quoted fare includes only the services mentioned in the booking confirmation. Toll, parking, permit, entry tax, and other applicable charges are extra unless specified.<br>
+                            3. Customers must be present at the pickup location on time. Waiting beyond 15 minutes (city pickups) or 30 minutes (airport pickups) may incur additional charges.<br>
+                            4. Any change in pickup location, destination, route, duration, or travel plan after confirmation may result in additional charges.<br>
+                            5. Extra kilometers and extra hours will be charged as per the applicable rates for the selected vehicle.<br>
+                            6. Cancellation, no-show, or cancellation after vehicle dispatch may attract cancellation charges, and refunds (if applicable) will be processed as per company policy.<br>
+                            7. GOIMOMI HOLIDAYS is not responsible for delays caused by traffic, weather, road conditions, government restrictions, vehicle breakdowns due to unforeseen circumstances, or any force majeure events.<br>
+                            8. Customers are responsible for their personal belongings. GOIMOMI HOLIDAYS shall not be liable for any loss, theft, or damage to luggage or valuables.<br>
+                            9. Any damage caused to the vehicle by the customer or passengers will be chargeable to the customer.<br>
+                            10. By confirming the booking, the customer agrees to abide by these Terms & Conditions and accepts the company's policies.
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- SUPPORT & FOOTER -->
+            <div style="text-align: center; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                    <tr>
+                        <td style="font-size: 8pt; font-weight: bold; color: #0c2340; padding-right: 15px;">
+                            24/7 SUPPORT
+                        </td>
+                        <td style="font-size: 8pt; font-weight: bold; color: #475569; padding-right: 15px;">
+                            Call: +91 81100 82222
+                        </td>
+                        <td style="font-size: 8pt; font-weight: bold; color: #475569; padding-right: 15px;">
+                            Email: hello@goimomi.com
+                        </td>
+                        <td style="font-size: 8pt; font-weight: bold; color: #475569;">
+                            Web: www.goimomi.com
+                        </td>
+                    </tr>
+                </table>
+                
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                    <tr>
+                        <td align="left" style="font-size: 7pt; color: #94a3b8;">
+                            &copy; 2026 Goimomi Holidays. All Rights Reserved.
+                        </td>
+                        <td align="right" style="font-size: 8.5pt; font-weight: bold; color: #138048; font-style: italic;">
+                            Thank You! Have a Safe Journey
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
