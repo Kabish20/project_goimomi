@@ -951,6 +951,20 @@ class CabBookingViewSet(ModelViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=True, methods=['get'], url_path='download-voucher', permission_classes=[IsAuthenticated])
+    def download_voucher(self, request, pk=None):
+        booking = self.get_object()
+        try:
+            from .utils import generate_booking_pdf
+            pdf_bytes = generate_booking_pdf(booking)
+            from django.http import HttpResponse
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            b_id = booking.booking_id or f"GO-TRN-{str(booking.pk).zfill(4)}"
+            response['Content-Disposition'] = f'attachment; filename="Voucher_{b_id}.pdf"'
+            return response
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class CabAdditionalDocumentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = CabAdditionalDocument.objects.all()
