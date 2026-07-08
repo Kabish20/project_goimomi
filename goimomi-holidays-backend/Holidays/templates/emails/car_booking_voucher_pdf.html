@@ -78,26 +78,18 @@
                                         PICKUP DETAILS
                                     </div>
                                     
-                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td style="padding-bottom: 6px;">
-                                                <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">DATE</font><br>
-                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.travel_date }}</font>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding-bottom: 6px;">
-                                                <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">PICKUP POINT</font><br>
-                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_location }}</font>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">PICKUP TIME</font><br>
-                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_time }}</font>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    <p style="margin: 0 0 10px 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">DATE</font><br>
+                                        <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.travel_date }}</font>
+                                    </p>
+                                    <p style="margin: 0 0 10px 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">PICKUP POINT</font><br>
+                                        <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_location }}</font>
+                                    </p>
+                                    <p style="margin: 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">PICKUP TIME</font><br>
+                                        <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_time }}</font>
+                                    </p>
                                 </td>
                                 
                                 <!-- Column 2: YOUR CAR -->
@@ -106,30 +98,20 @@
                                         YOUR CAR
                                     </div>
                                     
-                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="text-align: center;">
-                                        <tr>
-                                            <td style="padding-bottom: 2px; text-align: center;">
-                                                <font style="font-size: 10pt; font-weight: bold; color: #0c2340; text-transform: uppercase; letter-spacing: 0.5px;">{{ booking.vehicle_category }}</font>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding-bottom: 6px; text-align: center;">
-                                                <font style="font-size: 8pt; font-weight: 500; color: #64748b;">{{ booking.vehicle_name }} / Similar</font>
-                                            </td>
-                                        </tr>
-                                        {% if booking.vehicle_photo %}
-                                        <tr>
-                                            <td align="center" style="padding-bottom: 6px; text-align: center;">
-                                                <img src="{{ booking.vehicle_photo }}" height="50" alt="Car" style="display: block; margin: 0 auto;">
-                                            </td>
-                                        </tr>
-                                        {% endif %}
-                                        <tr>
-                                            <td style="text-align: center;">
-                                                <font style="font-size: 8pt; font-weight: bold; color: #475569;">Seats: {{ booking.guests }} &nbsp;|&nbsp; AC &nbsp;|&nbsp; Bags: {{ booking.luggage_count }}</font>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    <p style="margin: 0 0 2px 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 10pt; font-weight: bold; color: #0c2340; text-transform: uppercase; letter-spacing: 0.5px;">{{ booking.vehicle_category }}</font>
+                                    </p>
+                                    <p style="margin: 0 0 6px 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 8pt; font-weight: 500; color: #64748b;">{{ booking.vehicle_name }} / Similar</font>
+                                    </p>
+                                    {% if booking.vehicle_photo %}
+                                    <p style="margin: 0 0 6px 0; padding: 0; text-align: center;">
+                                        <img src="{{ booking.vehicle_photo }}" height="50" alt="Car" style="display: inline-block;">
+                                    </p>
+                                    {% endif %}
+                                    <p style="margin: 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 8pt; font-weight: bold; color: #475569;">Seats: {{ booking.guests }} &nbsp;|&nbsp; AC &nbsp;|&nbsp; Bags: {{ booking.luggage_count }}</font>
+                                    </p>
                                 </td>
                                 
                                 <!-- Column 3: DROP DETAILS -->
@@ -138,26 +120,18 @@
                                         DROP DETAILS
                                     </div>
                                     
-                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td style="padding-bottom: 6px;">
-                                                <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">DROP POINT</font><br>
-                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.drop_location }}</font>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding-bottom: 6px;">
-                                                <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">ESTIMATED DROP TIME</font><br>
-                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">As per travel schedule</font>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">DISTANCE</font><br>
-                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">Approx. standard route</font>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    <p style="margin: 0 0 10px 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">DROP POINT</font><br>
+                                        <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.drop_location }}</font>
+                                    </p>
+                                    <p style="margin: 0 0 10px 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">ESTIMATED DROP TIME</font><br>
+                                        <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">As per travel schedule</font>
+                                    </p>
+                                    <p style="margin: 0; padding: 0; line-height: 1.2;">
+                                        <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">DISTANCE</font><br>
+                                        <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">Approx. standard route</font>
+                                    </p>
                                 </td>
                             </tr>
                         </table>
