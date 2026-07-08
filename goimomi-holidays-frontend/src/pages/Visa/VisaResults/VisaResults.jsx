@@ -474,7 +474,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                         </div>
                                     </div>
                                     {/* Header with Background Image/Video */}
-                                    <div className="relative h-20 md:h-24 bg-[#14532d] border-b border-black/10 rounded-t-2xl overflow-hidden">
+                                    <div className="relative min-h-[5.5rem] md:h-24 bg-[#14532d] border-b border-black/10 rounded-t-2xl overflow-hidden p-3 flex flex-col justify-between">
                                         {visa.card_image && (
                                             <img
                                                 src={getImageUrl(visa.card_image)}
@@ -485,7 +485,7 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#14532d] to-transparent" />
 
                                         {/* Share Bar */}
-                                        <div className="absolute top-2 right-2 md:right-4 flex items-center gap-2 md:gap-3 bg-black/20 backdrop-blur-md px-2 md:px-3 py-1 rounded-lg border border-white/10 z-10 transition-all hover:bg-black/30">
+                                        <div className="self-end flex items-center gap-2 md:gap-3 bg-black/20 backdrop-blur-md px-2 md:px-3 py-1 rounded-lg border border-white/10 z-10 transition-all hover:bg-black/30">
                                             <div className="flex items-center gap-1.5 text-white/90 font-bold text-[9px] md:text-[10px] uppercase tracking-wider">
                                                 <Share2 size={11} className="text-white/70" />
                                                 <span className="hidden sm:inline">Share By :</span>
@@ -547,10 +547,10 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                                             </div>
                                         </div>
 
-                                        <div className="absolute bottom-3 left-6 text-white">
-                                            <h3 className="text-xl md:text-2xl font-bold drop-shadow-md">{visa.title}</h3>
+                                        <div className="z-10 text-white pl-6 md:pl-8 pr-2 mt-auto">
+                                            <h3 className="text-lg md:text-2xl font-bold drop-shadow-md leading-tight">{visa.title}</h3>
                                             {visa.country_details?.name && (
-                                                <p className="text-xs font-medium text-green-100 uppercase tracking-widest">{visa.country_details.name}</p>
+                                                <p className="text-[10px] md:text-xs font-medium text-green-100 uppercase tracking-widest mt-0.5">{visa.country_details.name}</p>
                                             )}
                                         </div>
                                     </div>

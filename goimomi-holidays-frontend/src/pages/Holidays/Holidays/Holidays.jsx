@@ -88,13 +88,13 @@ const HolidayCard = ({ pkg, navigate, generateShareText, setEmailModalPkg, downl
   return (
     <div className="bg-white border border-gray-200 rounded-sm shadow-sm mb-4 flex flex-col font-sans max-w-[1000px] mx-auto overflow-hidden">
       {/* HEADER BAR */}
-      <div className="px-3 py-1.5 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between">
-        <h3 className="text-[15px] font-bold text-gray-800">
+      <div className="px-3 py-2 border-b border-gray-100 bg-gray-50/30 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-[14px] sm:text-[15px] font-bold text-gray-800 leading-snug">
           <span className="font-extrabold text-black">({pkg.nights || pkg.days - 1}N/{pkg.days}D)</span> - {pkg.fixed_departure ? 'Fix Departure: ' : ''}{pkg.title}
         </h3>
 
         {/* SHARE PILL BAR - Top Right Corner */}
-        <div className="bg-[#4d4d4d] text-white rounded-full py-1 px-3 flex items-center gap-3 shadow-md scale-95 origin-right">
+        <div className="bg-[#4d4d4d] text-white rounded-full py-1 px-3 flex items-center gap-3 shadow-md scale-90 sm:scale-95 origin-right self-end sm:self-auto shrink-0">
           <div className="flex items-center gap-1.5 pr-3 border-r border-gray-500">
             <Share2 size={12} className="text-gray-300" />
             <span className="text-[9px] font-black tracking-widest uppercase">Share :</span>
