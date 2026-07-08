@@ -62,10 +62,10 @@
             <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: 1px solid #bfdbfe; background-color: #ffffff; margin-bottom: 15px;">
                 <tr>
                     <!-- Left Barcode/ID Column -->
-                    <td width="10%" style="border-right: 1px dashed #cbd5e1; background-color: #ffffff; padding: 15px 0; text-align: center; vertical-align: middle;">
-                        <div style="font-size: 8pt; font-weight: bold; color: #475569; letter-spacing: 0.5px;">
+                    <td width="10%" align="center" valign="middle" style="border-right: 1px dashed #cbd5e1; background-color: #ffffff; padding: 15px 0; text-align: center;">
+                        <font style="font-size: 8pt; font-weight: bold; color: #475569; letter-spacing: 0.5px;">
                             ID:<br>{{ booking.booking_id }}
-                        </div>
+                        </font>
                     </td>
                     
                     <!-- Trip Columns Main Area -->
@@ -78,23 +78,26 @@
                                         PICKUP DETAILS
                                     </div>
                                     
-                                    <!-- Date -->
-                                    <div style="margin-bottom: 6px;">
-                                        <span style="font-size: 7pt; font-weight: bold; color: #138048; display: block; text-transform: uppercase;">DATE</span>
-                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.travel_date }}</span>
-                                    </div>
-                                    
-                                    <!-- Pickup Point -->
-                                    <div style="margin-bottom: 6px;">
-                                        <span style="font-size: 7pt; font-weight: bold; color: #138048; display: block; text-transform: uppercase;">PICKUP POINT</span>
-                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340; line-height: 1.2;">{{ booking.pickup_location }}</span>
-                                    </div>
-                                    
-                                    <!-- Pickup Time -->
-                                    <div>
-                                        <span style="font-size: 7pt; font-weight: bold; color: #138048; display: block; text-transform: uppercase;">PICKUP TIME</span>
-                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_time }}</span>
-                                    </div>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="padding-bottom: 6px;">
+                                                <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">DATE</font><br>
+                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.travel_date }}</font>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-bottom: 6px;">
+                                                <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">PICKUP POINT</font><br>
+                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_location }}</font>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <font style="font-size: 7pt; font-weight: bold; color: #138048; text-transform: uppercase;">PICKUP TIME</font><br>
+                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.pickup_time }}</font>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                                 
                                 <!-- Column 2: YOUR CAR -->
@@ -103,24 +106,30 @@
                                         YOUR CAR
                                     </div>
                                     
-                                    <div style="font-size: 10pt; font-weight: bold; color: #0c2340; text-transform: uppercase; letter-spacing: 0.5px;">
-                                        {{ booking.vehicle_category }}
-                                    </div>
-                                    <div style="font-size: 8pt; font-weight: 500; color: #64748b; margin-top: 1px; margin-bottom: 5px;">
-                                        {{ booking.vehicle_name }} / Similar
-                                    </div>
-                                    
-                                    <!-- Car Image -->
-                                    {% if booking.vehicle_photo %}
-                                    <div style="margin: 4px 0; text-align: center;">
-                                        <img src="{{ booking.vehicle_photo }}" height="50" alt="Car" style="display: inline-block;">
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <!-- Specifications -->
-                                    <div style="font-size: 8pt; font-weight: bold; color: #475569; margin-top: 4px;">
-                                        Seats: {{ booking.guests }} &nbsp;|&nbsp; AC &nbsp;|&nbsp; Bags: {{ booking.luggage_count }}
-                                    </div>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="text-align: center;">
+                                        <tr>
+                                            <td style="padding-bottom: 2px; text-align: center;">
+                                                <font style="font-size: 10pt; font-weight: bold; color: #0c2340; text-transform: uppercase; letter-spacing: 0.5px;">{{ booking.vehicle_category }}</font>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-bottom: 6px; text-align: center;">
+                                                <font style="font-size: 8pt; font-weight: 500; color: #64748b;">{{ booking.vehicle_name }} / Similar</font>
+                                            </td>
+                                        </tr>
+                                        {% if booking.vehicle_photo %}
+                                        <tr>
+                                            <td align="center" style="padding-bottom: 6px; text-align: center;">
+                                                <img src="{{ booking.vehicle_photo }}" height="50" alt="Car" style="display: block; margin: 0 auto;">
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <font style="font-size: 8pt; font-weight: bold; color: #475569;">Seats: {{ booking.guests }} &nbsp;|&nbsp; AC &nbsp;|&nbsp; Bags: {{ booking.luggage_count }}</font>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                                 
                                 <!-- Column 3: DROP DETAILS -->
@@ -129,23 +138,26 @@
                                         DROP DETAILS
                                     </div>
                                     
-                                    <!-- Drop Point -->
-                                    <div style="margin-bottom: 6px;">
-                                        <span style="font-size: 7pt; font-weight: bold; color: #d12616; display: block; text-transform: uppercase;">DROP POINT</span>
-                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340; line-height: 1.2;">{{ booking.drop_location }}</span>
-                                    </div>
-                                    
-                                    <!-- Est Drop Time -->
-                                    <div style="margin-bottom: 6px;">
-                                        <span style="font-size: 7pt; font-weight: bold; color: #d12616; display: block; text-transform: uppercase;">ESTIMATED DROP TIME</span>
-                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">As per travel schedule</span>
-                                    </div>
-                                    
-                                    <!-- Distance -->
-                                    <div>
-                                        <span style="font-size: 7pt; font-weight: bold; color: #d12616; display: block; text-transform: uppercase;">DISTANCE</span>
-                                        <span style="font-size: 9pt; font-weight: bold; color: #0c2340;">Approx. standard route</span>
-                                    </div>
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="padding-bottom: 6px;">
+                                                <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">DROP POINT</font><br>
+                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking.drop_location }}</font>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding-bottom: 6px;">
+                                                <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">ESTIMATED DROP TIME</font><br>
+                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">As per travel schedule</font>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <font style="font-size: 7pt; font-weight: bold; color: #d12616; text-transform: uppercase;">DISTANCE</font><br>
+                                                <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">Approx. standard route</font>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
                         </table>
@@ -164,50 +176,56 @@
                 <tr>
                     <!-- Customer Name & Phone -->
                     <td width="30%" valign="top">
-                        <div style="margin-bottom: 6px;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">CUSTOMER NAME</span>
-                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
-                                {{ customer_name }}
-                            </div>
-                        </div>
-                        <div>
-                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">PHONE NUMBER</span>
-                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
-                                {{ phone }}
-                            </div>
-                        </div>
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding-bottom: 6px;">
+                                    <font style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">CUSTOMER NAME</font><br>
+                                    <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ customer_name }}</font>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <font style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">PHONE NUMBER</font><br>
+                                    <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ phone }}</font>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                     
                     <!-- Email & Booking ID -->
                     <td width="30%" valign="top">
-                        <div style="margin-bottom: 6px;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">EMAIL ID</span>
-                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px; word-break: break-all;">
-                                {{ customer_email }}
-                            </div>
-                        </div>
-                        <div>
-                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">BOOKING ID</span>
-                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
-                                {{ booking_ids }}
-                            </div>
-                        </div>
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding-bottom: 6px;">
+                                    <font style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">EMAIL ID</font><br>
+                                    <font style="font-size: 9pt; font-weight: bold; color: #0c2340; word-break: break-all;">{{ customer_email }}</font>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <font style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">BOOKING ID</font><br>
+                                    <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ booking_ids }}</font>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                     
                     <!-- Passengers & Payment Status -->
                     <td width="23%" valign="top">
-                        <div style="margin-bottom: 6px;">
-                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">NO. OF PASSENGERS</span>
-                            <div style="font-size: 9pt; font-weight: bold; color: #0c2340; margin-top: 2px;">
-                                {{ total_guests }} Guest(s)
-                            </div>
-                        </div>
-                        <div>
-                            <span style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">PAYMENT STATUS</span>
-                            <div style="font-size: 9pt; font-weight: bold; color: #138048; margin-top: 2px;">
-                                {{ payment_status|upper }}
-                            </div>
-                        </div>
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="padding-bottom: 6px;">
+                                    <font style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">NO. OF PASSENGERS</font><br>
+                                    <font style="font-size: 9pt; font-weight: bold; color: #0c2340;">{{ total_guests }} Guest(s)</font>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <font style="font-size: 7pt; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">PAYMENT STATUS</font><br>
+                                    <font style="font-size: 9pt; font-weight: bold; color: #138048;">{{ payment_status|upper }}</font>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                     
                     <!-- QR Code -->
