@@ -675,6 +675,45 @@ def send_enquiry_email(enquiry, enquiry_type):
 
 
 
+def update_env_file(key: str, value: str) -> bool:
+    """
+    Updates or appends a key-value pair in the backend .env file.
+    """
+    import os
+    from django.conf import settings
+    
+    env_path = os.path.join(settings.BASE_DIR, '.env')
+    if not os.path.exists(env_path):
+        print(f"[update_env_file] .env file not found at {env_path}")
+        return False
+        
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            
+        key_found = False
+        new_lines = []
+        for line in lines:
+            if line.strip().startswith(f"{key}="):
+                new_lines.append(f"{key}={value}\n")
+                key_found = True
+            else:
+                new_lines.append(line)
+                
+        if not key_found:
+            if new_lines and not new_lines[-1].endswith('\n'):
+                new_lines[-1] = new_lines[-1] + '\n'
+            new_lines.append(f"{key}={value}\n")
+            
+        with open(env_path, 'w', encoding='utf-8') as f:
+            f.writelines(new_lines)
+            
+        return True
+    except Exception as e:
+        print(f"[update_env_file] Exception: {e}")
+        return False
+
+
 def get_zoho_crm_access_token() -> str:
     """
     Gets a fresh OAuth2 access token for Zoho CRM using client credentials and refresh token.

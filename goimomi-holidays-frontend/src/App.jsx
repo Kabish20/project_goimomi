@@ -13,7 +13,6 @@ const Home = lazyRetry(() => import('./pages/General/Home/Home.jsx'));
 const About = lazyRetry(() => import('./pages/General/Aboutus/Aboutus.jsx'));
 const Contact = lazyRetry(() => import('./pages/General/Contactus/Contactus.jsx'));
 const ContactSuccess = lazyRetry(() => import('./pages/General/ContactSuccess/ContactSuccess.jsx'));
-const PaymentSuccess = lazyRetry(() => import('./pages/General/PaymentSuccess/PaymentSuccess.jsx'));
 const PaymentFailed = lazyRetry(() => import('./pages/General/PaymentFailed/PaymentFailed.jsx'));
 const PaymentCheckout = lazyRetry(() => import('./pages/General/PaymentCheckout/PaymentCheckout.jsx'));
 const CustomizedHolidays = lazyRetry(() => import('./pages/Holidays/CustomizedHolidays/CustomizedHolidays.jsx'));
@@ -219,8 +218,6 @@ const App = () => {
             <Route path="/aboutus" element={<About />} />
             <Route path="/contactus" element={<Contact />} />
             <Route path="/contact/success" element={<ContactSuccess />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment-failed" element={<PaymentFailed />} />
             <Route path="/payment/failed" element={<PaymentFailed />} />
             <Route path="/payment-checkout" element={<PaymentCheckout />} />

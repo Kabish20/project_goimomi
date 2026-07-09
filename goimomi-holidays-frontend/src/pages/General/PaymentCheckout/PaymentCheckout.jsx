@@ -135,8 +135,8 @@ const PaymentCheckout = () => {
         // Success Timeout
         setTimeout(() => {
           setProcessing(false);
-          // Redirect to the success screen
-          navigate(`/payment/success?booking_id=${bookingId}`);
+          // Redirect to the cab search screen with success indicator
+          navigate(`/cab?payment_success=true&booking_id=${bookingId}`);
         }, 1200);
 
       } catch (err) {
@@ -144,7 +144,7 @@ const PaymentCheckout = () => {
         // Fallback: even if API has an issue, redirect to success for demo flow
         setTimeout(() => {
           setProcessing(false);
-          navigate(`/payment/success?booking_id=${bookingId}`);
+          navigate(`/cab?payment_success=true&booking_id=${bookingId}`);
         }, 1200);
       }
     }, 1500);

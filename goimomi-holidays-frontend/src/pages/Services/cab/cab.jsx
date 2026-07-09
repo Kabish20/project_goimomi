@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle, ShieldCheck, Clock, Headphones, Award, CreditCard, Star, Plane, ArrowRight, BadgeCheck, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../../api";
@@ -20,6 +20,23 @@ const Cab = () => {
     "Premium cab service, airport transfers, intercity taxi, Goimomi Holidays, Jeddah airport transfer, Makkah taxi service, Madinah cab booking, professional travel transfers, luxury car rental with driver"
   );
   const navigate = useNavigate();
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
+  const [showSuccessModal, setShowSuccessModal] = useState(
+    urlSearchParams.get("payment_success") === "true" || urlSearchParams.get("status") === "success"
+  );
+  const successBookingId = urlSearchParams.get("booking_id") || urlSearchParams.get("booking");
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    // Clear search parameters from URL without full reload
+    const newParams = new URLSearchParams(urlSearchParams);
+    newParams.delete("payment_success");
+    newParams.delete("status");
+    newParams.delete("booking_id");
+    newParams.delete("booking");
+    setUrlSearchParams(newParams, { replace: true });
+  };
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState("");
   const [destinations, setDestinations] = useState([]);
@@ -1912,6 +1929,10 @@ const Cab = () => {
       <CabTermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
       <CabPrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
 
+      {showSuccessModal && (
+        <PaymentSuccessModal bookingId={successBookingId} onClose={handleCloseSuccessModal} />
+      )}
+
       {/* Floating Cart Bar */}
       {cart.length > 0 && !isBooking && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -1954,6 +1975,53 @@ const Cab = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+
+const PaymentSuccessModal = ({ bookingId, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl p-6 md:p-8 text-center border border-slate-100 relative overflow-hidden animate-in zoom-in-95 duration-300">
+        {/* Decorative background gradient line */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-500"></div>
+        
+        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle size={48} className="text-emerald-600 animate-bounce" />
+        </div>
+        
+        <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">
+          Payment Successful
+        </h2>
+        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-6">
+          Thank you for choosing Goimomi
+        </p>
+
+        {bookingId && (
+          <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4 mb-6">
+            <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block mb-1">
+              Booking ID
+            </span>
+            <span className="text-xl font-black text-emerald-950 tracking-wide font-mono">
+              {bookingId}
+            </span>
+          </div>
+        )}
+
+        <p className="text-slate-600 mb-8 text-sm leading-relaxed font-medium">
+          Thank you for booking with <span className="text-[#14532d] font-bold">Goimomi Holidays</span>. 
+          Your payment has been received and your booking is confirmed. 
+          A confirmation voucher and receipt have been sent to your email address.
+        </p>
+
+        <button
+          onClick={onClose}
+          className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all"
+        >
+          Back to Cab Booking
+        </button>
+      </div>
     </div>
   );
 };

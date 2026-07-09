@@ -9,7 +9,12 @@ class ZohoPaymentService:
     def get_access_token():
         """
         Gets a fresh OAuth2 access token for Zoho Payments/CRM using client credentials and refresh token.
+        Reuses cached access token from django settings if present.
         """
+        cached_token = getattr(settings, 'ZOHO_ACCESS_TOKEN', '').strip()
+        if cached_token:
+            return cached_token
+
         zoho_client_id = getattr(settings, 'ZOHO_CLIENT_ID', '').strip()
         zoho_client_secret = getattr(settings, 'ZOHO_CLIENT_SECRET', '').strip()
         zoho_refresh_token = getattr(settings, 'ZOHO_REFRESH_TOKEN', '').strip()
@@ -31,7 +36,10 @@ class ZohoPaymentService:
             )
             token_data = token_resp.json()
             access_token = token_data.get('access_token')
-            if not access_token:
+            if access_token:
+                # Cache token in memory
+                setattr(settings, 'ZOHO_ACCESS_TOKEN', access_token)
+            else:
                 print(f"[ZohoPaymentService] Failed to get Zoho access token: {token_data}")
             return access_token
         except Exception as exc:
@@ -52,7 +60,7 @@ class ZohoPaymentService:
         customer_name = f"{booking.first_name} {booking.last_name}".strip()
         amount = float(booking.price or 0)
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
-        redirect_url = f"{frontend_url}/payment/success?booking_id={booking.booking_id}"
+        redirect_url = f"{frontend_url}/cab?payment_success=true&booking_id={booking.booking_id}"
 
         headers = {
             'Authorization': f'Zoho-oauthtoken {access_token}',
@@ -78,9 +86,15 @@ class ZohoPaymentService:
             'redirect_url': redirect_url,
         }
 
+        # Build url with account_id query param as required by Zoho Payments API
+        zoho_account_id = getattr(settings, 'ZOHO_ACCOUNT_ID', '').strip()
+        url = 'https://payments.zoho.in/api/v1/paymentlinks'
+        if zoho_account_id:
+            url = f"{url}?account_id={zoho_account_id}"
+
         try:
             link_resp = requests.post(
-                'https://payments.zoho.in/api/v1/paymentlinks',
+                url,
                 json=payload,
                 headers=headers,
                 timeout=15,
