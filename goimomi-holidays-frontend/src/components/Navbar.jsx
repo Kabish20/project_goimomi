@@ -111,7 +111,7 @@ const Navbar = () => {
 
             {/* Hotels */}
             <a
-              href="https://booking.goimomi.com/"
+              href="https://booking.goimomi.com/hotel"
               rel="noopener noreferrer"
               className={animatedButton}
             >
@@ -369,7 +369,7 @@ const Navbar = () => {
               </a>
 
               <a
-                href="https://booking.goimomi.com/"
+                href="https://booking.goimomi.com/hotel"
                 rel="noopener noreferrer"
                 className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
                 onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
