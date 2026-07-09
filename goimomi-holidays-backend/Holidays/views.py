@@ -60,10 +60,6 @@ from .serializers import (
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
 )
 
-from Holidays.services.zoho_payment import ZohoPaymentService
-
-
-
 class CantonEnquiryAPI(ModelViewSet):
     permission_classes = [IsAuthenticatedOrWriteOnly]
     queryset = CantonEnquiry.objects.all().order_by('-created_at')
@@ -830,18 +826,15 @@ class CabBookingViewSet(ModelViewSet):
         # Create the booking record via the parent class
         response = super().create(request, *args, **kwargs)
 
-        # After successful creation, generate Zoho payment link
+        # After successful creation, generate local payment checkout link
         if response.status_code == 201:
             try:
                 booking_id = response.data.get('booking_id')
                 booking_pk = response.data.get('id')
                 if booking_id and booking_pk:
                     booking_obj = CabBooking.objects.get(pk=booking_pk)
-                    payment_url = ZohoPaymentService.create_payment(booking_obj)
-                    if not payment_url:
-                        # Fallback to local frontend checkout simulation if Zoho credentials fail
-                        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
-                        payment_url = f"{frontend_url}/payment-checkout?booking_id={booking_obj.booking_id}&id={booking_obj.id}&amount={booking_obj.price}"
+                    frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+                    payment_url = f"{frontend_url}/payment-checkout?booking_id={booking_obj.booking_id}&id={booking_obj.id}&amount={booking_obj.price}"
                     response.data['payment_url'] = payment_url
             except Exception as e:
                 print(f"Error generating payment link: {e}")
@@ -1542,178 +1535,3 @@ from Holidays.utils import (
 )
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-
-@method_decorator(csrf_exempt, name='dispatch')
-class ZohoPaymentWebhookViewSet(ViewSet):
-    """
-    API Webhook Endpoint for Zoho Payments
-    """
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        # 1. Signature Verification (Mandatory in production)
-        received_signature = request.headers.get('X-Zoho-Webhook-Signature')
-        raw_body = request.body
-        
-        if not settings.DEBUG and not received_signature:
-            return JsonResponse({'error': 'Signature required in production.'}, status=401)
-            
-        if received_signature:
-            is_valid = ZohoPaymentService.verify_signature(raw_body, received_signature)
-            if not is_valid:
-                return JsonResponse({'error': 'Invalid signature signature verification failed.'}, status=401)
-        
-        # 2. Parse Webhook Event JSON
-        try:
-            event_data = json.loads(raw_body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON body'}, status=400)
-
-        event_type = event_data.get('event_type')
-        payload = event_data.get('payload', {})
-        
-        # Only process successful payments
-        if event_type not in ['payment.succeeded', 'payment_link.paid']:
-            return JsonResponse({'status': 'ignored', 'message': f'Event type {event_type} not handled'}, status=200)
-
-        # 3. Retrieve payment details
-        payment_id = payload.get('payment_id') or payload.get('id')
-        amount = payload.get('amount')
-        
-        # Retrieve metadata or custom fields to locate original booking
-        metadata = payload.get('metadata', {})
-        booking_id = metadata.get('booking_id')
-        enquiry_id = metadata.get('enquiry_id')
-        
-        customer_email = payload.get('customer_details', {}).get('email')
-        customer_phone = payload.get('customer_details', {}).get('phone')
-        customer_name = payload.get('customer_details', {}).get('name', 'Valued Customer')
-        
-        # Split customer name for CRM Contact requirements
-        name_parts = customer_name.strip().split(' ', 1)
-        first_name = name_parts[0] if len(name_parts) > 0 else ""
-        last_name = name_parts[1] if len(name_parts) > 1 else "Customer"
-
-        target_booking = None
-        
-        # 4. Database updates
-        if booking_id:
-            try:
-                target_booking = CabBooking.objects.get(booking_id=booking_id)
-                target_booking.status = 'Confirmed'
-                target_booking.invoice_number = payment_id  # Save transaction ID
-                target_booking.save()
-            except CabBooking.DoesNotExist:
-                print(f"Booking {booking_id} not found.")
-                
-        elif enquiry_id:
-            try:
-                enquiry = CantonEnquiry.objects.get(id=enquiry_id)
-                enquiry.payment_status = 'Success'
-                enquiry.transaction_id = payment_id
-                enquiry.save()
-            except CantonEnquiry.DoesNotExist:
-                print(f"Enquiry {enquiry_id} not found.")
-
-        # 5. Zoho CRM Customer Sync
-        crm_data = {
-            'first_name': first_name,
-            'last_name': last_name,
-            'email': customer_email or (target_booking.email if target_booking else ''),
-            'phone': customer_phone or (target_booking.phone if target_booking else '')
-        }
-        if crm_data['email']:
-            upsert_zoho_crm_contact(crm_data)
-
-        # 6. Notifications (Email & WhatsApp)
-        # Booking confirmation email is now automatically sent via CabBooking's save() model method
-        # when the status transitions to 'Confirmed' or 'Tentative Confirmation'.
-
-        # Send WhatsApp Confirmation
-        phone_to_notify = customer_phone or (target_booking.phone if target_booking else None)
-        if phone_to_notify and booking_id:
-            send_whatsapp_confirmation(phone_to_notify, booking_id, str(amount))
-
-        return JsonResponse({'status': 'success', 'message': 'Webhook processed successfully'}, status=200)
-
-
-def payment_callback(request):
-    from django.http import HttpResponse
-    import requests
-    from django.conf import settings
-
-    code = request.GET.get('code')
-    if not code:
-        return HttpResponse("Zoho OAuth Callback reached, but no code query parameter was provided. Visit the Zoho Developer Console to start the OAuth flow.")
-
-    zoho_client_id = getattr(settings, 'ZOHO_CLIENT_ID', '').strip()
-    zoho_client_secret = getattr(settings, 'ZOHO_CLIENT_SECRET', '').strip()
-    zoho_redirect_uri = getattr(settings, 'ZOHO_REDIRECT_URI', '').strip()
-
-    if not zoho_redirect_uri:
-        zoho_redirect_uri = request.build_absolute_uri(request.path)
-
-    payload = {
-        'code': code,
-        'client_id': zoho_client_id,
-        'client_secret': zoho_client_secret,
-        'redirect_uri': zoho_redirect_uri,
-        'grant_type': 'authorization_code',
-    }
-
-    try:
-        response = requests.post('https://accounts.zoho.in/oauth/v2/token', data=payload, timeout=15)
-        token_data = response.json()
-        
-        if 'error' in token_data:
-            return HttpResponse(f"Zoho OAuth Failed: {token_data.get('error')}<br>Details: {token_data}")
-            
-        refresh_token = token_data.get('refresh_token')
-        access_token = token_data.get('access_token')
-        
-        from Holidays.utils import update_env_file
-        
-        env_updated = False
-        if refresh_token:
-            # Save the tokens in the .env file
-            update_env_file('ZOHO_REFRESH_TOKEN', refresh_token)
-            update_env_file('ZOHO_CRM_REFRESH_TOKEN', refresh_token)
-            
-            # Dynamically update settings in memory
-            setattr(settings, 'ZOHO_REFRESH_TOKEN', refresh_token)
-            setattr(settings, 'ZOHO_CRM_REFRESH_TOKEN', refresh_token)
-            env_updated = True
-            
-        if access_token:
-            update_env_file('ZOHO_ACCESS_TOKEN', access_token)
-            setattr(settings, 'ZOHO_ACCESS_TOKEN', access_token)
-            
-        status_message = "Refresh tokens have been successfully updated in your backend .env file and loaded in memory!" if env_updated else "No new refresh token was returned (you might need to use access_type=offline or revoke existing authorization)."
-        
-        html_content = f"""
-        <html>
-        <head>
-            <title>Zoho OAuth Successful</title>
-            <style>
-                body {{ font-family: sans-serif; padding: 40px; background-color: #f9f9f9; }}
-                .container {{ background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }}
-                h1 {{ color: #2e7d32; }}
-                .status-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; padding: 15px; border-radius: 4px; color: #1b5e20; font-weight: bold; margin: 15px 0; }}
-                .token-box {{ background: #f1f8e9; border: 1px solid #c5e1a5; padding: 15px; border-radius: 4px; font-family: monospace; word-break: break-all; margin: 15px 0; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Zoho OAuth Successful!</h1>
-                <div class="status-box">{status_message}</div>
-                <p><strong>Refresh Token:</strong></p>
-                <div class="token-box">ZOHO_REFRESH_TOKEN={refresh_token}</div>
-                <p><strong>Raw Response:</strong></p>
-                <div class="token-box">{token_data}</div>
-            </div>
-        </body>
-        </html>
-        """
-        return HttpResponse(html_content)
-    except Exception as e:
-        return HttpResponse(f"Error exchanging authorization code: {e}")

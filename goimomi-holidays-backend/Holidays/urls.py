@@ -41,7 +41,6 @@ router.register("vehicle-rate-cards", views.VehicleRateCardViewSet, basename="ve
 router.register("pickup-point-masters", views.PickupPointMasterViewSet, basename="pickup-point-master")
 router.register("cab-bookings", views.CabBookingViewSet, basename="cab-booking")
 router.register("cab-additional-documents", views.CabAdditionalDocumentViewSet, basename="cab-additional-document")
-router.register("payment-webhook", views.ZohoPaymentWebhookViewSet, basename="payment-webhook")
 
 urlpatterns = [
     path('', include(router.urls)),
