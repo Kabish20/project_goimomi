@@ -896,6 +896,12 @@ class CabBookingViewSet(ModelViewSet):
             except Exception:
                 backend_verify_url = request.build_absolute_uri('/api/cab-bookings/verify-zoho-payment/')
 
+            # Append booking_id query parameter so it is passed back in redirect URL
+            if '?' in backend_verify_url:
+                backend_verify_url = f"{backend_verify_url}&booking_id={booking.booking_id}"
+            else:
+                backend_verify_url = f"{backend_verify_url}?booking_id={booking.booking_id}"
+
             # Failure URL (on frontend checkout page with error parameter)
             frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
             frontend_failure_url = f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_failed"
@@ -953,12 +959,20 @@ class CabBookingViewSet(ModelViewSet):
 
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
 
-        if not booking_id:
-            return HttpResponseRedirect(f"{frontend_url}/cab?error=missing_booking_id")
+        booking = None
+        if booking_id:
+            try:
+                booking = CabBooking.objects.get(booking_id=booking_id)
+            except CabBooking.DoesNotExist:
+                pass
 
-        try:
-            booking = CabBooking.objects.get(booking_id=booking_id)
-        except CabBooking.DoesNotExist:
+        if not booking and session_id:
+            try:
+                booking = CabBooking.objects.get(zoho_payment_session_id=session_id)
+            except CabBooking.DoesNotExist:
+                pass
+
+        if not booking:
             return HttpResponseRedirect(f"{frontend_url}/cab?error=booking_not_found")
 
         frontend_failure_url = f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_unverified"
@@ -970,14 +984,45 @@ class CabBookingViewSet(ModelViewSet):
             return HttpResponseRedirect(frontend_failure_url)
 
         # Verify hosted checkout redirect signature (data integrity check)
-        payment_id = request.GET.get('payment_id')
-        signature = request.GET.get('signature')
         signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
+        if signing_key:
+            signature = request.GET.get('signature')
+            if not signature:
+                print("Verify Error: Redirect signature missing")
+                return HttpResponseRedirect(frontend_failure_url)
 
-        if signing_key and signature and payment_id and session_id:
+            # Get Zoho Payments signature parameters
+            payments_session_id = request.GET.get('payments_session_id', '')
+            payment_session_status = request.GET.get('payment_session_status', '')
+            payment_id = request.GET.get('payment_id', '')
+            payment_status = request.GET.get('payment_status', '')
+            amount = request.GET.get('amount', '')
+            mandate_id = request.GET.get('mandate_id', '')
+            udf1 = request.GET.get('udf1', '')
+            udf2 = request.GET.get('udf2', '')
+            udf3 = request.GET.get('udf3', '')
+            udf4 = request.GET.get('udf4', '')
+            udf5 = request.GET.get('udf5', '')
+
+            # Message format: payments_session_id.payment_session_status.payment_id.payment_status.amount.mandate_id.udf1.udf2.udf3.udf4.udf5
+            fields = [
+                payments_session_id,
+                payment_session_status,
+                payment_id,
+                payment_status,
+                amount,
+                mandate_id,
+                udf1,
+                udf2,
+                udf3,
+                udf4,
+                udf5
+            ]
+            fields = [f if f is not None else '' for f in fields]
+            data_to_sign = ".".join(fields)
+
             import hmac
             import hashlib
-            data_to_sign = f"{payment_id}|{session_id}"
             expected_signature = hmac.new(
                 signing_key.encode('utf-8'),
                 data_to_sign.encode('utf-8'),
@@ -985,7 +1030,7 @@ class CabBookingViewSet(ModelViewSet):
             ).hexdigest()
             
             if not hmac.compare_digest(expected_signature, signature):
-                print("Verify Error: Redirect signature verification failed")
+                print(f"Verify Error: Redirect signature verification failed. Expected: {expected_signature}, Got: {signature}")
                 return HttpResponseRedirect(frontend_failure_url)
 
         try:
