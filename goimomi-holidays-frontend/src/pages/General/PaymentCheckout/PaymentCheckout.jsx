@@ -122,32 +122,26 @@ const PaymentCheckout = () => {
     setProcessing(true);
     setProcessStep(1);
 
-    // Step 1: Simulated Gateway Handshake
-    setTimeout(async () => {
+    try {
+      // Step 1: Secure Handshake - request Zoho Payment Session from Backend
+      const response = await api.post(`/api/cab-bookings/${dbId}/create-zoho-payment-session/`);
+      
       setProcessStep(2);
       
-      try {
-        // Step 2: Call Backend endpoint to confirm booking and update status
-        if (dbId) {
-          await api.post(`/api/cab-bookings/${dbId}/confirm-payment/`);
-        }
-        
-        // Success Timeout
+      if (response.data && response.data.redirect_url) {
+        // Redirect browser to Zoho Payments secure hosted page
         setTimeout(() => {
-          setProcessing(false);
-          // Redirect to the cab search screen with success indicator
-          navigate(`/cab?payment_success=true&booking_id=${bookingId}`);
-        }, 1200);
-
-      } catch (err) {
-        console.error("Payment confirmation failed:", err);
-        // Fallback: even if API has an issue, redirect to success for demo flow
-        setTimeout(() => {
-          setProcessing(false);
-          navigate(`/cab?payment_success=true&booking_id=${bookingId}`);
-        }, 1200);
+          window.location.href = response.data.redirect_url;
+        }, 800);
+      } else {
+        throw new Error("Unable to initialize Zoho Payments session.");
       }
-    }, 1500);
+    } catch (err) {
+      console.error("Zoho Payments initiation failed:", err);
+      const backendError = err.response?.data?.error || err.message || "Failed to initiate transaction.";
+      setErrorMsg(`Payment Error: ${backendError}`);
+      setProcessing(false);
+    }
   };
 
   return (

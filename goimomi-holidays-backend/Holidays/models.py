@@ -721,6 +721,8 @@ class CabBooking(models.Model):
     )
     driver = models.CharField(max_length=255, blank=True, null=True)
     invoice_number = models.CharField(max_length=100, blank=True, null=True)
+    zoho_payment_session_id = models.CharField(max_length=255, blank=True, null=True)
+    zoho_access_key = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

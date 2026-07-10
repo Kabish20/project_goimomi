@@ -7,10 +7,13 @@ django.setup()
 from django.conf import settings
 from Holidays.services.zoho_payment import ZohoPaymentService
 
-print("ZOHO_CLIENT_ID:", getattr(settings, 'ZOHO_CLIENT_ID', ''))
-print("ZOHO_CLIENT_SECRET:", getattr(settings, 'ZOHO_CLIENT_SECRET', ''))
-print("ZOHO_REFRESH_TOKEN:", getattr(settings, 'ZOHO_REFRESH_TOKEN', ''))
+print("ZOHO_PAYMENTS_CLIENT_ID:", getattr(settings, 'ZOHO_PAYMENTS_CLIENT_ID', ''))
+print("ZOHO_PAYMENTS_CLIENT_SECRET:", getattr(settings, 'ZOHO_PAYMENTS_CLIENT_SECRET', ''))
+print("ZOHO_PAYMENTS_REFRESH_TOKEN:", getattr(settings, 'ZOHO_PAYMENTS_REFRESH_TOKEN', ''))
 
-token = ZohoPaymentService.get_access_token()
-print("ACCESS TOKEN RESULT:", token)
-
+try:
+    client = ZohoPaymentService.get_client()
+    print("SUCCESS: Zoho Payments Client built successfully!")
+    print("Client Details:", client)
+except Exception as e:
+    print("FAILED to build Zoho Payments Client:", e)

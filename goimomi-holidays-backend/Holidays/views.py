@@ -882,6 +882,253 @@ class CabBookingViewSet(ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['post'], url_path='create-zoho-payment-session', permission_classes=[AllowAny])
+    def create_zoho_payment_session(self, request, pk=None):
+        try:
+            booking = self.get_object()
+            from Holidays.services.zoho_payment import ZohoPaymentService
+            from django.shortcuts import reverse
+            
+            # Construct backend verify URL dynamically
+            try:
+                verify_path = reverse('cab-booking-verify-zoho-payment')
+                backend_verify_url = request.build_absolute_uri(verify_path)
+            except Exception:
+                backend_verify_url = request.build_absolute_uri('/api/cab-bookings/verify-zoho-payment/')
+
+            # Failure URL (on frontend checkout page with error parameter)
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            frontend_failure_url = f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_failed"
+
+            # Create payment session via Zoho Payment Service
+            session = ZohoPaymentService.create_checkout_session(
+                booking=booking,
+                success_url=backend_verify_url,
+                failure_url=frontend_failure_url
+            )
+
+            payments_session_id = getattr(session, 'payments_session_id', None)
+            access_key = getattr(session, 'access_key', None)
+
+            if not payments_session_id or not access_key:
+                return Response(
+                    {'error': 'Failed to retrieve session ID or access key from Zoho Payments.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            # Store in the booking
+            booking.zoho_payment_session_id = payments_session_id
+            booking.zoho_access_key = access_key
+            booking.save()
+
+            # Determine hosted checkout page domain based on edition
+            edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+            if edition_str == 'IN':
+                checkout_domain = 'payments.zoho.in'
+            elif edition_str == 'US':
+                checkout_domain = 'payments.zoho.com'
+            else:
+                checkout_domain = 'paymentssandbox.zoho.in'
+
+            redirect_url = f"https://{checkout_domain}/hostedcheckout/{access_key}"
+
+            return Response({
+                'payments_session_id': payments_session_id,
+                'access_key': access_key,
+                'redirect_url': redirect_url
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Error creating Zoho Payment Session: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
+    def verify_zoho_payment(self, request):
+        from django.http import HttpResponseRedirect
+        from Holidays.services.zoho_payment import ZohoPaymentService
+        import random
+
+        booking_id = request.GET.get('booking_id')
+        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+
+        if not booking_id:
+            return HttpResponseRedirect(f"{frontend_url}/cab?error=missing_booking_id")
+
+        try:
+            booking = CabBooking.objects.get(booking_id=booking_id)
+        except CabBooking.DoesNotExist:
+            return HttpResponseRedirect(f"{frontend_url}/cab?error=booking_not_found")
+
+        frontend_failure_url = f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_unverified"
+
+        if not session_id:
+            session_id = booking.zoho_payment_session_id
+
+        if not session_id:
+            return HttpResponseRedirect(frontend_failure_url)
+
+        # Verify hosted checkout redirect signature (data integrity check)
+        payment_id = request.GET.get('payment_id')
+        signature = request.GET.get('signature')
+        signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
+
+        if signing_key and signature and payment_id and session_id:
+            import hmac
+            import hashlib
+            data_to_sign = f"{payment_id}|{session_id}"
+            expected_signature = hmac.new(
+                signing_key.encode('utf-8'),
+                data_to_sign.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+            
+            if not hmac.compare_digest(expected_signature, signature):
+                print("Verify Error: Redirect signature verification failed")
+                return HttpResponseRedirect(frontend_failure_url)
+
+        try:
+            session = ZohoPaymentService.get_payment_session(session_id)
+            session_status = getattr(session, 'status', '').lower()
+            payments_list = getattr(session, 'payments', [])
+            has_succeeded_payment = any(getattr(p, 'status', '').lower() == 'succeeded' for p in payments_list)
+
+            if session_status == 'paid' or has_succeeded_payment:
+                # Mark booking as Confirmed (mimics confirm_payment action)
+                from datetime import timedelta
+                time_threshold = booking.created_at - timedelta(minutes=10)
+                
+                bookings_to_confirm = CabBooking.objects.filter(
+                    email=booking.email,
+                    phone=booking.phone,
+                    status='Booking Requested',
+                    created_at__gte=time_threshold
+                )
+                
+                invoice_number = f"GM-TXN-{random.randint(100000, 999999)}"
+                
+                confirmed_count = 0
+                for b in bookings_to_confirm:
+                    b.status = 'Confirmed'
+                    b.invoice_number = invoice_number
+                    b.save()
+                    confirmed_count += 1
+
+                if booking.status == 'Booking Requested':
+                    booking.status = 'Confirmed'
+                    booking.invoice_number = invoice_number
+                    booking.save()
+                return HttpResponseRedirect(f"{frontend_url}/cab?payment_success=true&booking_id={booking.booking_id}")
+            else:
+                return HttpResponseRedirect(f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_failed&status={session_status}")
+
+        except Exception as e:
+            print(f"Error verifying Zoho Payment: {e}")
+            return HttpResponseRedirect(frontend_failure_url)
+
+    @action(detail=False, methods=['post'], url_path='zoho-webhook', permission_classes=[AllowAny])
+    def zoho_webhook(self, request):
+        import hmac
+        import hashlib
+        import json
+        import random
+        from django.http import HttpResponse
+
+        signature_header = request.headers.get('X-Zoho-Webhook-Signature')
+        if not signature_header:
+            print("Webhook Error: Missing X-Zoho-Webhook-Signature header")
+            return HttpResponse("Missing signature header", status=400)
+
+        signing_key = getattr(settings, 'ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY', '')
+        if not signing_key:
+            print("Webhook Error: Webhook signing key not configured in settings")
+            return HttpResponse("Signing key not configured", status=500)
+
+        # Get raw request body
+        raw_body = request.body.decode('utf-8')
+
+        try:
+            # Parse header: "t=TIMESTAMP,v=SIGNATURE"
+            parts = {part.split('=')[0]: part.split('=')[1] for part in signature_header.split(',')}
+            timestamp = parts.get('t')
+            received_signature = parts.get('v')
+
+            if not timestamp or not received_signature:
+                print("Webhook Error: Invalid signature header format")
+                return HttpResponse("Invalid signature header format", status=400)
+
+            # Verify signature: "timestamp.raw_body"
+            data_to_verify = f"{timestamp}.{raw_body}"
+            expected_signature = hmac.new(
+                signing_key.encode('utf-8'),
+                data_to_verify.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+
+            if not hmac.compare_digest(expected_signature, received_signature):
+                print("Webhook Error: Signature verification failed")
+                return HttpResponse("Unauthorized signature", status=401)
+
+            # Parse event payload
+            payload = json.loads(raw_body)
+            event_type = payload.get('event_type')
+            event_object = payload.get('event_object', {})
+            payment = event_object.get('payment', {})
+
+            print(f"Webhook Received: Event {event_type} for Payment Session {payment.get('payments_session_id')}")
+
+            if event_type == 'payment.succeeded':
+                booking_id = payment.get('reference_number')
+                session_id = payment.get('payments_session_id')
+                invoice_no = payment.get('invoice_number')
+
+                booking = None
+                if booking_id:
+                    try:
+                        booking = CabBooking.objects.get(booking_id=booking_id)
+                    except CabBooking.DoesNotExist:
+                        pass
+
+                if not booking and session_id:
+                    try:
+                        booking = CabBooking.objects.get(zoho_payment_session_id=session_id)
+                    except CabBooking.DoesNotExist:
+                        pass
+
+                if booking:
+                    if booking.status == 'Booking Requested':
+                        # Mimics original confirm_payment logic
+                        from datetime import timedelta
+                        time_threshold = booking.created_at - timedelta(minutes=10)
+
+                        bookings_to_confirm = CabBooking.objects.filter(
+                            email=booking.email,
+                            phone=booking.phone,
+                            status='Booking Requested',
+                            created_at__gte=time_threshold
+                        )
+
+                        invoice_number = invoice_no or f"GM-TXN-{random.randint(100000, 999999)}"
+
+                        for b in bookings_to_confirm:
+                            b.status = 'Confirmed'
+                            b.invoice_number = invoice_number
+                            b.save()
+
+                        booking.status = 'Confirmed'
+                        booking.invoice_number = invoice_number
+                        booking.save()
+                        print(f"Webhook Success: Booking {booking.booking_id} confirmed via webhook")
+                else:
+                    print(f"Webhook Warning: Booking not found for reference_number={booking_id} or session_id={session_id}")
+
+            return HttpResponse("Webhook processed successfully", status=200)
+
+        except Exception as e:
+            print(f"Webhook Exception: {e}")
+            return HttpResponse(str(e), status=400)
+
     def perform_create(self, serializer):
         booking = serializer.save()
         booking.refresh_from_db()
