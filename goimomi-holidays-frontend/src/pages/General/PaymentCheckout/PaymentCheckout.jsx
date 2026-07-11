@@ -101,16 +101,6 @@ const PaymentCheckout = () => {
         setErrorMsg("Please enter a valid UPI ID (e.g. name@okhdfc).");
         return false;
       }
-    } else if (activeTab === "netbank") {
-      if (!selectedBank) {
-        setErrorMsg("Please select your bank from the list.");
-        return false;
-      }
-    } else if (activeTab === "wallet") {
-      if (!selectedWallet) {
-        setErrorMsg("Please choose a wallet provider.");
-        return false;
-      }
     }
     return true;
   };
@@ -202,12 +192,10 @@ const PaymentCheckout = () => {
             )}
 
             {/* Payment Category Tabs */}
-            <div className="grid grid-cols-4 gap-2 mb-8 bg-slate-50 p-1.5 rounded-2xl border border-slate-100/50">
+            <div className="grid grid-cols-2 gap-2 mb-8 bg-slate-50 p-1.5 rounded-2xl border border-slate-100/50">
               {[
                 { id: "card", label: "Cards", icon: CreditCard },
-                { id: "upi", label: "UPI", icon: Smartphone },
-                { id: "netbank", label: "NetBank", icon: Building2 },
-                { id: "wallet", label: "Wallets", icon: Wallet }
+                { id: "upi", label: "UPI", icon: Smartphone }
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -238,6 +226,20 @@ const PaymentCheckout = () => {
               {/* Tab 1: Cards Form */}
               {activeTab === "card" && (
                 <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-2xl p-4 flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-black text-[#14532d] uppercase tracking-wider">Cards Option</span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Enabled</span>
+                    </div>
+                    <p className="text-[11px] font-semibold text-slate-500">Collect payments globally using credit or debit cards.</p>
+                    <div className="flex gap-2 mt-2 items-center">
+                      <span className="text-[9px] text-slate-400 font-extrabold uppercase mr-1">Accepted Cards:</span>
+                      <span className="text-[9px] bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-600 font-bold tracking-widest font-mono">RUPAY</span>
+                      <span className="text-[9px] bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-600 font-bold tracking-widest font-mono">MASTERCARD</span>
+                      <span className="text-[9px] bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-600 font-bold tracking-widest font-mono">VISA</span>
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Cardholder Name</label>
                     <input 
@@ -291,6 +293,18 @@ const PaymentCheckout = () => {
               {/* Tab 2: UPI Form */}
               {activeTab === "upi" && (
                 <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="bg-emerald-50/50 border border-emerald-100/50 rounded-2xl p-4 flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-black text-[#14532d] uppercase tracking-wider">UPI Option</span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Enabled</span>
+                    </div>
+                    <p className="text-[11px] font-semibold text-slate-500">Receive instant payments from anywhere.</p>
+                    <div className="flex gap-2 mt-2">
+                      <span className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded text-slate-600 font-extrabold uppercase">Bank Account</span>
+                      <span className="text-[9px] bg-white border border-slate-200 px-2 py-1 rounded text-slate-600 font-extrabold uppercase">RuPay Credit Card</span>
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">UPI ID / VPA</label>
                     <input 
@@ -307,58 +321,6 @@ const PaymentCheckout = () => {
                     <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
                       Enter your UPI address and click Complete Payment. A notification request will be pushed directly to your Google Pay, PhonePe, or BHIM app to approve the transaction.
                     </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 3: Netbanking Selector */}
-              {activeTab === "netbank" && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Choose Bank</label>
-                    <select 
-                      value={selectedBank}
-                      onChange={(e) => setSelectedBank(e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#14532d]/10 focus:border-[#14532d] text-sm font-semibold transition-all outline-none"
-                    >
-                      <option value="">-- Select Your Popular Bank --</option>
-                      <option value="hdfc">HDFC Bank</option>
-                      <option value="icici">ICICI Bank</option>
-                      <option value="sbi">State Bank of India</option>
-                      <option value="axis">Axis Bank</option>
-                      <option value="kotak">Kotak Mahindra Bank</option>
-                      <option value="pnb">Punjab National Bank</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* Tab 4: Wallets Selector */}
-              {activeTab === "wallet" && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Choose Wallet Provider</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { id: "paytm", name: "Paytm Wallet" },
-                        { id: "phonepe", name: "PhonePe Wallet" },
-                        { id: "amazon", name: "Amazon Pay" },
-                        { id: "mobikwik", name: "MobiKwik" }
-                      ].map((wallet) => (
-                        <button
-                          key={wallet.id}
-                          type="button"
-                          onClick={() => setSelectedWallet(wallet.id)}
-                          className={`p-4 border rounded-2xl flex items-center justify-center font-bold text-xs uppercase tracking-wider transition-all ${
-                            selectedWallet === wallet.id 
-                              ? "border-[#14532d] bg-[#14532d]/5 text-[#14532d]" 
-                              : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {wallet.name}
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 </div>
               )}
