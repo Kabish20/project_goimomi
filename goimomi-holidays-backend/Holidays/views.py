@@ -764,6 +764,7 @@ class CabBookingViewSet(ModelViewSet):
         
         try:
             from django.core.mail import EmailMultiAlternatives
+            import threading
             msg = EmailMultiAlternatives(
                 subject=subject,
                 body=message,
@@ -771,17 +772,20 @@ class CabBookingViewSet(ModelViewSet):
                 to=[email]
             )
             msg.attach_alternative(html_message, "text/html")
-            msg.send()
+            
+            # Send in background thread to avoid blocking Gunicorn worker
+            threading.Thread(target=msg.send).start()
             return Response({'message': 'OTP sent successfully.'}, status=status.HTTP_200_OK)
         except Exception as e:
             try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [email],
-                    fail_silently=False,
-                )
+                from django.core.mail import send_mail
+                import threading
+                # Send in background thread to avoid blocking Gunicorn worker
+                threading.Thread(
+                    target=send_mail,
+                    args=(subject, message, settings.DEFAULT_FROM_EMAIL, [email]),
+                    kwargs={'fail_silently': False}
+                ).start()
                 return Response({'message': 'OTP sent successfully.'}, status=status.HTTP_200_OK)
             except Exception as mail_err:
                 print(f"Error sending OTP email: {mail_err}")
