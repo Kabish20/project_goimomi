@@ -1079,6 +1079,22 @@ class CabBookingViewSet(ModelViewSet):
                     booking.status = 'Confirmed'
                     booking.invoice_number = invoice_number
                     booking.save()
+
+                # Sync user to Zoho CRM Contact list
+                try:
+                    from Holidays.utils import upsert_zoho_crm_contact
+                    crm_data = {
+                        'first_name': booking.first_name,
+                        'last_name': booking.last_name or 'Customer',
+                        'email': booking.email,
+                        'phone': booking.phone
+                    }
+                    if crm_data['email']:
+                        import threading
+                        threading.Thread(target=upsert_zoho_crm_contact, args=(crm_data,)).start()
+                except Exception as crm_err:
+                    print(f"Error syncing contact to Zoho CRM: {crm_err}")
+
                 return HttpResponseRedirect(f"{frontend_url}/cab?payment_success=true&booking_id={booking.booking_id}")
             else:
                 return HttpResponseRedirect(f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_failed&status={session_status}")
