@@ -235,17 +235,34 @@ const PaymentCheckout = () => {
                     <div className="flex gap-2 mt-3 items-center flex-wrap">
                       <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">Accepted Cards:</span>
                       <div className="flex gap-1.5 items-center">
-                        <div className="flex items-center justify-center h-7 w-14 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
-                          <img src="/rupay.png" alt="RuPay" className="h-5 w-auto object-contain" />
+
+                        {/* RuPay */}
+                        <div className="flex items-center justify-center h-7 px-2 bg-white border border-slate-200 rounded-md shadow-sm">
+                          <svg viewBox="0 0 90 28" width="52" height="20" xmlns="http://www.w3.org/2000/svg">
+                            <text x="0" y="21" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="22" fill="#1a56db">Ru</text>
+                            <text x="30" y="21" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="22" fill="#e3550d">Pay</text>
+                          </svg>
                         </div>
-                        <div className="flex items-center justify-center h-7 w-14 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
-                          <img src="/mastercard.png" alt="Mastercard" className="h-5 w-auto object-contain" />
+
+                        {/* Mastercard */}
+                        <div className="flex items-center justify-center h-7 px-2 bg-white border border-slate-200 rounded-md shadow-sm gap-1">
+                          <svg viewBox="0 0 46 30" width="36" height="22" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="15" r="14" fill="#eb001b"/>
+                            <circle cx="30" cy="15" r="14" fill="#f79e1b" fillOpacity="0.9"/>
+                            <path d="M23 4.8a14 14 0 0 1 0 20.4A14 14 0 0 1 23 4.8z" fill="#ff5f00"/>
+                          </svg>
                         </div>
-                        <div className="flex items-center justify-center h-7 w-14 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
-                          <img src="/visa.png" alt="Visa" className="h-5 w-auto object-contain" />
+
+                        {/* Visa */}
+                        <div className="flex items-center justify-center h-7 px-2 bg-white border border-slate-200 rounded-md shadow-sm">
+                          <svg viewBox="0 0 72 24" width="46" height="20" xmlns="http://www.w3.org/2000/svg">
+                            <text x="0" y="22" fontFamily="Arial,sans-serif" fontWeight="900" fontSize="26" fill="#1a1f71" fontStyle="italic" letterSpacing="-1">VISA</text>
+                          </svg>
                         </div>
+
                       </div>
                     </div>
+
                   </div>
 
                   <div className="space-y-1">
