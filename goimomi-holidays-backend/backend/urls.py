@@ -24,12 +24,16 @@ from rest_framework_simplejwt.views import (
 from Holidays.serializers import MyTokenObtainPairSerializer
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
+from Holidays.views import payment_callback
+
 urlpatterns = [
     # Move admin to a more secure path for live
     path('management/', admin.site.urls),
     path('api/', include('Holidays.urls')),
     path('api/token/', TokenObtainPairView.as_view(serializer_class=MyTokenObtainPairSerializer), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('payment/callback', payment_callback, name='payment_callback_no_slash'),
+    path('payment/callback/', payment_callback, name='payment_callback'),
 ]
 
 from django.conf import settings

@@ -1828,17 +1828,77 @@ class DestinationHierarchyAPI(APIView):
         }
 
 
-import json
-from django.http import JsonResponse
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from Holidays.models import CabBooking, CantonEnquiry
-from Holidays.utils import (
-    upsert_zoho_crm_contact,
-    send_whatsapp_confirmation,
-    generate_booking_pdf,
-    send_booking_voucher
-)
-from django.core.mail import EmailMultiAlternatives
-from django.conf import settings
+def payment_callback(request):
+    from django.http import HttpResponse
+    import requests
+    from django.conf import settings
+
+    code = request.GET.get('code')
+    if not code:
+        return HttpResponse("Zoho OAuth Callback reached, but no code query parameter was provided. Visit the Zoho Developer Console to start the OAuth flow.")
+
+    zoho_client_id = getattr(settings, 'ZOHO_CRM_CLIENT_ID', '').strip()
+    zoho_client_secret = getattr(settings, 'ZOHO_CRM_CLIENT_SECRET', '').strip()
+    
+    # Target exact redirect URI
+    zoho_redirect_uri = 'https://goimomi.com/payment/callback'
+
+    payload = {
+        'code': code,
+        'client_id': zoho_client_id,
+        'client_secret': zoho_client_secret,
+        'redirect_uri': zoho_redirect_uri,
+        'grant_type': 'authorization_code',
+    }
+
+    try:
+        response = requests.post('https://accounts.zoho.in/oauth/v2/token', data=payload, timeout=15)
+        token_data = response.json()
+        
+        if 'error' in token_data:
+            return HttpResponse(f"Zoho OAuth Failed: {token_data.get('error')}<br>Details: {token_data}<br>Payload used: {payload}")
+            
+        refresh_token = token_data.get('refresh_token')
+        access_token = token_data.get('access_token')
+        
+        from Holidays.utils import update_env_file
+        
+        env_updated = False
+        if refresh_token:
+            # Save the tokens in the .env file
+            update_env_file('ZOHO_CRM_REFRESH_TOKEN', refresh_token)
+            
+            # Dynamically update settings in memory
+            setattr(settings, 'ZOHO_CRM_REFRESH_TOKEN', refresh_token)
+            env_updated = True
+            
+        status_message = "Refresh tokens have been successfully updated in your backend .env file and loaded in memory!" if env_updated else "No new refresh token was returned (you might need to use prompt=consent or revoke existing authorization)."
+        
+        html_content = f"""
+        <html>
+        <head>
+            <title>Zoho OAuth Successful</title>
+            <style>
+                body {{ font-family: sans-serif; padding: 40px; background-color: #f9f9f9; }}
+                .container {{ background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }}
+                h1 {{ color: #2e7d32; }}
+                .status-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; padding: 15px; border-radius: 4px; color: #1b5e20; font-weight: bold; margin: 15px 0; }}
+                .token-box {{ background: #f1f8e9; border: 1px solid #c5e1a5; padding: 15px; border-radius: 4px; font-family: monospace; word-break: break-all; margin: 15px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Zoho OAuth Successful!</h1>
+                <div class="status-box">{status_message}</div>
+                <p><strong>Refresh Token:</strong></p>
+                <div class="token-box">ZOHO_CRM_REFRESH_TOKEN={refresh_token}</div>
+                <p><strong>Raw Response:</strong></p>
+                <div class="token-box">{token_data}</div>
+            </div>
+        </body>
+        </html>
+        """
+        return HttpResponse(html_content)
+    except Exception as e:
+        return HttpResponse(f"Error exchanging authorization code: {e}")
+
