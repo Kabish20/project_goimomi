@@ -735,8 +735,30 @@ class VehicleRateCardSerializer(serializers.ModelSerializer):
                 val = data.get(field)
                 if val == '' or val == 'null' or val == 'undefined' or val is None:
                     data[field] = None
+
+        import json
+        for field in ['routes', 'column_vehicles']:
+            if field in data:
+                val = data.get(field)
+                if isinstance(val, str):
+                    try:
+                        data[field] = json.loads(val)
+                    except Exception:
+                        pass
                     
         return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        import json
+        for field in ['routes', 'column_vehicles']:
+            val = ret.get(field)
+            if isinstance(val, str):
+                try:
+                    ret[field] = json.loads(val)
+                except Exception:
+                    pass
+        return ret
 class PickupPointMasterSerializer(serializers.ModelSerializer):
     city_name = serializers.ReadOnlyField(source='city.name')
     region_name = serializers.ReadOnlyField(source='city.region.name')

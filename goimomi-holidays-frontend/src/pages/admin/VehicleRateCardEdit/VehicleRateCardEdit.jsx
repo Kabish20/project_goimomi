@@ -142,11 +142,32 @@ const VehicleRateCardEdit = () => {
             setFetching(true);
             const res = await api.get(`/api/vehicle-rate-cards/${id}/`);
             const data = res.data;
+
+            // Safe JSON parse for routes
+            let routesData = data.routes;
+            if (typeof routesData === 'string') {
+                try {
+                    routesData = JSON.parse(routesData);
+                } catch (e) {
+                    routesData = [];
+                }
+            }
+
+            // Safe JSON parse for column_vehicles
+            let columnVehiclesData = data.column_vehicles;
+            if (typeof columnVehiclesData === 'string') {
+                try {
+                    columnVehiclesData = JSON.parse(columnVehiclesData);
+                } catch (e) {
+                    columnVehiclesData = [];
+                }
+            }
+
             // Detect vehicle count from existing data
-            const count = detectVehicleCount(data.routes);
+            const count = detectVehicleCount(routesData);
             setVehicleCount(count);
             // Normalize routes — convert v1..vN to vehicles array and trim fields
-            const normalizedRoutes = (data.routes || []).map(r => ({
+            const normalizedRoutes = (routesData || []).map(r => ({
                 start_city: r.start_city?.trim() || "",
                 start_from: r.start_from?.trim() || "",
                 drop_city: r.drop_city?.trim() || "",
@@ -154,7 +175,7 @@ const VehicleRateCardEdit = () => {
                 vehicles: routeToVehiclesArray(r, count)
             }));
             setRateCard({ ...data, routes: normalizedRoutes, rate_card_file: null, existing_file: data.rate_card_file || null });
-            setColumnVehicles(data.column_vehicles || Array(count).fill(""));
+            setColumnVehicles(columnVehiclesData || Array(count).fill(""));
         } catch (err) {
             console.error("Error fetching rate card:", err);
             alert("Failed to load rate card details.");
