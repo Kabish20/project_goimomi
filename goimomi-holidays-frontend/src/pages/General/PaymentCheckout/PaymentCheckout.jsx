@@ -232,11 +232,19 @@ const PaymentCheckout = () => {
                       <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">Enabled</span>
                     </div>
                     <p className="text-[11px] font-semibold text-slate-500">Collect payments globally using credit or debit cards.</p>
-                    <div className="flex gap-2 mt-2 items-center">
-                      <span className="text-[9px] text-slate-400 font-extrabold uppercase mr-1">Accepted Cards:</span>
-                      <img src="/rupay.png" alt="RuPay" className="h-6 object-contain border border-slate-200 rounded px-1 bg-white" />
-                      <img src="/mastercard.png" alt="Mastercard" className="h-6 object-contain border border-slate-200 rounded px-1 bg-white" />
-                      <img src="/visa.png" alt="Visa" className="h-6 object-contain border border-slate-200 rounded px-1 bg-white" />
+                    <div className="flex gap-2 mt-3 items-center flex-wrap">
+                      <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">Accepted Cards:</span>
+                      <div className="flex gap-1.5 items-center">
+                        <div className="flex items-center justify-center h-7 w-14 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
+                          <img src="/rupay.png" alt="RuPay" className="h-5 w-auto object-contain" />
+                        </div>
+                        <div className="flex items-center justify-center h-7 w-14 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
+                          <img src="/mastercard.png" alt="Mastercard" className="h-5 w-auto object-contain" />
+                        </div>
+                        <div className="flex items-center justify-center h-7 w-14 bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm">
+                          <img src="/visa.png" alt="Visa" className="h-5 w-auto object-contain" />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
