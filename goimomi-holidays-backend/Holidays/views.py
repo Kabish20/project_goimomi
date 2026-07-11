@@ -1336,9 +1336,23 @@ class CabSearchAPI(APIView):
 
         available_options = []
         for rc in rate_cards:
-            column_vehicles = [v.strip() if v else "" for v in (rc.column_vehicles or [])]
+            routes = rc.routes
+            col_vehicles = rc.column_vehicles
+            import json
+            if isinstance(routes, str):
+                try:
+                    routes = json.loads(routes)
+                except Exception:
+                    routes = []
+            if isinstance(col_vehicles, str):
+                try:
+                    col_vehicles = json.loads(col_vehicles)
+                except Exception:
+                    col_vehicles = []
+
+            column_vehicles = [v.strip() if v else "" for v in (col_vehicles or [])]
             
-            for route in rc.routes:
+            for route in (routes or []):
                 # Case-insensitive city matching with stripping
                 rc_from = str(route.get('start_city', '')).strip().lower()
                 rc_to = str(route.get('drop_city', '')).strip().lower()
