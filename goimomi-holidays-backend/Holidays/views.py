@@ -874,6 +874,21 @@ class CabBookingViewSet(ModelViewSet):
                 booking.save()
                 confirmed_count += 1
                 
+            # Sync user to Zoho CRM Contact list
+            try:
+                from Holidays.utils import upsert_zoho_crm_contact
+                crm_data = {
+                    'first_name': booking.first_name,
+                    'last_name': booking.last_name or 'Customer',
+                    'email': booking.email,
+                    'phone': booking.phone
+                }
+                if crm_data['email']:
+                    import threading
+                    threading.Thread(target=upsert_zoho_crm_contact, args=(crm_data,)).start()
+            except Exception as crm_err:
+                print(f"Error syncing contact to Zoho CRM: {crm_err}")
+
             return Response({
                 'message': f'Confirmed {confirmed_count} bookings successfully.',
                 'invoice_number': invoice_number,
