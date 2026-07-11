@@ -112,7 +112,7 @@ const Cab = () => {
     try {
       await api.post("/api/cab-bookings/send-otp/", { email: bookingFormData.email });
       setIsOtpSent(true);
-      setOtpSuccess("OTP sent successfully. Please check your email inbox/spam folder.");
+      setOtpSuccess("OTP sent successfully. Please check your email inbox.");
     } catch (err) {
       console.error("Error sending OTP:", err);
       setOtpError(err.response?.data?.error || "Failed to send OTP. Please check your email and try again.");
