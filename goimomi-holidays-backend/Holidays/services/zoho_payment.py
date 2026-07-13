@@ -31,20 +31,24 @@ class ZohoPaymentService:
             raise ValueError("Zoho Payments configuration is missing in settings.")
 
         # Map edition string to Edition enum
+        # IMPORTANT: IN_SANDBOX requires scopes ZohoPaySandbox.* and soid=zohopaysandbox.<account_id>
         if edition_str == 'IN':
             edition = Edition.IN
         elif edition_str == 'US':
             edition = Edition.US
+        elif edition_str == 'IN_SANDBOX':
+            edition = Edition.IN_SANDBOX
         else:
             edition = Edition.IN_SANDBOX
 
+        logger.info(f"[ZohoPayments] Initializing client | Edition={edition_str} | AccountID={account_id}")
+
         # Retrieve cached access token
-        cache_key = f"zoho_payments_access_token_{account_id}"
+        cache_key = f"zoho_payments_access_token_{account_id}_{edition_str}"
         access_token = cache.get(cache_key)
 
         if not access_token:
-            logger.info("Generating a fresh Zoho Payments OAuth access token.")
-            # Generate new access token using refresh token
+            logger.info("[ZohoPayments] No cached token found — generating a fresh OAuth access token.")
             try:
                 fresh_token_obj = ZohoPayments.generate_access_token(
                     refresh_token=refresh_token,
@@ -54,12 +58,15 @@ class ZohoPaymentService:
                     edition=edition
                 )
                 access_token = fresh_token_obj.access_token
-                # Cache token. Subtract 5 minutes from expiry for safety margin (default Zoho tokens are 3600 seconds)
+                logger.info(f"[ZohoPayments] Fresh access token generated successfully.")
+
+                # Cache token with safety margin (default Zoho tokens are 3600 seconds)
                 expires_in = getattr(fresh_token_obj, 'expires_in', 3600)
                 cache_timeout = max(int(expires_in) - 300, 60)
                 cache.set(cache_key, access_token, cache_timeout)
+                logger.info(f"[ZohoPayments] Access token cached for {cache_timeout} seconds.")
             except Exception as e:
-                logger.error(f"Error generating Zoho Payments access token: {e}", exc_info=True)
+                logger.error(f"[ZohoPayments] Error generating access token: {e}", exc_info=True)
                 raise e
 
         # Build client
@@ -70,6 +77,7 @@ class ZohoPaymentService:
             .oauth_token(access_token)
             .build()
         )
+        logger.info(f"[ZohoPayments] Client built successfully for edition={edition_str}")
         return client
 
     @classmethod
@@ -106,11 +114,14 @@ class ZohoPaymentService:
                 reference_number=booking.booking_id,
             )
 
+            logger.info(f"[ZohoPayments] Creating payment session for booking={booking.booking_id}, amount={booking.price} {currency}")
+
             # Call the SDK API
             session = client.payment_sessions().create(create_params)
+            logger.info(f"[ZohoPayments] Payment session created successfully for booking={booking.booking_id}")
             return session
         except Exception as e:
-            logger.error(f"Error creating Zoho checkout session for booking {booking.booking_id}: {e}", exc_info=True)
+            logger.error(f"[ZohoPayments] Error creating checkout session for booking {booking.booking_id}: {e}", exc_info=True)
             raise e
 
     @classmethod
@@ -123,7 +134,7 @@ class ZohoPaymentService:
             session = client.payment_sessions().get(session_id)
             return session
         except Exception as e:
-            logger.error(f"Error retrieving Zoho payment session {session_id}: {e}", exc_info=True)
+            logger.error(f"[ZohoPayments] Error retrieving payment session {session_id}: {e}", exc_info=True)
             raise e
 
     @classmethod
@@ -142,7 +153,7 @@ class ZohoPaymentService:
             customer = client.customers().create(params)
             return customer
         except Exception as e:
-            logger.error(f"Error creating Zoho customer {email}: {e}", exc_info=True)
+            logger.error(f"[ZohoPayments] Error creating customer {email}: {e}", exc_info=True)
             raise e
 
     @classmethod
@@ -161,5 +172,17 @@ class ZohoPaymentService:
             refund = client.refunds().create(payment_id, params)
             return refund
         except Exception as e:
-            logger.error(f"Error processing Zoho refund for payment {payment_id}: {e}", exc_info=True)
+            logger.error(f"[ZohoPayments] Error processing refund for payment {payment_id}: {e}", exc_info=True)
             raise e
+
+    @classmethod
+    def clear_token_cache(cls):
+        """
+        Clears the cached Zoho Payments access token, forcing a fresh one on next request.
+        Call this after updating the refresh token in .env.
+        """
+        account_id = getattr(settings, 'ZOHO_PAYMENTS_ACCOUNT_ID', '')
+        edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+        cache_key = f"zoho_payments_access_token_{account_id}_{edition_str}"
+        cache.delete(cache_key)
+        logger.info(f"[ZohoPayments] Token cache cleared for account={account_id} edition={edition_str}")
