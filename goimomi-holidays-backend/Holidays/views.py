@@ -893,6 +893,14 @@ class CabBookingViewSet(ModelViewSet):
             except Exception as crm_err:
                 print(f"Error syncing contact to Zoho CRM: {crm_err}")
 
+            # Send booking confirmation email with voucher PDF
+            try:
+                from Holidays.utils import send_booking_voucher
+                import threading
+                threading.Thread(target=send_booking_voucher, args=(booking,)).start()
+            except Exception as email_err:
+                print(f"Error sending booking confirmation email: {email_err}")
+
             return Response({
                 'message': f'Confirmed {confirmed_count} bookings successfully.',
                 'invoice_number': invoice_number,
@@ -1099,6 +1107,14 @@ class CabBookingViewSet(ModelViewSet):
                 except Exception as crm_err:
                     print(f"Error syncing contact to Zoho CRM: {crm_err}")
 
+                # Send booking confirmation email with voucher PDF after successful payment
+                try:
+                    from Holidays.utils import send_booking_voucher
+                    import threading
+                    threading.Thread(target=send_booking_voucher, args=(booking,)).start()
+                except Exception as email_err:
+                    print(f"Error sending booking confirmation email after Zoho payment: {email_err}")
+
                 return HttpResponseRedirect(f"{frontend_url}/cab?payment_success=true&booking_id={booking.booking_id}")
             else:
                 return HttpResponseRedirect(f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_failed&status={session_status}")
@@ -1200,6 +1216,14 @@ class CabBookingViewSet(ModelViewSet):
                         booking.invoice_number = invoice_number
                         booking.save()
                         print(f"Webhook Success: Booking {booking.booking_id} confirmed via webhook")
+
+                        # Send booking confirmation email with voucher PDF
+                        try:
+                            from Holidays.utils import send_booking_voucher
+                            import threading
+                            threading.Thread(target=send_booking_voucher, args=(booking,)).start()
+                        except Exception as email_err:
+                            print(f"Error sending booking confirmation email via webhook: {email_err}")
                 else:
                     print(f"Webhook Warning: Booking not found for reference_number={booking_id} or session_id={session_id}")
 
