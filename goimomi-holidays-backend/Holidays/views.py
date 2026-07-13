@@ -733,32 +733,28 @@ class CabBookingViewSet(ModelViewSet):
             defaults={'otp': otp, 'is_verified': False}
         )
         
-        subject = "Your Goimomi Cab Booking Verification OTP"
-        message = f"Hello,\n\nYour OTP code for verifying your email on Goimomi Holidays is: {otp}\n\nThis OTP is valid for 5 minutes.\n\nThank you,\nGoimomi Holidays Team"
+        subject = "Verification Code - Goimomi Holidays"
+        message = f"Hello,\n\nPlease use the following verification code to confirm your email address on Goimomi Holidays:\n\n{otp}\n\nThis code will expire in 5 minutes.\n\nBest regards,\nGoimomi Holidays Team"
         
-        # HTML template matching the premium design system
+        # Clean, modern, minimal HTML template with low spam score
         html_message = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-            <div style="background-color: #14532d; padding: 24px; text-align: center; color: white;">
-                <h1 style="margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 0.05em; text-transform: uppercase;">GOIMOMI HOLIDAYS</h1>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 20px 0; color: #333333;">
+            <p style="font-size: 16px; line-height: 24px; margin: 0 0 16px 0;">Hello,</p>
+            <p style="font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">Please use the following verification code to confirm your email address on Goimomi Holidays:</p>
+            
+            <div style="margin: 24px 0; padding: 16px; background-color: #f4f5f7; border-radius: 6px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #111111; font-family: monospace;">
+                {otp}
             </div>
-            <div style="padding: 32px; background-color: #ffffff; color: #1e293b;">
-                <h2 style="margin-top: 0; color: #14532d; font-size: 20px; font-weight: bold; border-bottom: 2px solid #f0fdf4; padding-bottom: 12px;">Email Verification Code</h2>
-                <p style="font-size: 15px; line-height: 1.6; color: #475569;">Hello,</p>
-                <p style="font-size: 15px; line-height: 1.6; color: #475569;">Thank you for choosing Goimomi Holidays. To proceed with your cab booking, please use the verification code below to verify your email address:</p>
-                
-                <div style="text-align: center; margin: 32px 0;">
-                    <span style="display: inline-block; background-color: #f0fdf4; border: 1px dashed #14532d; color: #14532d; font-size: 32px; font-weight: 800; letter-spacing: 0.15em; padding: 12px 36px; border-radius: 8px;">{otp}</span>
-                </div>
-                
-                <p style="font-size: 13px; color: #64748b; line-height: 1.6; background-color: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #cbd5e1;">
-                    <strong>Notice:</strong> This code is highly confidential and is valid for <strong>5 minutes</strong>. If you did not request this code, please ignore this email.
-                </p>
-            </div>
-            <div style="background-color: #f8fafc; padding: 16px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
-                <p style="margin: 0;">&copy; 2026 Goimomi Holidays. All rights reserved.</p>
-                <p style="margin: 4px 0 0 0;">Need help? Contact our 24/7 Travel Desk: <a href="tel:+918110082222" style="color: #14532d; text-decoration: none; font-weight: bold;">+91 81100 82222</a></p>
-            </div>
+            
+            <p style="font-size: 14px; line-height: 20px; color: #666666; margin: 0 0 24px 0;">
+                This code is valid for 5 minutes. For security, please do not share this code with anyone.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eaeaea; margin: 24px 0;" />
+            
+            <p style="font-size: 12px; line-height: 16px; color: #888888; margin: 0;">
+                Goimomi Holidays Travel Desk
+            </p>
         </div>
         """
         
