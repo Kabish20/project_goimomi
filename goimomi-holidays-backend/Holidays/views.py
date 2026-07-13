@@ -830,18 +830,68 @@ class CabBookingViewSet(ModelViewSet):
         # Create the booking record via the parent class
         response = super().create(request, *args, **kwargs)
 
-        # After successful creation, generate local payment checkout link
+        # After successful creation, generate Zoho payment session and return it directly
         if response.status_code == 201:
             try:
                 booking_id = response.data.get('booking_id')
                 booking_pk = response.data.get('id')
                 if booking_id and booking_pk:
                     booking_obj = CabBooking.objects.get(pk=booking_pk)
+                    
+                    from Holidays.services.zoho_payment import ZohoPaymentService
+                    from django.shortcuts import reverse
+
+                    # Construct backend verify URL dynamically
+                    try:
+                        verify_path = reverse('cab-booking-verify-zoho-payment')
+                        backend_verify_url = request.build_absolute_uri(verify_path)
+                    except Exception:
+                        backend_verify_url = request.build_absolute_uri('/api/cab-bookings/verify-zoho-payment/')
+
+                    # Append booking_id query parameter so it is passed back in redirect URL
+                    if '?' in backend_verify_url:
+                        backend_verify_url = f"{backend_verify_url}&booking_id={booking_obj.booking_id}"
+                    else:
+                        backend_verify_url = f"{backend_verify_url}?booking_id={booking_obj.booking_id}"
+
+                    # Failure URL redirects to the dedicated frontend /payment-failed page
                     frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
-                    payment_url = f"{frontend_url}/payment-checkout?booking_id={booking_obj.booking_id}&id={booking_obj.id}&amount={booking_obj.price}"
-                    response.data['payment_url'] = payment_url
+                    frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking_obj.booking_id}"
+
+                    # Create payment session via Zoho Payment Service
+                    session = ZohoPaymentService.create_checkout_session(
+                        booking=booking_obj,
+                        success_url=backend_verify_url,
+                        failure_url=frontend_failure_url
+                    )
+
+                    payments_session_id = getattr(session, 'payments_session_id', None)
+                    access_key = getattr(session, 'access_key', None)
+
+                    if payments_session_id and access_key:
+                        # Store in the booking
+                        booking_obj.zoho_payment_session_id = payments_session_id
+                        booking_obj.zoho_access_key = access_key
+                        booking_obj.save()
+
+                        # Determine hosted checkout page domain based on edition
+                        edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+                        if edition_str == 'IN':
+                            checkout_domain = 'payments.zoho.in'
+                        elif edition_str == 'US':
+                            checkout_domain = 'payments.zoho.com'
+                        else:
+                            checkout_domain = 'paymentssandbox.zoho.in'
+
+                        redirect_url = f"https://{checkout_domain}/hostedcheckout/{access_key}"
+                        response.data['payment_url'] = redirect_url
+                    else:
+                        # Fallback to failed page if we can't create session
+                        response.data['payment_url'] = f"{frontend_url}/payment-failed?booking_id={booking_obj.booking_id}"
             except Exception as e:
-                print(f"Error generating payment link: {e}")
+                print(f"Error generating Zoho payment session during booking creation: {e}")
+                frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+                response.data['payment_url'] = f"{frontend_url}/payment-failed?booking_id={booking_id}"
 
         return response
 
@@ -929,9 +979,9 @@ class CabBookingViewSet(ModelViewSet):
             else:
                 backend_verify_url = f"{backend_verify_url}?booking_id={booking.booking_id}"
 
-            # Failure URL (on frontend checkout page with error parameter)
+            # Failure URL (on frontend payment failed page)
             frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
-            frontend_failure_url = f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_failed"
+            frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
 
             # Create payment session via Zoho Payment Service
             session = ZohoPaymentService.create_checkout_session(
@@ -1002,7 +1052,7 @@ class CabBookingViewSet(ModelViewSet):
         if not booking:
             return HttpResponseRedirect(f"{frontend_url}/cab?error=booking_not_found")
 
-        frontend_failure_url = f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_unverified"
+        frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
 
         if not session_id:
             session_id = booking.zoho_payment_session_id
@@ -1117,7 +1167,7 @@ class CabBookingViewSet(ModelViewSet):
 
                 return HttpResponseRedirect(f"{frontend_url}/cab?payment_success=true&booking_id={booking.booking_id}")
             else:
-                return HttpResponseRedirect(f"{frontend_url}/payment-checkout?booking_id={booking.booking_id}&id={booking.id}&amount={booking.price}&error=payment_failed&status={session_status}")
+                return HttpResponseRedirect(f"{frontend_url}/payment-failed?booking_id={booking.booking_id}&status={session_status}")
 
         except Exception as e:
             print(f"Error verifying Zoho Payment: {e}")

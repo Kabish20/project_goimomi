@@ -232,10 +232,13 @@ const Cab = () => {
         // Brief status update so user sees feedback before redirect
         setBookingStatus({ loading: true, success: false, error: null });
         setTimeout(() => {
-          if (firstPaymentUrl.includes("/payment-checkout")) {
+          const isLocalPath = firstPaymentUrl.includes("/payment-failed") || 
+                              firstPaymentUrl.includes("/payment-checkout") || 
+                              firstPaymentUrl.includes("/cab");
+          if (isLocalPath) {
             try {
               // Extract the path and query parameters for local navigation
-              const urlObj = new URL(firstPaymentUrl);
+              const urlObj = new URL(firstPaymentUrl, window.location.origin);
               navigate(`${urlObj.pathname}${urlObj.search}`);
             } catch (e) {
               // Fallback to direct navigation if parsing fails
