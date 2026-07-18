@@ -535,6 +535,50 @@ class SendVisaDetailsAPI(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class SendVisaWhatsAppAPI(APIView):
+    def post(self, request):
+        phone = request.data.get("phone")
+        title = request.data.get("title")
+        description = request.data.get("description")
+        
+        if not phone or not title:
+            return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Clean phone number for WhatsApp
+        cleaned_phone = "".join(filter(str.isdigit, phone))
+        if not cleaned_phone.startswith("+"):
+            cleaned_phone = f"+{cleaned_phone}"
+            
+        message_body = f"*{title}*\n\n"
+        if description:
+            message_body += f"{description}\n\n"
+        message_body += "Shared via Goimomi Holidays."
+        
+        try:
+            from django.conf import settings
+            import importlib
+            
+            account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', '')
+            auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
+            whatsapp_number = getattr(settings, 'TWILIO_WHATSAPP_NUMBER', '')
+            
+            if account_sid and auth_token and whatsapp_number:
+                twilio_rest = importlib.import_module('twilio.rest')
+                client = twilio_rest.Client(account_sid, auth_token)
+                client.messages.create(
+                    from_=f"whatsapp:{whatsapp_number}",
+                    body=message_body,
+                    to=f"whatsapp:{cleaned_phone}"
+                )
+                return Response({"success": "WhatsApp message sent successfully via Twilio"})
+            else:
+                # Log simulated WhatsApp
+                print(f"[MOCK WHATSAPP SEND] To: {cleaned_phone}\nBody:\n{message_body}")
+                return Response({"success": "WhatsApp message sent (simulated)"})
+        except Exception as e:
+            print(f"Error sending WhatsApp: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class CruiseCalendarViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = CruiseCalendar.objects.all().order_by('-created_at')

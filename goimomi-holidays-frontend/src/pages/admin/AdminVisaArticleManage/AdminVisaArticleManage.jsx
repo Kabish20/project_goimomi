@@ -14,13 +14,12 @@ const AdminVisaArticleManage = () => {
     const navigate = useNavigate();
 
     // Sharing States
-    const [emailModalArticle, setEmailModalArticle] = useState(null);
-    const [sharingEmail, setSharingEmail] = useState("");
-    const [sendingEmail, setSendingEmail] = useState(false);
+    const [sharingEmail, setSharingEmail] = useState(() => localStorage.getItem("lastSharedCustomerEmail") || "");
+    const [sendingEmailId, setSendingEmailId] = useState(null);
 
-    const [whatsappModalArticle, setWhatsappModalArticle] = useState(null);
     const [sharingPhone, setSharingPhone] = useState(() => localStorage.getItem("lastSharedCustomerPhone") || "");
     const [sharingPhoneCode, setSharingPhoneCode] = useState(() => localStorage.getItem("lastSharedCustomerPhoneCode") || "91");
+    const [sendingWhatsAppId, setSendingWhatsAppId] = useState(null);
 
     const [previewArticle, setPreviewArticle] = useState(null);
 
@@ -53,91 +52,60 @@ const AdminVisaArticleManage = () => {
         }
     };
 
-    // Share Handlers
-    const handleWhatsAppShareDirect = (art) => {
-        if (sharingPhone.trim()) {
-            // We have a phone number, send directly! (One click!)
-            const cleanCode = sharingPhoneCode.replace(/\D/g, "");
-            const cleanPhone = sharingPhone.replace(/\D/g, "");
-            const targetNumber = `${cleanCode}${cleanPhone}`;
-
-            let text = `*${art.title}*\n\n`;
-            if (art.description) {
-                text += `${art.description}\n\n`;
-            }
-            text += `Shared via Goimomi Holidays.`;
-
-            // Detect mobile or desktop to use direct URLs
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            const baseUrl = isMobile 
-                ? "https://api.whatsapp.com/send" 
-                : "https://web.whatsapp.com/send";
-
-            window.open(`${baseUrl}?phone=${targetNumber}&text=${encodeURIComponent(text)}`, '_blank');
-        } else {
-            // No phone number, show the modal to enter it.
-            setWhatsappModalArticle(art);
+    // Share Handlers (Direct One-Click)
+    const handleWhatsAppShareDirect = async (art) => {
+        if (!sharingPhone.trim()) {
+            alert("Please enter a Target Customer WhatsApp number in the top bar first.");
+            return;
         }
-    };
 
-    const handleWhatsAppShareSubmit = (e) => {
-        e.preventDefault();
-        if (!sharingPhone || !whatsappModalArticle) return;
-
-        // Clean values
         const cleanCode = sharingPhoneCode.replace(/\D/g, "");
         const cleanPhone = sharingPhone.replace(/\D/g, "");
         const targetNumber = `${cleanCode}${cleanPhone}`;
 
-        // Save to localStorage so it persists for future one-click sharing
-        localStorage.setItem("lastSharedCustomerPhone", sharingPhone);
-        localStorage.setItem("lastSharedCustomerPhoneCode", sharingPhoneCode);
-
-        let text = `*${whatsappModalArticle.title}*\n\n`;
-        if (whatsappModalArticle.description) {
-            text += `${whatsappModalArticle.description}\n\n`;
+        if (window.confirm(`Send article details via WhatsApp to +${targetNumber}?`)) {
+            try {
+                setSendingWhatsAppId(art.id);
+                await api.post('/api/send-visa-whatsapp/', {
+                    phone: targetNumber,
+                    title: art.title,
+                    description: art.description
+                });
+                alert("WhatsApp details sent successfully!");
+            } catch (error) {
+                console.error("Error sending WhatsApp:", error);
+                alert("Failed to send WhatsApp message. Please check Twilio settings in settings.py/env.");
+            } finally {
+                setSendingWhatsAppId(null);
+            }
         }
-        text += `Shared via Goimomi Holidays.`;
-
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const baseUrl = isMobile 
-            ? "https://api.whatsapp.com/send" 
-            : "https://web.whatsapp.com/send";
-
-        window.open(`${baseUrl}?phone=${targetNumber}&text=${encodeURIComponent(text)}`, '_blank');
-        setWhatsappModalArticle(null);
     };
 
-    const handleEmailShareInitiate = (art) => {
-        setEmailModalArticle(art);
-        setSharingEmail("");
-    };
+    const handleEmailShareDirect = async (art) => {
+        if (!sharingEmail.trim()) {
+            alert("Please enter a Target Customer Email in the top bar first.");
+            return;
+        }
 
-    const handleEmailShareSubmit = async (e) => {
-        e.preventDefault();
-        if (!sharingEmail || !emailModalArticle) return;
-        setSendingEmail(true);
+        if (window.confirm(`Send article details via Email to ${sharingEmail}?`)) {
+            try {
+                setSendingEmailId(art.id);
 
-        const subject = `Visa Article Details: ${emailModalArticle.title}`;
-        const body = `Hello,\n\nPlease find the details with regards to your visa article query for "${emailModalArticle.title}":\n\n${emailModalArticle.description || "No description provided"}\n\nBest regards,\nGoimomi Holidays Team`;
+                const subject = `Visa Article Details: ${art.title}`;
+                const body = `Hello,\n\nPlease find the details with regards to your visa article query for "${art.title}":\n\n${art.description || "No description provided"}\n\nBest regards,\nGoimomi Holidays Team`;
 
-        try {
-            await api.post('/api/send-visa-details/', {
-                email: sharingEmail,
-                subject,
-                body
-            });
-            alert("Article details sent successfully to " + sharingEmail);
-            setEmailModalArticle(null);
-            setSharingEmail("");
-        } catch (error) {
-            console.error("Error sending email:", error);
-            // Fallback to mailto link
-            window.location.href = `mailto:${sharingEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            setEmailModalArticle(null);
-            setSharingEmail("");
-        } finally {
-            setSendingEmail(false);
+                await api.post('/api/send-visa-details/', {
+                    email: sharingEmail,
+                    subject,
+                    body
+                });
+                alert("Email details sent successfully!");
+            } catch (error) {
+                console.error("Error sending email:", error);
+                alert("Failed to send email. Please check Brevo credentials.");
+            } finally {
+                setSendingEmailId(null);
+            }
         }
     };
 
@@ -168,10 +136,11 @@ const AdminVisaArticleManage = () => {
                         </button>
                     </div>
 
-                    {/* Search Bar & Target Customer Number */}
-                    <div className="flex flex-wrap gap-4 items-center mb-4">
-                        <div className="relative w-full max-w-xs group">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors" />
+                    {/* Search Bar & Target Customer Info (One-Click Panel) */}
+                    <div className="flex flex-wrap gap-3 items-center mb-4">
+                        {/* Search Input */}
+                        <div className="relative w-full sm:max-w-xs group">
+                            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors" />
                             <input
                                 type="text"
                                 value={searchTerm}
@@ -181,8 +150,9 @@ const AdminVisaArticleManage = () => {
                             />
                         </div>
 
+                        {/* Customer WhatsApp input */}
                         <div className="flex items-center gap-2 bg-white border-2 border-gray-100 px-4 py-1.5 rounded-full shadow-sm">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Target Customer WhatsApp:</span>
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">WhatsApp:</span>
                             <div className="flex items-center gap-1">
                                 <input
                                     type="text"
@@ -193,7 +163,7 @@ const AdminVisaArticleManage = () => {
                                         localStorage.setItem("lastSharedCustomerPhoneCode", val);
                                     }}
                                     placeholder="+91"
-                                    className="w-10 bg-transparent text-xs font-bold text-gray-905 border-none outline-none focus:ring-0 text-center"
+                                    className="w-10 bg-transparent text-xs font-bold text-gray-900 border-none outline-none focus:ring-0 text-center"
                                 />
                                 <span className="text-gray-300">|</span>
                                 <input
@@ -205,13 +175,42 @@ const AdminVisaArticleManage = () => {
                                         localStorage.setItem("lastSharedCustomerPhone", val);
                                     }}
                                     placeholder="Enter mobile number"
-                                    className="w-36 bg-transparent text-xs font-bold text-gray-905 border-none outline-none focus:ring-0"
+                                    className="w-32 bg-transparent text-xs font-bold text-gray-900 border-none outline-none focus:ring-0"
                                 />
                                 {sharingPhone && (
                                     <button 
                                         onClick={() => {
                                             setSharingPhone("");
                                             localStorage.removeItem("lastSharedCustomerPhone");
+                                        }}
+                                        className="text-gray-400 hover:text-red-500"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Customer Email input */}
+                        <div className="flex items-center gap-2 bg-white border-2 border-gray-100 px-4 py-1.5 rounded-full shadow-sm">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Email:</span>
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="email"
+                                    value={sharingEmail}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSharingEmail(val);
+                                        localStorage.setItem("lastSharedCustomerEmail", val);
+                                    }}
+                                    placeholder="Enter customer email"
+                                    className="w-48 bg-transparent text-xs font-bold text-gray-900 border-none outline-none focus:ring-0"
+                                />
+                                {sharingEmail && (
+                                    <button 
+                                        onClick={() => {
+                                            setSharingEmail("");
+                                            localStorage.removeItem("lastSharedCustomerEmail");
                                         }}
                                         className="text-gray-400 hover:text-red-500"
                                     >
@@ -289,16 +288,26 @@ const AdminVisaArticleManage = () => {
                                                         <div className="flex items-center gap-3">
                                                             <button
                                                                 onClick={() => handleWhatsAppShareDirect(art)}
-                                                                className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                                disabled={sendingWhatsAppId !== null}
+                                                                className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors disabled:opacity-50"
                                                             >
-                                                                <MessageCircle size={12} className="text-emerald-400" />
+                                                                {sendingWhatsAppId === art.id ? (
+                                                                    <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                                                                ) : (
+                                                                    <MessageCircle size={12} className="text-emerald-400" />
+                                                                )}
                                                                 WhatsApp
                                                             </button>
                                                             <button
-                                                                onClick={() => handleEmailShareInitiate(art)}
-                                                                className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                                onClick={() => handleEmailShareDirect(art)}
+                                                                disabled={sendingEmailId !== null}
+                                                                className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors disabled:opacity-50"
                                                             >
-                                                                <Mail size={12} className="text-[#3b82f6]" />
+                                                                {sendingEmailId === art.id ? (
+                                                                    <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                                                                ) : (
+                                                                    <Mail size={12} className="text-[#3b82f6]" />
+                                                                )}
                                                                 Email
                                                             </button>
                                                             <button
@@ -336,109 +345,6 @@ const AdminVisaArticleManage = () => {
                     </div>
                 </div>
             </div>
-
-            {/* WhatsApp Share Modal */}
-            {whatsappModalArticle && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setWhatsappModalArticle(null)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="bg-[#14532d] text-white px-5 py-4 flex justify-between items-center">
-                            <h3 className="text-sm font-bold uppercase tracking-wider">Share via WhatsApp</h3>
-                            <button onClick={() => setWhatsappModalArticle(null)} className="text-white/80 hover:text-white transition-colors">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleWhatsAppShareSubmit} className="p-5 space-y-4">
-                            <div className="space-y-1">
-                                <label className="block text-[9px] font-black text-gray-500 uppercase tracking-wider">Customer WhatsApp Number</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        required
-                                        value={sharingPhoneCode}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            setSharingPhoneCode(val);
-                                            localStorage.setItem("lastSharedCustomerPhoneCode", val);
-                                        }}
-                                        placeholder="+91"
-                                        className="w-16 bg-white border-2 border-gray-100 px-3 py-2 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-[#14532d] transition-all text-center"
-                                    />
-                                    <input
-                                        type="tel"
-                                        required
-                                        value={sharingPhone}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            setSharingPhone(val);
-                                            localStorage.setItem("lastSharedCustomerPhone", val);
-                                        }}
-                                        placeholder="Enter customer number"
-                                        className="flex-1 bg-white border-2 border-gray-100 px-3 py-2 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-[#14532d] transition-all"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setWhatsappModalArticle(null)}
-                                    className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all uppercase tracking-wider"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-700 transition-all uppercase tracking-widest"
-                                >
-                                    Send
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Email Share Modal */}
-            {emailModalArticle && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setEmailModalArticle(null)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="bg-[#14532d] text-white px-5 py-4 flex justify-between items-center">
-                            <h3 className="text-sm font-bold uppercase tracking-wider">Email Article Details</h3>
-                            <button onClick={() => setEmailModalArticle(null)} className="text-white/80 hover:text-white transition-colors">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleEmailShareSubmit} className="p-5 space-y-4">
-                            <div className="space-y-1">
-                                <label className="block text-[9px] font-black text-gray-500 uppercase tracking-wider">Recipient Email Address</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={sharingEmail}
-                                    onChange={e => setSharingEmail(e.target.value)}
-                                    placeholder="e.g. client@example.com"
-                                    className="w-full bg-white border-2 border-gray-100 px-3 py-2 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-[#14532d] transition-all"
-                                />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setEmailModalArticle(null)}
-                                    className="px-4 py-2 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all uppercase tracking-wider"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={sendingEmail}
-                                    className="px-4 py-2 bg-[#14532d] text-white rounded-xl text-xs font-black hover:bg-[#0f4a24] transition-all uppercase tracking-widest disabled:opacity-50"
-                                >
-                                    {sendingEmail ? "Sending..." : "Send Details"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             {/* View Preview Modal */}
             {previewArticle && (
