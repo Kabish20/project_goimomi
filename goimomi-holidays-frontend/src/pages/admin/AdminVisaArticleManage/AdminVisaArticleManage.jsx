@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
-import { Search, Trash2, Edit2, Plus, Image as ImageIcon, Share2, Mail, Eye, X, MessageCircle } from "lucide-react";
+import { Search, Trash2, Edit2, Plus, Image as ImageIcon, Share2, Mail, Eye, X, MessageCircle, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
@@ -20,6 +20,9 @@ const AdminVisaArticleManage = () => {
     const [sharingPhone, setSharingPhone] = useState(() => localStorage.getItem("lastSharedCustomerPhone") || "");
     const [sharingPhoneCode, setSharingPhoneCode] = useState(() => localStorage.getItem("lastSharedCustomerPhoneCode") || "91");
     const [sendingWhatsAppId, setSendingWhatsAppId] = useState(null);
+
+    const [sharingArtId, setSharingArtId] = useState(null);
+    const [sharingMode, setSharingMode] = useState(null); // 'whatsapp' or 'email'
 
     const [previewArticle, setPreviewArticle] = useState(null);
 
@@ -55,7 +58,7 @@ const AdminVisaArticleManage = () => {
     // Share Handlers (Direct One-Click)
     const handleWhatsAppShareDirect = async (art) => {
         if (!sharingPhone.trim()) {
-            alert("Please enter a Target Customer WhatsApp number in the top bar first.");
+            alert("Please enter a target customer mobile number.");
             return;
         }
 
@@ -72,6 +75,8 @@ const AdminVisaArticleManage = () => {
                     description: art.description
                 });
                 alert("WhatsApp details sent successfully!");
+                setSharingArtId(null);
+                setSharingMode(null);
             } catch (error) {
                 console.error("Error sending WhatsApp:", error);
                 alert("Failed to send WhatsApp message. Please check Twilio settings in settings.py/env.");
@@ -83,7 +88,7 @@ const AdminVisaArticleManage = () => {
 
     const handleEmailShareDirect = async (art) => {
         if (!sharingEmail.trim()) {
-            alert("Please enter a Target Customer Email in the top bar first.");
+            alert("Please enter a target customer email address.");
             return;
         }
 
@@ -100,6 +105,8 @@ const AdminVisaArticleManage = () => {
                     body
                 });
                 alert("Email details sent successfully!");
+                setSharingArtId(null);
+                setSharingMode(null);
             } catch (error) {
                 console.error("Error sending email:", error);
                 alert("Failed to send email. Please check Brevo credentials.");
@@ -136,7 +143,7 @@ const AdminVisaArticleManage = () => {
                         </button>
                     </div>
 
-                    {/* Search Bar & Target Customer Info (One-Click Panel) */}
+                    {/* Search Bar */}
                     <div className="flex flex-wrap gap-3 items-center mb-4">
                         {/* Search Input */}
                         <div className="relative w-full sm:max-w-xs group">
@@ -148,76 +155,6 @@ const AdminVisaArticleManage = () => {
                                 placeholder="Search articles by title or description..."
                                 className="w-full bg-white border-2 border-gray-100 pl-11 pr-4 py-2 rounded-full text-xs font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 transition-all shadow-sm"
                             />
-                        </div>
-
-                        {/* Customer WhatsApp input */}
-                        <div className="flex items-center gap-2 bg-white border-2 border-gray-100 px-4 py-1.5 rounded-full shadow-sm">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">WhatsApp:</span>
-                            <div className="flex items-center gap-1">
-                                <input
-                                    type="text"
-                                    value={sharingPhoneCode}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSharingPhoneCode(val);
-                                        localStorage.setItem("lastSharedCustomerPhoneCode", val);
-                                    }}
-                                    placeholder="+91"
-                                    className="w-10 bg-transparent text-xs font-bold text-gray-900 border-none outline-none focus:ring-0 text-center"
-                                />
-                                <span className="text-gray-300">|</span>
-                                <input
-                                    type="tel"
-                                    value={sharingPhone}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSharingPhone(val);
-                                        localStorage.setItem("lastSharedCustomerPhone", val);
-                                    }}
-                                    placeholder="Enter mobile number"
-                                    className="w-32 bg-transparent text-xs font-bold text-gray-900 border-none outline-none focus:ring-0"
-                                />
-                                {sharingPhone && (
-                                    <button 
-                                        onClick={() => {
-                                            setSharingPhone("");
-                                            localStorage.removeItem("lastSharedCustomerPhone");
-                                        }}
-                                        className="text-gray-400 hover:text-red-500"
-                                    >
-                                        <X size={12} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Customer Email input */}
-                        <div className="flex items-center gap-2 bg-white border-2 border-gray-100 px-4 py-1.5 rounded-full shadow-sm">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Email:</span>
-                            <div className="flex items-center gap-1">
-                                <input
-                                    type="email"
-                                    value={sharingEmail}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSharingEmail(val);
-                                        localStorage.setItem("lastSharedCustomerEmail", val);
-                                    }}
-                                    placeholder="Enter customer email"
-                                    className="w-48 bg-transparent text-xs font-bold text-gray-900 border-none outline-none focus:ring-0"
-                                />
-                                {sharingEmail && (
-                                    <button 
-                                        onClick={() => {
-                                            setSharingEmail("");
-                                            localStorage.removeItem("lastSharedCustomerEmail");
-                                        }}
-                                        className="text-gray-400 hover:text-red-500"
-                                    >
-                                        <X size={12} />
-                                    </button>
-                                )}
-                            </div>
                         </div>
                     </div>
 
@@ -280,45 +217,133 @@ const AdminVisaArticleManage = () => {
                                                 </td>
                                                 <td className="px-6 py-3 text-center w-1/3">
                                                     {/* Capsule Share Bar */}
-                                                    <div className="inline-flex items-center gap-2 bg-[#2d2d2d] text-white rounded-full px-3.5 py-1.5 shadow-sm border border-neutral-700/50">
-                                                        <div className="flex items-center gap-1.5 text-white/80 font-bold text-[9px] uppercase tracking-wider pr-2 border-r border-white/20">
-                                                            <Share2 size={11} className="text-white/60" />
-                                                            <span>Share :</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
+                                                    {sharingArtId === art.id && sharingMode === 'whatsapp' ? (
+                                                        <div className="inline-flex items-center gap-1.5 bg-[#2d2d2d] text-white rounded-full px-2.5 py-1 shadow-sm border border-neutral-700/50">
+                                                            <MessageCircle size={12} className="text-emerald-400 shrink-0" />
+                                                            <div className="flex items-center gap-1 bg-neutral-800/80 px-2 py-0.5 rounded-full border border-neutral-700">
+                                                                <input
+                                                                    type="text"
+                                                                    value={sharingPhoneCode}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        setSharingPhoneCode(val);
+                                                                        localStorage.setItem("lastSharedCustomerPhoneCode", val);
+                                                                    }}
+                                                                    placeholder="91"
+                                                                    className="w-5 bg-transparent text-[10px] font-bold text-white border-none outline-none focus:ring-0 p-0 text-center"
+                                                                />
+                                                                <span className="text-neutral-600 text-[10px]">|</span>
+                                                                <input
+                                                                    type="tel"
+                                                                    value={sharingPhone}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        setSharingPhone(val);
+                                                                        localStorage.setItem("lastSharedCustomerPhone", val);
+                                                                    }}
+                                                                    placeholder="Mobile number"
+                                                                    className="w-24 bg-transparent text-[10px] font-bold text-white border-none outline-none focus:ring-0 p-0"
+                                                                />
+                                                            </div>
                                                             <button
                                                                 onClick={() => handleWhatsAppShareDirect(art)}
                                                                 disabled={sendingWhatsAppId !== null}
-                                                                className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors disabled:opacity-50"
+                                                                className="p-1 text-emerald-400 hover:text-emerald-300 transition-colors disabled:opacity-50"
+                                                                title="Send"
                                                             >
                                                                 {sendingWhatsAppId === art.id ? (
-                                                                    <div className="w-3 h-3 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                                                                    <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
                                                                 ) : (
-                                                                    <MessageCircle size={12} className="text-emerald-400" />
+                                                                    <Check size={14} />
                                                                 )}
-                                                                WhatsApp
                                                             </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSharingArtId(null);
+                                                                    setSharingMode(null);
+                                                                }}
+                                                                className="p-1 text-neutral-400 hover:text-red-400 transition-colors"
+                                                                title="Cancel"
+                                                            >
+                                                                <X size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ) : sharingArtId === art.id && sharingMode === 'email' ? (
+                                                        <div className="inline-flex items-center gap-1.5 bg-[#2d2d2d] text-white rounded-full px-2.5 py-1 shadow-sm border border-neutral-700/50">
+                                                            <Mail size={12} className="text-[#3b82f6] shrink-0" />
+                                                            <div className="flex items-center gap-1 bg-neutral-800/80 px-2 py-0.5 rounded-full border border-neutral-700">
+                                                                <input
+                                                                    type="email"
+                                                                    value={sharingEmail}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        setSharingEmail(val);
+                                                                        localStorage.setItem("lastSharedCustomerEmail", val);
+                                                                    }}
+                                                                    placeholder="Enter customer email"
+                                                                    className="w-36 bg-transparent text-[10px] font-bold text-white border-none outline-none focus:ring-0 p-0"
+                                                                />
+                                                            </div>
                                                             <button
                                                                 onClick={() => handleEmailShareDirect(art)}
                                                                 disabled={sendingEmailId !== null}
-                                                                className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors disabled:opacity-50"
+                                                                className="p-1 text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                                                                title="Send"
                                                             >
                                                                 {sendingEmailId === art.id ? (
-                                                                    <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                                                                    <div className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                                                                 ) : (
-                                                                    <Mail size={12} className="text-[#3b82f6]" />
+                                                                    <Check size={14} />
                                                                 )}
-                                                                Email
                                                             </button>
                                                             <button
-                                                                onClick={() => setPreviewArticle(art)}
-                                                                className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                                onClick={() => {
+                                                                    setSharingArtId(null);
+                                                                    setSharingMode(null);
+                                                                }}
+                                                                className="p-1 text-neutral-400 hover:text-red-400 transition-colors"
+                                                                title="Cancel"
                                                             >
-                                                                <Eye size={12} className="text-yellow-500" />
-                                                                View
+                                                                <X size={12} />
                                                             </button>
                                                         </div>
-                                                    </div>
+                                                    ) : (
+                                                        <div className="inline-flex items-center gap-2 bg-[#2d2d2d] text-white rounded-full px-3.5 py-1.5 shadow-sm border border-neutral-700/50">
+                                                            <div className="flex items-center gap-1.5 text-white/80 font-bold text-[9px] uppercase tracking-wider pr-2 border-r border-white/20">
+                                                                <Share2 size={11} className="text-white/60" />
+                                                                <span>Share :</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-3">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSharingArtId(art.id);
+                                                                        setSharingMode('whatsapp');
+                                                                    }}
+                                                                    className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                                >
+                                                                    <MessageCircle size={12} className="text-emerald-400" />
+                                                                    WhatsApp
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSharingArtId(art.id);
+                                                                        setSharingMode('email');
+                                                                    }}
+                                                                    className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                                >
+                                                                    <Mail size={12} className="text-[#3b82f6]" />
+                                                                    Email
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setPreviewArticle(art)}
+                                                                    className="flex items-center gap-1 text-yellow-500 hover:text-yellow-400 font-bold text-[9px] md:text-[10px] transition-colors"
+                                                                >
+                                                                    <Eye size={12} className="text-yellow-500" />
+                                                                    View
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-3 text-right w-1/12">
                                                     <div className="flex items-center justify-end gap-1.5">
