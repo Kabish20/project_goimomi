@@ -19,8 +19,8 @@ const AdminVisaArticleManage = () => {
     const [sendingEmail, setSendingEmail] = useState(false);
 
     const [whatsappModalArticle, setWhatsappModalArticle] = useState(null);
-    const [sharingPhone, setSharingPhone] = useState("");
-    const [sharingPhoneCode, setSharingPhoneCode] = useState("91");
+    const [sharingPhone, setSharingPhone] = useState(() => localStorage.getItem("lastSharedCustomerPhone") || "");
+    const [sharingPhoneCode, setSharingPhoneCode] = useState(() => localStorage.getItem("lastSharedCustomerPhoneCode") || "91");
 
     const [previewArticle, setPreviewArticle] = useState(null);
 
@@ -54,10 +54,30 @@ const AdminVisaArticleManage = () => {
     };
 
     // Share Handlers
-    const handleWhatsAppShareInitiate = (art) => {
-        setWhatsappModalArticle(art);
-        setSharingPhone("");
-        setSharingPhoneCode("91");
+    const handleWhatsAppShareDirect = (art) => {
+        if (sharingPhone.trim()) {
+            // We have a phone number, send directly! (One click!)
+            const cleanCode = sharingPhoneCode.replace(/\D/g, "");
+            const cleanPhone = sharingPhone.replace(/\D/g, "");
+            const targetNumber = `${cleanCode}${cleanPhone}`;
+
+            let text = `*${art.title}*\n\n`;
+            if (art.description) {
+                text += `${art.description}\n\n`;
+            }
+            text += `Shared via Goimomi Holidays.`;
+
+            // Detect mobile or desktop to use direct URLs
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const baseUrl = isMobile 
+                ? "https://api.whatsapp.com/send" 
+                : "https://web.whatsapp.com/send";
+
+            window.open(`${baseUrl}?phone=${targetNumber}&text=${encodeURIComponent(text)}`, '_blank');
+        } else {
+            // No phone number, show the modal to enter it.
+            setWhatsappModalArticle(art);
+        }
     };
 
     const handleWhatsAppShareSubmit = (e) => {
@@ -69,13 +89,16 @@ const AdminVisaArticleManage = () => {
         const cleanPhone = sharingPhone.replace(/\D/g, "");
         const targetNumber = `${cleanCode}${cleanPhone}`;
 
+        // Save to localStorage so it persists for future one-click sharing
+        localStorage.setItem("lastSharedCustomerPhone", sharingPhone);
+        localStorage.setItem("lastSharedCustomerPhoneCode", sharingPhoneCode);
+
         let text = `*${whatsappModalArticle.title}*\n\n`;
         if (whatsappModalArticle.description) {
             text += `${whatsappModalArticle.description}\n\n`;
         }
         text += `Shared via Goimomi Holidays.`;
 
-        // Check if user is on mobile or desktop to use the most direct URL
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const baseUrl = isMobile 
             ? "https://api.whatsapp.com/send" 
@@ -83,7 +106,6 @@ const AdminVisaArticleManage = () => {
 
         window.open(`${baseUrl}?phone=${targetNumber}&text=${encodeURIComponent(text)}`, '_blank');
         setWhatsappModalArticle(null);
-        setSharingPhone("");
     };
 
     const handleEmailShareInitiate = (art) => {
@@ -146,17 +168,57 @@ const AdminVisaArticleManage = () => {
                         </button>
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="mb-4">
-                        <div className="relative max-w-sm group">
+                    {/* Search Bar & Target Customer Number */}
+                    <div className="flex flex-wrap gap-4 items-center mb-4">
+                        <div className="relative w-full max-w-xs group">
                             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors" />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search articles by title or description..."
-                                className="w-full bg-white border-2 border-gray-100 pl-11 pr-4 py-2.5 rounded-full text-xs font-bold text-gray-900 focus:outline-none focus:ring-8 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 transition-all shadow-sm"
+                                className="w-full bg-white border-2 border-gray-100 pl-11 pr-4 py-2 rounded-full text-xs font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200 transition-all shadow-sm"
                             />
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-white border-2 border-gray-100 px-4 py-1.5 rounded-full shadow-sm">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Target Customer WhatsApp:</span>
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="text"
+                                    value={sharingPhoneCode}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSharingPhoneCode(val);
+                                        localStorage.setItem("lastSharedCustomerPhoneCode", val);
+                                    }}
+                                    placeholder="+91"
+                                    className="w-10 bg-transparent text-xs font-bold text-gray-905 border-none outline-none focus:ring-0 text-center"
+                                />
+                                <span className="text-gray-300">|</span>
+                                <input
+                                    type="tel"
+                                    value={sharingPhone}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSharingPhone(val);
+                                        localStorage.setItem("lastSharedCustomerPhone", val);
+                                    }}
+                                    placeholder="Enter mobile number"
+                                    className="w-36 bg-transparent text-xs font-bold text-gray-905 border-none outline-none focus:ring-0"
+                                />
+                                {sharingPhone && (
+                                    <button 
+                                        onClick={() => {
+                                            setSharingPhone("");
+                                            localStorage.removeItem("lastSharedCustomerPhone");
+                                        }}
+                                        className="text-gray-400 hover:text-red-500"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -226,7 +288,7 @@ const AdminVisaArticleManage = () => {
                                                         </div>
                                                         <div className="flex items-center gap-3">
                                                             <button
-                                                                onClick={() => handleWhatsAppShareInitiate(art)}
+                                                                onClick={() => handleWhatsAppShareDirect(art)}
                                                                 className="flex items-center gap-1 text-white hover:text-white/80 font-bold text-[9px] md:text-[10px] transition-colors"
                                                             >
                                                                 <MessageCircle size={12} className="text-emerald-400" />
@@ -293,7 +355,11 @@ const AdminVisaArticleManage = () => {
                                         type="text"
                                         required
                                         value={sharingPhoneCode}
-                                        onChange={e => setSharingPhoneCode(e.target.value)}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            setSharingPhoneCode(val);
+                                            localStorage.setItem("lastSharedCustomerPhoneCode", val);
+                                        }}
                                         placeholder="+91"
                                         className="w-16 bg-white border-2 border-gray-100 px-3 py-2 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-[#14532d] transition-all text-center"
                                     />
@@ -301,7 +367,11 @@ const AdminVisaArticleManage = () => {
                                         type="tel"
                                         required
                                         value={sharingPhone}
-                                        onChange={e => setSharingPhone(e.target.value)}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            setSharingPhone(val);
+                                            localStorage.setItem("lastSharedCustomerPhone", val);
+                                        }}
                                         placeholder="Enter customer number"
                                         className="flex-1 bg-white border-2 border-gray-100 px-3 py-2 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:border-[#14532d] transition-all"
                                     />
