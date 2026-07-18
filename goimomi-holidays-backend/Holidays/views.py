@@ -42,7 +42,8 @@ from .models import (
     SightseeingImage, MealMaster, VehicleBrand, Accommodation,
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
-    CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification
+    CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
+    VisaArticle, VisaArticleImage
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -58,6 +59,7 @@ from .serializers import (
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
+    VisaArticleSerializer, VisaArticleImageSerializer,
 )
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -2053,4 +2055,50 @@ def payment_callback(request):
         return HttpResponse(html_content)
     except Exception as e:
         return HttpResponse(f"Error exchanging authorization code: {e}")
+
+
+class VisaArticleViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = VisaArticle.objects.all().order_by('-created_at')
+    serializer_class = VisaArticleSerializer
+    pagination_class = None
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        visa_article = serializer.save()
+
+        # Handle multiple images
+        images = request.FILES.getlist('visa_article_images')
+        for img in images:
+            VisaArticleImage.objects.create(visa_article=visa_article, image=img)
+            
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data.copy()
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        visa_article = serializer.save()
+
+        # Handle multiple images (append new ones)
+        images = request.FILES.getlist('visa_article_images')
+        if images:
+            for img in images:
+                VisaArticleImage.objects.create(visa_article=visa_article, image=img)
+
+        # Handle removals of specific images
+        remove_ids = request.data.get('remove_image_ids')
+        if remove_ids:
+            try:
+                ids = json.loads(remove_ids) if isinstance(remove_ids, str) else remove_ids
+                if ids:
+                    VisaArticleImage.objects.filter(id__in=ids, visa_article=visa_article).delete()
+            except Exception as e:
+                print(f"Error removing images: {e}")
+
+        return Response(serializer.data)
+
 
