@@ -205,6 +205,11 @@ ZOHO_CRM_CLIENT_ID = config("ZOHO_CRM_CLIENT_ID", default="")
 ZOHO_CRM_CLIENT_SECRET = config("ZOHO_CRM_CLIENT_SECRET", default="")
 FRONTEND_URL = config("FRONTEND_URL", default="https://goimomi.com")
 
+# Twilio Configuration
+TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID", default="")
+TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN", default="")
+TWILIO_WHATSAPP_NUMBER = config("TWILIO_WHATSAPP_NUMBER", default="")
+
 # Zoho Payments Configuration
 ZOHO_PAYMENTS_ACCOUNT_ID = config("ZOHO_PAYMENTS_ACCOUNT_ID", default="")
 ZOHO_PAYMENTS_EDITION = config("ZOHO_PAYMENTS_EDITION", default="IN_SANDBOX")

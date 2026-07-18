@@ -56,7 +56,7 @@ const AdminVisaArticleManage = () => {
     };
 
     // Share Handlers (Direct One-Click)
-    const handleWhatsAppShareDirect = async (art) => {
+    const handleWhatsAppShareDirect = (art) => {
         if (!sharingPhone.trim()) {
             alert("Please enter a target customer mobile number.");
             return;
@@ -66,24 +66,20 @@ const AdminVisaArticleManage = () => {
         const cleanPhone = sharingPhone.replace(/\D/g, "");
         const targetNumber = `${cleanCode}${cleanPhone}`;
 
-        if (window.confirm(`Send article details via WhatsApp to +${targetNumber}?`)) {
-            try {
-                setSendingWhatsAppId(art.id);
-                await api.post('/api/send-visa-whatsapp/', {
-                    phone: targetNumber,
-                    title: art.title,
-                    description: art.description
-                });
-                alert("WhatsApp details sent successfully!");
-                setSharingArtId(null);
-                setSharingMode(null);
-            } catch (error) {
-                console.error("Error sending WhatsApp:", error);
-                alert("Failed to send WhatsApp message. Please check Twilio settings in settings.py/env.");
-            } finally {
-                setSendingWhatsAppId(null);
-            }
+        // Build the WhatsApp message
+        let messageText = `*${art.title}*\n\n`;
+        if (art.description) {
+            messageText += `${art.description}\n\n`;
         }
+        messageText += `For more details, visit: https://www.goimomi.com\n\nShared via Goimomi Holidays.`;
+
+        // Open WhatsApp deep link — opens the chat with message pre-filled
+        const encodedMessage = encodeURIComponent(messageText);
+        const waUrl = `https://wa.me/${targetNumber}?text=${encodedMessage}`;
+        window.open(waUrl, "_blank");
+
+        setSharingArtId(null);
+        setSharingMode(null);
     };
 
     const handleEmailShareDirect = async (art) => {
@@ -247,15 +243,10 @@ const AdminVisaArticleManage = () => {
                                                             </div>
                                                             <button
                                                                 onClick={() => handleWhatsAppShareDirect(art)}
-                                                                disabled={sendingWhatsAppId !== null}
-                                                                className="p-1 text-emerald-400 hover:text-emerald-300 transition-colors disabled:opacity-50"
-                                                                title="Send"
+                                                                className="p-1 text-emerald-400 hover:text-emerald-300 transition-colors"
+                                                                title="Open WhatsApp"
                                                             >
-                                                                {sendingWhatsAppId === art.id ? (
-                                                                    <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-                                                                ) : (
-                                                                    <Check size={14} />
-                                                                )}
+                                                                <Check size={14} />
                                                             </button>
                                                             <button
                                                                 onClick={() => {
