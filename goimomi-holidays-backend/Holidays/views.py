@@ -524,13 +524,48 @@ class SendVisaDetailsAPI(APIView):
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            send_mail(
-                subject,
-                body,
-                settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'hello@goimomi.com',
-                [email],
-                fail_silently=False,
+            from django.core.mail import EmailMultiAlternatives
+            sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Reservations@goimomi.com')
+            
+            # Build rich HTML body to avoid spam filters
+            html_body = f"""
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: #1a5c2a; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+    <h1 style="color: #fff; margin: 0; font-size: 22px;">Goimomi Holidays</h1>
+    <p style="color: #a8e6b8; margin: 4px 0 0; font-size: 13px;">Your Travel Partner</p>
+  </div>
+  <div style="background: #fff; padding: 24px; border: 1px solid #e0e0e0; border-top: none;">
+    <p style="font-size: 15px; color: #333;">Dear Traveler,</p>
+    <p style="font-size: 14px; color: #555; white-space: pre-wrap;">{body}</p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+    <p style="font-size: 13px; color: #888;">
+      For queries, call us at <strong>+91 81100 82222</strong> or email 
+      <a href="mailto:hello@goimomi.com" style="color: #1a5c2a;">hello@goimomi.com</a>
+    </p>
+  </div>
+  <div style="background: #f9f9f9; padding: 12px; text-align: center; border-radius: 0 0 8px 8px; border: 1px solid #e0e0e0; border-top: none;">
+    <p style="font-size: 11px; color: #aaa; margin: 0;">
+      &copy; 2025 Goimomi Holidays | <a href="https://www.goimomi.com" style="color: #1a5c2a;">www.goimomi.com</a>
+    </p>
+  </div>
+</body>
+</html>"""
+
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=body,  # plain text fallback
+                from_email=sender,
+                to=[email],
+                headers={
+                    'X-Mailer': 'Goimomi-Holidays-Mailer/1.0',
+                    'List-Unsubscribe': '<mailto:hello@goimomi.com?subject=unsubscribe>',
+                }
             )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send(fail_silently=False)
             return Response({"success": "Email sent successfully"})
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
