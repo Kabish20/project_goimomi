@@ -894,6 +894,8 @@ def generate_booking_invoice_pdf(booking):
             'vehicle_category': b.vehicle_category or "Sedan",
             'vehicle_name': b.vehicle_name,
             'total_amount': price_str,
+            'guests': b.guests or 1,
+            'luggage_count': b.luggage_count or "0",
         })
         
     try:
@@ -907,6 +909,21 @@ def generate_booking_invoice_pdf(booking):
     
     # Fetch and encode Logo
     logo_data_uri = get_image_as_base64_uri("https://goimomi.com/logo.png")
+    
+    # Generate dynamic UPI Payment QR code
+    payment_qr_data_uri = ""
+    try:
+        import urllib.parse
+        inv_no = booking.invoice_number or f"INV-{booking_ids[0]}"
+        upi_uri = f"upi://pay?pa=GOIMOMICOM.ibz1@icici&pn=GOIMOMI.COM&am={total_amount:.2f}&cu=INR&tn={inv_no}"
+        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=138048&data={urllib.parse.quote(upi_uri)}"
+        payment_qr_data_uri = get_image_as_base64_uri(qr_url)
+    except Exception as e:
+        print(f"Error generating dynamic payment QR code: {e}")
+        # Fallback to static QR
+        payment_qr_path = os.path.join(os.path.dirname(__file__), "payment_qr.png")
+        payment_qr_data_uri = get_image_as_base64_uri(payment_qr_path)
+    
     
     try:
         invoice_date_str = booking.created_at.strftime('%d %b %Y') if booking.created_at else timezone.now().strftime('%d %b %Y')
@@ -926,6 +943,7 @@ def generate_booking_invoice_pdf(booking):
             'invoice_number': booking.invoice_number or f"INV-{booking_ids[0]}",
             'invoice_date': invoice_date_str,
             'logo_data_uri': logo_data_uri,
+            'payment_qr_data_uri': payment_qr_data_uri,
         }
     )
 

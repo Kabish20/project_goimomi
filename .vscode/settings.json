@@ -6,7 +6,8 @@
   ],
   "python.testing.cwd": "D:/G/goimomi-holidays-backend",
   "python.defaultInterpreterPath": "C:/Users/kabis/AppData/Local/Programs/Python/Python313/python.exe",
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "postman.settings.dotenv-detection-notification-visibility": false
 }
 
 

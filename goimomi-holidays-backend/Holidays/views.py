@@ -1355,6 +1355,54 @@ class CabBookingViewSet(ModelViewSet):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=False, methods=['get'], url_path='download-voucher-public', permission_classes=[AllowAny])
+    def download_voucher_public(self, request):
+        booking_id = request.query_params.get('booking_id') or request.query_params.get('id')
+        if not booking_id:
+            return Response({"error": "booking_id query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            from Holidays.models import CabBooking
+            if booking_id.isdigit():
+                booking = CabBooking.objects.get(pk=booking_id)
+            else:
+                booking = CabBooking.objects.get(booking_id=booking_id)
+            
+            from .utils import generate_booking_pdf
+            pdf_bytes = generate_booking_pdf(booking)
+            from django.http import HttpResponse
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            b_id = booking.booking_id or f"GO-TRN-{str(booking.pk).zfill(4)}"
+            response['Content-Disposition'] = f'attachment; filename="Voucher_{b_id}.pdf"'
+            return response
+        except CabBooking.DoesNotExist:
+            return Response({"error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], url_path='download-invoice-public', permission_classes=[AllowAny])
+    def download_invoice_public(self, request):
+        booking_id = request.query_params.get('booking_id') or request.query_params.get('id')
+        if not booking_id:
+            return Response({"error": "booking_id query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            from Holidays.models import CabBooking
+            if booking_id.isdigit():
+                booking = CabBooking.objects.get(pk=booking_id)
+            else:
+                booking = CabBooking.objects.get(booking_id=booking_id)
+            
+            from .utils import generate_booking_invoice_pdf
+            pdf_bytes = generate_booking_invoice_pdf(booking)
+            from django.http import HttpResponse
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            invoice_no = booking.invoice_number or f"INV-{booking.booking_id}"
+            response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice_no}.pdf"'
+            return response
+        except CabBooking.DoesNotExist:
+            return Response({"error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class CabAdditionalDocumentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = CabAdditionalDocument.objects.all()

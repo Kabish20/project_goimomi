@@ -741,6 +741,22 @@ class CabBooking(models.Model):
             CabBooking.objects.filter(pk=self.pk).update(booking_id=self.booking_id)
             self.booking_id = f'GO-TRN-{str(self.pk).zfill(4)}'
 
+        # Propagate status to related bookings created around the same time (within 10 seconds)
+        if not is_new and self.status != old_status:
+            from datetime import timedelta
+            if self.created_at:
+                start_time = self.created_at - timedelta(seconds=10)
+                end_time = self.created_at + timedelta(seconds=10)
+                related_qs = CabBooking.objects.filter(
+                    email=self.email,
+                    created_at__range=(start_time, end_time)
+                ).exclude(pk=self.pk)
+                
+                if self.status == 'Confirmed' and self.invoice_number:
+                    related_qs.update(status=self.status, invoice_number=self.invoice_number)
+                else:
+                    related_qs.update(status=self.status)
+
         # Trigger email auto-send on status change to Confirmed, Tentative Confirmation, or Booking Requested
         if self.status in ['Booking Requested', 'Confirmed', 'Tentative Confirmation']:
             if is_new or (self.status != old_status and old_status not in ['Confirmed', 'Tentative Confirmation']):
