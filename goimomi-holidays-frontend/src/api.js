@@ -64,8 +64,10 @@ api.interceptors.response.use(
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
                 localStorage.removeItem("adminUser");
-                // Redirect to login
-                window.location.href = "/admin-login";
+                // Only redirect to admin login if currently on an admin page
+                if (window.location.pathname.startsWith('/admin')) {
+                    window.location.href = "/admin-login";
+                }
             }
         }
         return Promise.reject(error);
