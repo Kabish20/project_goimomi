@@ -125,6 +125,50 @@ class ZohoPaymentService:
             raise e
 
     @classmethod
+    def create_product_checkout_session(cls, order, success_url, failure_url):
+        """
+        Creates a Zoho Payments session for a GoimomiProductOrder.
+        """
+        try:
+            client = cls.get_client()
+
+            # Construct hosted page params
+            hosted_params = HostedPageParams(
+                description=f"Product Order {order.order_id} payment",
+                success_url=success_url,
+                failure_url=failure_url,
+                name=order.name,
+                email=order.email or "",
+                phone=order.phone or "",
+            )
+
+            config_params = ConfigurationsParams(
+                hosted_page_parameters=hosted_params
+            )
+
+            # Determine currency based on edition or default to INR
+            edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+            currency = 'USD' if edition_str == 'US' else 'INR'
+
+            create_params = PaymentSessionCreateParams(
+                amount=float(order.total_amount),
+                currency=currency,
+                description=f"Goimomi Holidays Product Order - {order.order_id}",
+                configurations=config_params,
+                reference_number=order.order_id,
+            )
+
+            logger.info(f"[ZohoPayments] Creating payment session for order={order.order_id}, amount={order.total_amount} {currency}")
+
+            # Call the SDK API
+            session = client.payment_sessions().create(create_params)
+            logger.info(f"[ZohoPayments] Payment session created successfully for order={order.order_id}")
+            return session
+        except Exception as e:
+            logger.error(f"[ZohoPayments] Error creating checkout session for order {order.order_id}: {e}", exc_info=True)
+            raise e
+
+    @classmethod
     def get_payment_session(cls, session_id):
         """
         Retrieves the details of a Zoho Payment Session.

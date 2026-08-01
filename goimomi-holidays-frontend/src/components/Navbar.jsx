@@ -329,6 +329,30 @@ const Navbar = () => {
               <span className="font-bold text-[11px] uppercase tracking-wide">Cruise</span>
             </NavLink>
 
+            {/* Goimomi Shop */}
+            <NavLink
+              to="/goimomi-product"
+              id="nav-shop-link"
+              className={({ isActive }) =>
+                `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
+              }
+            >
+              <div className="relative">
+                <img
+                  src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png"
+                  alt="Shop"
+                  className="w-9 h-9 mb-1 object-contain"
+                />
+                <span
+                  className="absolute -top-1.5 -right-1.5 bg-[#16a34a] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide leading-none shadow-md"
+                >
+                  New
+                </span>
+              </div>
+              <span className="font-bold text-[11px] uppercase tracking-wide">Shop</span>
+            </NavLink>
+
+
           </nav>
 
 
@@ -531,6 +555,24 @@ const Navbar = () => {
                 <img src="https://cdn-icons-png.flaticon.com/128/4320/4320227.png" alt="Cruise" className="w-6 h-6 object-contain" />
                 Cruise Bookings
               </NavLink>
+
+              {/* Goimomi Shop */}
+              <NavLink
+                to="/goimomi-product"
+                id="mobile-nav-shop-link"
+                className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
+                onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+              >
+                <div className="relative">
+                  <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
+                  <span className="absolute -top-1 -right-1 bg-[#16a34a] text-white text-[7px] font-black px-1 rounded-full uppercase leading-tight">
+                    New
+                  </span>
+                </div>
+                <span>Shop</span>
+                <span className="ml-auto text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">New</span>
+              </NavLink>
+
 
               <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
                 <img src="https://cdn-icons-png.flaticon.com/128/471/471664.png" alt="About" className="w-6 h-6 object-contain opacity-70" />

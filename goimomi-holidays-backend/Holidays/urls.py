@@ -42,6 +42,8 @@ router.register("vehicle-rate-cards", views.VehicleRateCardViewSet, basename="ve
 router.register("pickup-point-masters", views.PickupPointMasterViewSet, basename="pickup-point-master")
 router.register("cab-bookings", views.CabBookingViewSet, basename="cab-booking")
 router.register("cab-additional-documents", views.CabAdditionalDocumentViewSet, basename="cab-additional-document")
+router.register("goimomi-products", views.GoimomiProductViewSet, basename="goimomi-product")
+router.register("goimomi-product-orders", views.GoimomiProductOrderViewSet, basename="goimomi-product-order")
 
 urlpatterns = [
     path('', include(router.urls)),

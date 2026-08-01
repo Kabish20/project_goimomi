@@ -43,7 +43,7 @@ from .models import (
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
     CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
-    VisaArticle, VisaArticleImage
+    VisaArticle, VisaArticleImage, GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -59,7 +59,7 @@ from .serializers import (
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
-    VisaArticleSerializer, VisaArticleImageSerializer,
+    VisaArticleSerializer, VisaArticleImageSerializer, GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer,
 )
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -2143,8 +2143,7 @@ class VisaArticleViewSet(ModelViewSet):
     pagination_class = None
 
     def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-        serializer = self.get_serializer(data=data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         visa_article = serializer.save()
 
@@ -2157,8 +2156,7 @@ class VisaArticleViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        data = request.data.copy()
-        serializer = self.get_serializer(instance, data=data, partial=True)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         visa_article = serializer.save()
 
@@ -2178,6 +2176,482 @@ class VisaArticleViewSet(ModelViewSet):
             except Exception as e:
                 print(f"Error removing images: {e}")
 
+
         return Response(serializer.data)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Goimomi Product
+# ─────────────────────────────────────────────────────────────────────────────
+
+class GoimomiProductViewSet(ModelViewSet):
+    """
+    ViewSet for GoimomiProduct.
+    - List / Retrieve: public (no auth needed)
+    - Create / Update / Destroy: admin authenticated only
+    """
+    serializer_class = GoimomiProductSerializer
+    queryset = GoimomiProduct.objects.all()
+    pagination_class = None
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        queryset = GoimomiProduct.objects.all()
+        stock_status = self.request.query_params.get('stock_status')
+        if stock_status:
+            queryset = queryset.filter(stock_status=stock_status)
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        product = serializer.save()
+
+        # Handle multiple images
+        images = request.FILES.getlist('product_images')
+        for idx, img in enumerate(images):
+            GoimomiProductImage.objects.create(product=product, image=img, order=idx)
+            
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        product = serializer.save()
+
+        # Handle multiple images (append new ones)
+        images = request.FILES.getlist('product_images')
+        if images:
+            # Get current max order
+            max_order = getattr(product.images.order_by('-order').first(), 'order', -1)
+            for idx, img in enumerate(images):
+                GoimomiProductImage.objects.create(product=product, image=img, order=max_order + 1 + idx)
+
+        # Handle removals of specific images
+        remove_ids = request.data.get('remove_image_ids')
+        if remove_ids:
+            try:
+                ids = json.loads(remove_ids) if isinstance(remove_ids, str) else remove_ids
+                if ids:
+                    GoimomiProductImage.objects.filter(id__in=ids, product=product).delete()
+            except Exception as e:
+                print(f"Error removing images: {e}")
+        # Re-fetch instance to serialize updated images list
+        serializer = self.get_serializer(product)
+        return Response(serializer.data)
+
+
+class GoimomiProductOrderViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrWriteOnly]
+    queryset = GoimomiProductOrder.objects.all().order_by('-created_at')
+    serializer_class = GoimomiProductOrderSerializer
+    pagination_class = None
+
+    def create(self, request, *args, **kwargs):
+        product_id = request.data.get('product') # None if cart checkout
+        cart_items = request.data.get('cart_items') # list of dicts: [{'product_id': id, 'quantity': qty, 'price': price}]
+        quantity = int(request.data.get('quantity', 1))
+        name = request.data.get('name')
+        email = request.data.get('email', '')
+        phone = request.data.get('phone')
+        address = request.data.get('address')
+
+        if not name or not phone or not address:
+            return Response({'error': 'Name, phone, and address are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not product_id and not cart_items:
+            return Response({'error': 'Either a single product or cart items must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        total_amount = 0
+        order_price = 0
+
+        if product_id:
+            # Single product checkout
+            try:
+                product_obj = GoimomiProduct.objects.get(pk=product_id)
+            except GoimomiProduct.DoesNotExist:
+                return Response({'error': 'Selected product does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if product_obj.stock_status == 'out_of_stock' or product_obj.quantity < quantity:
+                return Response({'error': f'Product is out of stock or requested quantity ({quantity}) exceeds available stock.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            order_price = product_obj.price
+            total_amount = order_price * quantity
+            
+            order = GoimomiProductOrder.objects.create(
+                product=product_obj,
+                name=name,
+                email=email,
+                phone=phone,
+                quantity=quantity,
+                price=order_price,
+                total_amount=total_amount,
+                address=address,
+                status='Pending'
+            )
+        else:
+            # Cart checkout
+            validated_items = []
+            for item in cart_items:
+                pid = item.get('product_id')
+                qty = int(item.get('quantity', 1))
+                try:
+                    p_obj = GoimomiProduct.objects.get(pk=pid)
+                except GoimomiProduct.DoesNotExist:
+                    return Response({'error': f"Product with ID {pid} in cart does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                if p_obj.stock_status == 'out_of_stock' or p_obj.quantity < qty:
+                    return Response({'error': f"Product '{p_obj.title}' is out of stock or requested quantity ({qty}) exceeds available stock."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                total_amount += p_obj.price * qty
+                validated_items.append({
+                    'product_id': p_obj.id,
+                    'title': p_obj.title,
+                    'price': float(p_obj.price),
+                    'quantity': qty
+                })
+            
+            order = GoimomiProductOrder.objects.create(
+                product=None,
+                name=name,
+                email=email,
+                phone=phone,
+                quantity=sum(i['quantity'] for i in validated_items),
+                price=0,
+                total_amount=total_amount,
+                address=address,
+                cart_items=validated_items,
+                status='Pending'
+            )
+
+        order.refresh_from_db()
+
+        # Generate Zoho Payments session
+        try:
+            from Holidays.services.zoho_payment import ZohoPaymentService
+
+            # Success & failure redirect URLs
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            
+            # Construct backend verify URL dynamically
+            try:
+                from django.shortcuts import reverse
+                verify_path = reverse('goimomi-product-order-verify-zoho-payment')
+                backend_verify_url = request.build_absolute_uri(verify_path)
+            except Exception:
+                backend_verify_url = request.build_absolute_uri('/api/goimomi-product-orders/verify-zoho-payment/')
+
+            if '?' in backend_verify_url:
+                backend_verify_url = f"{backend_verify_url}&order_id={order.order_id}"
+            else:
+                backend_verify_url = f"{backend_verify_url}?order_id={order.order_id}"
+
+            # Force HTTPS for Zoho Payments redirect callback URL
+            if backend_verify_url.startswith('http://'):
+                backend_verify_url = backend_verify_url.replace('http://', 'https://', 1)
+
+            frontend_failure_url = f"{frontend_url}/payment-failed?order_id={order.order_id}"
+            if frontend_failure_url.startswith('http://'):
+                frontend_failure_url = frontend_failure_url.replace('http://', 'https://', 1)
+
+            session = ZohoPaymentService.create_product_checkout_session(
+                order=order,
+                success_url=backend_verify_url,
+                failure_url=frontend_failure_url
+            )
+
+            payments_session_id = getattr(session, 'payments_session_id', None)
+            access_key = getattr(session, 'access_key', None)
+
+            if payments_session_id and access_key:
+                order.zoho_payment_session_id = payments_session_id
+                order.zoho_access_key = access_key
+                order.save()
+
+                # Hosted checkout page domain based on edition
+                edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+                if edition_str == 'IN':
+                    checkout_domain = 'payments.zoho.in'
+                elif edition_str == 'US':
+                    checkout_domain = 'payments.zoho.com'
+                else:
+                    checkout_domain = 'paymentssandbox.zoho.in'
+
+                payment_url = f"https://{checkout_domain}/hostedcheckout/{access_key}"
+                
+                serializer = self.get_serializer(order)
+                response_data = serializer.data
+                response_data['payment_url'] = payment_url
+                return Response(response_data, status=status.HTTP_201_CREATED)
+            else:
+                order.status = 'Cancelled'
+                order.save()
+                return Response({'error': 'Failed to create Zoho checkout session.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            print(f"Error creating Zoho payment session: {e}")
+            order.status = 'Cancelled'
+            order.save()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
+    def verify_zoho_payment(self, request):
+        from django.http import HttpResponseRedirect
+        from Holidays.services.zoho_payment import ZohoPaymentService
+        import random
+
+        order_id = request.GET.get('order_id')
+        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+
+        order = None
+        if order_id:
+            try:
+                order = GoimomiProductOrder.objects.get(order_id=order_id)
+            except GoimomiProductOrder.DoesNotExist:
+                pass
+
+        if not order and session_id:
+            try:
+                order = GoimomiProductOrder.objects.get(zoho_payment_session_id=session_id)
+            except GoimomiProductOrder.DoesNotExist:
+                pass
+
+        if not order:
+            return HttpResponseRedirect(f"{frontend_url}/goimomi-product?error=order_not_found")
+
+        frontend_failure_url = f"{frontend_url}/payment-failed?order_id={order.order_id}"
+
+        if not session_id:
+            session_id = order.zoho_payment_session_id
+
+        if not session_id:
+            return HttpResponseRedirect(frontend_failure_url)
+
+        # Verify hosted checkout redirect signature
+        signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
+        if signing_key:
+            signature = request.GET.get('signature')
+            if not signature:
+                print("Verify Error: Product Order redirect signature missing")
+                return HttpResponseRedirect(frontend_failure_url)
+
+            # Signature parameters
+            payments_session_id = request.GET.get('payments_session_id', '')
+            payment_session_status = request.GET.get('payment_session_status', '')
+            payment_id = request.GET.get('payment_id', '')
+            payment_status = request.GET.get('payment_status', '')
+            amount = request.GET.get('amount', '')
+            mandate_id = request.GET.get('mandate_id', '')
+            udf1 = request.GET.get('udf1', '')
+            udf2 = request.GET.get('udf2', '')
+            udf3 = request.GET.get('udf3', '')
+            udf4 = request.GET.get('udf4', '')
+            udf5 = request.GET.get('udf5', '')
+
+            fields = [
+                payments_session_id,
+                payment_session_status,
+                payment_id,
+                payment_status,
+                amount,
+                mandate_id,
+                udf1,
+                udf2,
+                udf3,
+                udf4,
+                udf5
+            ]
+            fields = [f if f is not None else '' for f in fields]
+            data_to_sign = ".".join(fields)
+
+            import hmac
+            import hashlib
+            expected_signature = hmac.new(
+                signing_key.encode('utf-8'),
+                data_to_sign.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+            
+            if not hmac.compare_digest(expected_signature, signature):
+                print(f"Verify Error: Product Order signature verification failed. Expected: {expected_signature}, Got: {signature}")
+                return HttpResponseRedirect(frontend_failure_url)
+
+        try:
+            session = ZohoPaymentService.get_payment_session(session_id)
+            session_status = getattr(session, 'status', '').lower()
+            payments_list = getattr(session, 'payments', [])
+            has_succeeded_payment = any(getattr(p, 'status', '').lower() == 'succeeded' for p in payments_list)
+
+            if session_status == 'paid' or has_succeeded_payment:
+                # Mark order as Confirmed
+                if order.status == 'Pending':
+                    order.status = 'Confirmed'
+                    order.invoice_number = f"GM-PRD-{random.randint(100000, 999999)}"
+                    order.save()
+
+                    # Deduct product stock quantity
+                    if order.product:
+                        prod = order.product
+                        prod.quantity = max(0, prod.quantity - order.quantity)
+                        if prod.quantity == 0:
+                            prod.stock_status = 'out_of_stock'
+                        prod.save()
+                    elif order.cart_items:
+                        for item in order.cart_items:
+                            pid = item.get('product_id')
+                            qty = int(item.get('quantity', 1))
+                            try:
+                                prod = GoimomiProduct.objects.get(pk=pid)
+                                prod.quantity = max(0, prod.quantity - qty)
+                                if prod.quantity == 0:
+                                    prod.stock_status = 'out_of_stock'
+                                prod.save()
+                            except GoimomiProduct.DoesNotExist:
+                                pass
+
+                    # Sync user to Zoho CRM Contact list
+                    try:
+                        from Holidays.utils import upsert_zoho_crm_contact
+                        crm_data = {
+                            'first_name': order.name.split(' ')[0] if ' ' in order.name else order.name,
+                            'last_name': order.name.split(' ', 1)[1] if ' ' in order.name else 'Customer',
+                            'email': order.email,
+                            'phone': order.phone
+                        }
+                        if crm_data['email']:
+                            import threading
+                            threading.Thread(target=upsert_zoho_crm_contact, args=(crm_data,)).start()
+                    except Exception as crm_err:
+                        print(f"Error syncing product customer to Zoho CRM: {crm_err}")
+
+                # Redirect to frontend success page
+                return HttpResponseRedirect(f"{frontend_url}/goimomi-product?payment_success=true&order_id={order.order_id}")
+            else:
+                return HttpResponseRedirect(f"{frontend_url}/payment-failed?order_id={order.order_id}&status={session_status}")
+
+        except Exception as e:
+            print(f"Error verifying Zoho Product Payment: {e}")
+            return HttpResponseRedirect(frontend_failure_url)
+
+    @action(detail=False, methods=['post'], url_path='zoho-webhook', permission_classes=[AllowAny])
+    def zoho_webhook(self, request):
+        import hmac
+        import hashlib
+        import json
+        import random
+        from django.http import HttpResponse
+
+        signature_header = request.headers.get('X-Zoho-Webhook-Signature')
+        if not signature_header:
+            print("Webhook Error: Missing X-Zoho-Webhook-Signature header for product order")
+            return HttpResponse("Missing signature header", status=400)
+
+        signing_key = getattr(settings, 'ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY', '')
+        if not signing_key:
+            print("Webhook Error: Webhook signing key not configured in settings")
+            return HttpResponse("Signing key not configured", status=500)
+
+        raw_body = request.body.decode('utf-8')
+
+        try:
+            parts = {part.split('=')[0]: part.split('=')[1] for part in signature_header.split(',')}
+            timestamp = parts.get('t')
+            received_signature = parts.get('v')
+
+            if not timestamp or not received_signature:
+                print("Webhook Error: Invalid signature header format")
+                return HttpResponse("Invalid signature header format", status=400)
+
+            data_to_verify = f"{timestamp}.{raw_body}"
+            expected_signature = hmac.new(
+                signing_key.encode('utf-8'),
+                data_to_verify.encode('utf-8'),
+                hashlib.sha256
+            ).hexdigest()
+
+            if not hmac.compare_digest(expected_signature, received_signature):
+                print("Webhook Error: Signature verification failed")
+                return HttpResponse("Unauthorized signature", status=401)
+
+            payload = json.loads(raw_body)
+            event_type = payload.get('event_type')
+            event_object = payload.get('event_object', {})
+            payment = event_object.get('payment', {})
+
+            print(f"Webhook Received: Event {event_type} for Product Order Session {payment.get('payments_session_id')}")
+
+            if event_type == 'payment.succeeded':
+                order_id = payment.get('reference_number')
+                session_id = payment.get('payments_session_id')
+
+                order = None
+                if order_id:
+                    try:
+                        order = GoimomiProductOrder.objects.get(order_id=order_id)
+                    except GoimomiProductOrder.DoesNotExist:
+                        pass
+
+                if not order and session_id:
+                    try:
+                        order = GoimomiProductOrder.objects.get(zoho_payment_session_id=session_id)
+                    except GoimomiProductOrder.DoesNotExist:
+                        pass
+
+                if order:
+                    if order.status == 'Pending':
+                        order.status = 'Confirmed'
+                        order.invoice_number = payment.get('invoice_number') or f"GM-PRD-{random.randint(100000, 999999)}"
+                        order.save()
+                        print(f"Webhook Success: Product Order {order.order_id} confirmed via webhook")
+
+                        # Deduct product stock quantity
+                        if order.product:
+                            prod = order.product
+                            prod.quantity = max(0, prod.quantity - order.quantity)
+                            if prod.quantity == 0:
+                                prod.stock_status = 'out_of_stock'
+                            prod.save()
+                        elif order.cart_items:
+                            for item in order.cart_items:
+                                pid = item.get('product_id')
+                                qty = int(item.get('quantity', 1))
+                                try:
+                                    prod = GoimomiProduct.objects.get(pk=pid)
+                                    prod.quantity = max(0, prod.quantity - qty)
+                                    if prod.quantity == 0:
+                                        prod.stock_status = 'out_of_stock'
+                                    prod.save()
+                                except GoimomiProduct.DoesNotExist:
+                                    pass
+
+                        # Sync user to Zoho CRM Contact list
+                        try:
+                            from Holidays.utils import upsert_zoho_crm_contact
+                            crm_data = {
+                                'first_name': order.name.split(' ')[0] if ' ' in order.name else order.name,
+                                'last_name': order.name.split(' ', 1)[1] if ' ' in order.name else 'Customer',
+                                'email': order.email,
+                                'phone': order.phone
+                            }
+                            if crm_data['email']:
+                                import threading
+                                threading.Thread(target=upsert_zoho_crm_contact, args=(crm_data,)).start()
+                        except Exception as crm_err:
+                            print(f"Error syncing product customer to Zoho CRM via webhook: {crm_err}")
+                else:
+                    print(f"Webhook Warning: Product Order not found for reference_number={order_id} or session_id={session_id}")
+
+            return HttpResponse("Webhook processed successfully", status=200)
+
+        except Exception as e:
+            print(f"Webhook Exception: {e}")
+            return HttpResponse(str(e), status=400)
 
 

@@ -36,6 +36,8 @@ const HolidayHome = lazyRetry(() => import("./pages/Holidays/holidayhome/holiday
 const PackageEnquiryPage = lazyRetry(() => import("./pages/Holidays/PackageEnquiryPage/PackageEnquiryPage.jsx"));
 const BusinessHome = lazyRetry(() => import("./pages/Business/businesshome/businesshome.jsx"));
 const Blog = lazyRetry(() => import("./pages/General/Blog/Blog.jsx"));
+const GoimomiProduct = lazyRetry(() => import("./pages/General/GoimomiProduct/GoimomiProduct.jsx"));
+
 
 // Admin Pages
 const AdminDashboard = lazyRetry(() => import("./pages/admin/AdminDashboard/AdminDashboard.jsx"));
@@ -103,6 +105,10 @@ const CityAdd = lazyRetry(() => import("./pages/admin/CityAdd/CityAdd.jsx"));
 const CityEdit = lazyRetry(() => import("./pages/admin/CityEdit/CityEdit.jsx"));
 const AirportManage = lazyRetry(() => import("./pages/admin/AirportManage/AirportManage.jsx"));
 const CruiseTerminalManage = lazyRetry(() => import("./pages/admin/CruiseTerminalManage/CruiseTerminalManage.jsx"));
+const ProductManage = lazyRetry(() => import("./pages/admin/ProductManage/ProductManage.jsx"));
+const ProductAdd    = lazyRetry(() => import("./pages/admin/ProductAdd/ProductAdd.jsx"));
+const ProductEdit   = lazyRetry(() => import("./pages/admin/ProductEdit/ProductEdit.jsx"));
+
 
 const AdminLogin = lazyRetry(() => import("./pages/General/AdminLogin/AdminLogin.jsx"));
 import ProtectedRoute from "./components/admin/ProtectedRoute/ProtectedRoute";
@@ -256,6 +262,8 @@ const App = () => {
             <Route path="/visa/apply/:id" element={<VisaApplication />} />
             <Route path="/Europeantours" element={<Europeantours />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/goimomi-product" element={<GoimomiProduct />} />
+
 
 
 
@@ -336,6 +344,10 @@ const App = () => {
               <Route path="/admin/management-country/airports" element={<AirportManage />} />
               <Route path="/admin/management-country/pickup-points" element={<PickupPointManage />} />
               <Route path="/admin/management-country/cruise-terminals" element={<CruiseTerminalManage />} />
+              <Route path="/admin/products" element={<ProductManage />} />
+              <Route path="/admin/products/add" element={<ProductAdd />} />
+              <Route path="/admin/products/edit/:id" element={<ProductEdit />} />
+
             </Route>
 
             {/* User-friendly aliases and catch-all */}

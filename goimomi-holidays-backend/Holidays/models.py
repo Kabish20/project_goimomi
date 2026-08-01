@@ -833,3 +833,108 @@ class VisaArticleImage(models.Model):
     def __str__(self):
         return f"Image for {self.visa_article.title}"
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Goimomi Product
+# ─────────────────────────────────────────────────────────────────────────────
+
+class GoimomiProduct(models.Model):
+
+    STOCK_STATUS_CHOICES = [
+        ('in_stock', 'In Stock'),
+        ('out_of_stock', 'Out of Stock'),
+    ]
+
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Selling price")
+    mrp = models.DecimalField(max_digits=10, decimal_places=2, help_text="Maximum Retail Price")
+    quantity = models.PositiveIntegerField(default=0)
+    stock_status = models.CharField(
+        max_length=20,
+        choices=STOCK_STATUS_CHOICES,
+        default='in_stock',
+    )
+    image = models.ImageField(upload_to="products/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Goimomi Product"
+        verbose_name_plural = "Goimomi Products"
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def discount_percent(self):
+        if self.mrp and self.mrp > 0:
+            return round(((self.mrp - self.price) / self.mrp) * 100)
+        return 0
+
+
+class GoimomiProductImage(models.Model):
+    """Additional images for a GoimomiProduct."""
+    product = models.ForeignKey(
+        GoimomiProduct,
+        related_name='images',
+        on_delete=models.CASCADE
+    )
+    image = models.ImageField(upload_to='products/gallery/')
+    order = models.PositiveIntegerField(default=0, help_text='Display order')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f'Image #{self.pk} for {self.product.title}'
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Goimomi Product Order
+# ─────────────────────────────────────────────────────────────────────────────
+
+class GoimomiProductOrder(models.Model):
+    order_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    product = models.ForeignKey(GoimomiProduct, on_delete=models.SET_NULL, null=True, related_name='orders')
+    name = models.CharField(max_length=255)
+    email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=20)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Unit price at checkout")
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total amount paid")
+    address = models.TextField()
+    cart_items = models.JSONField(blank=True, null=True, help_text="Cart items list if cart checkout")
+    status = models.CharField(
+        max_length=50,
+        choices=[
+            ('Pending', 'Pending'),
+            ('Confirmed', 'Confirmed'),
+            ('Cancelled', 'Cancelled')
+        ],
+        default='Pending'
+    )
+    zoho_payment_session_id = models.CharField(max_length=255, blank=True, null=True)
+    zoho_access_key = models.CharField(max_length=255, blank=True, null=True)
+    invoice_number = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Goimomi Product Order"
+        verbose_name_plural = "Goimomi Product Orders"
+
+    def __str__(self):
+        return f"Order {self.order_id or self.pk} - {self.name}"
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and not self.order_id:
+            self.order_id = f'GO-ORD-{str(self.pk).zfill(4)}'
+            GoimomiProductOrder.objects.filter(pk=self.pk).update(order_id=self.order_id)
+            self.order_id = f'GO-ORD-{str(self.pk).zfill(4)}'
+

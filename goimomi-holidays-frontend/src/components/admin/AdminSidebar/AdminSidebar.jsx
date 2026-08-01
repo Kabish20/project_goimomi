@@ -17,8 +17,10 @@ import {
   Sun,
   Calendar,
   Car,
-  ClipboardList
+  ClipboardList,
+  ShoppingBag
 } from "lucide-react";
+
 import { useNavigate } from "react-router-dom";
 
 const menu = [
@@ -95,9 +97,11 @@ const menu = [
       },
       { name: "Suppliers", icon: <Truck size={18} /> },
       { name: "Cruise Calendar", icon: <Calendar size={18} /> },
+      { name: "Goimomi Products", icon: <ShoppingBag size={18} /> },
     ],
   },
 ];
+
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
@@ -156,6 +160,10 @@ const AdminSidebar = () => {
   const handleAddRateCard = () => navigate("/admin/vehicle-rate-cards/add");
   const handleChangeRateCard = () => navigate("/admin/vehicle-rate-cards");
 
+  // Goimomi Products Handlers
+  const handleAddProduct    = () => navigate("/admin/products/add");
+  const handleChangeProduct = () => navigate("/admin/products");
+
 
   // Management Country Handlers
   const handleManagementCountry = () => navigate("/admin/management-country");
@@ -191,7 +199,9 @@ const AdminSidebar = () => {
       case "Airport": return () => navigate("/admin/management-country/airports/add");
       case "PickupPoints": return () => navigate("/admin/management-country/pickup-points/add");
       case "CruiseTerminal": return () => navigate("/admin/management-country/cruise-terminals/add");
+      case "Goimomi Products": return handleAddProduct;
       default: return undefined;
+
     }
   };
 
@@ -227,7 +237,9 @@ const AdminSidebar = () => {
       case "Airport": return handleManagementAirport;
       case "PickupPoints": return handleManagementPickupPoints;
       case "CruiseTerminal": return handleManagementCruiseTerminal;
+      case "Goimomi Products": return handleChangeProduct;
       default: return undefined;
+
     }
   };
 

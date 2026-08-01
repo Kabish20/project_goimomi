@@ -19,7 +19,7 @@ from .models import (
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
     PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal,
-    VisaArticle, VisaArticleImage
+    VisaArticle, VisaArticleImage, GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
 )
 
 class CantonEnquirySerializer(serializers.ModelSerializer):
@@ -789,5 +789,44 @@ class VisaArticleSerializer(serializers.ModelSerializer):
     images = VisaArticleImageSerializer(many=True, read_only=True)
     class Meta:
         model = VisaArticle
+        fields = "__all__"
+
+
+class GoimomiProductSerializer(serializers.ModelSerializer):
+    discount_percent = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoimomiProduct
+        fields = [
+            'id', 'title', 'description', 'price', 'mrp',
+            'quantity', 'stock_status', 'image',
+            'discount_percent', 'images', 'created_at', 'updated_at',
+        ]
+
+    def get_discount_percent(self, obj):
+        return obj.discount_percent
+
+    def get_images(self, obj):
+        request = self.context.get('request')
+        return [
+            {
+                'id': img.id,
+                'image': request.build_absolute_uri(img.image.url) if request and img.image else img.image.url if img.image else None,
+                'order': img.order,
+            }
+            for img in obj.images.all()
+        ]
+
+
+class GoimomiProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoimomiProductImage
+        fields = ['id', 'product', 'image', 'order', 'created_at']
+
+
+class GoimomiProductOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoimomiProductOrder
         fields = "__all__"
 

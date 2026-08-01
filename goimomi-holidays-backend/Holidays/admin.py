@@ -222,3 +222,33 @@ class CabBookingAdmin(admin.ModelAdmin):
         }),
     )
 
+
+from .models import GoimomiProduct, GoimomiProductImage
+
+class GoimomiProductImageInline(admin.TabularInline):
+    model = GoimomiProductImage
+    extra = 1
+
+@admin.register(GoimomiProduct)
+class GoimomiProductAdmin(admin.ModelAdmin):
+    list_display = ('title', 'price', 'mrp', 'quantity', 'stock_status', 'created_at')
+    list_filter = ('stock_status',)
+    search_fields = ('title',)
+    list_editable = ('stock_status', 'quantity')
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [GoimomiProductImageInline]
+    fieldsets = (
+        ('Product Details', {
+            'fields': ('title', 'description', 'image')
+        }),
+        ('Pricing', {
+            'fields': ('price', 'mrp')
+        }),
+        ('Stock', {
+            'fields': ('quantity', 'stock_status')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
