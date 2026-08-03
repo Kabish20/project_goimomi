@@ -815,24 +815,6 @@ class OTPVerification(models.Model):
         return f"{self.email} - {self.otp} (Verified: {self.is_verified})"
 
 
-class VisaArticle(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.title
-
-
-class VisaArticleImage(models.Model):
-    visa_article = models.ForeignKey(VisaArticle, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="visa_articles/")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Image for {self.visa_article.title}"
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Goimomi Product

@@ -21,7 +21,7 @@ def create_zip(filename, source_dirs):
                 
                 for file in files:
                     file_path = os.path.join(root, file)
-                    arcname = os.path.relpath(file_path, os.path.join(source_dir, '..'))
+                    arcname = os.path.relpath(file_path, os.path.join(source_dir, '..')).replace('\\', '/')
                     zipf.write(file_path, arcname)
 
 if __name__ == "__main__":

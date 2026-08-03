@@ -43,7 +43,7 @@ from .models import (
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
     CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
-    VisaArticle, VisaArticleImage, GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -59,7 +59,7 @@ from .serializers import (
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
-    VisaArticleSerializer, VisaArticleImageSerializer, GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer,
+    GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer,
 )
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -2136,49 +2136,6 @@ def payment_callback(request):
         return HttpResponse(f"Error exchanging authorization code: {e}")
 
 
-class VisaArticleViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    queryset = VisaArticle.objects.all().order_by('-created_at')
-    serializer_class = VisaArticleSerializer
-    pagination_class = None
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        visa_article = serializer.save()
-
-        # Handle multiple images
-        images = request.FILES.getlist('visa_article_images')
-        for img in images:
-            VisaArticleImage.objects.create(visa_article=visa_article, image=img)
-            
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        visa_article = serializer.save()
-
-        # Handle multiple images (append new ones)
-        images = request.FILES.getlist('visa_article_images')
-        if images:
-            for img in images:
-                VisaArticleImage.objects.create(visa_article=visa_article, image=img)
-
-        # Handle removals of specific images
-        remove_ids = request.data.get('remove_image_ids')
-        if remove_ids:
-            try:
-                ids = json.loads(remove_ids) if isinstance(remove_ids, str) else remove_ids
-                if ids:
-                    VisaArticleImage.objects.filter(id__in=ids, visa_article=visa_article).delete()
-            except Exception as e:
-                print(f"Error removing images: {e}")
-
-
-        return Response(serializer.data)
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Goimomi Product
@@ -2331,6 +2288,20 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
         order.refresh_from_db()
 
+        # Record in Enquiry table so admin sees customer details in Enquiries
+        try:
+            prod_info = product_obj.title if product_obj else ", ".join([f"{item['title']} (x{item['quantity']})" for item in validated_items])
+            Enquiry.objects.create(
+                name=name,
+                email=email or "",
+                phone=phone,
+                destination=f"Product Order: {prod_info}",
+                purpose=f"Address: {address} | Quantity: {order.quantity} | Total: ₹{total_amount} | Order ID: {order.order_id}",
+                enquiry_type="General"
+            )
+        except Exception as eq_err:
+            print(f"Error creating general enquiry backup: {eq_err}")
+
         # Generate Zoho Payments session
         try:
             from Holidays.services.zoho_payment import ZohoPaymentService
@@ -2389,15 +2360,13 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 response_data['payment_url'] = payment_url
                 return Response(response_data, status=status.HTTP_201_CREATED)
             else:
-                order.status = 'Cancelled'
-                order.save()
-                return Response({'error': 'Failed to create Zoho checkout session.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                serializer = self.get_serializer(order)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            print(f"Error creating Zoho payment session: {e}")
-            order.status = 'Cancelled'
-            order.save()
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(f"Zoho payment session notice: {e}")
+            serializer = self.get_serializer(order)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
     def verify_zoho_payment(self, request):

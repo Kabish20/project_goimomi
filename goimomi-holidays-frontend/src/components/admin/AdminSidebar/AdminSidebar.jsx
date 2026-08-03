@@ -86,15 +86,7 @@ const menu = [
           { name: "Cab Bookings" },
         ]
       },
-      {
-        name: "Visas",
-        icon: <FileText size={18} />,
-        isDropdown: true,
-        children: [
-          { name: "Manage Visas", key: "Visas" },
-          { name: "Visa Articles", key: "VisaArticles" },
-        ]
-      },
+      { name: "Visas", icon: <FileText size={18} /> },
       { name: "Suppliers", icon: <Truck size={18} /> },
       { name: "Cruise Calendar", icon: <Calendar size={18} /> },
       { name: "Goimomi Products", icon: <ShoppingBag size={18} /> },
@@ -184,7 +176,6 @@ const AdminSidebar = () => {
       case "Holiday Enquiries": return handleAddHolidayEnquiry;
       case "Umrah Enquiries": return handleAddUmrahEnquiry;
       case "Visas": return handleAddVisa;
-      case "VisaArticles": return () => navigate("/admin/visa-articles/add");
       case "Suppliers": return () => navigate("/admin/suppliers/add");
       case "Cruise Calendar": return handleAddCruiseCalendar;
       case "Accommodations": return () => navigate("/admin/accommodations/add");
@@ -220,7 +211,6 @@ const AdminSidebar = () => {
       case "Cruise Enquiries": return handleChangeCruiseEnquiry;
       case "Hotel Enquiries": return handleChangeHotelEnquiry;
       case "Visas": return handleChangeVisa;
-      case "VisaArticles": return () => navigate("/admin/visa-articles");
       case "Visa bookings": return handleChangeVisaApplication;
       case "Cab Bookings": return handleChangeCabBooking;
       case "Suppliers": return () => navigate("/admin/suppliers");

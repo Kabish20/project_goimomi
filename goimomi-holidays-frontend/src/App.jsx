@@ -61,9 +61,6 @@ const UserEdit = lazyRetry(() => import("./pages/admin/UserEdit/UserEdit.jsx"));
 const AdminVisaManage = lazyRetry(() => import("./pages/admin/AdminVisaManage/AdminVisaManage.jsx"));
 const AdminVisaAdd = lazyRetry(() => import("./pages/admin/AdminVisaAdd/AdminVisaAdd.jsx"));
 const AdminVisaEdit = lazyRetry(() => import("./pages/admin/AdminVisaEdit/AdminVisaEdit.jsx"));
-const AdminVisaArticleManage = lazyRetry(() => import("./pages/admin/AdminVisaArticleManage/AdminVisaArticleManage.jsx"));
-const AdminVisaArticleAdd = lazyRetry(() => import("./pages/admin/AdminVisaArticleAdd/AdminVisaArticleAdd.jsx"));
-const AdminVisaArticleEdit = lazyRetry(() => import("./pages/admin/AdminVisaArticleEdit/AdminVisaArticleEdit.jsx"));
 const VisaApplicationManage = lazyRetry(() => import("./pages/admin/VisaApplicationManage/VisaApplicationManage.jsx"));
 const VisaApplicationEdit = lazyRetry(() => import("./pages/admin/VisaApplicationEdit/VisaApplicationEdit.jsx"));
 const CantonEnquiryManage = lazyRetry(() => import("./pages/admin/CantonEnquiryManage/CantonEnquiryManage.jsx"));
@@ -293,9 +290,6 @@ const App = () => {
               <Route path="/admin/visas" element={<AdminVisaManage />} />
               <Route path="/admin/visas/add" element={<AdminVisaAdd />} />
               <Route path="/admin/visas/edit/:id" element={<AdminVisaEdit />} />
-              <Route path="/admin/visa-articles" element={<AdminVisaArticleManage />} />
-              <Route path="/admin/visa-articles/add" element={<AdminVisaArticleAdd />} />
-              <Route path="/admin/visa-articles/edit/:id" element={<AdminVisaArticleEdit />} />
               <Route path="/admin/visa-applications" element={<VisaApplicationManage />} />
               <Route path="/admin/visa-applications/edit/:id" element={<VisaApplicationEdit />} />
               <Route path="/admin/cab-enquiries" element={<CabEnquiryManage />} />

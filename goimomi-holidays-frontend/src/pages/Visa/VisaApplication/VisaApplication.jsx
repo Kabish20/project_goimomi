@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import api from "../../../api";
-import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin, Zap } from "lucide-react";
+import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin, Zap, Loader2, Sparkles } from "lucide-react";
 import { getImageUrl } from "../../../utils/imageUtils";
+import { parsePassportImage } from "../../../utils/passportParser";
 import usePageSEO from "../../../hooks/usePageSEO";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
@@ -158,14 +159,16 @@ const VisaApplication = () => {
         });
     };
 
-    const handleFileChange = (index, field, file) => {
+    const handleFileChange = async (index, field, file) => {
         if (file) {
+            const previewUrl = URL.createObjectURL(file);
             setApplicants(prev => {
                 const updated = [...prev];
                 updated[index] = {
                     ...updated[index],
                     [field]: file,
-                    [`${field}_preview`]: URL.createObjectURL(file)
+                    [`${field}_preview`]: previewUrl,
+                    ...(field === 'passport_front' ? { is_scanning: true, scan_status: 'scanning' } : {})
                 };
                 return updated;
             });
@@ -176,6 +179,43 @@ const VisaApplication = () => {
                 delete newErrors[`applicant_${index}_${field}`];
                 return newErrors;
             });
+
+            // Auto-fill form fields if uploading passport front
+            if (field === 'passport_front' && file.type.startsWith('image/')) {
+                try {
+                    const parsedData = await parsePassportImage(file);
+                    setApplicants(prev => {
+                        const updated = [...prev];
+                        if (!updated[index]) return prev;
+                        const curr = updated[index];
+                        updated[index] = {
+                            ...curr,
+                            is_scanning: false,
+                            scan_status: 'completed',
+                            passport_number: parsedData.passport_number || curr.passport_number,
+                            first_name: parsedData.first_name || curr.first_name,
+                            last_name: parsedData.last_name || curr.last_name,
+                            nationality: parsedData.nationality || curr.nationality,
+                            sex: parsedData.sex || curr.sex,
+                            dob: parsedData.dob || curr.dob,
+                            place_of_birth: parsedData.place_of_birth || curr.place_of_birth,
+                            place_of_issue: parsedData.place_of_issue || curr.place_of_issue,
+                            date_of_issue: parsedData.date_of_issue || curr.date_of_issue,
+                            date_of_expiry: parsedData.date_of_expiry || curr.date_of_expiry,
+                        };
+                        return updated;
+                    });
+                } catch (err) {
+                    console.error("Passport parsing error:", err);
+                    setApplicants(prev => {
+                        const updated = [...prev];
+                        if (updated[index]) {
+                            updated[index] = { ...updated[index], is_scanning: false, scan_status: 'failed' };
+                        }
+                        return updated;
+                    });
+                }
+            }
         }
     };
 
@@ -719,6 +759,15 @@ const VisaApplication = () => {
                                             <div className="mt-2 text-[#14532d] font-semibold text-sm flex items-center justify-center gap-2">
                                                 <CheckCircle size={16} /> File Selected: {applicant.passport_front.name}
                                             </div>
+                                            {applicant.is_scanning ? (
+                                                <div className="mt-3 p-2.5 bg-amber-50 text-amber-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-amber-200 animate-pulse">
+                                                    <Loader2 size={16} className="animate-spin text-amber-600" /> Reading passport details automatically...
+                                                </div>
+                                            ) : applicant.scan_status === 'completed' ? (
+                                                <div className="mt-3 p-2.5 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-200">
+                                                    <Sparkles size={16} className="text-emerald-600" /> Passport scanned! Relevant fields below have been auto-filled. Please review carefully.
+                                                </div>
+                                            ) : null}
                                         </div>
                                     ) : (
                                         <>

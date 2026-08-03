@@ -100,13 +100,14 @@ const BuyNowModal = ({ product, onClose }) => {
 
       const response = await api.post("/api/goimomi-product-orders/", payload, { skipAuth: true });
       
+      if (product.isCartCheckout) {
+        localStorage.removeItem("goimomi_cart");
+      }
+
       if (response.data && response.data.payment_url) {
-        if (product.isCartCheckout) {
-          localStorage.removeItem("goimomi_cart");
-        }
         window.location.href = response.data.payment_url;
       } else {
-        alert("Failed to initiate payment. Please try again.");
+        setSubmitted(true);
       }
     } catch (err) {
       console.error("Error confirming order enquiry:", err);

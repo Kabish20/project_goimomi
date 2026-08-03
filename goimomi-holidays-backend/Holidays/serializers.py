@@ -19,7 +19,7 @@ from .models import (
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
     PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal,
-    VisaArticle, VisaArticleImage, GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
 )
 
 class CantonEnquirySerializer(serializers.ModelSerializer):
@@ -778,18 +778,6 @@ class CabBookingSerializer(serializers.ModelSerializer):
         model = CabBooking
         fields = "__all__"
 
-
-class VisaArticleImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VisaArticleImage
-        fields = "__all__"
-
-
-class VisaArticleSerializer(serializers.ModelSerializer):
-    images = VisaArticleImageSerializer(many=True, read_only=True)
-    class Meta:
-        model = VisaArticle
-        fields = "__all__"
 
 
 class GoimomiProductSerializer(serializers.ModelSerializer):
