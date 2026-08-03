@@ -1974,6 +1974,57 @@ const Cab = () => {
           </div>
         </div>
       )}
+
+      {/* Minimal Popup Modal: No Cab Facility Available */}
+      {noCabModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[1000] p-4 font-sans animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center border border-gray-100 relative animate-in zoom-in-95 duration-300">
+            <button
+              onClick={() => setNoCabModalOpen(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600 border border-amber-100 shadow-xs">
+              <span className="text-2xl">🚗</span>
+            </div>
+
+            <h3 className="text-base font-black text-gray-900 mb-1.5 tracking-tight">No Cab Facility Available</h3>
+            
+            <p className="text-xs text-gray-600 mb-5 leading-relaxed font-medium">
+              There is no cab facility available in the selected route <span className="font-bold text-gray-900">({noCabRouteInfo.from} → {noCabRouteInfo.to})</span>.
+            </p>
+
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setNoCabModalOpen(false);
+                  const fallbackMsg = `Transfer Enquiry: From ${searchParams.fromName} to ${searchParams.toName} on ${searchParams.pickupDate} for ${searchParams.guests} guests.`;
+                  setSelectedCar(fallbackMsg);
+                  setBookingFormData(prev => ({
+                    ...prev,
+                    pickupPoint: searchParams.pickupPoint || searchParams.fromName,
+                    dropPoint: searchParams.dropPoint || searchParams.toName,
+                    pickupDate: searchParams.pickupDate
+                  }));
+                  setIsFormOpen(true);
+                }}
+                className="w-full py-2.5 px-4 bg-[#14532d] hover:bg-[#0f3d21] text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+              >
+                Submit Custom Enquiry
+              </button>
+              <button
+                onClick={() => setNoCabModalOpen(false)}
+                className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs uppercase tracking-wider transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -2071,57 +2122,6 @@ const PaymentSuccessModal = ({ bookingId, onClose }) => {
     </div>
   );
 };
-
-      {/* Minimal Popup Modal: No Cab Facility Available */}
-      {noCabModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[1000] p-4 font-sans animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center border border-gray-100 relative animate-in zoom-in-95 duration-300">
-            <button
-              onClick={() => setNoCabModalOpen(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
-
-            <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600 border border-amber-100 shadow-xs">
-              <span className="text-2xl">🚗</span>
-            </div>
-
-            <h3 className="text-base font-black text-gray-900 mb-1.5 tracking-tight">No Cab Facility Available</h3>
-            
-            <p className="text-xs text-gray-600 mb-5 leading-relaxed font-medium">
-              There is no cab facility available in the selected route <span className="font-bold text-gray-900">({noCabRouteInfo.from} → {noCabRouteInfo.to})</span>.
-            </p>
-
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => {
-                  setNoCabModalOpen(false);
-                  const fallbackMsg = `Transfer Enquiry: From ${searchParams.fromName} to ${searchParams.toName} on ${searchParams.pickupDate} for ${searchParams.guests} guests.`;
-                  setSelectedCar(fallbackMsg);
-                  setBookingFormData(prev => ({
-                    ...prev,
-                    pickupPoint: searchParams.pickupPoint || searchParams.fromName,
-                    dropPoint: searchParams.dropPoint || searchParams.toName,
-                    pickupDate: searchParams.pickupDate
-                  }));
-                  setIsFormOpen(true);
-                }}
-                className="w-full py-2.5 px-4 bg-[#14532d] hover:bg-[#0f3d21] text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
-              >
-                Submit Custom Enquiry
-              </button>
-              <button
-                onClick={() => setNoCabModalOpen(false)}
-                className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs uppercase tracking-wider transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
 
 export default Cab;
