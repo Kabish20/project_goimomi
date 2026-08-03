@@ -158,6 +158,15 @@ const CabCruiseForm = ({ isOpen, onClose, type, initialDescription = "", initial
                         </p>
                         
                         <form onSubmit={handleSubmit} className="space-y-3">
+                            {type === 'Cab' && fromCity && toCity && fromCity.toLowerCase().trim() === toCity.toLowerCase().trim() && (
+                                <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-[11px] font-medium leading-tight flex items-start gap-2 shadow-xs mb-3">
+                                    <span className="text-amber-600 text-sm leading-none mt-0.5">⚠️</span>
+                                    <div>
+                                        <strong className="font-bold block text-amber-950">No Cab Facility Available</strong>
+                                        There is no cab facility available in the selected route ({fromCity} → {toCity}). You may submit a custom enquiry below.
+                                    </div>
+                                </div>
+                            )}
                             {/* Personal Info Group */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="space-y-1">

@@ -65,7 +65,7 @@ const GeneralEnquiryManage = () => {
             const response = await api.get(`${API_BASE_URL}/enquiry-form/`);
             const data = Array.isArray(response.data) ? response.data : (response.data?.results || []);
             // Filter for only General/None enquiries (not Cab, Cruise, or Hotel)
-            const generalData = data.filter(e => !e.enquiry_type || e.enquiry_type === 'General');
+            const generalData = data.filter(e => !e.enquiry_type || e.enquiry_type === 'General' || e.enquiry_type === 'Product Order');
             setEnquiries(generalData);
             setFilteredEnquiries(generalData);
             setError("");

@@ -173,6 +173,8 @@ class DashboardStatsAPI(APIView):
             "cabEnquiries": Enquiry.objects.filter(enquiry_type='Cab').count(),
             "cruiseEnquiries": Enquiry.objects.filter(enquiry_type='Cruise').count(),
             "hotelEnquiries": Enquiry.objects.filter(enquiry_type='Hotel').count(),
+            "productOrders": GoimomiProductOrder.objects.count(),
+            "goimomiProducts": GoimomiProduct.objects.count(),
         }
 
         # 2. Recent Enquiries (Limited to 10 latest across types to avoid heavy load)

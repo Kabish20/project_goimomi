@@ -814,7 +814,17 @@ class GoimomiProductImageSerializer(serializers.ModelSerializer):
 
 
 class GoimomiProductOrderSerializer(serializers.ModelSerializer):
+    product_details = GoimomiProductSerializer(source='product', read_only=True)
+    product_title = serializers.SerializerMethodField()
+
     class Meta:
         model = GoimomiProductOrder
         fields = "__all__"
+
+    def get_product_title(self, obj):
+        if obj.product:
+            return obj.product.title
+        if obj.cart_items:
+            return ", ".join([item.get('title', '') for item in obj.cart_items if item.get('title')])
+        return "N/A"
 
