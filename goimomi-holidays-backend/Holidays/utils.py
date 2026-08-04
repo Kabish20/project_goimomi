@@ -495,10 +495,9 @@ Goimomi Holidays
 
 
     
-    # Generate PDF and attach
+    # Generate Voucher PDF and attach
     try:
         pdf_bytes = generate_booking_pdf(booking)
-        # Use first booking ID or generic name for file
         pdf_filename = f"Voucher_{'_'.join(booking_ids[:2])}.pdf"
         email.attach(
             filename=pdf_filename,
@@ -507,13 +506,24 @@ Goimomi Holidays
         )
     except Exception as e:
         print(f"Error generating or attaching PDF voucher: {e}")
-        # Do not block email sending if PDF generation fails, send standard HTML email
-        pass
-        
+
+    # Generate Invoice PDF and attach
+    try:
+        invoice_pdf_bytes = generate_booking_invoice_pdf(booking)
+        if invoice_pdf_bytes:
+            invoice_filename = f"Invoice_{'_'.join(booking_ids[:2])}.pdf"
+            email.attach(
+                filename=invoice_filename,
+                content=invoice_pdf_bytes,
+                mimetype="application/pdf"
+            )
+    except Exception as e:
+        print(f"Error generating or attaching PDF invoice: {e}")
+
     # Send email
     try:
-        email.send(fail_silently=False)
-        print(f"Booking confirmation email sent successfully to {recipients} for bookings {booking_ids}")
+        email.send(fail_silently=True)
+        print(f"Booking confirmation email with Voucher & Invoice sent successfully to {recipients} for bookings {booking_ids}")
         return True
     except Exception as e:
         print(f"Error sending booking confirmation email: {e}")

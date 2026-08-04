@@ -1390,6 +1390,7 @@ class CabBookingViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        old_status = instance.status
         data = request.data.copy()
         
         # Handle confirmation_doc if it's a file
@@ -1403,6 +1404,16 @@ class CabBookingViewSet(ModelViewSet):
         serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         booking = serializer.save()
+
+        # If status updated to Confirmed or Completed, automatically send Voucher & Invoice email
+        if old_status != booking.status and booking.status in ['Confirmed', 'Completed', 'confirmed', 'completed']:
+            try:
+                from Holidays.utils import send_booking_voucher
+                import threading
+                threading.Thread(target=send_booking_voucher, args=(booking,)).start()
+                print(f"Cab booking voucher & invoice email triggered for booking {booking.booking_id}")
+            except Exception as mail_err:
+                print(f"Error triggering cab booking email on status update: {mail_err}")
 
         # Handle additional documents
         docs_count = request.data.get('additional_docs_count', 0)
