@@ -2311,6 +2311,48 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             
         return Response({'error': 'Invalid or expired OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    def _deduct_stock_and_notify(self, order):
+        """
+        Deducts quantity from product stock and auto-updates stock_status to 'out_of_stock' when quantity reaches 0.
+        """
+        if getattr(order, '_stock_deducted', False):
+            return
+
+        if order.product:
+            prod = order.product
+            prod.quantity = max(0, prod.quantity - order.quantity)
+            prod.save()  # Triggers GoimomiProduct.save() which sets stock_status='out_of_stock' if quantity <= 0
+        elif order.cart_items:
+            for item in order.cart_items:
+                pid = item.get('product_id')
+                qty = int(item.get('quantity', 1))
+                try:
+                    prod = GoimomiProduct.objects.get(pk=pid)
+                    prod.quantity = max(0, prod.quantity - qty)
+                    prod.save()  # Triggers GoimomiProduct.save()
+                except GoimomiProduct.DoesNotExist:
+                    pass
+        
+        order._stock_deducted = True
+
+    def partial_update(self, request, *args, **kwargs):
+        order = self.get_object()
+        old_status = order.status
+        response = super().partial_update(request, *args, **kwargs)
+        order.refresh_from_db()
+
+        # If status changed to Confirmed or Completed, trigger stock deduction and send confirmation email
+        if old_status != order.status and order.status in ['Confirmed', 'Completed', 'confirmed', 'completed']:
+            self._deduct_stock_and_notify(order)
+            try:
+                from Holidays.utils import send_product_order_email
+                send_product_order_email(order)
+                print(f"Product Order email triggered for Order {order.order_id} (Status: {order.status}) to {order.email}")
+            except Exception as mail_err:
+                print(f"Error sending email on admin status change: {mail_err}")
+
+        return response
+
     def create(self, request, *args, **kwargs):
         product_id = request.data.get('product') # None if cart checkout
         cart_items = request.data.get('cart_items') # list of dicts: [{'product_id': id, 'quantity': qty, 'price': price}]

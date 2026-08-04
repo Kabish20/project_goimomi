@@ -1251,7 +1251,7 @@ def send_product_order_email(order):
             f"For support, contact support@goimomi.com or hello@goimomi.com.\n"
         )
 
-        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'support@goimomi.com')
+        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@goimomi.com'))
         recipients = [order.email] if order.email else ['hello@goimomi.com']
         cc_recipients = ['hello@goimomi.com']
 
@@ -1260,12 +1260,20 @@ def send_product_order_email(order):
             body=text_content,
             from_email=sender,
             to=recipients,
-            cc=cc_recipients
+            cc=cc_recipients,
+            reply_to=['support@goimomi.com', 'hello@goimomi.com']
         )
         msg.attach_alternative(html_content, "text/html")
 
-        threading.Thread(target=msg.send, kwargs={'fail_silently': False}).start()
-        print(f"Product order email dispatched for order {order.order_id} to {recipients} with CC {cc_recipients}")
+        def _send_async():
+            try:
+                msg.send(fail_silently=True)
+                print(f"Product order email dispatched for order {order.order_id} to {recipients} with CC {cc_recipients}")
+            except Exception as mail_e:
+                print(f"Email send notice for order {order.order_id}: {mail_e}")
+
+        import threading
+        threading.Thread(target=_send_async).start()
         return True
     except Exception as e:
         print(f"Error sending product order email: {e}")
