@@ -479,9 +479,9 @@ Goimomi Holidays
         bcc_recipients = [company_email] if company_email else []
         
     # Build email message
-    sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Reservations@goimomi.com')
+    sender = getattr(settings, 'CAB_BOOKING_FROM_EMAIL', 'Goimomi Holidays <Reservations@goimomi.com>')
     if not sender:
-        sender = 'Reservations@goimomi.com'
+        sender = 'Goimomi Holidays <Reservations@goimomi.com>'
         
     email = EmailMultiAlternatives(
         subject=subject,
@@ -1261,7 +1261,7 @@ def send_product_order_email(order):
             f"For support, contact support@goimomi.com or hello@goimomi.com.\n"
         )
 
-        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@goimomi.com'))
+        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'Goimomi Holidays <support@goimomi.com>')
         recipients = [order.email] if order.email else ['hello@goimomi.com']
         cc_recipients = ['hello@goimomi.com']
 
