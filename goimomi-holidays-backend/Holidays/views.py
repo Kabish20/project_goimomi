@@ -2560,21 +2560,49 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 if not hmac.compare_digest(expected_signature, signature):
                     print(f"Verify Warning: Product Order signature mismatch. Expected: {expected_signature}, Got: {signature}")
                     signature_ok = False
-            else:
-                signature_ok = False
-
         try:
-            api_success = False
-            session_status = ''
-            try:
-                session = ZohoPaymentService.get_payment_session(session_id)
-                session_status = _safe_get(session, 'status', '').lower()
-                payments_list = _safe_get(session, 'payments', [])
-                if not payments_list and isinstance(session, dict):
-                    payments_list = session.get('data', {}).get('payments', [])
+            param_success = False
+            session_status = request.GET.get('payment_session_status') or request.GET.get('payment_status') or request.POST.get('payment_session_status') or request.POST.get('payment_status')
+            if session_status in ['paid', 'completed', 'succeeded', 'PAID', 'COMPLETED', 'SUCCEEDED']:
+                param_success = True
 
-                has_succeeded_payment = any(_safe_get(p, 'status', '').lower() in ['succeeded', 'paid', 'success'] for p in (payments_list or []))
-                if session_status in ['paid', 'succeeded', 'completed', 'success'] or has_succeeded_payment:
+            signature_ok = True
+            signature = request.GET.get('signature') or request.POST.get('signature')
+            signing_key = getattr(settings, 'ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY', '')
+            if signature and signing_key:
+                try:
+                    import hmac, hashlib
+                    payments_session_id = session_id or getattr(order, 'zoho_payment_session_id', '')
+                    payment_session_status = session_status or 'paid'
+                    payment_id = request.GET.get('payment_id', '')
+                    payment_status = request.GET.get('payment_status', '')
+                    amount = str(request.GET.get('amount', ''))
+                    mandate_id = request.GET.get('mandate_id', '')
+                    udf1 = request.GET.get('udf1', '')
+                    udf2 = request.GET.get('udf2', '')
+                    udf3 = request.GET.get('udf3', '')
+                    udf4 = request.GET.get('udf4', '')
+                    udf5 = request.GET.get('udf5', '')
+                    
+                    data_str = f"{payments_session_id}|{payment_session_status}|{payment_id}|{payment_status}|{amount}|{mandate_id}|{udf1}|{udf2}|{udf3}|{udf4}|{udf5}"
+                    expected_signature = hmac.new(signing_key.encode('utf-8'), data_str.encode('utf-8'), hashlib.sha256).hexdigest()
+                    if not hmac.compare_digest(expected_signature, signature):
+                        print("Notice: Query params signature mismatch, verifying via API...")
+                        signature_ok = False
+                except Exception as sig_err:
+                    print(f"Signature check notice: {sig_err}")
+
+            api_success = False
+            try:
+                from Holidays.services.zoho_payment import ZohoPaymentService
+                s_status, s_data = ZohoPaymentService.get_payment_session(order.zoho_payment_session_id)
+                def _safe_get(obj, key, default=None):
+                    if isinstance(obj, dict):
+                        return obj.get(key, default)
+                    return getattr(obj, key, default)
+
+                remote_status = str(_safe_get(s_data, 'status', '')).lower()
+                if remote_status in ['paid', 'completed', 'succeeded']:
                     api_success = True
             except Exception as s_err:
                 print(f"Notice retrieving Product Zoho session: {s_err}")
@@ -2586,25 +2614,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                     order.invoice_number = f"GM-PRD-{random.randint(100000, 999999)}"
                     order.save()
 
-                    # Deduct product stock quantity
-                    if order.product:
-                        prod = order.product
-                        prod.quantity = max(0, prod.quantity - order.quantity)
-                        if prod.quantity == 0:
-                            prod.stock_status = 'out_of_stock'
-                        prod.save()
-                    elif order.cart_items:
-                        for item in order.cart_items:
-                            pid = item.get('product_id')
-                            qty = int(item.get('quantity', 1))
-                            try:
-                                prod = GoimomiProduct.objects.get(pk=pid)
-                                prod.quantity = max(0, prod.quantity - qty)
-                                if prod.quantity == 0:
-                                    prod.stock_status = 'out_of_stock'
-                                prod.save()
-                            except GoimomiProduct.DoesNotExist:
-                                pass
+                    # Deduct product stock quantity and auto-update stock_status
+                    self._deduct_stock_and_notify(order)
 
                     # Sync user to Zoho CRM Contact list
                     try:
@@ -2701,25 +2712,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                         order.save()
                         print(f"Webhook Success: Product Order {order.order_id} confirmed via webhook")
 
-                        # Deduct product stock quantity
-                        if order.product:
-                            prod = order.product
-                            prod.quantity = max(0, prod.quantity - order.quantity)
-                            if prod.quantity == 0:
-                                prod.stock_status = 'out_of_stock'
-                            prod.save()
-                        elif order.cart_items:
-                            for item in order.cart_items:
-                                pid = item.get('product_id')
-                                qty = int(item.get('quantity', 1))
-                                try:
-                                    prod = GoimomiProduct.objects.get(pk=pid)
-                                    prod.quantity = max(0, prod.quantity - qty)
-                                    if prod.quantity == 0:
-                                        prod.stock_status = 'out_of_stock'
-                                    prod.save()
-                                except GoimomiProduct.DoesNotExist:
-                                    pass
+                        # Deduct product stock quantity and auto-update stock_status
+                        self._deduct_stock_and_notify(order)
 
                         # Sync user to Zoho CRM Contact list
                         try:

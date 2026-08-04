@@ -433,7 +433,7 @@ const BuyNowModal = ({ product, onClose }) => {
 const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart, onViewCart, cartCount }) => {
   const [selectedImgIdx, setSelectedImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
-  const isOutOfStock = product.stock_status === "out_of_stock";
+  const isOutOfStock = product.stock_status === "out_of_stock" || Number(product.quantity || 0) <= 0;
 
   // Build images list
   const images = [];
@@ -594,7 +594,7 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
 
 /* ─── Product Card ─────────────────────────────────────────── */
 const ProductCard = ({ product, onAddToCart, onBuyNow, isInCart, onViewDetails }) => {
-  const isOutOfStock = product.stock_status === "out_of_stock";
+  const isOutOfStock = product.stock_status === "out_of_stock" || Number(product.quantity || 0) <= 0;
   const [currentIdx, setCurrentIdx] = useState(0);
 
   // Build list of all available images

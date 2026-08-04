@@ -849,6 +849,15 @@ class GoimomiProduct(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        if self.quantity is not None:
+            if self.quantity <= 0:
+                self.quantity = 0
+                self.stock_status = 'out_of_stock'
+            elif self.quantity > 0 and self.stock_status == 'out_of_stock':
+                self.stock_status = 'in_stock'
+        super().save(*args, **kwargs)
+
     @property
     def discount_percent(self):
         if self.mrp and self.mrp > 0:
