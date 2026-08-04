@@ -184,7 +184,7 @@ const ProductManage = () => {
   // Calculate order metrics
   const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
   const pendingOrdersCount = orders.filter(o => o.status === 'Pending').length;
-  const confirmedOrdersCount = orders.filter(o => o.status === 'Confirmed').length;
+  const confirmedOrdersCount = orders.filter(o => o.status === 'Confirmed' || o.status === 'Completed').length;
 
   return (
     <div className="flex bg-gray-100 h-full overflow-hidden">
@@ -459,6 +459,7 @@ const ProductManage = () => {
                   <option value="all">All Statuses</option>
                   <option value="Pending">Pending</option>
                   <option value="Confirmed">Confirmed</option>
+                  <option value="Completed">Completed</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
@@ -520,7 +521,7 @@ const ProductManage = () => {
                                 value={order.status}
                                 onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
                                 className={`px-2.5 py-1 rounded-full text-xs font-bold border outline-none cursor-pointer ${
-                                  order.status === 'Confirmed'
+                                  order.status === 'Confirmed' || order.status === 'Completed'
                                     ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
                                     : order.status === 'Cancelled'
                                     ? 'bg-red-50 text-red-800 border-red-300'
@@ -529,6 +530,7 @@ const ProductManage = () => {
                               >
                                 <option value="Pending">Pending</option>
                                 <option value="Confirmed">Confirmed</option>
+                                <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
                               </select>
                             </td>
@@ -659,6 +661,7 @@ const ProductManage = () => {
                       >
                         <option value="Pending">Pending</option>
                         <option value="Confirmed">Confirmed</option>
+                        <option value="Completed">Completed</option>
                         <option value="Cancelled">Cancelled</option>
                       </select>
                     </div>

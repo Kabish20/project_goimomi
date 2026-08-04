@@ -1,3 +1,5 @@
+import os
+import base64
 import io
 from datetime import datetime
 from django.core.mail import EmailMultiAlternatives
@@ -1156,4 +1158,117 @@ Goimomi Holidays
     except Exception as e:
         print(f"Failed to send invoice email: {e}")
         return False
+
+
+def send_product_order_email(order):
+    """
+    Sends a professional product order confirmation email to the customer.
+    Sender: support@goimomi.com
+    CC: hello@goimomi.com
+    Recipient: customer email (or hello@goimomi.com if no email provided)
+    """
+    try:
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+        from django.conf import settings
+        import threading
+
+        subject = f"Order Placed & Confirmed: {order.order_id} - Goimomi Holidays"
+        
+        items = []
+        if order.cart_items:
+            for item in order.cart_items:
+                title = item.get('title') or item.get('name') or "Product Item"
+                qty = int(item.get('quantity', 1))
+                price = float(item.get('price', 0))
+                items.append({
+                    'title': title,
+                    'quantity': qty,
+                    'price': price,
+                    'total': price * qty
+                })
+        elif order.product:
+            items.append({
+                'title': order.product.title,
+                'quantity': order.quantity,
+                'price': float(order.price),
+                'total': float(order.total_amount)
+            })
+        else:
+            items.append({
+                'title': "Product Order",
+                'quantity': order.quantity,
+                'price': float(order.price or order.total_amount),
+                'total': float(order.total_amount)
+            })
+
+        order_date_str = order.created_at.strftime('%d %b %Y, %I:%M %p') if getattr(order, 'created_at', None) else "N/A"
+
+        # Fetch and encode Logo locally or remotely
+        logo_data_uri = ""
+        local_logo_paths = [
+            os.path.join(settings.BASE_DIR, 'Holidays', 'static', 'goimomilogo.png'),
+            os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomi-holidays-frontend', 'src', 'assets', 'goimomilogo.png'),
+        ]
+        for l_path in local_logo_paths:
+            if os.path.exists(l_path):
+                try:
+                    with open(l_path, "rb") as lf:
+                        encoded_logo = base64.b64encode(lf.read()).decode("utf-8")
+                        logo_data_uri = f"data:image/png;base64,{encoded_logo}"
+                        break
+                except Exception as l_err:
+                    print(f"Notice reading local logo file {l_path}: {l_err}")
+
+        if not logo_data_uri:
+            try:
+                from Holidays.utils import get_image_as_base64_uri
+                logo_data_uri = get_image_as_base64_uri("https://goimomi.com/logo.png")
+            except Exception:
+                logo_data_uri = "https://goimomi.com/logo.png"
+
+        context = {
+            'logo_data_uri': logo_data_uri,
+            'customer_name': order.name,
+            'order_id': order.order_id or f"GO-ORD-{order.id}",
+            'order_date': order_date_str,
+            'invoice_number': order.invoice_number or f"GM-PRD-{order.id}",
+            'total_amount': f"{float(order.total_amount):,.2f}",
+            'customer_phone': order.phone,
+            'customer_email': order.email or '',
+            'delivery_address': order.address,
+            'items': items
+        }
+
+        html_content = render_to_string('emails/product_order_confirmation.html', context)
+
+        text_content = (
+            f"Dear {order.name},\n\n"
+            f"Thank you for your purchase with Goimomi Holidays!\n"
+            f"Order ID: {order.order_id or order.id}\n"
+            f"Total Amount Paid: INR {order.total_amount}\n"
+            f"Delivery Address: {order.address}\n\n"
+            f"For support, contact support@goimomi.com or hello@goimomi.com.\n"
+        )
+
+        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'support@goimomi.com')
+        recipients = [order.email] if order.email else ['hello@goimomi.com']
+        cc_recipients = ['hello@goimomi.com']
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=sender,
+            to=recipients,
+            cc=cc_recipients
+        )
+        msg.attach_alternative(html_content, "text/html")
+
+        threading.Thread(target=msg.send, kwargs={'fail_silently': False}).start()
+        print(f"Product order email dispatched for order {order.order_id} to {recipients} with CC {cc_recipients}")
+        return True
+    except Exception as e:
+        print(f"Error sending product order email: {e}")
+        return False
+
 

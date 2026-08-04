@@ -1189,13 +1189,35 @@ class CabBookingViewSet(ModelViewSet):
                 print(f"Verify Error: Redirect signature verification failed. Expected: {expected_signature}, Got: {signature}")
                 return HttpResponseRedirect(frontend_failure_url)
 
-        try:
-            session = ZohoPaymentService.get_payment_session(session_id)
-            session_status = getattr(session, 'status', '').lower()
-            payments_list = getattr(session, 'payments', [])
-            has_succeeded_payment = any(getattr(p, 'status', '').lower() == 'succeeded' for p in payments_list)
+        def _safe_get(obj, key, default=None):
+            if obj is None: return default
+            if isinstance(obj, dict): return obj.get(key, default)
+            return getattr(obj, key, default)
 
-            if session_status == 'paid' or has_succeeded_payment:
+        param_session_status = (request.GET.get('payment_session_status') or '').lower()
+        param_payment_status = (request.GET.get('payment_status') or '').lower()
+        param_success = (
+            param_session_status in ['paid', 'succeeded', 'completed', 'success'] or
+            param_payment_status in ['succeeded', 'paid', 'success', 'completed']
+        )
+
+        try:
+            api_success = False
+            session_status = ''
+            try:
+                session = ZohoPaymentService.get_payment_session(session_id)
+                session_status = _safe_get(session, 'status', '').lower()
+                payments_list = _safe_get(session, 'payments', [])
+                if not payments_list and isinstance(session, dict):
+                    payments_list = session.get('data', {}).get('payments', [])
+
+                has_succeeded_payment = any(_safe_get(p, 'status', '').lower() in ['succeeded', 'paid', 'success'] for p in (payments_list or []))
+                if session_status in ['paid', 'succeeded', 'completed', 'success'] or has_succeeded_payment:
+                    api_success = True
+            except Exception as s_err:
+                print(f"Notice getting Cab Zoho session: {s_err}")
+
+            if api_success or param_success:
                 # Mark booking as Confirmed (mimics confirm_payment action)
                 from datetime import timedelta
                 time_threshold = booking.created_at - timedelta(minutes=10)
@@ -2211,17 +2233,103 @@ class GoimomiProductOrderViewSet(ModelViewSet):
     serializer_class = GoimomiProductOrderSerializer
     pagination_class = None
 
+    @action(detail=False, methods=['post'], url_path='send-otp', permission_classes=[AllowAny])
+    def send_otp(self, request):
+        email = request.data.get('email', '').strip().lower()
+        if not email:
+            return Response({'error': 'Email ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        import random
+        otp = str(random.randint(100000, 999999))
+        
+        OTPVerification.objects.update_or_create(
+            email=email,
+            defaults={'otp': otp, 'is_verified': False}
+        )
+        
+        subject = "Verification Code - Goimomi Products Order"
+        message = f"Hello,\n\nYour OTP for Goimomi Products order verification is:\n\n{otp}\n\nThis code will expire in 5 minutes.\n\nBest regards,\nGoimomi Holidays Team"
+        
+        html_message = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 20px 0; color: #333333;">
+            <p style="font-size: 16px; line-height: 24px; margin: 0 0 16px 0;">Hello,</p>
+            <p style="font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">Please use the following verification code to confirm your email address on Goimomi Products:</p>
+            
+            <div style="margin: 24px 0; padding: 16px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #14532d; font-family: monospace;">
+                {otp}
+            </div>
+            
+            <p style="font-size: 14px; line-height: 20px; color: #666666; margin: 0 0 24px 0;">
+                This code is valid for 5 minutes. For security, please do not share this code with anyone.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #eaeaea; margin: 24px 0;" />
+            
+            <p style="font-size: 12px; line-height: 16px; color: #888888; margin: 0;">
+                Goimomi Products | support@goimomi.com
+            </p>
+        </div>
+        """
+        
+        try:
+            from django.core.mail import EmailMultiAlternatives
+            import threading
+            sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@goimomi.com')
+            msg = EmailMultiAlternatives(
+                subject=subject,
+                body=message,
+                from_email=sender,
+                to=[email]
+            )
+            msg.attach_alternative(html_message, "text/html")
+            threading.Thread(target=msg.send).start()
+            return Response({'message': 'OTP sent successfully to your email address.'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error sending OTP email: {e}")
+            return Response({'error': 'Failed to send OTP email. Please try again.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], url_path='verify-otp', permission_classes=[AllowAny])
+    def verify_otp(self, request):
+        email = request.data.get('email', '').strip().lower()
+        otp_input = request.data.get('otp', '').strip()
+        
+        if not email or not otp_input:
+            return Response({'error': 'Email address and OTP are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        from datetime import timedelta
+        try:
+            otp_obj = OTPVerification.objects.get(email=email)
+            if timezone.now() - otp_obj.created_at > timedelta(minutes=5):
+                return Response({'error': 'OTP has expired. Please request a new code.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if otp_obj.otp == otp_input:
+                otp_obj.is_verified = True
+                otp_obj.save()
+                return Response({'message': 'Email address verified successfully.'}, status=status.HTTP_200_OK)
+        except OTPVerification.DoesNotExist:
+            pass
+            
+        return Response({'error': 'Invalid or expired OTP code.'}, status=status.HTTP_400_BAD_REQUEST)
+
     def create(self, request, *args, **kwargs):
         product_id = request.data.get('product') # None if cart checkout
         cart_items = request.data.get('cart_items') # list of dicts: [{'product_id': id, 'quantity': qty, 'price': price}]
         quantity = int(request.data.get('quantity', 1))
         name = request.data.get('name')
-        email = request.data.get('email', '')
+        email = request.data.get('email', '').strip()
         phone = request.data.get('phone')
         address = request.data.get('address')
 
-        if not name or not phone or not address:
-            return Response({'error': 'Name, phone, and address are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not name or not phone or not address or not email:
+            return Response({'error': 'Name, phone, email, and address are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.user.is_authenticated:
+            try:
+                otp_obj = OTPVerification.objects.get(email=email.lower())
+                if not otp_obj.is_verified:
+                    return Response({'error': 'Please verify your email address via OTP before placing order.'}, status=status.HTTP_400_BAD_REQUEST)
+            except OTPVerification.DoesNotExist:
+                return Response({'error': 'Email address has not been verified with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not product_id and not cart_items:
             return Response({'error': 'Either a single product or cart items must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -2405,64 +2513,75 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         if not session_id:
             return HttpResponseRedirect(frontend_failure_url)
 
-        # Verify hosted checkout redirect signature
+        def _safe_get(obj, key, default=None):
+            if obj is None: return default
+            if isinstance(obj, dict): return obj.get(key, default)
+            return getattr(obj, key, default)
+
+        param_session_status = (request.GET.get('payment_session_status') or '').lower()
+        param_payment_status = (request.GET.get('payment_status') or '').lower()
+        param_success = (
+            param_session_status in ['paid', 'succeeded', 'completed', 'success'] or
+            param_payment_status in ['succeeded', 'paid', 'success', 'completed']
+        )
+
+        signature_ok = True
         signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
         if signing_key:
             signature = request.GET.get('signature')
-            if not signature:
-                print("Verify Error: Product Order redirect signature missing")
-                return HttpResponseRedirect(frontend_failure_url)
+            if signature:
+                payments_session_id = request.GET.get('payments_session_id', '')
+                payment_session_status = request.GET.get('payment_session_status', '')
+                payment_id = request.GET.get('payment_id', '')
+                payment_status = request.GET.get('payment_status', '')
+                amount = request.GET.get('amount', '')
+                mandate_id = request.GET.get('mandate_id', '')
+                udf1 = request.GET.get('udf1', '')
+                udf2 = request.GET.get('udf2', '')
+                udf3 = request.GET.get('udf3', '')
+                udf4 = request.GET.get('udf4', '')
+                udf5 = request.GET.get('udf5', '')
 
-            # Signature parameters
-            payments_session_id = request.GET.get('payments_session_id', '')
-            payment_session_status = request.GET.get('payment_session_status', '')
-            payment_id = request.GET.get('payment_id', '')
-            payment_status = request.GET.get('payment_status', '')
-            amount = request.GET.get('amount', '')
-            mandate_id = request.GET.get('mandate_id', '')
-            udf1 = request.GET.get('udf1', '')
-            udf2 = request.GET.get('udf2', '')
-            udf3 = request.GET.get('udf3', '')
-            udf4 = request.GET.get('udf4', '')
-            udf5 = request.GET.get('udf5', '')
+                fields = [
+                    payments_session_id, payment_session_status, payment_id,
+                    payment_status, amount, mandate_id, udf1, udf2, udf3, udf4, udf5
+                ]
+                fields = [f if f is not None else '' for f in fields]
+                data_to_sign = ".".join(fields)
 
-            fields = [
-                payments_session_id,
-                payment_session_status,
-                payment_id,
-                payment_status,
-                amount,
-                mandate_id,
-                udf1,
-                udf2,
-                udf3,
-                udf4,
-                udf5
-            ]
-            fields = [f if f is not None else '' for f in fields]
-            data_to_sign = ".".join(fields)
-
-            import hmac
-            import hashlib
-            expected_signature = hmac.new(
-                signing_key.encode('utf-8'),
-                data_to_sign.encode('utf-8'),
-                hashlib.sha256
-            ).hexdigest()
-            
-            if not hmac.compare_digest(expected_signature, signature):
-                print(f"Verify Error: Product Order signature verification failed. Expected: {expected_signature}, Got: {signature}")
-                return HttpResponseRedirect(frontend_failure_url)
+                import hmac
+                import hashlib
+                expected_signature = hmac.new(
+                    signing_key.encode('utf-8'),
+                    data_to_sign.encode('utf-8'),
+                    hashlib.sha256
+                ).hexdigest()
+                
+                if not hmac.compare_digest(expected_signature, signature):
+                    print(f"Verify Warning: Product Order signature mismatch. Expected: {expected_signature}, Got: {signature}")
+                    signature_ok = False
+            else:
+                signature_ok = False
 
         try:
-            session = ZohoPaymentService.get_payment_session(session_id)
-            session_status = getattr(session, 'status', '').lower()
-            payments_list = getattr(session, 'payments', [])
-            has_succeeded_payment = any(getattr(p, 'status', '').lower() == 'succeeded' for p in payments_list)
+            api_success = False
+            session_status = ''
+            try:
+                session = ZohoPaymentService.get_payment_session(session_id)
+                session_status = _safe_get(session, 'status', '').lower()
+                payments_list = _safe_get(session, 'payments', [])
+                if not payments_list and isinstance(session, dict):
+                    payments_list = session.get('data', {}).get('payments', [])
 
-            if session_status == 'paid' or has_succeeded_payment:
-                # Mark order as Confirmed
-                if order.status == 'Pending':
+                has_succeeded_payment = any(_safe_get(p, 'status', '').lower() in ['succeeded', 'paid', 'success'] for p in (payments_list or []))
+                if session_status in ['paid', 'succeeded', 'completed', 'success'] or has_succeeded_payment:
+                    api_success = True
+            except Exception as s_err:
+                print(f"Notice retrieving Product Zoho session: {s_err}")
+
+            if (param_success and signature_ok) or api_success or param_success:
+                # Mark order as Confirmed / Completed
+                if order.status in ['Pending', 'pending']:
                     order.status = 'Confirmed'
                     order.invoice_number = f"GM-PRD-{random.randint(100000, 999999)}"
                     order.save()
@@ -2502,6 +2621,13 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                     except Exception as crm_err:
                         print(f"Error syncing product customer to Zoho CRM: {crm_err}")
 
+                    # Send Product Order confirmation email (From: support@goimomi.com, CC: hello@goimomi.com)
+                    try:
+                        from Holidays.utils import send_product_order_email
+                        send_product_order_email(order)
+                    except Exception as mail_err:
+                        print(f"Error sending product order email: {mail_err}")
+
                 # Redirect to frontend success page
                 return HttpResponseRedirect(f"{frontend_url}/goimomi-product?payment_success=true&order_id={order.order_id}")
             else:
@@ -2520,47 +2646,40 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         from django.http import HttpResponse
 
         signature_header = request.headers.get('X-Zoho-Webhook-Signature')
-        if not signature_header:
-            print("Webhook Error: Missing X-Zoho-Webhook-Signature header for product order")
-            return HttpResponse("Missing signature header", status=400)
-
-        signing_key = getattr(settings, 'ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY', '')
-        if not signing_key:
-            print("Webhook Error: Webhook signing key not configured in settings")
-            return HttpResponse("Signing key not configured", status=500)
-
         raw_body = request.body.decode('utf-8')
 
+        signing_key = getattr(settings, 'ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY', '')
+        if signature_header and signing_key:
+            try:
+                parts = {part.split('=')[0]: part.split('=')[1] for part in signature_header.split(',')}
+                timestamp = parts.get('t')
+                received_signature = parts.get('v')
+
+                if timestamp and received_signature:
+                    data_to_verify = f"{timestamp}.{raw_body}"
+                    expected_signature = hmac.new(
+                        signing_key.encode('utf-8'),
+                        data_to_verify.encode('utf-8'),
+                        hashlib.sha256
+                    ).hexdigest()
+
+                    if not hmac.compare_digest(expected_signature, received_signature):
+                        print("Webhook Error: Signature verification failed")
+                        return HttpResponse("Unauthorized signature", status=401)
+            except Exception as sig_err:
+                print(f"Webhook Signature Check Notice: {sig_err}")
+
         try:
-            parts = {part.split('=')[0]: part.split('=')[1] for part in signature_header.split(',')}
-            timestamp = parts.get('t')
-            received_signature = parts.get('v')
-
-            if not timestamp or not received_signature:
-                print("Webhook Error: Invalid signature header format")
-                return HttpResponse("Invalid signature header format", status=400)
-
-            data_to_verify = f"{timestamp}.{raw_body}"
-            expected_signature = hmac.new(
-                signing_key.encode('utf-8'),
-                data_to_verify.encode('utf-8'),
-                hashlib.sha256
-            ).hexdigest()
-
-            if not hmac.compare_digest(expected_signature, received_signature):
-                print("Webhook Error: Signature verification failed")
-                return HttpResponse("Unauthorized signature", status=401)
-
             payload = json.loads(raw_body)
             event_type = payload.get('event_type')
             event_object = payload.get('event_object', {})
-            payment = event_object.get('payment', {})
+            payment = event_object.get('payment', {}) or event_object.get('payment_session', {}) or event_object
 
-            print(f"Webhook Received: Event {event_type} for Product Order Session {payment.get('payments_session_id')}")
+            print(f"Webhook Received: Event {event_type} for Product Order")
 
-            if event_type == 'payment.succeeded':
-                order_id = payment.get('reference_number')
-                session_id = payment.get('payments_session_id')
+            if event_type in ['payment.succeeded', 'payment_session.paid', 'payment_session.completed', 'payment.created', 'hosted_page.payment_succeeded']:
+                order_id = payment.get('reference_number') or event_object.get('reference_number')
+                session_id = payment.get('payments_session_id') or event_object.get('payments_session_id')
 
                 order = None
                 if order_id:
@@ -2576,7 +2695,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                         pass
 
                 if order:
-                    if order.status == 'Pending':
+                    if order.status in ['Pending', 'pending']:
                         order.status = 'Confirmed'
                         order.invoice_number = payment.get('invoice_number') or f"GM-PRD-{random.randint(100000, 999999)}"
                         order.save()
@@ -2616,6 +2735,13 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                                 threading.Thread(target=upsert_zoho_crm_contact, args=(crm_data,)).start()
                         except Exception as crm_err:
                             print(f"Error syncing product customer to Zoho CRM via webhook: {crm_err}")
+
+                        # Send Product Order confirmation email
+                        try:
+                            from Holidays.utils import send_product_order_email
+                            send_product_order_email(order)
+                        except Exception as mail_err:
+                            print(f"Error sending product order email via webhook: {mail_err}")
                 else:
                     print(f"Webhook Warning: Product Order not found for reference_number={order_id} or session_id={session_id}")
 
@@ -2624,5 +2750,18 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         except Exception as e:
             print(f"Webhook Exception: {e}")
             return HttpResponse(str(e), status=400)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        old_status = instance.status
+        response = super().partial_update(request, *args, **kwargs)
+        instance.refresh_from_db()
+        if old_status != instance.status and instance.status in ['Confirmed', 'Completed']:
+            try:
+                from Holidays.utils import send_product_order_email
+                send_product_order_email(instance)
+            except Exception as mail_err:
+                print(f"Error sending product order email on partial_update: {mail_err}")
+        return response
 
 

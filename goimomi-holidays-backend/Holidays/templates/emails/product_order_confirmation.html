@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - {{ order_id }} | Goimomi</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 620px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #14532d 0%, #16a34a 100%);
+            padding: 32px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            color: #d1fae5;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-weight: 600;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #dcfce7;
+            color: #15803d;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-top: 14px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: 1px solid #bbf7d0;
+        }
+        .content {
+            padding: 35px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+        .order-summary-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+        .summary-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-grid td {
+            padding: 6px 0;
+            font-size: 13px;
+        }
+        .summary-grid .label {
+            color: #64748b;
+            font-weight: 600;
+            width: 40%;
+        }
+        .summary-grid .value {
+            color: #0f172a;
+            font-weight: 700;
+            text-align: right;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #1e293b;
+            margin: 28px 0 14px 0;
+            border-bottom: 2px solid #16a34a;
+            padding-bottom: 6px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        .items-table th {
+            background-color: #14532d;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .items-table th.right, .items-table td.right {
+            text-align: right;
+        }
+        .items-table td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .total-row td {
+            background-color: #f0fdf4;
+            font-weight: 800;
+            font-size: 15px;
+            color: #14532d;
+            border-top: 2px solid #bbf7d0;
+            padding: 14px;
+        }
+        .address-box {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 28px;
+        }
+        .address-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #16a34a;
+            font-weight: 800;
+        }
+        .address-box p {
+            margin: 3px 0;
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.5;
+        }
+        .support-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .support-box p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: #166534;
+        }
+        .support-box strong {
+            color: #14532d;
+        }
+        .footer {
+            background-color: #0f172a;
+            padding: 28px 20px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        .footer p {
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #4ade80;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div style="background: #ffffff; display: inline-block; padding: 12px 26px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                <img src="{% if logo_data_uri %}{{ logo_data_uri }}{% else %}https://goimomi.com/logo.png{% endif %}" alt="Goimomi" style="display: block; height: 48px; width: auto; max-width: 220px; border: 0; outline: none;" />
+            </div>
+            <p>E-Commerce Order Confirmation</p>
+            <div class="status-badge">Order Placed & Confirmed</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Dear <strong>{{ customer_name }}</strong>,<br><br>
+                Thank you for your purchase with <strong>Goimomi Holidays</strong>! We are pleased to confirm that your order has been successfully placed and payment has been processed.
+            </div>
+
+            <!-- Order Summary Card -->
+            <div class="order-summary-box">
+                <table class="summary-grid">
+                    <tr>
+                        <td class="label">Order Number:</td>
+                        <td class="value">{{ order_id }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Order Date:</td>
+                        <td class="value">{{ order_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Invoice Number:</td>
+                        <td class="value">{{ invoice_number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Payment Status:</td>
+                        <td class="value" style="color: #16a34a;">Paid & Confirmed</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Products Table -->
+            <div class="section-title">Order Items Breakdown</div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th class="right">Qty</th>
+                        <th class="right">Unit Price</th>
+                        <th class="right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.title }}</strong></td>
+                        <td class="right">{{ item.quantity }}</td>
+                        <td class="right">₹{{ item.price|floatformat:2 }}</td>
+                        <td class="right">₹{{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="3">Grand Total Paid:</td>
+                        <td class="right">₹{{ total_amount }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Delivery Address Card -->
+            <div class="section-title">Delivery & Customer Details</div>
+            <div class="address-box">
+                <h4>Delivery Recipient</h4>
+                <p><strong>Name:</strong> {{ customer_name }}</p>
+                <p><strong>Phone:</strong> {{ customer_phone }}</p>
+                {% if customer_email %}
+                <p><strong>Email:</strong> {{ customer_email }}</p>
+                {% endif %}
+                <p style="margin-top: 10px;"><strong>Delivery Address:</strong></p>
+                <p style="white-space: pre-line; color: #1e293b;">{{ delivery_address }}</p>
+            </div>
+
+            <!-- Support Box -->
+            <div class="support-box">
+                <p style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Need Help with Your Order?</p>
+                <p>Contact Customer Support: <strong>support@goimomi.com</strong> </p>
+                <p>Customer Care Helpline: <strong>+91 81100 82222</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Goimomi Holidays & E-Commerce</strong></p>
+            <p>Visit our website: <a href="https://goimomi.com" target="_blank">www.goimomi.com</a></p>
+            <p style="margin-top: 12px; font-size: 11px; color: #64748b;">
+                This email was sent regarding order {{ order_id }}. Please keep a copy of this email for your records.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

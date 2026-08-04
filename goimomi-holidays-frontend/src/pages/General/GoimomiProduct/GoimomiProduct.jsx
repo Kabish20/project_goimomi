@@ -65,7 +65,26 @@ const BuyNowModal = ({ product, onClose }) => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // OTP Verification State
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpSuccess, setOtpSuccess] = useState("");
+
   const handleChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    setForm((p) => ({ ...p, email: val }));
+    setIsOtpSent(false);
+    setIsEmailVerified(false);
+    setOtpValue("");
+    setOtpError("");
+    setOtpSuccess("");
+  };
 
   const decreaseQty = () => {
     setForm((p) => ({ ...p, qty: Math.max(1, p.qty - 1) }));
@@ -75,15 +94,84 @@ const BuyNowModal = ({ product, onClose }) => {
     setForm((p) => ({ ...p, qty: Math.min(product.quantity, p.qty + 1) }));
   };
 
+  const handleSendOtp = async () => {
+    const emailTrimmed = (form.email || "").trim();
+    if (!emailTrimmed) {
+      setOtpError("Please enter your Email ID first.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailTrimmed)) {
+      setOtpError("Please enter a valid email address.");
+      return;
+    }
+
+    setSendingOtp(true);
+    setOtpError("");
+    setOtpSuccess("");
+
+    try {
+      await api.post("/api/goimomi-product-orders/send-otp/", { email: emailTrimmed });
+      setIsOtpSent(true);
+      setOtpSuccess("OTP sent successfully to your email inbox!");
+    } catch (err) {
+      console.error("Error sending OTP:", err);
+      setOtpError(err.response?.data?.error || "Failed to send OTP. Please check your email and try again.");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpValue || otpValue.trim().length !== 6) {
+      setOtpError("Please enter the 6-digit OTP code.");
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setOtpError("");
+    setOtpSuccess("");
+
+    try {
+      await api.post("/api/goimomi-product-orders/verify-otp/", {
+        email: form.email.trim(),
+        otp: otpValue.trim()
+      });
+      setIsEmailVerified(true);
+      setOtpSuccess("Email address verified successfully!");
+    } catch (err) {
+      console.error("Error verifying OTP:", err);
+      setOtpError(err.response?.data?.error || "Invalid or expired OTP code.");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.email || !form.email.trim()) {
+      alert("Email address is required.");
+      return;
+    }
+
+    if (!isEmailVerified) {
+      if (!isOtpSent) {
+        handleSendOtp();
+        alert("We have sent a 6-digit OTP code to your email. Please enter and verify the code to proceed.");
+      } else {
+        alert("Please enter the 6-digit OTP code sent to your email and click 'Verify OTP' before proceeding.");
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
         product: product.isCartCheckout ? null : product.id,
         quantity: form.qty,
         name: form.name,
-        email: form.email,
+        email: form.email.trim(),
         phone: form.phone,
         address: form.address,
       };
@@ -181,14 +269,89 @@ const BuyNowModal = ({ product, onClose }) => {
               
               {product.isCartCheckout ? (
                 <div>
-                  <label htmlFor="gp-buy-email">Email ID (optional)</label>
-                  <input id="gp-buy-email" name="email" type="email" placeholder="you@email.com" value={form.email} onChange={handleChange} />
+                  <div className="flex justify-between items-center">
+                    <label htmlFor="gp-buy-email">Email ID *</label>
+                    {isEmailVerified ? (
+                      <span className="text-[11px] font-bold text-emerald-600">✓ Verified</span>
+                    ) : isOtpSent ? (
+                      <button type="button" onClick={handleSendOtp} disabled={sendingOtp} className="text-[11px] font-bold text-green-700 hover:underline">
+                        {sendingOtp ? "Resending..." : "Resend OTP"}
+                      </button>
+                    ) : (
+                      form.email && (
+                        <button type="button" onClick={handleSendOtp} disabled={sendingOtp} className="text-[11px] font-bold text-green-700 bg-green-50 hover:bg-green-100 px-2 py-0.5 rounded border border-green-200">
+                          {sendingOtp ? "Sending..." : "Send OTP"}
+                        </button>
+                      )
+                    )}
+                  </div>
+                  <input
+                    id="gp-buy-email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="you@email.com"
+                    value={form.email}
+                    onChange={handleEmailChange}
+                    disabled={isEmailVerified}
+                    className={isEmailVerified ? "bg-emerald-50/50 border-emerald-300 text-emerald-900 font-semibold" : ""}
+                  />
+                  {isOtpSent && !isEmailVerified && (
+                    <div className="mt-2 p-2.5 bg-green-50/60 border border-green-200 rounded-lg space-y-2">
+                      <p className="text-[11px] font-medium text-gray-600">Enter 6-digit OTP code sent to <strong>{form.email}</strong>:</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="6-digit OTP"
+                          value={otpValue}
+                          onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                          className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyOtp}
+                          disabled={verifyingOtp || otpValue.length !== 6}
+                          className="px-4 py-1.5 bg-green-700 hover:bg-green-800 disabled:opacity-50 text-white rounded-md text-xs font-bold transition"
+                        >
+                          {verifyingOtp ? "Verifying..." : "Verify OTP"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {otpSuccess && <p className="text-[11px] font-semibold text-emerald-600 mt-1">{otpSuccess}</p>}
+                  {otpError && <p className="text-[11px] font-semibold text-red-600 mt-1">{otpError}</p>}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="gp-buy-email">Email ID (optional)</label>
-                    <input id="gp-buy-email" name="email" type="email" placeholder="you@email.com" value={form.email} onChange={handleChange} />
+                    <div className="flex justify-between items-center">
+                      <label htmlFor="gp-buy-email">Email ID *</label>
+                      {isEmailVerified ? (
+                        <span className="text-[11px] font-bold text-emerald-600">✓ Verified</span>
+                      ) : isOtpSent ? (
+                        <button type="button" onClick={handleSendOtp} disabled={sendingOtp} className="text-[11px] font-bold text-green-700 hover:underline">
+                          {sendingOtp ? "Resending..." : "Resend OTP"}
+                        </button>
+                      ) : (
+                        form.email && (
+                          <button type="button" onClick={handleSendOtp} disabled={sendingOtp} className="text-[11px] font-bold text-green-700 bg-green-50 hover:bg-green-100 px-2 py-0.5 rounded border border-green-200">
+                            {sendingOtp ? "Sending..." : "Send OTP"}
+                          </button>
+                        )
+                      )}
+                    </div>
+                    <input
+                      id="gp-buy-email"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="you@email.com"
+                      value={form.email}
+                      onChange={handleEmailChange}
+                      disabled={isEmailVerified}
+                      className={isEmailVerified ? "bg-emerald-50/50 border-emerald-300 text-emerald-900 font-semibold" : ""}
+                    />
                   </div>
                   <div>
                     <label>Quantity</label>
@@ -212,6 +375,32 @@ const BuyNowModal = ({ product, onClose }) => {
                       </button>
                     </div>
                   </div>
+                  {/* Full width OTP row for single product checkout if sent */}
+                  {isOtpSent && !isEmailVerified && (
+                    <div className="col-span-full mt-1 p-2.5 bg-green-50/60 border border-green-200 rounded-lg space-y-2">
+                      <p className="text-[11px] font-medium text-gray-600">Enter 6-digit OTP code sent to <strong>{form.email}</strong>:</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="6-digit OTP"
+                          value={otpValue}
+                          onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                          className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyOtp}
+                          disabled={verifyingOtp || otpValue.length !== 6}
+                          className="px-4 py-1.5 bg-green-700 hover:bg-green-800 disabled:opacity-50 text-white rounded-md text-xs font-bold transition"
+                        >
+                          {verifyingOtp ? "Verifying..." : "Verify OTP"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {otpSuccess && <p className="col-span-full text-[11px] font-semibold text-emerald-600 mt-0.5">{otpSuccess}</p>}
+                  {otpError && <p className="col-span-full text-[11px] font-semibold text-red-600 mt-0.5">{otpError}</p>}
                 </div>
               )}
 

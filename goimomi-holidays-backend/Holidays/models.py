@@ -894,6 +894,7 @@ class GoimomiProductOrder(models.Model):
         choices=[
             ('Pending', 'Pending'),
             ('Confirmed', 'Confirmed'),
+            ('Completed', 'Completed'),
             ('Cancelled', 'Cancelled')
         ],
         default='Pending'
