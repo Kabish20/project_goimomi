@@ -483,13 +483,15 @@ Goimomi Holidays
     if not sender:
         sender = 'Goimomi Holidays <Reservations@goimomi.com>'
         
+    cc_recipients = ['hello@goimomi.com', 'Reservations@goimomi.com']
     email = EmailMultiAlternatives(
         subject=subject,
         body=text_content,
         from_email=sender,
         to=recipients,
-        cc=['hello@goimomi.com'],
-        bcc=bcc_recipients
+        cc=cc_recipients,
+        bcc=bcc_recipients,
+        reply_to=['Reservations@goimomi.com', 'hello@goimomi.com']
     )
     email.attach_alternative(html_content, "text/html")
 
@@ -1263,7 +1265,7 @@ def send_product_order_email(order):
 
         sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'Goimomi Holidays <support@goimomi.com>')
         recipients = [order.email] if order.email else ['hello@goimomi.com']
-        cc_recipients = ['hello@goimomi.com']
+        cc_recipients = ['hello@goimomi.com', 'support@goimomi.com']
 
         msg = EmailMultiAlternatives(
             subject=subject,
