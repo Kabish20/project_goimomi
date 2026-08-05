@@ -91,11 +91,17 @@ const INDIAN_STATES = [
 
 
 const BuyNowModal = ({ product, onClose }) => {
+  const isCartCheckout = product?.isCartCheckout;
+  const maxStock = !isCartCheckout ? (Number(product?.quantity) || 0) : 9999;
+  const initialQty = isCartCheckout
+    ? (product?.cartItems ? product.cartItems.reduce((sum, item) => sum + item.qty, 0) : (product?.selectedQty || 1))
+    : Math.max(1, Math.min(product?.selectedQty || 1, maxStock > 0 ? maxStock : 1));
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
     email: "",
-    qty: product.selectedQty || 1,
+    qty: initialQty,
     address_line1: "",
     address_line2: "",
     city: "",
@@ -130,7 +136,8 @@ const BuyNowModal = ({ product, onClose }) => {
   };
 
   const increaseQty = () => {
-    setForm((p) => ({ ...p, qty: Math.min(product.quantity, p.qty + 1) }));
+    if (!isCartCheckout && maxStock > 0 && form.qty >= maxStock) return;
+    setForm((p) => ({ ...p, qty: !isCartCheckout && maxStock > 0 ? Math.min(maxStock, p.qty + 1) : p.qty + 1 }));
   };
 
   const handleSendOtp = async () => {
@@ -402,22 +409,42 @@ const BuyNowModal = ({ product, onClose }) => {
                     />
                   </div>
                   <div>
-                    <label>Quantity</label>
+                    <div className="flex justify-between items-center">
+                      <label>Quantity</label>
+                      {!isCartCheckout && maxStock > 0 && (
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          Max stock: {maxStock}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center border border-gray-200 rounded-lg h-[34px] overflow-hidden bg-white mt-1">
                       <button
                         type="button"
                         onClick={decreaseQty}
-                        className="w-10 h-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition text-gray-500 font-bold border-r border-gray-200 text-sm select-none"
+                        disabled={form.qty <= 1}
+                        className="w-10 h-full bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-gray-500 font-bold border-r border-gray-200 text-sm select-none"
                       >
                         -
                       </button>
-                      <span className="flex-1 text-center text-sm font-semibold text-gray-700">
-                        {form.qty}
-                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={!isCartCheckout && maxStock > 0 ? maxStock : undefined}
+                        readOnly={isCartCheckout}
+                        value={form.qty}
+                        onChange={(e) => {
+                          if (isCartCheckout) return;
+                          const val = parseInt(e.target.value) || 1;
+                          const clamped = Math.max(1, maxStock > 0 ? Math.min(maxStock, val) : val);
+                          setForm((p) => ({ ...p, qty: clamped }));
+                        }}
+                        className="w-full text-center text-sm font-semibold text-gray-700 outline-none border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
                       <button
                         type="button"
                         onClick={increaseQty}
-                        className="w-10 h-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition text-gray-500 font-bold border-l border-gray-200 text-sm select-none"
+                        disabled={!isCartCheckout && maxStock > 0 && form.qty >= maxStock}
+                        className="w-10 h-full bg-gray-50 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition text-gray-500 font-bold border-l border-gray-200 text-sm select-none"
                       >
                         +
                       </button>
@@ -531,8 +558,21 @@ const BuyNowModal = ({ product, onClose }) => {
 /* ─── Product Details Page ─────────────────────────────────── */
 const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart, onViewCart, cartCount }) => {
   const [selectedImgIdx, setSelectedImgIdx] = useState(0);
-  const [qty, setQty] = useState(1);
-  const isOutOfStock = product.stock_status === "out_of_stock" || Number(product.quantity || 0) <= 0;
+  const maxStock = Number(product?.quantity) || 0;
+  const [qty, setQty] = useState(Math.max(1, maxStock > 0 ? Math.min(1, maxStock) : 1));
+  const isOutOfStock = product.stock_status === "out_of_stock" || (maxStock <= 0);
+
+  useEffect(() => {
+    if (maxStock > 0 && qty > maxStock) {
+      setQty(maxStock);
+    }
+  }, [maxStock]);
+
+  const decreaseQty = () => setQty((prev) => Math.max(1, prev - 1));
+  const increaseQty = () => {
+    if (maxStock > 0 && qty >= maxStock) return;
+    setQty((prev) => (maxStock > 0 ? Math.min(maxStock, prev + 1) : prev + 1));
+  };
 
   // Build images list
   const images = [];
@@ -638,24 +678,41 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
           {/* Purchase Options */}
           <div className="gp-details-actions-card">
             {!isOutOfStock && (
-              <div className="gp-details-qty-row" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--gp-muted)" }}>Quantity:</label>
-                <div className="gp-details-qty-selector" style={{ display: "flex", alignItems: "center", border: "1px solid var(--gp-border)", borderRadius: "8px", overflow: "hidden", background: "white", height: "34px", width: "110px" }}>
+              <div className="gp-details-qty-row" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                  <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--gp-muted)" }}>Quantity:</label>
+                  {maxStock > 0 && (
+                    <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "500" }}>
+                      Max available stock: {maxStock}
+                    </span>
+                  )}
+                </div>
+                <div className="gp-details-qty-selector" style={{ display: "flex", alignItems: "center", border: "1px solid var(--gp-border)", borderRadius: "8px", overflow: "hidden", background: "white", height: "34px", width: "120px" }}>
                   <button
                     type="button"
-                    onClick={() => setQty((prev) => Math.max(1, prev - 1))}
-                    style={{ width: "32px", height: "100%", background: "#f8fafc", border: "none", borderRight: "1px solid var(--gp-border)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", color: "#64748b", transition: "background 0.2s" }}
+                    onClick={decreaseQty}
+                    disabled={qty <= 1}
+                    style={{ width: "36px", height: "100%", background: "#f8fafc", border: "none", borderRight: "1px solid var(--gp-border)", cursor: qty <= 1 ? "not-allowed" : "pointer", opacity: qty <= 1 ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", color: "#64748b", transition: "background 0.2s" }}
                     className="gp-qty-btn-minus"
                   >
                     -
                   </button>
-                  <span style={{ flex: 1, textAlign: "center", fontSize: "13px", fontWeight: "600", color: "#1e293b" }}>
-                    {qty}
-                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={maxStock > 0 ? maxStock : undefined}
+                    value={qty}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      setQty(Math.max(1, maxStock > 0 ? Math.min(maxStock, val) : val));
+                    }}
+                    style={{ width: "100%", textAlign: "center", fontSize: "13px", fontWeight: "600", color: "#1e293b", border: "none", outline: "none" }}
+                  />
                   <button
                     type="button"
-                    onClick={() => setQty((prev) => Math.min(product.quantity, prev + 1))}
-                    style={{ width: "32px", height: "100%", background: "#f8fafc", border: "none", borderLeft: "1px solid var(--gp-border)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", color: "#64748b", transition: "background 0.2s" }}
+                    onClick={increaseQty}
+                    disabled={maxStock > 0 && qty >= maxStock}
+                    style={{ width: "36px", height: "100%", background: "#f8fafc", border: "none", borderLeft: "1px solid var(--gp-border)", cursor: (maxStock > 0 && qty >= maxStock) ? "not-allowed" : "pointer", opacity: (maxStock > 0 && qty >= maxStock) ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", color: "#64748b", transition: "background 0.2s" }}
                     className="gp-qty-btn-plus"
                   >
                     +
@@ -888,9 +945,14 @@ const CartDrawer = ({ isOpen, onClose, cartItems, onUpdateQty, onRemove, onCheck
                     {/* Qty and Trash */}
                     <div className="gp-cart-item-actions">
                       <div className="gp-cart-item-qty-selector">
-                        <button type="button" onClick={() => onUpdateQty(item.id, item.qty - 1)}>-</button>
+                        <button type="button" onClick={() => onUpdateQty(item.id, item.qty - 1)} disabled={item.qty <= 1}>-</button>
                         <span>{item.qty}</span>
-                        <button type="button" onClick={() => onUpdateQty(item.id, item.qty + 1)}>+</button>
+                        <button
+                          type="button"
+                          onClick={() => onUpdateQty(item.id, item.qty + 1)}
+                          disabled={Number(item.quantity) > 0 && item.qty >= Number(item.quantity)}
+                          title={Number(item.quantity) > 0 && item.qty >= Number(item.quantity) ? `Max stock limit (${item.quantity}) reached` : "Increase quantity"}
+                        >+</button>
                       </div>
                       <button className="gp-cart-item-remove" onClick={() => onRemove(item.id)} title="Remove item">
                         <Trash2 size={12} />
@@ -1000,12 +1062,25 @@ const GoimomiProduct = () => {
     const current = getCartItems();
     const exists = current.find((i) => i.id === product.id);
     const addQty = product.selectedQty || 1;
+    const maxStock = Number(product.quantity) || 0;
+
     let updated;
     if (exists) {
-      updated = current.map((i) => i.id === product.id ? { ...i, qty: i.qty + addQty } : i);
-      showToast(`Quantity updated for "${product.title}"`);
+      const targetQty = exists.qty + addQty;
+      if (maxStock > 0 && targetQty > maxStock) {
+        if (exists.qty >= maxStock) {
+          showToast(`Cannot add more. Max stock limit (${maxStock}) reached for "${product.title}"`, "⚠️");
+          return;
+        }
+        updated = current.map((i) => i.id === product.id ? { ...i, qty: maxStock } : i);
+        showToast(`Quantity set to max available stock (${maxStock}) for "${product.title}"`, "ℹ️");
+      } else {
+        updated = current.map((i) => i.id === product.id ? { ...i, qty: targetQty } : i);
+        showToast(`Quantity updated for "${product.title}"`);
+      }
     } else {
-      updated = [...current, { ...product, qty: addQty }];
+      const initialQty = maxStock > 0 ? Math.min(addQty, maxStock) : addQty;
+      updated = [...current, { ...product, qty: initialQty }];
       showToast(`"${product.title}" added to cart 🛒`);
     }
     saveCart(updated);
@@ -1026,27 +1101,53 @@ const GoimomiProduct = () => {
       handleRemoveFromCart(productId);
       return;
     }
-    const updated = current.map((i) => i.id === productId ? { ...i, qty: newQty } : i);
+    const item = current.find((i) => i.id === productId);
+    const maxStock = item ? (Number(item.quantity) || 0) : 0;
+    
+    let targetQty = newQty;
+    if (maxStock > 0 && newQty > maxStock) {
+      targetQty = maxStock;
+      showToast(`Max available stock for "${item.title}" is ${maxStock}`, "⚠️");
+    }
+
+    const updated = current.map((i) => i.id === productId ? { ...i, qty: targetQty } : i);
     saveCart(updated);
     setCartItems(updated);
-  }, [handleRemoveFromCart]);
+  }, [handleRemoveFromCart, showToast]);
 
   /* Checkout cart */
   const handleCartCheckout = useCallback(() => {
     setIsCartOpen(false);
-    const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-    const totalMrp = cartItems.reduce((sum, item) => sum + (parseFloat(item.mrp) || parseFloat(item.price)) * item.qty, 0);
+
+    // Validate each cart item against available stock
+    const validatedCart = cartItems.map((item) => {
+      const maxStock = Number(item.quantity) || 0;
+      if (maxStock > 0 && item.qty > maxStock) {
+        return { ...item, qty: maxStock };
+      }
+      return item;
+    });
+
+    const wasAdjusted = validatedCart.some((item, idx) => item.qty !== cartItems[idx].qty);
+    if (wasAdjusted) {
+      saveCart(validatedCart);
+      setCartItems(validatedCart);
+      showToast("Some cart item quantities were adjusted to available stock.", "ℹ️");
+    }
+
+    const totalAmount = validatedCart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const totalMrp = validatedCart.reduce((sum, item) => sum + (parseFloat(item.mrp) || parseFloat(item.price)) * item.qty, 0);
     setBuyProduct({
       id: "cart",
       title: "Cart Items",
       price: totalAmount,
       mrp: totalMrp,
-      quantity: 99,
+      quantity: 9999,
       isCartCheckout: true,
-      description: cartItems.map(item => `• ${item.title} (Qty: ${item.qty})`).join("\n"),
-      cartItems: cartItems
+      description: validatedCart.map(item => `• ${item.title} (Qty: ${item.qty})`).join("\n"),
+      cartItems: validatedCart
     });
-  }, [cartItems]);
+  }, [cartItems, showToast]);
 
 
   /* Filtered list */

@@ -2415,7 +2415,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 return Response({'error': 'Selected product does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
             if product_obj.stock_status == 'out_of_stock' or product_obj.quantity < quantity:
-                return Response({'error': f'Product is out of stock or requested quantity ({quantity}) exceeds available stock.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': f'Product is out of stock or requested quantity ({quantity}) exceeds available stock ({product_obj.quantity}).'}, status=status.HTTP_400_BAD_REQUEST)
 
             order_price = product_obj.price
             total_amount = order_price * quantity
@@ -2447,7 +2447,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                     return Response({'error': f"Product with ID {pid} in cart does not exist."}, status=status.HTTP_400_BAD_REQUEST)
                 
                 if p_obj.stock_status == 'out_of_stock' or p_obj.quantity < qty:
-                    return Response({'error': f"Product '{p_obj.title}' is out of stock or requested quantity ({qty}) exceeds available stock."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': f"Product '{p_obj.title}' is out of stock or requested quantity ({qty}) exceeds available stock ({p_obj.quantity})."}, status=status.HTTP_400_BAD_REQUEST)
                 
                 total_amount += p_obj.price * qty
                 validated_items.append({
