@@ -11,11 +11,14 @@ const Navbar = () => {
   const [mobileUmrah, setMobileUmrah] = React.useState(false)
   const [desktopBusiness, setDesktopBusiness] = React.useState(false)
   const [mobileBusiness, setMobileBusiness] = React.useState(false)
+  const [desktopShop, setDesktopShop] = React.useState(false)
+  const [mobileShop, setMobileShop] = React.useState(false)
   const [isAdminLoginOpen, setIsAdminLoginOpen] = React.useState(false)
   const navigate = useNavigate();
   const holidayRef = useRef(null);
   const umrahRef = useRef(null);
   const businessRef = useRef(null);
+  const shopRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -31,6 +34,10 @@ const Navbar = () => {
       // Toggle Business Dropdown
       if (businessRef.current && !businessRef.current.contains(event.target)) {
         setDesktopBusiness(false);
+      }
+      // Toggle Shop Dropdown
+      if (shopRef.current && !shopRef.current.contains(event.target)) {
+        setDesktopShop(false);
       }
     };
 
@@ -329,28 +336,80 @@ const Navbar = () => {
               <span className="font-bold text-[11px] uppercase tracking-wide">Cruise</span>
             </NavLink>
 
-            {/* Goimomi Shop */}
-            <NavLink
-              to="/shop"
-              id="nav-shop-link"
-              className={({ isActive }) =>
-                `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
-              }
-            >
-              <div className="relative">
-                <img
-                  src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png"
-                  alt="Shop"
-                  className="w-9 h-9 mb-1 object-contain"
-                />
-                <span
-                  className="absolute -top-1.5 -right-1.5 bg-[#16a34a] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide leading-none shadow-md"
-                >
-                  New
+            {/* Goimomi Shop Dropdown */}
+            <div className="relative" ref={shopRef}>
+              <button
+                type="button"
+                className={animatedButton}
+                onClick={() => {
+                  setDesktopShop(!desktopShop);
+                  setDesktopHoliday(false);
+                  setDesktopUmrah(false);
+                  setDesktopBusiness(false);
+                }}
+              >
+                <div className="relative">
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png"
+                    alt="Shop"
+                    className="w-9 h-9 mb-1 object-contain"
+                  />
+                  <span
+                    className="absolute -top-1.5 -right-1.5 bg-[#16a34a] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide leading-none shadow-md"
+                  >
+                    New
+                  </span>
+                </div>
+                <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5">
+                  Shop
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-3 w-3 transition-transform duration-300 ${desktopShop ? "rotate-180" : "rotate-0"}`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
                 </span>
-              </div>
-              <span className="font-bold text-[11px] uppercase tracking-wide">Shop</span>
-            </NavLink>
+              </button>
+
+              {desktopShop && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown z-50">
+                  <NavLink
+                    to="/shop"
+                    onClick={() => setDesktopShop(false)}
+                    className="block px-4 py-2.5 text-xs font-black text-[#14532d] hover:bg-goimomi-light text-left w-full uppercase tracking-widest border-b"
+                  >
+                    Goimomi Store
+                  </NavLink>
+                  <NavLink
+                    to="/shop"
+                    onClick={() => setDesktopShop(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
+                  >
+                    🛍️ All Products
+                  </NavLink>
+                  <NavLink
+                    to="/shop"
+                    onClick={() => setDesktopShop(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
+                  >
+                    🕋 Zam Zam Water & Sacred Items
+                  </NavLink>
+                  <NavLink
+                    to="/shop"
+                    onClick={() => setDesktopShop(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
+                  >
+                    🛒 View Shopping Cart
+                  </NavLink>
+                </div>
+              )}
+            </div>
 
 
           </nav>
@@ -556,22 +615,65 @@ const Navbar = () => {
                 Cruise Bookings
               </NavLink>
 
-              {/* Goimomi Shop */}
-              <NavLink
-                to="/shop"
-                id="mobile-nav-shop-link"
-                className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-                onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
-              >
-                <div className="relative">
-                  <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
-                  <span className="absolute -top-1 -right-1 bg-[#16a34a] text-white text-[7px] font-black px-1 rounded-full uppercase leading-tight">
-                    New
-                  </span>
-                </div>
-                <span>Shop</span>
-                <span className="ml-auto text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">New</span>
-              </NavLink>
+              {/* Goimomi Shop Mobile Accordion */}
+              <div>
+                <button
+                  type="button"
+                  className="flex items-center justify-between py-2 hover:text-[#14532d] transition w-full"
+                  onClick={() => setMobileShop(!mobileShop)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
+                      <span className="absolute -top-1 -right-1 bg-[#16a34a] text-white text-[7px] font-black px-1 rounded-full uppercase leading-tight">
+                        New
+                      </span>
+                    </div>
+                    <span>Shop</span>
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-4 w-4 transition-transform duration-300 ${mobileShop ? "rotate-180" : "rotate-0"}`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
+                  </svg>
+                </button>
+
+                {mobileShop && (
+                  <div className="pl-9 space-y-1.5 py-1 text-xs text-slate-600">
+                    <NavLink
+                      to="/shop"
+                      className="block py-1 font-bold text-[#14532d]"
+                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
+                    >
+                      Goimomi Store Home
+                    </NavLink>
+                    <NavLink
+                      to="/shop"
+                      className="block py-1 hover:text-[#14532d]"
+                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
+                    >
+                      🛍️ All Products
+                    </NavLink>
+                    <NavLink
+                      to="/shop"
+                      className="block py-1 hover:text-[#14532d]"
+                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
+                    >
+                      🕋 Zam Zam Water & Sacred Items
+                    </NavLink>
+                    <NavLink
+                      to="/shop"
+                      className="block py-1 hover:text-[#14532d]"
+                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
+                    >
+                      🛒 Shopping Cart
+                    </NavLink>
+                  </div>
+                )}
+              </div>
 
 
               <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>

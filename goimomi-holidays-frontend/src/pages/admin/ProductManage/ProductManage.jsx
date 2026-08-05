@@ -656,16 +656,23 @@ const ProductManage = () => {
                               {formatDate(order.created_at)}
                             </td>
                             <td className="py-3.5 px-4 text-center">
-                              <div className="flex gap-2 justify-center">
+                              <div className="flex gap-1.5 justify-center">
+                                <button
+                                  onClick={() => handleUpdateOrderStatus(order.id, "Shipped", order)}
+                                  className="flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1 rounded-lg text-xs font-bold transition shadow-sm"
+                                  title="Ship order & upload bill copy"
+                                >
+                                  <Truck size={13} /> Ship
+                                </button>
                                 <button
                                   onClick={() => handleSelectOrder(order)}
-                                  className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs font-semibold transition"
+                                  className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold transition"
                                 >
                                   <Eye size={13} /> View
                                 </button>
                                 <button
                                   onClick={() => handleDeleteOrder(order.id)}
-                                  className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-xs font-semibold transition"
+                                  className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold transition"
                                 >
                                   <Trash2 size={13} />
                                 </button>
@@ -854,19 +861,28 @@ const ProductManage = () => {
                 </div>
 
                 {/* Modal Footer */}
-                <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center gap-2">
                   <button
                     onClick={() => handleDeleteOrder(selectedOrder.id)}
                     className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-lg transition border border-red-200 flex items-center gap-1"
                   >
                     <Trash2 size={13} /> Delete Order
                   </button>
-                  <button
-                    onClick={() => setSelectedOrder(null)}
-                    className="px-5 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold rounded-lg transition"
-                  >
-                    Close
-                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleUpdateOrderStatus(selectedOrder.id, "Shipped", selectedOrder)}
+                      className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition shadow flex items-center gap-1.5"
+                    >
+                      <Truck size={14} /> Ship Order & Bill
+                    </button>
+                    <button
+                      onClick={() => setSelectedOrder(null)}
+                      className="px-4 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold rounded-lg transition"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
 
               </div>

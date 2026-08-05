@@ -1286,6 +1286,20 @@ const GoimomiProduct = () => {
         <BuyNowModal product={buyProduct} onClose={() => setBuyProduct(null)} />
       )}
 
+      {/* ── Floating Cart Button ── */}
+      <button
+        className="gp-floating-cart-btn"
+        id="gp-floating-cart-widget"
+        onClick={() => setIsCartOpen(true)}
+        title="View Shopping Cart"
+      >
+        <ShoppingBag size={20} />
+        <span>Cart</span>
+        {cartCount > 0 && (
+          <span className="gp-floating-cart-badge">{cartCount}</span>
+        )}
+      </button>
+
       {/* ── Cart Drawer ── */}
       <CartDrawer
         isOpen={isCartOpen}
