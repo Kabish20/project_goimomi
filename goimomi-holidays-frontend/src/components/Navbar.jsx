@@ -346,16 +346,19 @@ const Navbar = () => {
             </NavLink>
 
             {/* Goimomi Shop Dropdown */}
-            <div className="relative" ref={shopRef}>
-              <button
-                type="button"
-                className={animatedButton}
-                onClick={() => {
-                  setDesktopShop(!desktopShop);
-                  setDesktopHoliday(false);
-                  setDesktopUmrah(false);
-                  setDesktopBusiness(false);
-                }}
+            <div
+              className="relative group"
+              ref={shopRef}
+              onMouseEnter={() => setDesktopShop(true)}
+              onMouseLeave={() => setDesktopShop(false)}
+            >
+              <NavLink
+                to="/shop"
+                id="nav-shop-link"
+                className={({ isActive }) =>
+                  `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
+                }
+                onClick={() => setDesktopShop(false)}
               >
                 <div className="relative">
                   <img
@@ -384,10 +387,10 @@ const Navbar = () => {
                     />
                   </svg>
                 </span>
-              </button>
+              </NavLink>
 
               {desktopShop && (
-                <div className="absolute right-0 top-full mt-3 w-56 bg-white rounded-2xl border border-slate-100 text-slate-700 shadow-2xl animate-slideDown z-50 overflow-hidden p-1.5">
+                <div className="absolute right-0 top-full mt-0.5 w-56 bg-white rounded-2xl border border-slate-100 text-slate-700 shadow-2xl animate-slideDown z-50 overflow-hidden p-1.5">
                   <button
                     type="button"
                     onClick={handleOpenCartClick}
@@ -607,12 +610,13 @@ const Navbar = () => {
                 Cruise Bookings
               </NavLink>
 
-              {/* Goimomi Shop Mobile Accordion */}
+              {/* Goimomi Shop Mobile Navigation */}
               <div>
-                <button
-                  type="button"
+                <NavLink
+                  to="/shop"
+                  id="mobile-nav-shop-link"
                   className="flex items-center justify-between py-2 hover:text-[#14532d] transition w-full"
-                  onClick={() => setMobileShop(!mobileShop)}
+                  onClick={() => { setMobileOpen(false); setMobileShop(false); }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -623,27 +627,17 @@ const Navbar = () => {
                     </div>
                     <span>Shop</span>
                   </div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-4 w-4 transition-transform duration-300 ${mobileShop ? "rotate-180" : "rotate-0"}`}
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                  <span
+                    className="text-xs font-bold bg-emerald-50 text-[#14532d] border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleOpenCartClick(e);
+                    }}
                   >
-                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
-                  </svg>
-                </button>
-
-                {mobileShop && (
-                  <div className="pl-9 py-1 text-xs text-slate-600">
-                    <button
-                      type="button"
-                      className="block py-1.5 font-bold text-[#14532d] text-left w-full"
-                      onClick={handleOpenCartClick}
-                    >
-                      🛒 Shopping Cart
-                    </button>
-                  </div>
-                )}
+                    🛒 Cart
+                  </span>
+                </NavLink>
               </div>
 
 
