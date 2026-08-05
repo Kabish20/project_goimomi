@@ -873,6 +873,103 @@ const ProductManage = () => {
             </div>
           )}
 
+      {/* SHIPPED DISPATCH DETAILS MODAL */}
+      {showShippingModal && shippingOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-5 bg-[#14532d] text-white flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Truck size={20} />
+                <h3 className="text-lg font-black">Dispatch & Ship Order #{shippingOrder.order_id || shippingOrder.id}</h3>
+              </div>
+              <button onClick={() => setShowShippingModal(false)} className="text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmShipping} className="p-6 space-y-4">
+              <div className="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200 text-xs text-emerald-800 flex items-start gap-2.5">
+                <CheckCircle size={18} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold">Automated Customer & Company Email Dispatch</p>
+                  <p className="text-[11px] text-emerald-700 mt-0.5 leading-relaxed">
+                    Submitting will mark order as <strong>Shipped</strong> and automatically send an email to <strong>{shippingOrder.email || "Customer"}</strong> (with CC to <strong>hello@goimomi.com & support@goimomi.com</strong>) with courier details, tracking link, and attached bill copy.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Logistics Provider / Courier Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  list="logistics-providers-modal-list"
+                  placeholder="e.g. Blue Dart, Delhivery, DTDC, India Post"
+                  value={shippingProvider}
+                  onChange={(e) => setShippingProvider(e.target.value)}
+                  className="w-full px-3.5 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+                <datalist id="logistics-providers-modal-list">
+                  {logisticsProviders.map(lp => (
+                    <option key={lp.id} value={lp.name} />
+                  ))}
+                </datalist>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Ref No. / Waybill Tracking No. *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 1849209123 or REF-94820"
+                  value={shippingTrackingNo}
+                  onChange={(e) => setShippingTrackingNo(e.target.value)}
+                  className="w-full px-3.5 py-2 border border-gray-300 rounded-xl font-mono text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Upload Bill Copy / Shipping Receipt (PDF / Image)
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf,image/*"
+                  onChange={(e) => setShippingBillFile(e.target.files[0])}
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                />
+                {shippingBillFile && (
+                  <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                    <FileText size={12} /> Selected file: {shippingBillFile.name}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setShowShippingModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingShipping}
+                  className="px-5 py-2 bg-[#14532d] hover:bg-[#1a6b3d] text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {submittingShipping ? "Processing..." : "Save & Send Shipping Email"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
         </div>
       </div>
     </div>
