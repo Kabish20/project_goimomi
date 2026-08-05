@@ -1319,3 +1319,123 @@ def send_product_order_email(order):
         return False
 
 
+def send_product_shipped_email(order):
+    """
+    Auto-sends Shipping Dispatch email to client with logistics provider name,
+    ref/tracking number, tracking URL link, and attached bill/receipt copy (if uploaded).
+    Sender: Goimomi Holidays <support@goimomi.com>
+    CC: hello@goimomi.com, support@goimomi.com
+    """
+    try:
+        if not order:
+            return False
+
+        order_ref = order.order_id or f"GO-ORD-{order.id}"
+        subject = f"Your Product Has Been Shipped! Order #{order_ref} - Goimomi Holidays"
+        logistics_name = getattr(order, 'logistics_provider', '') or "Courier Express"
+        tracking_no = getattr(order, 'tracking_number', '') or "N/A"
+        book_inv = getattr(order, 'book_invoice_number', '')
+
+        # Lookup tracking URL link from LogisticsProvider model or fallback
+        tracking_link = ""
+        try:
+            from Holidays.models import LogisticsProvider
+            if logistics_name:
+                provider_obj = LogisticsProvider.objects.filter(name__iexact=logistics_name.strip()).first()
+                if not provider_obj:
+                    provider_obj = LogisticsProvider.objects.filter(name__icontains=logistics_name.strip()).first()
+                if provider_obj and provider_obj.tracking_link:
+                    tracking_link = provider_obj.tracking_link
+        except Exception as lp_err:
+            print(f"Notice fetching tracking link for {logistics_name}: {lp_err}")
+
+        # Items list
+        items = []
+        if order.cart_items and isinstance(order.cart_items, list):
+            for item in order.cart_items:
+                price = float(item.get('price', 0))
+                qty = int(item.get('quantity', 1))
+                items.append({
+                    'title': item.get('title', 'Product Item'),
+                    'quantity': qty,
+                    'total': price * qty
+                })
+        elif order.product:
+            items.append({
+                'title': order.product.title,
+                'quantity': order.quantity,
+                'total': float(order.total_amount)
+            })
+        else:
+            items.append({
+                'title': "Product Order",
+                'quantity': order.quantity,
+                'total': float(order.total_amount)
+            })
+
+        has_bill_copy = bool(order.bill_copy)
+
+        context = {
+            'customer_name': order.name,
+            'order_id': order_ref,
+            'book_invoice_number': book_inv,
+            'logistics_provider': logistics_name,
+            'tracking_number': tracking_no,
+            'tracking_link': tracking_link,
+            'customer_phone': order.phone,
+            'customer_email': order.email or '',
+            'delivery_address': order.address,
+            'items': items,
+            'has_bill_copy': has_bill_copy
+        }
+
+        html_content = render_to_string('emails/product_order_shipped.html', context)
+        text_content = (
+            f"Dear {order.name},\n\n"
+            f"Your Product order #{order_ref} has been shipped via {logistics_name}!\n"
+            f"Reference / Tracking Number: {tracking_no}\n"
+            f"Tracking Link: {tracking_link or 'N/A'}\n\n"
+            f"Thank you for shopping with Goimomi Holidays!\n"
+        )
+
+        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'Goimomi Holidays <support@goimomi.com>')
+        recipients = [order.email] if order.email else ['hello@goimomi.com']
+        cc_recipients = ['hello@goimomi.com', 'support@goimomi.com']
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=sender,
+            to=recipients,
+            cc=cc_recipients,
+            reply_to=['support@goimomi.com', 'hello@goimomi.com']
+        )
+        msg.attach_alternative(html_content, "text/html")
+
+        # Attach bill copy file if uploaded
+        if order.bill_copy:
+            try:
+                file_path = order.bill_copy.path
+                if os.path.exists(file_path):
+                    with open(file_path, 'rb') as bf:
+                        ext = os.path.splitext(file_path)[1].lower()
+                        mime_type = 'application/pdf' if ext == '.pdf' else f'image/{ext.replace(".", "")}'
+                        msg.attach(f"Shipping_Bill_{order_ref}{ext}", bf.read(), mime_type)
+            except Exception as file_e:
+                print(f"Notice attaching bill copy file to email: {file_e}")
+
+        def _send_async():
+            try:
+                msg.send(fail_silently=True)
+                print(f"Product shipped email dispatched for order {order_ref} to {recipients} with CC {cc_recipients}")
+            except Exception as mail_e:
+                print(f"Email send notice for shipped order {order_ref}: {mail_e}")
+
+        import threading
+        threading.Thread(target=_send_async).start()
+        return True
+    except Exception as e:
+        print(f"Error sending product shipped email: {e}")
+        return False
+
+

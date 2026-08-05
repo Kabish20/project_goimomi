@@ -2352,8 +2352,18 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         response = super().partial_update(request, *args, **kwargs)
         order.refresh_from_db()
 
-        # If status changed to Confirmed, Shipped, Delivered or Completed, trigger stock deduction and send confirmation email
-        if old_status != order.status and order.status.lower() in ['confirmed', 'shipped', 'delivered', 'completed']:
+        # If status changed to Shipped or trigger_shipped_email passed, trigger shipping email
+        is_shipped_event = (order.status.lower() == 'shipped' and old_status.lower() != 'shipped') or request.data.get('trigger_shipped_email') in (True, 'true', '1')
+        
+        if is_shipped_event:
+            self._deduct_stock_and_notify(order)
+            try:
+                from Holidays.utils import send_product_shipped_email
+                send_product_shipped_email(order)
+                print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}")
+            except Exception as ship_err:
+                print(f"Error sending shipping email on status change: {ship_err}")
+        elif old_status != order.status and order.status.lower() in ['confirmed', 'delivered', 'completed']:
             self._deduct_stock_and_notify(order)
             try:
                 from Holidays.utils import send_product_order_email

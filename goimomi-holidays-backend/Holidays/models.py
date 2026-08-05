@@ -919,6 +919,7 @@ class GoimomiProductOrder(models.Model):
     book_invoice_number = models.CharField(max_length=100, blank=True, null=True, help_text="Custom / Offline Book Invoice Number")
     logistics_provider = models.CharField(max_length=100, blank=True, null=True, help_text="Courier / Logistics Provider Name")
     tracking_number = models.CharField(max_length=100, blank=True, null=True, help_text="Courier Tracking / Waybill Number")
+    bill_copy = models.FileField(upload_to='orders/bills/', blank=True, null=True, help_text="Uploaded shipping bill/receipt copy")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

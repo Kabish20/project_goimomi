@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
+import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import api from "../../../api";
 import {
   Truck,
@@ -182,10 +183,11 @@ const LogisticsProviderManage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/60 pb-16">
-      <AdminTopbar />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <div className="flex bg-gray-100 min-h-screen">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+        <AdminTopbar />
+        <div className="flex-1 overflow-y-auto p-6">
         {/* Page Header */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -328,7 +330,6 @@ const LogisticsProviderManage = () => {
             </div>
           )}
         </div>
-      </div>
 
       {/* ADD / EDIT MODAL */}
       {showAddModal && (
@@ -438,6 +439,8 @@ const LogisticsProviderManage = () => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };

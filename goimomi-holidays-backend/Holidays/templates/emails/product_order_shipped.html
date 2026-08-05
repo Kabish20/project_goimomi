@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Order Has Been Shipped - {{ order_id }} | Goimomi Holidays</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 620px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #14532d 0%, #16a34a 100%);
+            padding: 32px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            color: #d1fae5;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-weight: 600;
+        }
+        .shipping-badge {
+            display: inline-block;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 18px;
+            border-radius: 20px;
+            margin-top: 14px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: 1px solid #bae6fd;
+        }
+        .content {
+            padding: 35px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+        .tracking-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .tracking-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 15px;
+            color: #0369a1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 800;
+        }
+        .tracking-info {
+            background-color: #ffffff;
+            border: 1px border-slate-200;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .tracking-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+        .track-btn {
+            display: inline-block;
+            background-color: #0284c7;
+            color: #ffffff !important;
+            font-weight: 800;
+            font-size: 14px;
+            padding: 12px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            letter-spacing: 0.03em;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #1e293b;
+            margin: 28px 0 14px 0;
+            border-bottom: 2px solid #16a34a;
+            padding-bottom: 6px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        .items-table th {
+            background-color: #14532d;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .items-table th.right, .items-table td.right {
+            text-align: right;
+        }
+        .items-table td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+        .address-box {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 28px;
+        }
+        .address-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #16a34a;
+            font-weight: 800;
+        }
+        .address-box p {
+            margin: 3px 0;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.5;
+        }
+        .support-box {
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #475569;
+        }
+        .support-box p {
+            margin: 4px 0;
+        }
+        .footer {
+            background-color: #0f172a;
+            color: #94a3b8;
+            padding: 24px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .footer p {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>GOIMOMI HOLIDAYS</h1>
+            <p>Your Order Has Been Dispatched!</p>
+            <div class="shipping-badge">✈️ Order Status: Shipped</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Dear <strong>{{ customer_name }}</strong>,<br><br>
+                Great news! Your product order <strong>{{ order_id }}</strong> has been packed and handed over to our shipping courier partner.
+            </div>
+
+            <!-- Shipping & Tracking Card -->
+            <div class="tracking-card">
+                <h3>Logistics & Order Tracking</h3>
+                <div class="tracking-info">
+                    <p style="margin: 4px 0; font-size: 13px;"><strong>Order ID / Ref:</strong> <span style="color: #0f172a; font-weight: 700;">{{ order_id }}</span></p>
+                    {% if book_invoice_number %}
+                    <p style="margin: 4px 0; font-size: 13px;"><strong>Book Invoice No:</strong> <span style="color: #0284c7; font-weight: 700;">{{ book_invoice_number }}</span></p>
+                    {% endif %}
+                    <p style="margin: 4px 0; font-size: 13px;"><strong>Courier Partner:</strong> <span style="color: #0f172a; font-weight: 700;">{{ logistics_provider }}</span></p>
+                    <p style="margin: 4px 0; font-size: 13px;"><strong>Tracking / Waybill Ref No:</strong> <span style="color: #0284c7; font-weight: 800; font-family: monospace; font-size: 14px;">{{ tracking_number }}</span></p>
+                </div>
+
+                {% if tracking_link %}
+                <a href="{{ tracking_link }}" target="_blank" class="track-btn">
+                    Track Your Order Online →
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Products Table -->
+            <div class="section-title">Shipped Items</div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th class="right">Qty</th>
+                        <th class="right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.title }}</strong></td>
+                        <td class="right">{{ item.quantity }}</td>
+                        <td class="right">₹{{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Delivery Address Card -->
+            <div class="section-title">Delivery Address</div>
+            <div class="address-box">
+                <h4>Recipient</h4>
+                <p><strong>Name:</strong> {{ customer_name }}</p>
+                <p><strong>Phone:</strong> {{ customer_phone }}</p>
+                {% if customer_email %}
+                <p><strong>Email:</strong> {{ customer_email }}</p>
+                {% endif %}
+                <p style="margin-top: 10px;"><strong>Destination Address:</strong></p>
+                <p style="white-space: pre-line; color: #1e293b;">{{ delivery_address }}</p>
+            </div>
+
+            {% if has_bill_copy %}
+            <p style="font-size: 12px; color: #0284c7; font-weight: 700; background: #e0f2fe; padding: 10px 14px; border-radius: 8px; margin-bottom: 24px;">
+                📎 Note: The official shipping bill / receipt copy has been attached to this email.
+            </p>
+            {% endif %}
+
+            <!-- Support Box -->
+            <div class="support-box">
+                <p style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Need Assistance with Delivery?</p>
+                <p>Customer Support Email: <strong>support@goimomi.com</strong> | <strong>hello@goimomi.com</strong></p>
+                <p>Helpline: <strong>+91 81100 82222</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Goimomi Holidays & E-Commerce</strong></p>
+            <p>Your Trusted Partner for Travel, Holidays & Quality Products</p>
+            <p>© 2026 Goimomi. All rights reserved.</p>
+        </div>
+    </div>
+
+</body>
+</html>

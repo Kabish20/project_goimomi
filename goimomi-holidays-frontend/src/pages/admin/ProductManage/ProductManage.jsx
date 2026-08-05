@@ -3,7 +3,7 @@ import api from "../../../api";
 import { useNavigate } from "react-router-dom";
 import { 
   Edit2, Trash2, Plus, Search, Package, RefreshCw, Tag, CheckCircle, 
-  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText
+  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText, Truck, Upload
 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
@@ -49,6 +49,14 @@ const ProductManage = () => {
   const [savingInvoice, setSavingInvoice] = useState(false);
   const [orderInvoiceSaved, setOrderInvoiceSaved] = useState(false);
   const [logisticsProviders, setLogisticsProviders] = useState([]);
+
+  // Shipping Modal State
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [shippingOrder, setShippingOrder] = useState(null);
+  const [shippingProvider, setShippingProvider] = useState("");
+  const [shippingTrackingNo, setShippingTrackingNo] = useState("");
+  const [shippingBillFile, setShippingBillFile] = useState(null);
+  const [submittingShipping, setSubmittingShipping] = useState(false);
 
   // Common UI State
   const [error, setError] = useState("");
@@ -169,7 +177,19 @@ const ProductManage = () => {
   };
 
   // Handle Order Status Update
-  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+  const handleUpdateOrderStatus = async (orderId, newStatus, orderObj) => {
+    if (newStatus === "Shipped") {
+      const orderToShip = orderObj || orders.find(o => o.id === orderId) || selectedOrder;
+      if (orderToShip) {
+        setShippingOrder(orderToShip);
+        setShippingProvider(orderToShip.logistics_provider || "");
+        setShippingTrackingNo(orderToShip.tracking_number || "");
+        setShippingBillFile(null);
+        setShowShippingModal(true);
+        return;
+      }
+    }
+
     try {
       await api.patch(`/api/goimomi-product-orders/${orderId}/`, { status: newStatus });
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
@@ -181,6 +201,42 @@ const ProductManage = () => {
     } catch (err) {
       console.error("Error updating order status:", err);
       alert("Failed to update order status.");
+    }
+  };
+
+  const handleConfirmShipping = async (e) => {
+    e.preventDefault();
+    if (!shippingOrder) return;
+    setSubmittingShipping(true);
+    try {
+      const formData = new FormData();
+      formData.append("status", "Shipped");
+      formData.append("logistics_provider", shippingProvider.trim());
+      formData.append("tracking_number", shippingTrackingNo.trim());
+      formData.append("trigger_shipped_email", "true");
+      if (shippingBillFile) {
+        formData.append("bill_copy", shippingBillFile);
+      }
+
+      const res = await api.patch(
+        `/api/goimomi-product-orders/${shippingOrder.id}/`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      const updated = res.data;
+      setOrders(prev => prev.map(o => o.id === shippingOrder.id ? { ...o, ...updated } : o));
+      if (selectedOrder && selectedOrder.id === shippingOrder.id) {
+        setSelectedOrder(prev => ({ ...prev, ...updated }));
+      }
+      setShowShippingModal(false);
+      setMessage(`Order ${shippingOrder.order_id || shippingOrder.id} marked as Shipped! Notification email sent to ${shippingOrder.email || "customer"}.`);
+      setTimeout(() => setMessage(""), 4000);
+    } catch (err) {
+      console.error("Error updating shipping status:", err);
+      alert("Failed to update shipping status.");
+    } finally {
+      setSubmittingShipping(false);
     }
   };
 
@@ -576,7 +632,7 @@ const ProductManage = () => {
                             <td className="py-3.5 px-4 whitespace-nowrap">
                               <select
                                 value={order.status}
-                                onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
+                                onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value, order)}
                                 className={`px-2.5 py-1 rounded-full text-xs font-bold border outline-none cursor-pointer ${
                                   order.status === 'Confirmed'
                                     ? 'bg-blue-50 text-blue-800 border-blue-300'
