@@ -20,6 +20,15 @@ const Navbar = () => {
   const businessRef = useRef(null);
   const shopRef = useRef(null);
 
+  const handleOpenCartClick = (e) => {
+    if (e) e.preventDefault();
+    setDesktopShop(false);
+    setMobileShop(false);
+    setMobileOpen(false);
+    navigate("/shop?cart=open");
+    window.dispatchEvent(new Event("open-goimomi-cart"));
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -378,14 +387,18 @@ const Navbar = () => {
               </button>
 
               {desktopShop && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-48 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown z-50 overflow-hidden">
-                  <NavLink
-                    to="/shop"
-                    onClick={() => setDesktopShop(false)}
-                    className="flex items-center gap-2.5 px-4 py-3 text-xs font-bold text-[#14532d] hover:bg-goimomi-light text-left w-full transition"
+                <div className="absolute right-0 top-full mt-3 w-56 bg-white rounded-2xl border border-slate-100 text-slate-700 shadow-2xl animate-slideDown z-50 overflow-hidden p-1.5">
+                  <button
+                    type="button"
+                    onClick={handleOpenCartClick}
+                    className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-[#14532d] hover:bg-emerald-50/80 rounded-xl text-left w-full transition"
                   >
-                    🛒 Shopping Cart
-                  </NavLink>
+                    <span className="text-base">🛒</span>
+                    <div className="flex flex-col">
+                      <span className="font-extrabold text-sm">Shopping Cart</span>
+                      <span className="text-[10px] text-gray-500 font-medium">View & manage items in cart</span>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -622,13 +635,13 @@ const Navbar = () => {
 
                 {mobileShop && (
                   <div className="pl-9 py-1 text-xs text-slate-600">
-                    <NavLink
-                      to="/shop"
-                      className="block py-1 font-bold text-[#14532d]"
-                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
+                    <button
+                      type="button"
+                      className="block py-1.5 font-bold text-[#14532d] text-left w-full"
+                      onClick={handleOpenCartClick}
                     >
                       🛒 Shopping Cart
-                    </NavLink>
+                    </button>
                   </div>
                 )}
               </div>

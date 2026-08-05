@@ -229,7 +229,7 @@ const AdminSidebar = () => {
       case "PickupPoints": return handleManagementPickupPoints;
       case "CruiseTerminal": return handleManagementCruiseTerminal;
       case "Goimomi Products": return handleChangeProduct;
-      case "Logistics Master": return () => navigate("/admin/logistics-providers");
+      case "Logistics Master": return () => navigate("/admin/logisticsmaster");
       default: return undefined;
 
     }

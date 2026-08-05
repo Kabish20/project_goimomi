@@ -1036,6 +1036,18 @@ const GoimomiProduct = () => {
     setCartItems(getCartItems());
   };
 
+  useEffect(() => {
+    if (searchParams.get("cart") === "open") {
+      setIsCartOpen(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const handleOpenCart = () => setIsCartOpen(true);
+    window.addEventListener("open-goimomi-cart", handleOpenCart);
+    return () => window.removeEventListener("open-goimomi-cart", handleOpenCart);
+  }, []);
+
   /* Fetch products */
   useEffect(() => {
     const fetchProducts = async () => {
