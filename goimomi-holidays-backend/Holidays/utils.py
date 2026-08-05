@@ -1336,7 +1336,7 @@ def send_product_shipped_email(order):
         tracking_no = getattr(order, 'tracking_number', '') or "N/A"
         book_inv = getattr(order, 'book_invoice_number', '')
 
-        # Lookup tracking URL link from LogisticsProvider model or fallback
+        # Lookup tracking URL link from LogisticsProvider model or fallback map
         tracking_link = ""
         try:
             from Holidays.models import LogisticsProvider
@@ -1348,6 +1348,31 @@ def send_product_shipped_email(order):
                     tracking_link = provider_obj.tracking_link
         except Exception as lp_err:
             print(f"Notice fetching tracking link for {logistics_name}: {lp_err}")
+
+        if not tracking_link and logistics_name:
+            ln_lower = logistics_name.strip().lower()
+            fallback_links = {
+                "professional couriers": "https://www.tpcindia.com/tracking.aspx",
+                "st courier": "https://stcourier.com/track/shipment",
+                "rathimeena": "https://www.rathimeenaparcel.in/",
+                "rathimeena parcel service": "https://www.rathimeenaparcel.in/",
+                "dtdc": "https://www.dtdc.in/tracking.asp",
+                "delhivery": "https://www.delhivery.com/tracking",
+                "blue dart": "https://www.bluedart.com/tracking",
+                "bluedart": "https://www.bluedart.com/tracking",
+                "india post": "https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx",
+                "speed post": "https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx",
+                "xpressbees": "https://www.xpressbees.com/track",
+                "ecom express": "https://ecomexpress.in/tracking/",
+                "shadowfax": "https://www.shadowfax.in/track",
+                "dhl": "https://www.dhl.com/in-en/home/tracking.html",
+                "fedex": "https://www.fedex.com/en-in/tracking.html",
+                "ups": "https://www.ups.com/track"
+            }
+            for k, v in fallback_links.items():
+                if k in ln_lower:
+                    tracking_link = v
+                    break
 
         # Items list
         items = []
