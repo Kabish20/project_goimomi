@@ -47,9 +47,9 @@ const Navbar = () => {
     };
   }, []);
 
-  // Lock body scroll when admin login is open
+  // Lock body scroll when mobile menu or admin login is open
   useEffect(() => {
-    if (isAdminLoginOpen) {
+    if (mobileOpen || isAdminLoginOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -57,7 +57,7 @@ const Navbar = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isAdminLoginOpen]);
+  }, [mobileOpen, isAdminLoginOpen]);
 
   const animatedButton =
     "flex flex-col items-center justify-center text-xs hover:text-goimomi-primary active:scale-90 transition-transform duration-200 focus:outline-none";
@@ -378,34 +378,13 @@ const Navbar = () => {
               </button>
 
               {desktopShop && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown z-50">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-48 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown z-50 overflow-hidden">
                   <NavLink
                     to="/shop"
                     onClick={() => setDesktopShop(false)}
-                    className="block px-4 py-2.5 text-xs font-black text-[#14532d] hover:bg-goimomi-light text-left w-full uppercase tracking-widest border-b"
+                    className="flex items-center gap-2.5 px-4 py-3 text-xs font-bold text-[#14532d] hover:bg-goimomi-light text-left w-full transition"
                   >
-                    Goimomi Store
-                  </NavLink>
-                  <NavLink
-                    to="/shop"
-                    onClick={() => setDesktopShop(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
-                  >
-                    🛍️ All Products
-                  </NavLink>
-                  <NavLink
-                    to="/shop"
-                    onClick={() => setDesktopShop(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
-                  >
-                    🕋 Zam Zam Water & Sacred Items
-                  </NavLink>
-                  <NavLink
-                    to="/shop"
-                    onClick={() => setDesktopShop(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
-                  >
-                    🛒 View Shopping Cart
+                    🛒 Shopping Cart
                   </NavLink>
                 </div>
               )}
@@ -642,31 +621,10 @@ const Navbar = () => {
                 </button>
 
                 {mobileShop && (
-                  <div className="pl-9 space-y-1.5 py-1 text-xs text-slate-600">
+                  <div className="pl-9 py-1 text-xs text-slate-600">
                     <NavLink
                       to="/shop"
                       className="block py-1 font-bold text-[#14532d]"
-                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
-                    >
-                      Goimomi Store Home
-                    </NavLink>
-                    <NavLink
-                      to="/shop"
-                      className="block py-1 hover:text-[#14532d]"
-                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
-                    >
-                      🛍️ All Products
-                    </NavLink>
-                    <NavLink
-                      to="/shop"
-                      className="block py-1 hover:text-[#14532d]"
-                      onClick={() => { setMobileOpen(false); setMobileShop(false); }}
-                    >
-                      🕋 Zam Zam Water & Sacred Items
-                    </NavLink>
-                    <NavLink
-                      to="/shop"
-                      className="block py-1 hover:text-[#14532d]"
                       onClick={() => { setMobileOpen(false); setMobileShop(false); }}
                     >
                       🛒 Shopping Cart
