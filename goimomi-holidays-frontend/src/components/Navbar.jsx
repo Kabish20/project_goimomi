@@ -346,19 +346,13 @@ const Navbar = () => {
             </NavLink>
 
             {/* Goimomi Shop Dropdown */}
-            <div
-              className="relative group"
-              ref={shopRef}
-              onMouseEnter={() => setDesktopShop(true)}
-              onMouseLeave={() => setDesktopShop(false)}
-            >
+            <div className="relative group">
               <NavLink
                 to="/shop"
                 id="nav-shop-link"
                 className={({ isActive }) =>
                   `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
                 }
-                onClick={() => setDesktopShop(false)}
               >
                 <div className="relative">
                   <img
@@ -372,38 +366,10 @@ const Navbar = () => {
                     New
                   </span>
                 </div>
-                <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5">
+                <span className="font-bold text-[11px] uppercase tracking-wide">
                   Shop
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-3 w-3 transition-transform duration-300 ${desktopShop ? "rotate-180" : "rotate-0"}`}
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
                 </span>
               </NavLink>
-
-              {desktopShop && (
-                <div className="absolute right-0 top-full mt-0.5 w-56 bg-white rounded-2xl border border-slate-100 text-slate-700 shadow-2xl animate-slideDown z-50 overflow-hidden p-1.5">
-                  <button
-                    type="button"
-                    onClick={handleOpenCartClick}
-                    className="flex items-center gap-3 px-4 py-3 text-xs font-bold text-[#14532d] hover:bg-emerald-50/80 rounded-xl text-left w-full transition"
-                  >
-                    <span className="text-base">🛒</span>
-                    <div className="flex flex-col">
-                      <span className="font-extrabold text-sm">Shopping Cart</span>
-                      <span className="text-[10px] text-gray-500 font-medium">View & manage items in cart</span>
-                    </div>
-                  </button>
-                </div>
-              )}
             </div>
 
 
@@ -610,35 +576,20 @@ const Navbar = () => {
                 Cruise Bookings
               </NavLink>
 
-              {/* Goimomi Shop Mobile Navigation */}
-              <div>
-                <NavLink
-                  to="/shop"
-                  id="mobile-nav-shop-link"
-                  className="flex items-center justify-between py-2 hover:text-[#14532d] transition w-full"
-                  onClick={() => { setMobileOpen(false); setMobileShop(false); }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
-                      <span className="absolute -top-1 -right-1 bg-[#16a34a] text-white text-[7px] font-black px-1 rounded-full uppercase leading-tight">
-                        New
-                      </span>
-                    </div>
-                    <span>Shop</span>
-                  </div>
-                  <span
-                    className="text-xs font-bold bg-emerald-50 text-[#14532d] border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleOpenCartClick(e);
-                    }}
-                  >
-                    🛒 Cart
+              <NavLink
+                to="/shop"
+                id="mobile-nav-shop-link"
+                className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
+                onClick={() => setMobileOpen(false)}
+              >
+                <div className="relative">
+                  <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
+                  <span className="absolute -top-1 -right-1 bg-[#16a34a] text-white text-[7px] font-black px-1 rounded-full uppercase leading-tight">
+                    New
                   </span>
-                </NavLink>
-              </div>
+                </div>
+                <span>Shop</span>
+              </NavLink>
 
 
               <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
