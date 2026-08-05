@@ -331,7 +331,7 @@ const Navbar = () => {
 
             {/* Goimomi Shop */}
             <NavLink
-              to="/goimomi-product"
+              to="/shop"
               id="nav-shop-link"
               className={({ isActive }) =>
                 `${animatedButton} ${isActive ? "text-goimomi-primary" : ""}`
@@ -558,7 +558,7 @@ const Navbar = () => {
 
               {/* Goimomi Shop */}
               <NavLink
-                to="/goimomi-product"
+                to="/shop"
                 id="mobile-nav-shop-link"
                 className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
                 onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}

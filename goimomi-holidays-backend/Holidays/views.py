@@ -43,7 +43,7 @@ from .models import (
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
     CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
-    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -59,7 +59,7 @@ from .serializers import (
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
-    GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer,
+    GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer, LogisticsProviderSerializer
 )
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -2352,8 +2352,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         response = super().partial_update(request, *args, **kwargs)
         order.refresh_from_db()
 
-        # If status changed to Confirmed or Completed, trigger stock deduction and send confirmation email
-        if old_status != order.status and order.status in ['Confirmed', 'Completed', 'confirmed', 'completed']:
+        # If status changed to Confirmed, Shipped, Delivered or Completed, trigger stock deduction and send confirmation email
+        if old_status != order.status and order.status.lower() in ['confirmed', 'shipped', 'delivered', 'completed']:
             self._deduct_stock_and_notify(order)
             try:
                 from Holidays.utils import send_product_order_email
@@ -2372,9 +2372,16 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         email = request.data.get('email', '').strip()
         phone = request.data.get('phone')
         address = request.data.get('address')
+        address_line1 = request.data.get('address_line1', '').strip()
+        address_line2 = request.data.get('address_line2', '').strip()
+        city = request.data.get('city', '').strip()
+        state = request.data.get('state', '').strip()
+
+        if not address:
+            address = ", ".join([s for s in [address_line1, address_line2, city, state] if s])
 
         if not name or not phone or not address or not email:
-            return Response({'error': 'Name, phone, email, and address are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Name, phone, email, and delivery address are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not request.user.is_authenticated:
             try:
@@ -2412,6 +2419,10 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 price=order_price,
                 total_amount=total_amount,
                 address=address,
+                address_line1=address_line1,
+                address_line2=address_line2,
+                city=city,
+                state=state,
                 status='Pending'
             )
         else:
@@ -2445,6 +2456,10 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 price=0,
                 total_amount=total_amount,
                 address=address,
+                address_line1=address_line1,
+                address_line2=address_line2,
+                city=city,
+                state=state,
                 cart_items=validated_items,
                 status='Pending'
             )
@@ -2664,7 +2679,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 # Mark order as Confirmed / Completed
                 if order.status in ['Pending', 'pending']:
                     order.status = 'Confirmed'
-                    order.invoice_number = f"GM-PRD-{random.randint(100000, 999999)}"
+                    order.invoice_number = order.order_id or f"GO-ORD-{order.id}"
                     order.save()
 
                     # Deduct product stock quantity and auto-update stock_status
@@ -2761,7 +2776,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 if order:
                     if order.status in ['Pending', 'pending']:
                         order.status = 'Confirmed'
-                        order.invoice_number = payment.get('invoice_number') or f"GM-PRD-{random.randint(100000, 999999)}"
+                        order.invoice_number = order.order_id or f"GO-ORD-{order.id}"
                         order.save()
                         print(f"Webhook Success: Product Order {order.order_id} confirmed via webhook")
 
@@ -2810,5 +2825,12 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             except Exception as mail_err:
                 print(f"Error sending product order email on partial_update: {mail_err}")
         return response
+
+
+class LogisticsProviderViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = LogisticsProvider.objects.all().order_by('name')
+    serializer_class = LogisticsProviderSerializer
+    pagination_class = None
 
 

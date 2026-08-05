@@ -90,6 +90,7 @@ const menu = [
       { name: "Suppliers", icon: <Truck size={18} /> },
       { name: "Cruise Calendar", icon: <Calendar size={18} /> },
       { name: "Goimomi Products", icon: <ShoppingBag size={18} /> },
+      { name: "Logistics Master", icon: <Truck size={18} /> },
     ],
   },
 ];
@@ -228,6 +229,7 @@ const AdminSidebar = () => {
       case "PickupPoints": return handleManagementPickupPoints;
       case "CruiseTerminal": return handleManagementCruiseTerminal;
       case "Goimomi Products": return handleChangeProduct;
+      case "Logistics Master": return () => navigate("/admin/logistics-providers");
       default: return undefined;
 
     }

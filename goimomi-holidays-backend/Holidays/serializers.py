@@ -19,7 +19,7 @@ from .models import (
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
     PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal,
-    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider
 )
 
 class CantonEnquirySerializer(serializers.ModelSerializer):
@@ -827,4 +827,10 @@ class GoimomiProductOrderSerializer(serializers.ModelSerializer):
         if obj.cart_items:
             return ", ".join([item.get('title', '') for item in obj.cart_items if item.get('title')])
         return "N/A"
+
+
+class LogisticsProviderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogisticsProvider
+        fields = "__all__"
 

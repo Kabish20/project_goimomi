@@ -1239,12 +1239,24 @@ def send_product_order_email(order):
             except Exception:
                 logo_data_uri = "https://goimomi.com/logo.png"
 
+        order_ref = order.order_id or f"GO-ORD-{order.id}"
+        inv_no = order.invoice_number or order_ref
+        if not order.invoice_number:
+            try:
+                order.invoice_number = inv_no
+                order.save(update_fields=['invoice_number'])
+            except Exception:
+                pass
+
         context = {
             'logo_data_uri': logo_data_uri,
             'customer_name': order.name,
-            'order_id': order.order_id or f"GO-ORD-{order.id}",
+            'order_id': order_ref,
             'order_date': order_date_str,
-            'invoice_number': order.invoice_number or f"GM-PRD-{order.id}",
+            'invoice_number': inv_no,
+            'book_invoice_number': getattr(order, 'book_invoice_number', ''),
+            'logistics_provider': getattr(order, 'logistics_provider', ''),
+            'tracking_number': getattr(order, 'tracking_number', ''),
             'total_amount': f"{float(order.total_amount):,.2f}",
             'customer_phone': order.phone,
             'customer_email': order.email or '',
@@ -1257,7 +1269,7 @@ def send_product_order_email(order):
         text_content = (
             f"Dear {order.name},\n\n"
             f"Thank you for your purchase with Goimomi Holidays!\n"
-            f"Order ID: {order.order_id or order.id}\n"
+            f"Order ID / Invoice: {order_ref}\n"
             f"Total Amount Paid: INR {order.total_amount}\n"
             f"Delivery Address: {order.address}\n\n"
             f"For support, contact support@goimomi.com or hello@goimomi.com.\n"
@@ -1276,6 +1288,21 @@ def send_product_order_email(order):
             reply_to=['support@goimomi.com', 'hello@goimomi.com']
         )
         msg.attach_alternative(html_content, "text/html")
+
+        # Generate & attach official Invoice PDF (Invoice_<order_id>.pdf)
+        try:
+            from xhtml2pdf import pisa
+            pdf_buffer = io.BytesIO()
+            pisa_status = pisa.CreatePDF(
+                io.BytesIO(html_content.encode("utf-8")),
+                dest=pdf_buffer
+            )
+            if not pisa_status.err:
+                inv_filename = f"Invoice_{order_ref}.pdf"
+                msg.attach(inv_filename, pdf_buffer.getvalue(), "application/pdf")
+                print(f"Attached {inv_filename} to product order email for {order_ref}")
+        except Exception as pdf_err:
+            print(f"Notice generating PDF invoice attachment: {pdf_err}")
 
         def _send_async():
             try:

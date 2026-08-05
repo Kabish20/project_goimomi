@@ -897,13 +897,18 @@ class GoimomiProductOrder(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Unit price at checkout")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total amount paid")
     address = models.TextField()
+    address_line1 = models.CharField(max_length=255, blank=True, null=True)
+    address_line2 = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=100, blank=True, null=True)
     cart_items = models.JSONField(blank=True, null=True, help_text="Cart items list if cart checkout")
     status = models.CharField(
         max_length=50,
         choices=[
             ('Pending', 'Pending'),
             ('Confirmed', 'Confirmed'),
-            ('Completed', 'Completed'),
+            ('Shipped', 'Shipped'),
+            ('Delivered', 'Delivered'),
             ('Cancelled', 'Cancelled')
         ],
         default='Pending'
@@ -911,6 +916,9 @@ class GoimomiProductOrder(models.Model):
     zoho_payment_session_id = models.CharField(max_length=255, blank=True, null=True)
     zoho_access_key = models.CharField(max_length=255, blank=True, null=True)
     invoice_number = models.CharField(max_length=100, blank=True, null=True)
+    book_invoice_number = models.CharField(max_length=100, blank=True, null=True, help_text="Custom / Offline Book Invoice Number")
+    logistics_provider = models.CharField(max_length=100, blank=True, null=True, help_text="Courier / Logistics Provider Name")
+    tracking_number = models.CharField(max_length=100, blank=True, null=True, help_text="Courier Tracking / Waybill Number")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -927,6 +935,28 @@ class GoimomiProductOrder(models.Model):
         super().save(*args, **kwargs)
         if is_new and not self.order_id:
             self.order_id = f'GO-ORD-{str(self.pk).zfill(4)}'
-            GoimomiProductOrder.objects.filter(pk=self.pk).update(order_id=self.order_id)
+            if not self.invoice_number:
+                self.invoice_number = self.order_id
+            GoimomiProductOrder.objects.filter(pk=self.pk).update(order_id=self.order_id, invoice_number=self.invoice_number)
             self.order_id = f'GO-ORD-{str(self.pk).zfill(4)}'
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Logistics Provider Master
+# ─────────────────────────────────────────────────────────────────────────────
+
+class LogisticsProvider(models.Model):
+    name = models.CharField(max_length=255, help_text="Logistics Provider Name (e.g. Blue Dart, Delhivery)")
+    tracking_link = models.CharField(max_length=500, help_text="Base tracking URL")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Logistics Provider"
+        verbose_name_plural = "Logistics Providers"
+
+    def __str__(self):
+        return self.name
 

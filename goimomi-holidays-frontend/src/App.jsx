@@ -105,6 +105,7 @@ const CruiseTerminalManage = lazyRetry(() => import("./pages/admin/CruiseTermina
 const ProductManage = lazyRetry(() => import("./pages/admin/ProductManage/ProductManage.jsx"));
 const ProductAdd    = lazyRetry(() => import("./pages/admin/ProductAdd/ProductAdd.jsx"));
 const ProductEdit   = lazyRetry(() => import("./pages/admin/ProductEdit/ProductEdit.jsx"));
+const LogisticsProviderManage = lazyRetry(() => import("./pages/admin/LogisticsProviderManage/LogisticsProviderManage.jsx"));
 
 
 const AdminLogin = lazyRetry(() => import("./pages/General/AdminLogin/AdminLogin.jsx"));
@@ -258,7 +259,7 @@ const App = () => {
             <Route path="/visa/results" element={<VisaResults />} />
             <Route path="/visa/apply/:id" element={<VisaApplication />} />
             <Route path="/Europeantours" element={<Europeantours />} />
-            <Route path="/blog" element={<Blog />} />
+            <Route path="/shop" element={<GoimomiProduct />} />
             <Route path="/goimomi-product" element={<GoimomiProduct />} />
 
 
@@ -341,6 +342,7 @@ const App = () => {
               <Route path="/admin/products" element={<ProductManage />} />
               <Route path="/admin/products/add" element={<ProductAdd />} />
               <Route path="/admin/products/edit/:id" element={<ProductEdit />} />
+              <Route path="/admin/logistics-providers" element={<LogisticsProviderManage />} />
 
             </Route>
 

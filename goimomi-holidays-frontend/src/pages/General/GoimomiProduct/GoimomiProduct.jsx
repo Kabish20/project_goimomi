@@ -58,10 +58,49 @@ const OrderSuccessModal = ({ orderId, onClose }) => {
     </div>
   );
 };
+const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal"
+];
 
 
 const BuyNowModal = ({ product, onClose }) => {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", qty: product.selectedQty || 1, address: "" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    qty: product.selectedQty || 1,
+    address_line1: "",
+    address_line2: "",
+    city: "",
+    state: ""
+  });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -167,13 +206,22 @@ const BuyNowModal = ({ product, onClose }) => {
 
     setLoading(true);
     try {
+      const fullAddress = [form.address_line1, form.address_line2, form.city, form.state]
+        .map(s => (s || "").trim())
+        .filter(Boolean)
+        .join(", ");
+
       const payload = {
         product: product.isCartCheckout ? null : product.id,
         quantity: form.qty,
         name: form.name,
         email: form.email.trim(),
         phone: form.phone,
-        address: form.address,
+        address: fullAddress,
+        address_line1: (form.address_line1 || "").trim(),
+        address_line2: (form.address_line2 || "").trim(),
+        city: (form.city || "").trim(),
+        state: (form.state || "").trim(),
       };
 
       if (product.isCartCheckout) {
@@ -405,9 +453,60 @@ const BuyNowModal = ({ product, onClose }) => {
               )}
 
 
-              <div>
-                <label htmlFor="gp-buy-address">Address *</label>
-                <textarea id="gp-buy-address" name="address" required placeholder="Enter delivery address…" value={form.address} onChange={handleChange} rows={2} />
+              {/* Structured Address Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div className="col-span-full">
+                  <label htmlFor="gp-buy-addr1">Address Line 1 *</label>
+                  <input
+                    id="gp-buy-addr1"
+                    name="address_line1"
+                    type="text"
+                    required
+                    placeholder="House / Flat No., Building, Street"
+                    value={form.address_line1}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="col-span-full">
+                  <label htmlFor="gp-buy-addr2">Address Line 2</label>
+                  <input
+                    id="gp-buy-addr2"
+                    name="address_line2"
+                    type="text"
+                    placeholder="Landmark, Area, Locality (Optional)"
+                    value={form.address_line2}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="gp-buy-city">City *</label>
+                  <input
+                    id="gp-buy-city"
+                    name="city"
+                    type="text"
+                    required
+                    placeholder="Town / City"
+                    value={form.city}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="gp-buy-state">State *</label>
+                  <select
+                    id="gp-buy-state"
+                    name="state"
+                    required
+                    value={form.state}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               
               <button type="submit" className="gp-modal-submit" disabled={loading}>

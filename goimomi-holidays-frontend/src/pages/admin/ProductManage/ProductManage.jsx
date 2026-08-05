@@ -3,7 +3,7 @@ import api from "../../../api";
 import { useNavigate } from "react-router-dom";
 import { 
   Edit2, Trash2, Plus, Search, Package, RefreshCw, Tag, CheckCircle, 
-  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User
+  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText
 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
@@ -42,6 +42,14 @@ const ProductManage = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  // Book Invoice & Dispatch State
+  const [bookInvoiceNo, setBookInvoiceNo] = useState("");
+  const [logisticsProvider, setLogisticsProvider] = useState("");
+  const [trackingNo, setTrackingNo] = useState("");
+  const [savingInvoice, setSavingInvoice] = useState(false);
+  const [orderInvoiceSaved, setOrderInvoiceSaved] = useState(false);
+  const [logisticsProviders, setLogisticsProviders] = useState([]);
+
   // Common UI State
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -50,7 +58,18 @@ const ProductManage = () => {
   useEffect(() => {
     fetchProducts();
     fetchOrders();
+    fetchLogisticsProviders();
   }, []);
+
+  const fetchLogisticsProviders = async () => {
+    try {
+      const res = await api.get("/api/logistics-providers/");
+      const data = Array.isArray(res.data) ? res.data : res.data?.results || [];
+      setLogisticsProviders(data);
+    } catch (err) {
+      console.error("Notice fetching logistics providers:", err);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -166,6 +185,38 @@ const ProductManage = () => {
   };
 
   // Handle Order Delete
+  const handleSelectOrder = (order) => {
+    setSelectedOrder(order);
+    setBookInvoiceNo(order.book_invoice_number || "");
+    setLogisticsProvider(order.logistics_provider || "");
+    setTrackingNo(order.tracking_number || "");
+    setOrderInvoiceSaved(false);
+  };
+
+  const handleSaveInvoiceDetails = async () => {
+    if (!selectedOrder) return;
+    setSavingInvoice(true);
+    try {
+      const payload = {
+        book_invoice_number: bookInvoiceNo.trim(),
+        logistics_provider: logisticsProvider.trim(),
+        tracking_number: trackingNo.trim()
+      };
+      await api.patch(`/api/goimomi-product-orders/${selectedOrder.id}/`, payload);
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...payload } : o));
+      setSelectedOrder(prev => ({ ...prev, ...payload }));
+      setOrderInvoiceSaved(true);
+      setMessage(`Book Invoice & Shipping details saved for order ${selectedOrder.order_id || selectedOrder.id}!`);
+      setTimeout(() => setMessage(""), 3000);
+      setTimeout(() => setOrderInvoiceSaved(false), 2500);
+    } catch (err) {
+      console.error("Error saving invoice details:", err);
+      alert("Failed to save invoice details.");
+    } finally {
+      setSavingInvoice(false);
+    }
+  };
+
   const handleDeleteOrder = async (orderId) => {
     if (window.confirm("Are you sure you want to delete this customer order enquiry?")) {
       try {
@@ -459,7 +510,8 @@ const ProductManage = () => {
                   <option value="all">All Statuses</option>
                   <option value="Pending">Pending</option>
                   <option value="Confirmed">Confirmed</option>
-                  <option value="Completed">Completed</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Delivered">Delivered</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
               </div>
@@ -495,7 +547,12 @@ const ProductManage = () => {
                         {filteredOrders.map((order) => (
                           <tr key={order.id} className="hover:bg-green-50/60 transition-colors">
                             <td className="py-3.5 px-4 font-bold text-gray-900 whitespace-nowrap">
-                              {order.order_id || `#${order.id}`}
+                              <div>{order.order_id || `#${order.id}`}</div>
+                              {order.book_invoice_number && (
+                                <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold text-sky-800 bg-sky-50 border border-sky-200 rounded-md">
+                                  Book Inv: {order.book_invoice_number}
+                                </span>
+                              )}
                             </td>
                             <td className="py-3.5 px-4">
                               <p className="font-bold text-gray-900">{order.name}</p>
@@ -521,7 +578,11 @@ const ProductManage = () => {
                                 value={order.status}
                                 onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
                                 className={`px-2.5 py-1 rounded-full text-xs font-bold border outline-none cursor-pointer ${
-                                  order.status === 'Confirmed' || order.status === 'Completed'
+                                  order.status === 'Confirmed'
+                                    ? 'bg-blue-50 text-blue-800 border-blue-300'
+                                    : order.status === 'Shipped'
+                                    ? 'bg-indigo-50 text-indigo-800 border-indigo-300'
+                                    : order.status === 'Delivered'
                                     ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
                                     : order.status === 'Cancelled'
                                     ? 'bg-red-50 text-red-800 border-red-300'
@@ -530,7 +591,8 @@ const ProductManage = () => {
                               >
                                 <option value="Pending">Pending</option>
                                 <option value="Confirmed">Confirmed</option>
-                                <option value="Completed">Completed</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Delivered">Delivered</option>
                                 <option value="Cancelled">Cancelled</option>
                               </select>
                             </td>
@@ -540,7 +602,7 @@ const ProductManage = () => {
                             <td className="py-3.5 px-4 text-center">
                               <div className="flex gap-2 justify-center">
                                 <button
-                                  onClick={() => setSelectedOrder(order)}
+                                  onClick={() => handleSelectOrder(order)}
                                   className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs font-semibold transition"
                                 >
                                   <Eye size={13} /> View
@@ -615,6 +677,64 @@ const ProductManage = () => {
                     </p>
                   </div>
 
+                  {/* Book Invoice & Dispatch Information Card */}
+                  <div className="bg-sky-50/70 p-4 rounded-xl border border-sky-200 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><FileText size={14} className="text-sky-700" /> Feed Book Invoice & Shipping Info</span>
+                      {orderInvoiceSaved && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Saved!</span>}
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">Book Invoice No.</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. INV/2026/048"
+                          value={bookInvoiceNo}
+                          onChange={(e) => setBookInvoiceNo(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg font-mono text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">Logistics Provider</label>
+                        <input
+                          type="text"
+                          list="logistics-providers-list"
+                          placeholder="e.g. Blue Dart, Delhivery"
+                          value={logisticsProvider}
+                          onChange={(e) => setLogisticsProvider(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                        <datalist id="logistics-providers-list">
+                          {logisticsProviders.map(lp => (
+                            <option key={lp.id} value={lp.name} />
+                          ))}
+                        </datalist>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">Tracking Number</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 1849209123"
+                          value={trackingNo}
+                          onChange={(e) => setTrackingNo(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-sky-200 rounded-lg font-mono text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-1">
+                      <button
+                        type="button"
+                        onClick={handleSaveInvoiceDetails}
+                        disabled={savingInvoice}
+                        className="px-4 py-1.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-lg shadow transition disabled:opacity-50"
+                      >
+                        {savingInvoice ? "Saving..." : "Save Invoice & Shipping Details"}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Product Order Summary */}
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
@@ -661,7 +781,8 @@ const ProductManage = () => {
                       >
                         <option value="Pending">Pending</option>
                         <option value="Confirmed">Confirmed</option>
-                        <option value="Completed">Completed</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
                         <option value="Cancelled">Cancelled</option>
                       </select>
                     </div>

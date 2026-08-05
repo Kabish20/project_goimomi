@@ -220,6 +220,24 @@
                         <td class="label">Invoice Number:</td>
                         <td class="value">{{ invoice_number }}</td>
                     </tr>
+                    {% if book_invoice_number %}
+                    <tr>
+                        <td class="label">Book Invoice No:</td>
+                        <td class="value" style="color: #0284c7;">{{ book_invoice_number }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if logistics_provider %}
+                    <tr>
+                        <td class="label">Logistics Provider:</td>
+                        <td class="value">{{ logistics_provider }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if tracking_number %}
+                    <tr>
+                        <td class="label">Tracking Number:</td>
+                        <td class="value">{{ tracking_number }}</td>
+                    </tr>
+                    {% endif %}
                     <tr>
                         <td class="label">Payment Status:</td>
                         <td class="value" style="color: #16a34a;">Paid & Confirmed</td>
