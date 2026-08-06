@@ -815,7 +815,7 @@ const Canton = () => {
         <div className="inline-flex marquee-track gap-0">
           {[1,2].map(i=>(
             <span key={i} className="inline-block px-8 text-xs font-bold tracking-wide uppercase">
-              🔥 Early Bird Offer Ends 15 August 2026 &nbsp;•&nbsp; Phase 1: Oct 15–19 (Electronics &amp; Machinery) &nbsp;•&nbsp; Phase 2: Oct 23–27 (Houseware &amp; Furniture) &nbsp;•&nbsp; Phase 3: Oct 31–Nov 4 (Textiles &amp; Garments) &nbsp;•&nbsp; Limited Seats — Register Now &nbsp;&nbsp;&nbsp;&nbsp;
+              🔥 Early Bird Offer Ends 31 August 2026 &nbsp;•&nbsp; Phase 1: Oct 15–19 (Electronics, Machinery &amp; Industrial) &nbsp;•&nbsp; Phase 2: Oct 23–27 (Consumer Goods, Gifts, Fashion &amp; Textiles) &nbsp;•&nbsp; Phase 3: Oct 31–Nov 4 (Office, Healthcare, Food &amp; Leisure) &nbsp;•&nbsp; Limited Seats — Register Now &nbsp;&nbsp;&nbsp;&nbsp;
             </span>
           ))}
         </div>
@@ -1054,64 +1054,126 @@ const Canton = () => {
             <p className="text-gray-400 text-sm max-w-xl mx-auto">The 140th Autumn Edition runs across three phases — each covering distinct industries. Choose the phase that matches your sourcing needs.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid lg:grid-cols-3 gap-8">
             {[
               {
                 phase: "Phase 1",
+                title: "Electronics, Machinery & Industrial Products",
                 dates: "Oct 15 – 19, 2026",
                 color: "from-blue-500 to-indigo-600",
                 borderColor: "border-blue-500/40",
                 badgeColor: "bg-blue-500/20 text-blue-300",
                 icon: <Cpu className="w-6 h-6" />,
-                categories: ["Electronics", "Hardware", "Machinery", "Vehicles", "Energy"]
+                items: [
+                  "Consumer Electronics",
+                  "Household Electrical Appliances",
+                  "Electronic & Electrical Products",
+                  "Lighting Equipment",
+                  "Hardware & Tools",
+                  "Machinery & Industrial Equipment",
+                  "Construction Machinery",
+                  "Agricultural Machinery",
+                  "Industrial Automation & Smart Manufacturing",
+                  "Power & Electrical Equipment",
+                  "Building Materials",
+                  "New Energy Resources",
+                  "New Energy Vehicles & Spare Parts",
+                  "Motorcycles & Bicycles",
+                  "Chemical Products",
+                  "General Machinery Components"
+                ]
               },
               {
                 phase: "Phase 2",
+                title: "Consumer Goods, Gifts, Fashion & Textiles",
                 dates: "Oct 23 – 27, 2026",
                 color: "from-amber-500 to-orange-500",
                 borderColor: "border-amber-500/40",
                 badgeColor: "bg-amber-500/20 text-amber-300",
                 icon: <Building className="w-6 h-6" />,
-                categories: ["Houseware", "Gifts", "Decorations", "Furniture", "Building Materials"]
+                items: [
+                  "Consumer Goods",
+                  "Gifts & Premiums",
+                  "Festival Products",
+                  "Home Decorations",
+                  "Furniture",
+                  "Kitchen & Tableware",
+                  "Daily-use Ceramics",
+                  "Glass Artware",
+                  "Fashion Accessories",
+                  "Men’s & Women’s Clothing",
+                  "Sports & Casual Wear",
+                  "Shoes & Bags",
+                  "Home Textiles",
+                  "Textile Fabrics & Raw Materials",
+                  "Watches & Optical Products",
+                  "Gardening Products"
+                ]
               },
               {
                 phase: "Phase 3",
+                title: "Office, Healthcare, Food & Leisure Products",
                 dates: "Oct 31 – Nov 4, 2026",
                 color: "from-emerald-500 to-teal-600",
                 borderColor: "border-emerald-500/40",
                 badgeColor: "bg-emerald-500/20 text-emerald-300",
                 icon: <Shirt className="w-6 h-6" />,
-                categories: ["Textiles", "Garments", "Toys", "Office Supplies", "Food", "Medical Products"]
+                items: [
+                  "Office Supplies",
+                  "Sports & Recreation Products",
+                  "Travel Products",
+                  "Healthcare & Medical Devices",
+                  "Personal Care Products",
+                  "Medicines & Health Products",
+                  "Food & Beverages",
+                  "Pet Products",
+                  "Baby & Maternity Products",
+                  "Toys",
+                  "Toiletries",
+                  "Leisure & Lifestyle Products"
+                ]
               }
             ].map((phase, i) => (
-              <div key={i} className={`relative bg-white/5 backdrop-blur-sm border-2 ${phase.borderColor} rounded-3xl p-7 space-y-6 hover:bg-white/10 transition-all duration-300 group`}>
-                {/* Phase badge */}
-                <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center gap-1.5 ${phase.badgeColor} text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-widest`}>
-                    {phase.phase}
-                  </span>
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${phase.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                    {phase.icon}
+              <div key={i} className={`relative bg-white/5 backdrop-blur-sm border-2 ${phase.borderColor} rounded-3xl p-6 sm:p-7 space-y-6 hover:bg-white/10 transition-all duration-300 group flex flex-col justify-between`}>
+                <div className="space-y-5">
+                  {/* Phase badge & Icon */}
+                  <div className="flex items-center justify-between">
+                    <span className={`inline-flex items-center gap-1.5 ${phase.badgeColor} text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-widest`}>
+                      {phase.phase}
+                    </span>
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${phase.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                      {phase.icon}
+                    </div>
                   </div>
-                </div>
 
-                {/* Dates */}
-                <div>
-                  <div className={`text-2xl font-black bg-gradient-to-r ${phase.color} bg-clip-text text-transparent`}>{phase.dates}</div>
-                  <div className="text-gray-500 text-xs mt-1 uppercase tracking-wider">Pazhou Complex, Guangzhou</div>
-                </div>
+                  {/* Title & Dates */}
+                  <div>
+                    <h3 className="text-base font-extrabold text-white leading-snug mb-1">{phase.title}</h3>
+                    <div className={`text-xl font-black bg-gradient-to-r ${phase.color} bg-clip-text text-transparent`}>{phase.dates}</div>
+                    <div className="text-gray-500 text-[11px] mt-1 uppercase tracking-wider">Pazhou Complex, Guangzhou</div>
+                  </div>
 
-                {/* Category pills */}
-                <div className="flex flex-wrap gap-2">
-                  {phase.categories.map((cat, j) => (
-                    <span key={j} className="bg-white/10 text-gray-300 text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-white/10">{cat}</span>
-                  ))}
+                  {/* Sub-categories List */}
+                  <div className="space-y-2 pt-3 border-t border-white/10">
+                    <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                      <span>Exhibition Sectors</span>
+                      <span className="text-amber-400 font-extrabold">{phase.items.length} Categories</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5 max-h-[260px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-white/20">
+                      {phase.items.map((item, j) => (
+                        <div key={j} className="flex items-center gap-2 text-xs text-gray-300 bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded-lg border border-white/10 transition-colors">
+                          <CheckCircle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                          <span className="font-medium leading-tight text-[11px]">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* CTA */}
                 <button
                   onClick={() => window.showZForm_51620?.()}
-                  className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wide bg-gradient-to-r ${phase.color} text-white hover:opacity-90 hover:scale-[1.02] transition-all shadow-lg`}
+                  className={`w-full py-3.5 rounded-xl font-bold text-xs uppercase tracking-wide bg-gradient-to-r ${phase.color} text-white hover:opacity-90 hover:scale-[1.02] transition-all shadow-lg mt-4`}
                 >
                   Register for {phase.phase} →
                 </button>
@@ -1447,7 +1509,7 @@ const Canton = () => {
             </div>
             <p className="text-white font-black text-base sm:text-lg leading-tight">
               Offer Valid Until{" "}
-              <span className="text-flicker underline decoration-wavy decoration-yellow-300">15 August 2026</span>
+              <span className="text-flicker underline decoration-wavy decoration-yellow-300">31 August 2026</span>
             </p>
             <p className="text-white/80 text-xs font-medium flex items-center gap-1.5 justify-center sm:justify-start">
               <span className="w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse flex-shrink-0"/>
