@@ -220,8 +220,7 @@ const ProductManage = () => {
 
       const res = await api.patch(
         `/api/goimomi-product-orders/${shippingOrder.id}/`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        formData
       );
 
       const updated = res.data;
@@ -234,7 +233,8 @@ const ProductManage = () => {
       setTimeout(() => setMessage(""), 4000);
     } catch (err) {
       console.error("Error updating shipping status:", err);
-      alert("Failed to update shipping status.");
+      const errMsg = err.response?.data?.error || err.response?.data?.detail || JSON.stringify(err.response?.data) || "Failed to update shipping status.";
+      alert(`Shipping Update Notice: ${errMsg}`);
     } finally {
       setSubmittingShipping(false);
     }
