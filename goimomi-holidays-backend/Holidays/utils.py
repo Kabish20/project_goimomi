@@ -1419,16 +1419,13 @@ def send_product_order_email(order):
         except Exception as pdf_err:
             print(f"Notice generating PDF invoice attachment: {pdf_err}")
 
-        def _send_async():
-            try:
-                msg.send(fail_silently=True)
-                print(f"Product order email dispatched for order {order.order_id} to {recipients} with CC {cc_recipients}")
-            except Exception as mail_e:
-                print(f"Email send notice for order {order.order_id}: {mail_e}")
-
-        import threading
-        threading.Thread(target=_send_async).start()
-        return True
+        try:
+            msg.send(fail_silently=False)
+            print(f"Product order email dispatched for order {order.order_id} to {recipients} with CC {cc_recipients}")
+            return True
+        except Exception as mail_e:
+            print(f"Email send error for order {order.order_id}: {mail_e}")
+            return False
     except Exception as e:
         print(f"Error sending product order email: {e}")
         return False
@@ -1566,16 +1563,13 @@ def send_product_shipped_email(order):
             except Exception as file_e:
                 print(f"Notice attaching bill copy file to email: {file_e}")
 
-        def _send_async():
-            try:
-                msg.send(fail_silently=True)
-                print(f"Product shipped email dispatched for order {order_ref} to {recipients} with CC {cc_recipients}")
-            except Exception as mail_e:
-                print(f"Email send notice for shipped order {order_ref}: {mail_e}")
-
-        import threading
-        threading.Thread(target=_send_async).start()
-        return True
+        try:
+            msg.send(fail_silently=False)
+            print(f"Product shipped email dispatched for order {order_ref} to {recipients} with CC {cc_recipients}")
+            return True
+        except Exception as mail_e:
+            print(f"Email send error for shipped order {order_ref}: {mail_e}")
+            return False
     except Exception as e:
         print(f"Error sending product shipped email: {e}")
         return False
