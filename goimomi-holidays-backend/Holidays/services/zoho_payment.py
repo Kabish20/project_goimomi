@@ -169,6 +169,94 @@ class ZohoPaymentService:
             raise e
 
     @classmethod
+    def create_visa_checkout_session(cls, application, success_url, failure_url):
+        """
+        Creates a Zoho Payments session for a VisaApplication.
+        """
+        try:
+            client = cls.get_client()
+
+            # First applicant or main contact details
+            first_applicant = application.applicants.first()
+            name = f"{first_applicant.first_name} {first_applicant.last_name}" if first_applicant else "Visa Applicant"
+            email = ""
+            phone = first_applicant.phone if (first_applicant and first_applicant.phone) else ""
+
+            hosted_params = HostedPageParams(
+                description=f"Visa Application #{application.id} - {application.visa.country} payment",
+                success_url=success_url,
+                failure_url=failure_url,
+                name=name,
+                email=email,
+                phone=phone,
+            )
+
+            config_params = ConfigurationsParams(
+                hosted_page_parameters=hosted_params
+            )
+
+            edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+            currency = 'USD' if edition_str == 'US' else 'INR'
+
+            create_params = PaymentSessionCreateParams(
+                amount=float(application.total_price),
+                currency=currency,
+                description=f"Goimomi Holidays Visa Application - #{application.id} ({application.visa.country})",
+                configurations=config_params,
+                reference_number=f"VISA-{application.id}",
+            )
+
+            logger.info(f"[ZohoPayments] Creating payment session for visa application={application.id}, amount={application.total_price} {currency}")
+
+            session = client.payment_sessions().create(create_params)
+            logger.info(f"[ZohoPayments] Payment session created successfully for visa application={application.id}")
+            return session
+        except Exception as e:
+            logger.error(f"[ZohoPayments] Error creating checkout session for visa application {application.id}: {e}", exc_info=True)
+            raise e
+
+    @classmethod
+    def create_package_checkout_session(cls, booking, success_url, failure_url):
+        """
+        Creates a Zoho Payments session for a PackageBooking.
+        """
+        try:
+            client = cls.get_client()
+
+            hosted_params = HostedPageParams(
+                description=f"Package Booking {booking.booking_id} payment",
+                success_url=success_url,
+                failure_url=failure_url,
+                name=booking.full_name,
+                email=booking.email or "",
+                phone=booking.phone or "",
+            )
+
+            config_params = ConfigurationsParams(
+                hosted_page_parameters=hosted_params
+            )
+
+            edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+            currency = 'USD' if edition_str == 'US' else 'INR'
+
+            create_params = PaymentSessionCreateParams(
+                amount=float(booking.total_price),
+                currency=currency,
+                description=f"Goimomi Holidays Package Booking - {booking.booking_id}",
+                configurations=config_params,
+                reference_number=booking.booking_id,
+            )
+
+            logger.info(f"[ZohoPayments] Creating payment session for package booking={booking.booking_id}, amount={booking.total_price} {currency}")
+
+            session = client.payment_sessions().create(create_params)
+            logger.info(f"[ZohoPayments] Payment session created successfully for package booking={booking.booking_id}")
+            return session
+        except Exception as e:
+            logger.error(f"[ZohoPayments] Error creating checkout session for package booking {booking.booking_id}: {e}", exc_info=True)
+            raise e
+
+    @classmethod
     def get_payment_session(cls, session_id):
         """
         Retrieves the details of a Zoho Payment Session.

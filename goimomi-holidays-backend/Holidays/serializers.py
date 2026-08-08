@@ -19,7 +19,7 @@ from .models import (
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
     PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal,
-    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking
 )
 
 class CantonEnquirySerializer(serializers.ModelSerializer):
@@ -635,10 +635,18 @@ class VisaApplicationSerializer(serializers.ModelSerializer):
         model = VisaApplication
         fields = [
             'id', 'visa', 'application_type', 'internal_id', 'group_name', 
-            'departure_date', 'return_date', 'total_price', 'status', 
+            'departure_date', 'return_date', 'total_price', 'status', 'payment_status',
+            'zoho_payment_session_id', 'zoho_access_key', 'invoice_number',
             'created_at', 'applicants', 'visa_country', 'visa_title',
             'visa_cost_price', 'visa_service_charge'
         ]
+
+
+class PackageBookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PackageBooking
+        fields = "__all__"
+
 
 
 

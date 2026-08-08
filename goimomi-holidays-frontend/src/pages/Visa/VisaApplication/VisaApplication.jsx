@@ -467,12 +467,16 @@ const VisaApplication = () => {
                 });
             });
 
-            await api.post("/api/visa-applications/", formData, {
+            const response = await api.post("/api/visa-applications/", formData, {
                 headers: { "Content-Type": "multipart/form-data" }
             });
 
-            alert("Application submitted successfully!");
-            navigate("/");
+            if (response.data && response.data.payment_url) {
+                window.location.href = response.data.payment_url;
+            } else {
+                alert("Application submitted successfully!");
+                navigate("/");
+            }
         } catch (error) {
             console.error("Error submitting application:", error);
             alert("Failed to submit application. Please try again.");

@@ -44,6 +44,7 @@ router.register("cab-additional-documents", views.CabAdditionalDocumentViewSet, 
 router.register("goimomi-products", views.GoimomiProductViewSet, basename="goimomi-product")
 router.register("goimomi-product-orders", views.GoimomiProductOrderViewSet, basename="goimomi-product-order")
 router.register("logistics-providers", views.LogisticsProviderViewSet, basename="logistics-provider")
+router.register("package-bookings", views.PackageBookingViewSet, basename="package-booking")
 
 urlpatterns = [
     path('', include(router.urls)),

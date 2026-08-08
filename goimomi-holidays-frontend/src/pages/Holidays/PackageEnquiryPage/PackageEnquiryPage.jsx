@@ -52,7 +52,6 @@ const PackageEnquiryPage = () => {
             newErrors.email = "Email is invalid";
         }
         
-        // Use regex for numeric check instead of replace which isn't there on phone number from PhoneInput initially
         const phoneDigits = (formData.phone || "").replace(/\D/g, "");
         if (!phoneDigits || phoneDigits.length < 10) {
             newErrors.phone = "At least 10 digits required";
@@ -62,6 +61,43 @@ const PackageEnquiryPage = () => {
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const handlePayBooking = async (e) => {
+        if (e) e.preventDefault();
+        if (!validate()) return;
+
+        setSubmitting(true);
+        try {
+            const unitPrice = parseFloat(packageData?.price || packageData?.Offer_price || 0);
+            const calcTotal = unitPrice > 0 ? unitPrice * (parseInt(formData.adults) || 1) : 10000;
+
+            const response = await api.post("/api/package-bookings/", {
+                package: packageData?.id || null,
+                package_title: packageData?.title || formData.package_type,
+                full_name: formData.full_name,
+                email: formData.email,
+                phone: formData.phone,
+                travel_date: formData.departure_date,
+                adults: formData.adults,
+                children: formData.children,
+                total_price: calcTotal
+            });
+
+            if (response.data && response.data.payment_url) {
+                window.location.href = response.data.payment_url;
+            } else {
+                setShowSuccessModal(true);
+                setTimeout(() => {
+                    navigate("/");
+                }, 3000);
+            }
+        } catch (error) {
+            console.error("Error creating package booking payment session:", error);
+            alert("Unable to initiate online payment. Please try sending an enquiry request.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -98,67 +134,74 @@ const PackageEnquiryPage = () => {
             <SuccessModal 
                 isOpen={showSuccessModal} 
                 onClose={() => setShowSuccessModal(false)}
-                message="Your enquiry has been submitted successfully! Our travel experts will get back to you shortly."
+                title="Enquiry Received!"
+                message="Thank you for reaching out. Our travel experts will get back to you with a customized quote shortly."
             />
-            
-            <div className="max-w-6xl mx-auto px-4">
-                <div className="grid md:grid-cols-2 gap-12">
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="text-center max-w-3xl mx-auto mb-12">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-50 text-[#14532d] text-xs font-black uppercase tracking-widest mb-4">
+                        <FaGlobe className="text-sm" /> Handcrafted Vacations
+                    </span>
+                    <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">
+                        {packageData?.title ? `Book / Enquire for ${packageData.title}` : "Customize Your Holiday"}
+                    </h1>
+                    <p className="text-gray-500 font-medium text-sm md:text-base">
+                        Get instant payment & booking confirmation or send a free enquiry to our expert travel team.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Left: Package Info */}
-                    <div className="space-y-8">
-                        <div>
-                            <h1 className="text-4xl font-black text-gray-900 mb-4">
-                                {packageData?.title ? `Enquire About ${packageData.title}` : "Customize Your Perfect Trip"}
-                            </h1>
-                            <p className="text-gray-600 text-lg leading-relaxed">
-                                Fill out the form correctly, and our travel specialists will curate a personalized itinerary just for you.
-                            </p>
-                        </div>
+                    <div className="lg:col-span-5 space-y-6">
+                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 overflow-hidden">
+                            <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">
+                                {packageData?.title ? `About ${packageData.title}` : "Customize Your Perfect Trip"}
+                            </h2>
 
-                        {packageData && (
-                            <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 overflow-hidden relative group">
-                                <div className="aspect-video rounded-2xl overflow-hidden mb-6">
-                                    <img 
-                                        src={packageData.card_image} 
-                                        alt={packageData.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                </div>
+                            {packageData && (
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-2 text-[#14532d] font-bold text-sm">
-                                        <FaMapMarkerAlt />
-                                        <span className="uppercase tracking-widest">{packageData.destination_name || "International"}</span>
-                                    </div>
-                                    <h3 className="text-2xl font-black text-gray-900">{packageData.title}</h3>
-                                    <div className="flex flex-wrap gap-4 pt-2">
-                                        <div className="flex items-center gap-2 text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full text-xs font-bold uppercase">
-                                            <FaMoon className="text-[#14532d]" /> {packageData.days} Days / {parseInt(packageData.days) - 1} Nights
-                                        </div>
-                                        <div className="flex items-center gap-2 text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full text-xs font-bold uppercase">
-                                            <FaWallet className="text-[#14532d]" /> ₹{parseFloat(packageData.price).toLocaleString()}
+                                    <div className="relative h-56 rounded-2xl overflow-hidden shadow-inner">
+                                        <img 
+                                            src={packageData.card_image} 
+                                            alt={packageData.title}
+                                            className="w-full h-full object-cover" 
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                        <div className="absolute bottom-4 left-4 right-4 text-white">
+                                            <span className="uppercase tracking-widest text-xs font-bold text-green-300">{packageData.destination_name || "International"}</span>
+                                            <h3 className="text-2xl font-black text-white">{packageData.title}</h3>
+                                            <div className="flex items-center gap-4 text-xs font-bold mt-2">
+                                                <span className="flex items-center gap-1"><FaMoon className="text-[#14532d]" /> {packageData.days} Days / {parseInt(packageData.days) - 1} Nights</span>
+                                                <span className="flex items-center gap-1"><FaWallet className="text-[#14532d]" /> ₹{parseFloat(packageData.price || 0).toLocaleString()}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-green-50 p-6 rounded-3xl border border-green-100">
-                                <FaGlobe className="text-2xl text-[#14532d] mb-3" />
-                                <h4 className="font-bold text-gray-900">Customized Itinerary</h4>
-                                <p className="text-sm text-gray-600 mt-1">Tailored specifically to your preferences and budget.</p>
-                            </div>
-                            <div className="bg-green-50 p-6 rounded-3xl border border-green-100">
-                                <FaPlane className="text-2xl text-[#14532d] mb-3" />
-                                <h4 className="font-bold text-gray-900">Expert Guidance</h4>
-                                <p className="text-sm text-gray-600 mt-1">Get advice from specialists who know the world best.</p>
+                            <div className="mt-6 pt-6 border-t border-gray-100 space-y-4 text-sm font-medium text-gray-600">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-green-50 text-[#14532d] flex items-center justify-center font-bold">✓</div>
+                                    <span>Instant payment receipt & booking invoice</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-green-50 text-[#14532d] flex items-center justify-center font-bold">✓</div>
+                                    <span>24/7 dedicated trip support line</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-green-50 text-[#14532d] flex items-center justify-center font-bold">✓</div>
+                                    <span>Free itinerary modifications post-booking</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Right: Form */}
-                    <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl border border-gray-100">
+                    <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 shadow-xl shadow-green-900/5 border border-gray-100">
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="col-span-2">
                                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Full Name *</label>
                                     <input 
@@ -167,38 +210,55 @@ const PackageEnquiryPage = () => {
                                         value={formData.full_name}
                                         onChange={handleChange}
                                         className={`w-full px-5 py-4 bg-gray-50 border-2 ${errors.full_name ? 'border-red-500' : 'border-transparent'} rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900`}
-                                        placeholder="Enter your full name" 
+                                        placeholder="John Doe" 
                                     />
-                                    {errors.full_name && <p className="text-red-500 text-xs mt-2 font-bold">{errors.full_name}</p>}
+                                    {errors.full_name && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.full_name}</p>}
                                 </div>
 
-                                <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Email *</label>
+                                <div>
+                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Email Address *</label>
                                     <input 
                                         type="email" 
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
                                         className={`w-full px-5 py-4 bg-gray-50 border-2 ${errors.email ? 'border-red-500' : 'border-transparent'} rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900`}
-                                        placeholder="your@email.com" 
+                                        placeholder="john@example.com" 
                                     />
-                                    {errors.email && <p className="text-red-500 text-xs mt-2 font-bold">{errors.email}</p>}
+                                    {errors.email && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.email}</p>}
                                 </div>
 
-                                <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Phone Number *</label>
+                                <div>
+                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Mobile Number *</label>
                                     <PhoneInput
-                                        country={'in'}
+                                        country={"in"}
                                         value={formData.phone}
-                                        onChange={phone => setFormData(prev => ({ ...prev, phone }))}
-                                        containerClass="!w-full"
-                                        inputClass={`!w-full !px-5 !py-7 !bg-gray-50 !border-2 ${errors.phone ? '!border-red-500' : '!border-transparent'} !rounded-2xl focus:!bg-white focus:!border-[#14532d] !transition-all !outline-none !font-medium !text-gray-900`}
-                                        buttonClass="!bg-transparent !border-none !rounded-l-2xl"
+                                        onChange={(phone) => {
+                                            setFormData(prev => ({ ...prev, phone: phone }));
+                                            if (errors.phone) setErrors(prev => ({ ...prev, phone: "" }));
+                                        }}
+                                        inputStyle={{
+                                            width: '100%',
+                                            height: '58px',
+                                            backgroundColor: '#f9fafb',
+                                            borderWidth: '2px',
+                                            borderColor: errors.phone ? '#ef4444' : 'transparent',
+                                            borderRadius: '1rem',
+                                            fontSize: '1rem',
+                                            fontWeight: '500',
+                                            color: '#111827'
+                                        }}
+                                        buttonStyle={{
+                                            backgroundColor: '#f9fafb',
+                                            border: 'none',
+                                            borderRadius: '1rem 0 0 1rem',
+                                            paddingLeft: '8px'
+                                        }}
                                     />
-                                    {errors.phone && <p className="text-red-500 text-xs mt-2 font-bold">{errors.phone}</p>}
+                                    {errors.phone && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.phone}</p>}
                                 </div>
 
-                                <div className="col-span-2 md:col-span-1">
+                                <div>
                                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Travel Date *</label>
                                     <div className="relative">
                                         <FaCalendarAlt className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -212,70 +272,50 @@ const PackageEnquiryPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Nights</label>
-                                    <div className="relative">
-                                        <FaMoon className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                        <select 
-                                            name="nights"
-                                            value={formData.nights}
-                                            onChange={handleChange}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900 appearance-none"
-                                        >
-                                            {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(n => (
-                                                <option key={n} value={n}>{n} Nights</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Adults (12+ yrs)</label>
-                                    <div className="relative">
-                                        <FaUsers className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Adults</label>
                                         <select 
                                             name="adults"
                                             value={formData.adults}
                                             onChange={handleChange}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900 appearance-none"
+                                            className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900"
                                         >
-                                            {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                                                <option key={n} value={n}>{n} Adults</option>
+                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                                                <option key={num} value={num}>{num} Adult{num > 1 ? 's' : ''}</option>
                                             ))}
                                         </select>
                                     </div>
-                                </div>
-
-                                <div className="col-span-2 md:col-span-1">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Children (2-12 yrs)</label>
-                                    <div className="relative">
-                                        <FaChild className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <div>
+                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Children</label>
                                         <select 
                                             name="children"
                                             value={formData.children}
                                             onChange={handleChange}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900 appearance-none"
+                                            className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900"
                                         >
-                                            {[0,1,2,3,4,5].map(n => (
-                                                <option key={n} value={n}>{n} Children</option>
+                                            {[0, 1, 2, 3, 4, 5].map(num => (
+                                                <option key={num} value={num}>{num} Child{num > 1 ? 'ren' : ''}</option>
                                             ))}
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Hotel Category Preference</label>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {["3", "4", "5"].map((star) => (
+                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Hotel Rating Preference</label>
+                                    <div className="grid grid-cols-4 gap-3">
+                                        {["3", "4", "5", "Luxury"].map((star) => (
                                             <label 
                                                 key={star}
-                                                className={`flex items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all cursor-pointer font-bold ${formData.hotel_rating === star 
-                                                    ? 'border-[#14532d] bg-green-50 text-[#14532d]' 
-                                                    : 'border-gray-100 bg-gray-50 text-gray-400 hober:border-gray-200'}`}
+                                                className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer font-bold text-xs transition-all ${
+                                                    formData.hotel_rating === star 
+                                                        ? 'border-[#14532d] bg-green-50/50 text-[#14532d]' 
+                                                        : 'border-gray-100 bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                                }`}
                                             >
                                                 <input 
                                                     type="radio" 
-                                                    name="hotel_rating" 
+                                                    name="hotel_rating"
                                                     value={star}
                                                     checked={formData.hotel_rating === star}
                                                     onChange={handleChange}
@@ -289,43 +329,38 @@ const PackageEnquiryPage = () => {
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Budget Per Person (Optional)</label>
-                                    <div className="relative">
-                                        <FaWallet className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
-                                        <input 
-                                            type="text" 
-                                            name="budget"
-                                            value={formData.budget}
-                                            onChange={handleChange}
-                                            className="w-full pl-12 pr-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900"
-                                            placeholder="Ex: ₹30,000" 
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="col-span-2">
-                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Your Preferences (Optional)</label>
+                                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Additional Requests (Optional)</label>
                                     <textarea 
                                         name="message"
                                         value={formData.message}
                                         onChange={handleChange}
-                                        rows="4"
-                                        className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900 resize-none"
+                                        rows="3"
+                                        className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[#14532d] transition-all outline-none font-medium text-gray-900"
                                         placeholder="Tell us about your interests, specific places you want to visit, or special requirements..."
                                     />
                                 </div>
                             </div>
 
-                            <button 
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full bg-[#14532d] text-white py-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-2xl shadow-green-900/20 hover:bg-[#0f4a24] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
-                            >
-                                {submitting ? "Submitting..." : "Send Enquiry Request"}
-                            </button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                <button 
+                                    type="button"
+                                    onClick={handlePayBooking}
+                                    disabled={submitting}
+                                    className="w-full bg-[#14532d] text-[#ffffff] py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-green-900/20 hover:bg-[#0f4a24] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    {submitting ? "Processing..." : "💳 Book & Pay Online"}
+                                </button>
+                                <button 
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="w-full bg-white text-[#14532d] border-2 border-[#14532d] py-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-green-50 transition-all disabled:opacity-50"
+                                >
+                                    {submitting ? "Submitting..." : "Send Free Enquiry"}
+                                </button>
+                            </div>
 
                             <p className="text-center text-xs text-gray-400 font-bold">
-                                Safe & Secure · Privacy Protected · Response in 24 Hours
+                                🔒 Safe & Secure Payments · Instant Invoice · Privacy Protected
                             </p>
                         </form>
                     </div>
@@ -336,6 +371,3 @@ const PackageEnquiryPage = () => {
 };
 
 export default PackageEnquiryPage;
-
-
-

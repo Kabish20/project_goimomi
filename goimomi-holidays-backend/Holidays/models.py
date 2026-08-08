@@ -427,10 +427,65 @@ class VisaApplication(models.Model):
     return_date = models.DateField()
     total_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    payment_status = models.CharField(
+        max_length=50,
+        choices=[('Pending', 'Pending'), ('Paid', 'Paid'), ('Failed', 'Failed')],
+        default='Pending'
+    )
+    zoho_payment_session_id = models.CharField(max_length=255, blank=True, null=True)
+    zoho_access_key = models.CharField(max_length=255, blank=True, null=True)
+    invoice_number = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"App for {self.visa.country} ({self.id})"
+
+
+class PackageBooking(models.Model):
+    booking_id = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False)
+    package = models.ForeignKey(HolidayPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
+    package_title = models.CharField(max_length=255)
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=25)
+    travel_date = models.DateField()
+    adults = models.PositiveIntegerField(default=1)
+    children = models.PositiveIntegerField(default=0)
+    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+    status = models.CharField(
+        max_length=50,
+        choices=[
+            ('Pending', 'Pending'),
+            ('Confirmed', 'Confirmed'),
+            ('Cancelled', 'Cancelled')
+        ],
+        default='Pending'
+    )
+    payment_status = models.CharField(
+        max_length=50,
+        choices=[
+            ('Pending', 'Pending'),
+            ('Paid', 'Paid'),
+            ('Failed', 'Failed')
+        ],
+        default='Pending'
+    )
+    zoho_payment_session_id = models.CharField(max_length=255, blank=True, null=True)
+    zoho_access_key = models.CharField(max_length=255, blank=True, null=True)
+    invoice_number = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        if is_new and not self.booking_id:
+            self.booking_id = f'GO-PKG-{str(self.pk).zfill(4)}'
+            PackageBooking.objects.filter(pk=self.pk).update(booking_id=self.booking_id)
+            self.booking_id = f'GO-PKG-{str(self.pk).zfill(4)}'
+
+    def __str__(self):
+        return f"{self.booking_id or self.pk} - {self.full_name} ({self.package_title})"
+
 
 
 class VisaApplicant(models.Model):

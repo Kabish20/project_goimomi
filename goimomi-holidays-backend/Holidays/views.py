@@ -43,7 +43,7 @@ from .models import (
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
     CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
-    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -59,7 +59,7 @@ from .serializers import (
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
-    GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer, LogisticsProviderSerializer
+    GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer, LogisticsProviderSerializer, PackageBookingSerializer
 )
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -472,6 +472,7 @@ class VisaApplicationViewSet(ModelViewSet):
                 marital_status=applicant_data.get('marital_status', 'Single'),
                 date_of_issue=applicant_data.get('date_of_issue'),
                 date_of_expiry=applicant_data.get('date_of_expiry'),
+                phone=applicant_data.get('phone', ''),
                 passport_front=passport_front,
                 photo=photo
             )
@@ -486,8 +487,380 @@ class VisaApplicationViewSet(ModelViewSet):
                         document_name=doc_data.get('name', f'Document {j+1}'),
                         file=doc_file
                     )
-            
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        resp_data = serializer.data
+
+        # Generate Zoho Payments session for the Visa Application
+        try:
+            from Holidays.services.zoho_payment import ZohoPaymentService
+            from django.shortcuts import reverse
+
+            try:
+                verify_path = reverse('visa-application-verify-zoho-payment')
+                backend_verify_url = request.build_absolute_uri(verify_path)
+            except Exception:
+                backend_verify_url = request.build_absolute_uri('/api/visa-applications/verify-zoho-payment/')
+
+            if '?' in backend_verify_url:
+                backend_verify_url = f"{backend_verify_url}&application_id={application.id}"
+            else:
+                backend_verify_url = f"{backend_verify_url}?application_id={application.id}"
+
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            frontend_failure_url = f"{frontend_url}/payment-failed?visa_app_id={application.id}"
+
+            session = ZohoPaymentService.create_visa_checkout_session(
+                application=application,
+                success_url=backend_verify_url,
+                failure_url=frontend_failure_url
+            )
+
+            payments_session_id = getattr(session, 'payments_session_id', None)
+            access_key = getattr(session, 'access_key', None)
+
+            if payments_session_id and access_key:
+                application.zoho_payment_session_id = payments_session_id
+                application.zoho_access_key = access_key
+                application.save()
+
+                edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+                if edition_str == 'IN':
+                    checkout_domain = 'payments.zoho.in'
+                elif edition_str == 'US':
+                    checkout_domain = 'payments.zoho.com'
+                else:
+                    checkout_domain = 'paymentssandbox.zoho.in'
+
+                redirect_url = f"https://{checkout_domain}/hostedcheckout/{access_key}"
+                resp_data['payment_url'] = redirect_url
+            else:
+                resp_data['payment_url'] = f"{frontend_url}/payment-failed?visa_app_id={application.id}"
+        except Exception as e:
+            print(f"Error generating Zoho payment session for Visa application {application.id}: {e}")
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            resp_data['payment_url'] = f"{frontend_url}/payment-failed?visa_app_id={application.id}"
+
+        return Response(resp_data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='create-zoho-payment-session', permission_classes=[AllowAny])
+    def create_zoho_payment_session(self, request, pk=None):
+        try:
+            application = self.get_object()
+            from Holidays.services.zoho_payment import ZohoPaymentService
+            from django.shortcuts import reverse
+
+            try:
+                verify_path = reverse('visa-application-verify-zoho-payment')
+                backend_verify_url = request.build_absolute_uri(verify_path)
+            except Exception:
+                backend_verify_url = request.build_absolute_uri('/api/visa-applications/verify-zoho-payment/')
+
+            if '?' in backend_verify_url:
+                backend_verify_url = f"{backend_verify_url}&application_id={application.id}"
+            else:
+                backend_verify_url = f"{backend_verify_url}?application_id={application.id}"
+
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            frontend_failure_url = f"{frontend_url}/payment-failed?visa_app_id={application.id}"
+
+            session = ZohoPaymentService.create_visa_checkout_session(
+                application=application,
+                success_url=backend_verify_url,
+                failure_url=frontend_failure_url
+            )
+
+            payments_session_id = getattr(session, 'payments_session_id', None)
+            access_key = getattr(session, 'access_key', None)
+
+            if not payments_session_id or not access_key:
+                return Response(
+                    {'error': 'Failed to retrieve session ID or access key from Zoho Payments.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            application.zoho_payment_session_id = payments_session_id
+            application.zoho_access_key = access_key
+            application.save()
+
+            edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+            if edition_str == 'IN':
+                checkout_domain = 'payments.zoho.in'
+            elif edition_str == 'US':
+                checkout_domain = 'payments.zoho.com'
+            else:
+                checkout_domain = 'paymentssandbox.zoho.in'
+
+            redirect_url = f"https://{checkout_domain}/hostedcheckout/{access_key}"
+
+            return Response({
+                'payments_session_id': payments_session_id,
+                'access_key': access_key,
+                'redirect_url': redirect_url
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error creating Zoho Payment Session for Visa Application: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
+    def verify_zoho_payment(self, request):
+        from django.http import HttpResponseRedirect
+        from Holidays.services.zoho_payment import ZohoPaymentService
+        import random
+
+        application_id = request.GET.get('application_id') or request.GET.get('visa_app_id')
+        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+
+        application = None
+        if application_id:
+            try:
+                application = VisaApplication.objects.get(pk=application_id)
+            except VisaApplication.DoesNotExist:
+                pass
+
+        if not application and session_id:
+            try:
+                application = VisaApplication.objects.get(zoho_payment_session_id=session_id)
+            except VisaApplication.DoesNotExist:
+                pass
+
+        if not application:
+            return HttpResponseRedirect(f"{frontend_url}/visa?error=application_not_found")
+
+        frontend_failure_url = f"{frontend_url}/payment-failed?visa_app_id={application.id}"
+
+        if not session_id:
+            session_id = application.zoho_payment_session_id
+
+        if not session_id:
+            return HttpResponseRedirect(frontend_failure_url)
+
+        # Mark application as Paid & Processing
+        application.payment_status = 'Paid'
+        application.status = 'Processing'
+        if not application.invoice_number:
+            application.invoice_number = f"GM-VSA-{random.randint(100000, 999999)}"
+        application.save()
+
+        # Send visa details email/notification if applicant phone/email available
+        try:
+            first_applicant = application.applicants.first()
+            if first_applicant and first_applicant.phone:
+                from Holidays.utils import send_visa_whatsapp_msg
+                import threading
+                threading.Thread(
+                    target=send_visa_whatsapp_msg,
+                    args=(first_applicant.phone, f"Your payment for Visa Application #{application.id} ({application.visa.country}) is confirmed! Invoice: {application.invoice_number}")
+                ).start()
+        except Exception as notify_err:
+            print(f"Error sending Visa payment confirmation notification: {notify_err}")
+
+        return HttpResponseRedirect(f"{frontend_url}/?payment_success=true&visa_app_id={application.id}&invoice={application.invoice_number}")
+
+
+class PackageBookingViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrWriteOnly]
+    queryset = PackageBooking.objects.all().order_by('-created_at')
+    serializer_class = PackageBookingSerializer
+    pagination_class = None
+
+    def create(self, request, *args, **kwargs):
+        package_id = request.data.get('package')
+        package_title = request.data.get('package_title', 'Customized Holiday Package')
+        full_name = request.data.get('full_name')
+        email = request.data.get('email', '').strip()
+        phone = request.data.get('phone')
+        travel_date = request.data.get('travel_date')
+        adults = int(request.data.get('adults', 1))
+        children = int(request.data.get('children', 0))
+        total_price = request.data.get('total_price', 0)
+
+        if not full_name or not email or not phone or not travel_date or not total_price:
+            return Response({'error': 'Full name, email, phone, travel date, and total price are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        pkg_obj = None
+        if package_id:
+            try:
+                pkg_obj = HolidayPackage.objects.get(pk=package_id)
+                if not package_title or package_title == 'Customized Holiday Package':
+                    package_title = pkg_obj.title
+            except HolidayPackage.DoesNotExist:
+                pass
+
+        booking = PackageBooking.objects.create(
+            package=pkg_obj,
+            package_title=package_title,
+            full_name=full_name,
+            email=email,
+            phone=phone,
+            travel_date=travel_date,
+            adults=adults,
+            children=children,
+            total_price=float(total_price),
+            status='Pending',
+            payment_status='Pending'
+        )
+
+        resp_data = PackageBookingSerializer(booking).data
+
+        # Create Zoho Payments session
+        try:
+            from Holidays.services.zoho_payment import ZohoPaymentService
+            from django.shortcuts import reverse
+
+            try:
+                verify_path = reverse('package-booking-verify-zoho-payment')
+                backend_verify_url = request.build_absolute_uri(verify_path)
+            except Exception:
+                backend_verify_url = request.build_absolute_uri('/api/package-bookings/verify-zoho-payment/')
+
+            if '?' in backend_verify_url:
+                backend_verify_url = f"{backend_verify_url}&booking_id={booking.booking_id}"
+            else:
+                backend_verify_url = f"{backend_verify_url}?booking_id={booking.booking_id}"
+
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
+
+            session = ZohoPaymentService.create_package_checkout_session(
+                booking=booking,
+                success_url=backend_verify_url,
+                failure_url=frontend_failure_url
+            )
+
+            payments_session_id = getattr(session, 'payments_session_id', None)
+            access_key = getattr(session, 'access_key', None)
+
+            if payments_session_id and access_key:
+                booking.zoho_payment_session_id = payments_session_id
+                booking.zoho_access_key = access_key
+                booking.save()
+
+                edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+                if edition_str == 'IN':
+                    checkout_domain = 'payments.zoho.in'
+                elif edition_str == 'US':
+                    checkout_domain = 'payments.zoho.com'
+                else:
+                    checkout_domain = 'paymentssandbox.zoho.in'
+
+                redirect_url = f"https://{checkout_domain}/hostedcheckout/{access_key}"
+                resp_data['payment_url'] = redirect_url
+            else:
+                resp_data['payment_url'] = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
+        except Exception as e:
+            print(f"Error generating Zoho payment session for Package booking {booking.booking_id}: {e}")
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            resp_data['payment_url'] = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
+
+        return Response(resp_data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='create-zoho-payment-session', permission_classes=[AllowAny])
+    def create_zoho_payment_session(self, request, pk=None):
+        try:
+            booking = self.get_object()
+            from Holidays.services.zoho_payment import ZohoPaymentService
+            from django.shortcuts import reverse
+
+            try:
+                verify_path = reverse('package-booking-verify-zoho-payment')
+                backend_verify_url = request.build_absolute_uri(verify_path)
+            except Exception:
+                backend_verify_url = request.build_absolute_uri('/api/package-bookings/verify-zoho-payment/')
+
+            if '?' in backend_verify_url:
+                backend_verify_url = f"{backend_verify_url}&booking_id={booking.booking_id}"
+            else:
+                backend_verify_url = f"{backend_verify_url}?booking_id={booking.booking_id}"
+
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+            frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
+
+            session = ZohoPaymentService.create_package_checkout_session(
+                booking=booking,
+                success_url=backend_verify_url,
+                failure_url=frontend_failure_url
+            )
+
+            payments_session_id = getattr(session, 'payments_session_id', None)
+            access_key = getattr(session, 'access_key', None)
+
+            if not payments_session_id or not access_key:
+                return Response(
+                    {'error': 'Failed to retrieve session ID or access key from Zoho Payments.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            booking.zoho_payment_session_id = payments_session_id
+            booking.zoho_access_key = access_key
+            booking.save()
+
+            edition_str = getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper()
+            if edition_str == 'IN':
+                checkout_domain = 'payments.zoho.in'
+            elif edition_str == 'US':
+                checkout_domain = 'payments.zoho.com'
+            else:
+                checkout_domain = 'paymentssandbox.zoho.in'
+
+            redirect_url = f"https://{checkout_domain}/hostedcheckout/{access_key}"
+
+            return Response({
+                'payments_session_id': payments_session_id,
+                'access_key': access_key,
+                'redirect_url': redirect_url
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error creating Zoho Payment Session for Package Booking: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
+    def verify_zoho_payment(self, request):
+        from django.http import HttpResponseRedirect
+        import random
+
+        booking_id = request.GET.get('booking_id')
+        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
+
+        booking = None
+        if booking_id:
+            try:
+                booking = PackageBooking.objects.get(booking_id=booking_id)
+            except PackageBooking.DoesNotExist:
+                pass
+
+        if not booking and session_id:
+            try:
+                booking = PackageBooking.objects.get(zoho_payment_session_id=session_id)
+            except PackageBooking.DoesNotExist:
+                pass
+
+        if not booking:
+            return HttpResponseRedirect(f"{frontend_url}/holidays?error=booking_not_found")
+
+        frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
+
+        if not session_id:
+            session_id = booking.zoho_payment_session_id
+
+        if not session_id:
+            return HttpResponseRedirect(frontend_failure_url)
+
+        booking.payment_status = 'Paid'
+        booking.status = 'Confirmed'
+        if not booking.invoice_number:
+            booking.invoice_number = f"GM-PKG-{random.randint(100000, 999999)}"
+        booking.save()
+
+        # Send enquiry email / confirmation email
+        try:
+            from Holidays.utils import send_enquiry_email
+            send_enquiry_email(booking, f"Package Booking Confirmed ({booking.package_title})")
+        except Exception as mail_err:
+            print(f"Error sending package booking email: {mail_err}")
+
+        return HttpResponseRedirect(f"{frontend_url}/?payment_success=true&booking_id={booking.booking_id}&invoice={booking.invoice_number}")
 
 
 class VisaApplicantViewSet(ModelViewSet):
