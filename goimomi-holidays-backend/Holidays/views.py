@@ -2755,6 +2755,20 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
         return response
 
+    @action(detail=True, methods=['get'], url_path='download-invoice', permission_classes=[AllowAny])
+    def download_invoice(self, request, pk=None):
+        order = self.get_object()
+        from Holidays.utils import generate_product_order_invoice_pdf
+        pdf_bytes = generate_product_order_invoice_pdf(order)
+        if not pdf_bytes:
+            return Response({'error': 'Failed to generate PDF invoice.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        order_ref = order.order_id or f"GO-ORD-{order.id}"
+        filename = f"Invoice_{order_ref}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
     def create(self, request, *args, **kwargs):
         product_id = request.data.get('product') # None if cart checkout
         cart_items = request.data.get('cart_items') # list of dicts: [{'product_id': id, 'quantity': qty, 'price': price}]

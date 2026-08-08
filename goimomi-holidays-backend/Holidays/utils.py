@@ -1172,6 +1172,126 @@ Goimomi Holidays
         return False
 
 
+def generate_product_order_invoice_pdf(order):
+    """
+    Generates a high-quality vector-based PDF Tax Invoice for product orders
+    using product_order_invoice_pdf.html and xhtml2pdf.
+    Matches the exact UI layout of Cab Booking Invoices.
+    """
+    import os
+    import io
+    import base64
+    import requests
+    from django.template.loader import render_to_string
+    from django.conf import settings
+    import django.utils.timezone as timezone
+    from xhtml2pdf import pisa
+
+    if not order:
+        return None
+
+    def get_image_as_base64_uri(image_url_or_path):
+        if not image_url_or_path:
+            return ""
+        if os.path.exists(image_url_or_path):
+            try:
+                with open(image_url_or_path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode("utf-8")
+                    ext = os.path.splitext(image_url_or_path)[1].lower()
+                    mime = "image/png" if ext == ".png" else "image/jpeg"
+                    return f"data:{mime};base64,{encoded}"
+            except Exception:
+                return ""
+        if image_url_or_path.startswith("http"):
+            try:
+                resp = requests.get(image_url_or_path, timeout=5)
+                if resp.status_code == 200:
+                    encoded = base64.b64encode(resp.content).decode("utf-8")
+                    content_type = resp.headers.get("content-type", "image/png")
+                    return f"data:{content_type};base64,{encoded}"
+            except Exception:
+                pass
+        return ""
+
+    order_ref = order.order_id or f"GO-ORD-{order.id}"
+    inv_no = getattr(order, 'book_invoice_number', '') or order.invoice_number or order_ref
+    order_date_str = order.created_at.strftime('%d %b %Y, %I:%M %p') if getattr(order, 'created_at', None) else timezone.now().strftime('%d %b %Y')
+
+    items = []
+    if order.cart_items and isinstance(order.cart_items, list):
+        for item in order.cart_items:
+            price = float(item.get('price', 0))
+            qty = int(item.get('quantity', 1))
+            items.append({
+                'title': item.get('title', 'Product Item'),
+                'quantity': qty,
+                'price': f"{price:,.2f}",
+                'total': f"{(price * qty):,.2f}"
+            })
+    elif order.product:
+        unit_p = float(order.price or getattr(order.product, 'price', 0))
+        items.append({
+            'title': order.product.title,
+            'quantity': order.quantity,
+            'price': f"{unit_p:,.2f}",
+            'total': f"{float(order.total_amount):,.2f}"
+        })
+    else:
+        unit_p = float(order.price or order.total_amount)
+        items.append({
+            'title': "Product Order",
+            'quantity': order.quantity,
+            'price': f"{unit_p:,.2f}",
+            'total': f"{float(order.total_amount):,.2f}"
+        })
+
+    logo_data_uri = ""
+    local_logo_paths = [
+        os.path.join(settings.BASE_DIR, 'Holidays', 'static', 'goimomilogo.png'),
+        os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomi-holidays-frontend', 'src', 'assets', 'goimomilogo.png'),
+    ]
+    for l_path in local_logo_paths:
+        if os.path.exists(l_path):
+            try:
+                with open(l_path, "rb") as lf:
+                    encoded_logo = base64.b64encode(lf.read()).decode("utf-8")
+                    logo_data_uri = f"data:image/png;base64,{encoded_logo}"
+                    break
+            except Exception:
+                pass
+
+    if not logo_data_uri:
+        logo_data_uri = get_image_as_base64_uri("https://goimomi.com/logo.png")
+
+    context = {
+        'logo_data_uri': logo_data_uri,
+        'customer_name': order.name,
+        'order_id': order_ref,
+        'order_date': order_date_str,
+        'invoice_number': inv_no,
+        'logistics_provider': getattr(order, 'logistics_provider', ''),
+        'tracking_number': getattr(order, 'tracking_number', ''),
+        'total_amount': f"{float(order.total_amount):,.2f}",
+        'customer_phone': order.phone,
+        'customer_email': order.email or '',
+        'delivery_address': order.address,
+        'items': items
+    }
+
+    html_content = render_to_string('emails/product_order_invoice_pdf.html', context)
+
+    pdf_buffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(
+        io.BytesIO(html_content.encode("utf-8")),
+        dest=pdf_buffer
+    )
+
+    if pisa_status.err:
+        print(f"xhtml2pdf generation failed for product invoice: {pisa_status.err}")
+
+    return pdf_buffer.getvalue()
+
+
 def send_product_order_email(order):
     """
     Sends a professional product order confirmation email to the customer.
@@ -1291,15 +1411,10 @@ def send_product_order_email(order):
 
         # Generate & attach official Invoice PDF (Invoice_<order_id>.pdf)
         try:
-            from xhtml2pdf import pisa
-            pdf_buffer = io.BytesIO()
-            pisa_status = pisa.CreatePDF(
-                io.BytesIO(html_content.encode("utf-8")),
-                dest=pdf_buffer
-            )
-            if not pisa_status.err:
+            pdf_bytes = generate_product_order_invoice_pdf(order)
+            if pdf_bytes:
                 inv_filename = f"Invoice_{order_ref}.pdf"
-                msg.attach(inv_filename, pdf_buffer.getvalue(), "application/pdf")
+                msg.attach(inv_filename, pdf_bytes, "application/pdf")
                 print(f"Attached {inv_filename} to product order email for {order_ref}")
         except Exception as pdf_err:
             print(f"Notice generating PDF invoice attachment: {pdf_err}")

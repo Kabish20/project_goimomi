@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Product Order Tax Invoice</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 25px;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 8.5pt;
+            background-color: #ffffff;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .header-table td {
+            vertical-align: middle;
+            border: none !important;
+        }
+        .info-box-table {
+            border: 1px solid #14532d !important;
+            border-radius: 6px;
+            padding: 8px;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .info-box-table td {
+            border: none !important;
+        }
+        .info-title {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #14532d;
+            border-bottom: 1.5px solid #14532d !important;
+            padding-bottom: 3px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .field-label {
+            font-size: 7.5pt;
+            color: #64748b;
+            font-weight: bold;
+            padding: 2px 0;
+        }
+        .field-value {
+            font-size: 8.5pt;
+            color: #0f172a;
+            font-weight: bold;
+            padding: 2px 0;
+        }
+        .section-title {
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: #14532d;
+            margin-top: 12px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .items-table {
+            border: 1px solid #14532d !important;
+            border-radius: 6px;
+            width: 100%;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .items-table th {
+            background-color: #14532d;
+            color: #ffffff;
+            font-size: 8pt;
+            font-weight: bold;
+            padding: 7px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none !important;
+        }
+        .items-table td {
+            padding: 8px 10px;
+            font-size: 8.5pt;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .items-table tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        .total-box-table {
+            border: 1.5px solid #14532d !important;
+            border-radius: 6px;
+            background-color: #f0fdf4;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .total-box-table td {
+            padding: 8px 12px;
+            font-size: 10pt;
+            font-weight: bold;
+            color: #14532d;
+            border: none !important;
+        }
+        .terms-section {
+            margin-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+        .terms-title {
+            font-size: 8.5pt;
+            font-weight: bold;
+            color: #14532d;
+            text-align: center;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .terms-text {
+            font-size: 7pt;
+            color: #64748b;
+            text-align: center;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td>
+            <!-- 1. HEADER SECTION -->
+            <table class="header-table" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 15px; width: 100%;">
+                <tr>
+                    <!-- Logo on left -->
+                    <td width="30%" align="left" valign="middle">
+                        {% if logo_data_uri %}
+                        <img src="{{ logo_data_uri }}" height="50" alt="Goimomi Holidays" style="display: block;">
+                        {% else %}
+                        <img src="https://goimomi.com/logo.png" height="50" alt="Goimomi Holidays" style="display: block;">
+                        {% endif %}
+                    </td>
+                    <!-- INVOICE title in middle -->
+                    <td width="40%" align="center" valign="middle">
+                        <span style="font-size: 16pt; font-weight: bold; color: #00b074; letter-spacing: 4px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">TAX INVOICE</span>
+                    </td>
+                    <!-- Address on right -->
+                    <td width="30%" align="right" valign="middle" style="font-size: 7.5pt; color: #475569; line-height: 1.4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                        <strong>#5, Ground Floor, Crescent Paark Apartment,</strong><br>
+                        Hazrath Sulaiman Street, Kaja Nagar, Trichy 620020<br>
+                        support@goimomi.com | www.goimomi.com<br>
+                        +91 81100 82222<br>
+                        <strong>INDIA | UAE | SAUDI ARABIA</strong>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- 2. DETAILS ROW (CUSTOMER DETAILS & INVOICE DETAILS side-by-side) -->
+            <table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 12px; width: 100%;">
+                <tr>
+                    <!-- Customer Details Column (Left) -->
+                    <td width="48%" valign="top" style="border: 1px solid #14532d; border-radius: 6px; padding: 8px;">
+                        <div class="info-title" style="margin-top: 0;">CUSTOMER & DELIVERY DETAILS</div>
+                        <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none !important;">
+                            <tr>
+                                <td class="field-label" style="width: 35%; border: none !important; padding: 2px 0;">Customer Name:</td>
+                                <td class="field-value" style="border: none !important; padding: 2px 0;">{{ customer_name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="field-label" style="width: 35%; border: none !important; padding: 2px 0;">Email:</td>
+                                <td class="field-value" style="word-break: break-all; border: none !important; padding: 2px 0;">{{ customer_email }}</td>
+                            </tr>
+                            <tr>
+                                <td class="field-label" style="width: 35%; border: none !important; padding: 2px 0;">Phone:</td>
+                                <td class="field-value" style="border: none !important; padding: 2px 0;">{{ customer_phone }}</td>
+                            </tr>
+                            <tr>
+                                <td class="field-label" style="width: 35%; border: none !important; padding: 2px 0;">Delivery Address:</td>
+                                <td class="field-value" style="border: none !important; padding: 2px 0;">{{ delivery_address }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <!-- Gap Column -->
+                    <td width="4%"></td>
+                    <!-- Invoice Details Column (Right) -->
+                    <td width="48%" valign="top" style="border: 1px solid #14532d; border-radius: 6px; padding: 8px;">
+                        <div class="info-title" style="margin-top: 0;">INVOICE & ORDER SUMMARY</div>
+                        <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border: none !important;">
+                            <tr>
+                                <td class="field-label" style="width: 45%; border: none !important; padding: 2px 0;">Invoice #:</td>
+                                <td class="field-value" style="color: #1d4ed8; border: none !important; padding: 2px 0;">#{{ invoice_number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="field-label" style="width: 45%; border: none !important; padding: 2px 0;">Order #:</td>
+                                <td class="field-value" style="color: #0f172a; border: none !important; padding: 2px 0;">#{{ order_id }}</td>
+                            </tr>
+                            <tr>
+                                <td class="field-label" style="width: 45%; border: none !important; padding: 2px 0;">Order Date:</td>
+                                <td class="field-value" style="border: none !important; padding: 2px 0;">{{ order_date }}</td>
+                            </tr>
+                            <tr>
+                                <td class="field-label" style="width: 45%; border: none !important; padding: 2px 0;">Payment Status:</td>
+                                <td class="field-value" style="color: #00b074; font-weight: bold; border: none !important; padding: 2px 0;">PAID & CONFIRMED</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- 3. GREETING MESSAGE -->
+            <table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 10px; width: 100%;">
+                <tr>
+                    <td style="font-size: 8.5pt; color: #1e293b; line-height: 1.45;">
+                        Dear <strong>{{ customer_name }}</strong>,<br>
+                        Thank you for your purchase with <strong>Goimomi Holidays</strong>! We are pleased to confirm that your order has been successfully processed and payment received.
+                    </td>
+                </tr>
+            </table>
+
+            <!-- 4. ORDER ITEMS BREAKDOWN -->
+            <div class="section-title">PURCHASED ITEMS BREAKDOWN</div>
+
+            <table class="items-table" border="0" cellpadding="0" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th width="55%" align="left">ITEM DESCRIPTION</th>
+                        <th width="15%" align="center">QTY</th>
+                        <th width="15%" align="right">UNIT PRICE</th>
+                        <th width="15%" align="right">TOTAL PRICE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td align="left" style="font-weight: bold; color: #0f172a;">
+                            {{ item.title }}
+                        </td>
+                        <td align="center" style="font-weight: bold;">
+                            {{ item.quantity }}
+                        </td>
+                        <td align="right" style="color: #475569;">
+                            INR {{ item.price }}
+                        </td>
+                        <td align="right" style="font-weight: bold; color: #14532d;">
+                            INR {{ item.total }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- 5. GRAND TOTAL HIGHLIGHT BOX -->
+            <table class="total-box-table" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="left" width="60%">
+                        <span style="font-size: 9pt; text-transform: uppercase;">Grand Total Amount Paid (Inclusive of Taxes)</span>
+                    </td>
+                    <td align="right" width="40%">
+                        <span style="font-size: 11pt; color: #14532d; font-weight: bold;">INR {{ total_amount }}</span>
+                    </td>
+                </tr>
+            </table>
+
+            {% if logistics_provider %}
+            <!-- 6. SHIPPING & LOGISTICS INFO -->
+            <table class="info-box-table" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 12px;">
+                <tr>
+                    <td>
+                        <div class="info-title" style="margin-top: 0;">LOGISTICS & DISPATCH STATUS</div>
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td class="field-label" width="25%">Courier / Logistics Provider:</td>
+                                <td class="field-value" width="25%" style="color: #14532d;">{{ logistics_provider }}</td>
+                                <td class="field-label" width="25%">Tracking / Waybill No:</td>
+                                <td class="field-value" width="25%" style="color: #1d4ed8;">{{ tracking_number|default:"N/A" }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            {% endif %}
+
+            <!-- 7. TERMS & FOOTER SECTION -->
+            <div class="terms-section">
+                <div class="terms-title">Need Assistance With Your Order?</div>
+                <div class="terms-text">
+                    For any product inquiries or assistance, reach out to customer care at <strong>+91 81100 82222</strong> or email <strong>support@goimomi.com</strong>.<br>
+                    This is a system-generated tax invoice issued by <strong>Goimomi Holidays & E-Commerce</strong> and does not require a physical signature.
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
