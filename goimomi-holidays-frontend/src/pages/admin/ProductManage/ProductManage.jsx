@@ -433,6 +433,26 @@ const ProductManage = () => {
                             <td className="px-5 py-3">
                               <p className="font-semibold text-gray-800 text-sm">{product.title}</p>
                               <p className="text-xs text-gray-400 line-clamp-1 max-w-[180px]">{product.description}</p>
+                              {(product.catalogue_name || (product.sub_catalogue_details && product.sub_catalogue_details.length > 0) || product.sub_catalogue_name) && (
+                                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                  {product.catalogue_name && (
+                                    <span className="bg-emerald-50 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-200">
+                                      📁 {product.catalogue_name}
+                                    </span>
+                                  )}
+                                  {product.sub_catalogue_details && product.sub_catalogue_details.length > 0 ? (
+                                    product.sub_catalogue_details.map((sub) => (
+                                      <span key={sub.id} className="bg-blue-50 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
+                                        🏷️ {sub.name}
+                                      </span>
+                                    ))
+                                  ) : product.sub_catalogue_name ? (
+                                    <span className="bg-blue-50 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">
+                                      🏷️ {product.sub_catalogue_name}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              )}
                             </td>
                             <td className="px-5 py-3 font-semibold text-gray-800 text-sm">{formatCurrency(product.price)}</td>
                             <td className="px-5 py-3 text-xs text-gray-400 line-through">

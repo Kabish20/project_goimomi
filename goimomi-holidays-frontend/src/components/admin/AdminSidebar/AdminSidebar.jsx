@@ -18,7 +18,8 @@ import {
   Calendar,
   Car,
   ClipboardList,
-  ShoppingBag
+  ShoppingBag,
+  Layers
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -89,7 +90,15 @@ const menu = [
       { name: "Visas", icon: <FileText size={18} /> },
       { name: "Suppliers", icon: <Truck size={18} /> },
       { name: "Cruise Calendar", icon: <Calendar size={18} /> },
-      { name: "Goimomi Products", icon: <ShoppingBag size={18} /> },
+      {
+        name: "Goimomi Products",
+        icon: <ShoppingBag size={18} />,
+        isDropdown: true,
+        children: [
+          { name: "Manage Products", key: "Goimomi Products" },
+          { name: "Catalogue Master", key: "Catalogue Master" },
+        ]
+      },
       { name: "Logistics Master", icon: <Truck size={18} /> },
     ],
   },
@@ -192,6 +201,8 @@ const AdminSidebar = () => {
       case "PickupPoints": return () => navigate("/admin/management-country/pickup-points/add");
       case "CruiseTerminal": return () => navigate("/admin/management-country/cruise-terminals/add");
       case "Goimomi Products": return handleAddProduct;
+      case "Catalogue Master":
+      case "CatalogueMaster": return () => navigate("/admin/cataloguemaster?action=add");
       default: return undefined;
 
     }
@@ -229,8 +240,11 @@ const AdminSidebar = () => {
       case "PickupPoints": return handleManagementPickupPoints;
       case "CruiseTerminal": return handleManagementCruiseTerminal;
       case "Goimomi Products": return handleChangeProduct;
+      case "Catalogue Master":
+      case "CatalogueMaster": return () => navigate("/admin/cataloguemaster");
       case "Logistics Master": return () => navigate("/admin/logisticsmaster");
       default: return undefined;
+
 
     }
   };
@@ -271,7 +285,7 @@ const AdminSidebar = () => {
             )}
           </div>
 
-          {!isCollapsed && !isChild && (
+          {!isCollapsed && (
             <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
               {getAddHandler(item) && (
                 <button
@@ -301,7 +315,7 @@ const AdminSidebar = () => {
           )}
         </li>
         {isDropdown && isOpen && !isCollapsed && (
-          <ul className="animate-in slide-in-from-top-2 duration-200">
+          <ul className="animate-fadeIn">
             {item.children.map(child => renderItem(child, true))}
           </ul>
         )}

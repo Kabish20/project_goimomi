@@ -43,7 +43,8 @@ from .models import (
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
     CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
-    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking,
+    CatalogueMaster, SubCatalogue
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -59,7 +60,8 @@ from .serializers import (
     CabBookingSerializer, CabAdditionalDocumentSerializer,
     CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
-    GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer, LogisticsProviderSerializer, PackageBookingSerializer
+    GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer, LogisticsProviderSerializer, PackageBookingSerializer,
+    CatalogueMasterSerializer, SubCatalogueSerializer
 )
 
 class CantonEnquiryAPI(ModelViewSet):
@@ -3215,5 +3217,74 @@ class LogisticsProviderViewSet(ModelViewSet):
     queryset = LogisticsProvider.objects.all().order_by('name')
     serializer_class = LogisticsProviderSerializer
     pagination_class = None
+
+
+class CatalogueMasterViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = CatalogueMaster.objects.all().order_by('name')
+    serializer_class = CatalogueMasterSerializer
+    pagination_class = None
+
+    @action(detail=True, methods=['post'], url_path='addsubcatalogues')
+    def add_sub_catalogues(self, request, pk=None):
+        """
+        API endpoint to add multiple sub-catalogues to a Catalogue Master.
+        Accepts a list of sub-catalogues or a dictionary with 'sub_catalogues' key in request data.
+        Payload Examples:
+        [
+            {"name": "Sub 1", "description": "Desc 1"},
+            {"name": "Sub 2", "description": "Desc 2"}
+        ]
+        or
+        {"sub_catalogues": [{"name": "Sub 1"}, {"name": "Sub 2"}]}
+        """
+        catalogue = self.get_object()
+        data = request.data
+
+        if isinstance(data, dict) and 'sub_catalogues' in data:
+            sub_items = data['sub_catalogues']
+        elif isinstance(data, list):
+            sub_items = data
+        elif isinstance(data, dict):
+            sub_items = [data]
+        else:
+            return Response({'error': 'Invalid payload format.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        created_subs = []
+        errors = []
+
+        for index, item in enumerate(sub_items):
+            item_data = item.copy()
+            item_data['catalogue'] = catalogue.id
+            serializer = SubCatalogueSerializer(data=item_data)
+            if serializer.is_valid():
+                sub_instance = serializer.save()
+                created_subs.append(SubCatalogueSerializer(sub_instance).data)
+            else:
+                errors.append({'index': index, 'errors': serializer.errors})
+
+        if errors and not created_subs:
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'message': f'Successfully added {len(created_subs)} sub-catalogue(s).',
+            'created_sub_catalogues': created_subs,
+            'errors': errors if errors else None
+        }, status=status.HTTP_201_CREATED)
+
+
+class SubCatalogueViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    queryset = SubCatalogue.objects.all().order_by('order', 'name')
+    serializer_class = SubCatalogueSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        catalogue_id = self.request.query_params.get('catalogue')
+        if catalogue_id:
+            queryset = queryset.filter(catalogue_id=catalogue_id)
+        return queryset
+
 
 

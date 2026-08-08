@@ -893,6 +893,9 @@ class GoimomiProduct(models.Model):
         default='in_stock',
     )
     image = models.ImageField(upload_to="products/", blank=True, null=True)
+    catalogue = models.ForeignKey('CatalogueMaster', related_name='products', on_delete=models.SET_NULL, null=True, blank=True)
+    sub_catalogue = models.ForeignKey('SubCatalogue', related_name='products', on_delete=models.SET_NULL, null=True, blank=True)
+    sub_catalogues = models.ManyToManyField('SubCatalogue', blank=True, related_name='products_multi')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1015,4 +1018,51 @@ class LogisticsProvider(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Catalogue Master & Sub Catalogue
+# ─────────────────────────────────────────────────────────────────────────────
+
+class CatalogueMaster(models.Model):
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=100, unique=True, blank=True, null=True, help_text="Unique code or slug")
+    description = models.TextField(blank=True, null=True)
+    image = models.FileField(upload_to='catalogues/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Catalogue Master"
+        verbose_name_plural = "Catalogue Masters"
+
+    def __str__(self):
+        return self.name
+
+
+class SubCatalogue(models.Model):
+    catalogue = models.ForeignKey(
+        CatalogueMaster,
+        related_name='sub_catalogues',
+        on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    image = models.FileField(upload_to='sub_catalogues/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0, help_text="Display ordering position")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name = "Sub Catalogue"
+        verbose_name_plural = "Sub Catalogues"
+
+    def __str__(self):
+        return f"{self.catalogue.name} -> {self.name}"
+
 

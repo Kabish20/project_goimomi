@@ -21,6 +21,9 @@ const ProductEdit = () => {
   const [newGalleryPreviews, setNewGalleryPreviews] = useState([]);
   const [removeImageIds, setRemoveImageIds] = useState([]);
 
+  // Catalogue Masters state
+  const [catalogues, setCatalogues] = useState([]);
+
   const [form, setForm] = useState({
     title:        "",
     description:  "",
@@ -29,14 +32,54 @@ const ProductEdit = () => {
     quantity:     "",
     stock_status: "in_stock",
     image:        null,
+    catalogue:    "",
+    sub_catalogues: [],
   });
 
-  // Fetch existing product
+  const selectedCatObj = catalogues.find(c => String(c.id) === String(form.catalogue));
+  const availableSubCatalogues = selectedCatObj?.sub_catalogues || [];
+
+  const handleToggleSubCatalogue = (subId) => {
+    setForm(prev => {
+      const exists = prev.sub_catalogues.includes(subId);
+      const updated = exists
+        ? prev.sub_catalogues.filter(id => id !== subId)
+        : [...prev.sub_catalogues, subId];
+      return { ...prev, sub_catalogues: updated };
+    });
+  };
+
+  const handleSelectAllSubCatalogues = () => {
+    if (!availableSubCatalogues.length) return;
+    const allIds = availableSubCatalogues.map(s => s.id);
+    const isAllSelected = allIds.every(id => form.sub_catalogues.includes(id));
+    setForm(prev => ({
+      ...prev,
+      sub_catalogues: isAllSelected ? [] : allIds
+    }));
+  };
+
+  // Fetch catalogues and product details
   useEffect(() => {
+    const fetchCatalogues = async () => {
+      try {
+        const res = await api.get("/api/cataloguemasters/");
+        const data = Array.isArray(res.data) ? res.data : res.data?.results || [];
+        setCatalogues(data);
+      } catch (err) {
+        console.error("Error fetching catalogues:", err);
+      }
+    };
+    fetchCatalogues();
+
     const fetchProduct = async () => {
       try {
         const res = await api.get(`/api/goimomi-products/${id}/`);
         const p = res.data;
+        let subCats = [];
+        if (Array.isArray(p.sub_catalogues)) subCats = p.sub_catalogues;
+        else if (p.sub_catalogue) subCats = [p.sub_catalogue];
+
         setForm({
           title:        p.title        || "",
           description:  p.description  || "",
@@ -45,6 +88,8 @@ const ProductEdit = () => {
           quantity:     p.quantity     || "",
           stock_status: p.stock_status || "in_stock",
           image:        null,
+          catalogue:    p.catalogue    || "",
+          sub_catalogues: subCats,
         });
         if (p.image) setExistingImage(p.image);
         if (p.images) setExistingGallery(p.images);
@@ -121,7 +166,14 @@ const ProductEdit = () => {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => {
         if (k === "image" && !v) return; // don't send null image (keep existing)
-        if (v !== null && v !== "") fd.append(k, v);
+        if (k === "sub_catalogues") {
+          if (Array.isArray(v)) {
+            v.forEach((subId) => fd.append("sub_catalogues", subId));
+            if (v.length > 0) fd.append("sub_catalogue", v[0]);
+          }
+        } else if (v !== null && v !== "") {
+          fd.append(k, v);
+        }
       });
 
       // Append new gallery images
@@ -239,6 +291,75 @@ const ProductEdit = () => {
                           placeholder="Write a brief summary of features…"
                           className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-green-500 resize-y"
                         />
+                      </div>
+
+                      {/* Catalogue Master & Sub-Catalogues Multi-Choice */}
+                      <div className="space-y-3 pt-1">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor="pe-catalogue">
+                            Catalogue Master
+                          </label>
+                          <select
+                            id="pe-catalogue"
+                            name="catalogue"
+                            value={form.catalogue || ""}
+                            onChange={(e) => {
+                              const catId = e.target.value;
+                              setForm(prev => ({ ...prev, catalogue: catId, sub_catalogues: [] }));
+                            }}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                          >
+                            <option value="">Select Catalogue Master (Optional)</option>
+                            {catalogues.map(c => (
+                              <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Multi-Select Sub Catalogues Display */}
+                        {form.catalogue && (
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5 space-y-2 animate-fadeIn">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                                🏷️ Sub Catalogues <span className="text-green-700 font-extrabold">({form.sub_catalogues.length} Selected)</span>
+                              </span>
+                              {availableSubCatalogues.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={handleSelectAllSubCatalogues}
+                                  className="text-[11px] font-bold text-green-700 hover:text-green-900 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-md border border-green-200 transition-colors"
+                                >
+                                  {availableSubCatalogues.every(s => form.sub_catalogues.includes(s.id)) ? "Deselect All" : "Select All"}
+                                </button>
+                              )}
+                            </div>
+
+                            {availableSubCatalogues.length === 0 ? (
+                              <p className="text-xs text-gray-400 italic">No sub-catalogues available under this master catalogue.</p>
+                            ) : (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {availableSubCatalogues.map((sub) => {
+                                  const isSelected = form.sub_catalogues.includes(sub.id);
+                                  return (
+                                    <button
+                                      key={sub.id}
+                                      type="button"
+                                      onClick={() => handleToggleSubCatalogue(sub.id)}
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border cursor-pointer ${
+                                        isSelected
+                                          ? "bg-green-600 border-green-600 text-white shadow-xs"
+                                          : "bg-white border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50"
+                                      }`}
+                                    >
+                                      <span>{isSelected ? "✓" : "+"}</span>
+                                      <span>{sub.name}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

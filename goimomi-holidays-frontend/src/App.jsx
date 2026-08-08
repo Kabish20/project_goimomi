@@ -106,6 +106,8 @@ const ProductManage = lazyRetry(() => import("./pages/admin/ProductManage/Produc
 const ProductAdd    = lazyRetry(() => import("./pages/admin/ProductAdd/ProductAdd.jsx"));
 const ProductEdit   = lazyRetry(() => import("./pages/admin/ProductEdit/ProductEdit.jsx"));
 const LogisticsProviderManage = lazyRetry(() => import("./pages/admin/LogisticsProviderManage/LogisticsProviderManage.jsx"));
+const CatalogueMasterManage = lazyRetry(() => import("./pages/admin/CatalogueMasterManage/CatalogueMasterManage.jsx"));
+
 
 
 const AdminLogin = lazyRetry(() => import("./pages/General/AdminLogin/AdminLogin.jsx"));
@@ -115,8 +117,12 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 // Loading component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="w-12 h-12 border-4 border-[#14532d] border-t-transparent rounded-full animate-spin"></div>
+  <div className="flex flex-col items-center justify-center min-h-[75vh] gap-4 animate-fadeIn">
+    <div className="relative flex items-center justify-center">
+      <div className="w-14 h-14 border-4 border-emerald-200 border-t-[#14532d] rounded-full animate-spin"></div>
+      <div className="absolute w-8 h-8 bg-[#14532d]/10 rounded-full animate-ping"></div>
+    </div>
+    <span className="text-xs uppercase tracking-widest font-black text-[#14532d] animate-pulse">Loading Goimomi...</span>
   </div>
 );
 
@@ -277,50 +283,99 @@ const App = () => {
               <Route path="/admin/enquiries" element={<EnquiryManage />} />
               <Route path="/admin/holiday-enquiries/add" element={<HolidayEnquiryAdd />} />
               <Route path="/admin/holiday-enquiries" element={<HolidayEnquiryManage />} />
+              <Route path="/admin/holidayenquiries/add" element={<HolidayEnquiryAdd />} />
+              <Route path="/admin/holidayenquiries" element={<HolidayEnquiryManage />} />
+
               <Route path="/admin/umrah-enquiries/add" element={<UmrahEnquiryAdd />} />
               <Route path="/admin/umrah-enquiries" element={<UmrahEnquiryManage />} />
+              <Route path="/admin/umrahenquiries/add" element={<UmrahEnquiryAdd />} />
+              <Route path="/admin/umrahenquiries" element={<UmrahEnquiryManage />} />
+
               <Route path="/admin/itinerary-masters" element={<ItineraryMasterManage />} />
               <Route path="/admin/itinerary-masters/add" element={<ItineraryMasterAdd />} />
               <Route path="/admin/itinerary-masters/edit/:id" element={<ItineraryMasterEdit />} />
+              <Route path="/admin/itinerarymasters" element={<ItineraryMasterManage />} />
+              <Route path="/admin/itinerarymasters/add" element={<ItineraryMasterAdd />} />
+              <Route path="/admin/itinerarymasters/edit/:id" element={<ItineraryMasterEdit />} />
+
               <Route path="/admin/sightseeing-masters" element={<SightseeingMasterManage />} />
               <Route path="/admin/sightseeing-masters/add" element={<SightseeingMasterAdd />} />
               <Route path="/admin/sightseeing-masters/edit/:id" element={<SightseeingMasterEdit />} />
+              <Route path="/admin/sightseeingmasters" element={<SightseeingMasterManage />} />
+              <Route path="/admin/sightseeingmasters/add" element={<SightseeingMasterAdd />} />
+              <Route path="/admin/sightseeingmasters/edit/:id" element={<SightseeingMasterEdit />} />
+
               <Route path="/admin/users" element={<UsersList />} />
               <Route path="/admin/users/add" element={<UserAdd />} />
               <Route path="/admin/users/edit/:id" element={<UserEdit />} />
               <Route path="/admin/visas" element={<AdminVisaManage />} />
               <Route path="/admin/visas/add" element={<AdminVisaAdd />} />
               <Route path="/admin/visas/edit/:id" element={<AdminVisaEdit />} />
+
               <Route path="/admin/visa-applications" element={<VisaApplicationManage />} />
               <Route path="/admin/visa-applications/edit/:id" element={<VisaApplicationEdit />} />
+              <Route path="/admin/visaapplications" element={<VisaApplicationManage />} />
+              <Route path="/admin/visaapplications/edit/:id" element={<VisaApplicationEdit />} />
+
               <Route path="/admin/cab-enquiries" element={<CabEnquiryManage />} />
               <Route path="/admin/cab-bookings" element={<CabBookingManage />} />
+              <Route path="/admin/cabenquiries" element={<CabEnquiryManage />} />
+              <Route path="/admin/cabbookings" element={<CabBookingManage />} />
+
               <Route path="/admin/canton-enquiries" element={<CantonEnquiryManage />} />
+              <Route path="/admin/cantonenquiries" element={<CantonEnquiryManage />} />
+
               <Route path="/admin/cruise-enquiries" element={<CruiseEnquiryManage />} />
+              <Route path="/admin/cruiseenquiries" element={<CruiseEnquiryManage />} />
+
               <Route path="/admin/hotel-enquiries" element={<HotelEnquiryManage />} />
+              <Route path="/admin/hotelenquiries" element={<HotelEnquiryManage />} />
+
               <Route path="/admin/general-enquiries" element={<GeneralEnquiryManage />} />
+              <Route path="/admin/generalenquiries" element={<GeneralEnquiryManage />} />
+
               <Route path="/admin/suppliers" element={<SupplierManage />} />
               <Route path="/admin/suppliers/add" element={<SupplierAdd />} />
               <Route path="/admin/suppliers/edit/:id" element={<SupplierEdit />} />
+
               <Route path="/admin/cruise-calendar" element={<CruiseCalendarManage />} />
               <Route path="/admin/cruise-calendar/add" element={<CruiseCalendarAdd />} />
               <Route path="/admin/cruise-calendar/edit/:id" element={<CruiseCalendarEdit />} />
+              <Route path="/admin/cruisecalendar" element={<CruiseCalendarManage />} />
+              <Route path="/admin/cruisecalendar/add" element={<CruiseCalendarAdd />} />
+              <Route path="/admin/cruisecalendar/edit/:id" element={<CruiseCalendarEdit />} />
+
               <Route path="/admin/accommodations" element={<AccommodationManage />} />
               <Route path="/admin/accommodations/add" element={<AccommodationAdd />} />
               <Route path="/admin/accommodations/edit/:id" element={<AccommodationEdit />} />
+
               <Route path="/admin/vehicle-masters" element={<VehicleMasterManage />} />
               <Route path="/admin/vehicle-masters/add" element={<VehicleMasterAdd />} />
               <Route path="/admin/vehicle-masters/edit/:id" element={<VehicleMasterEdit />} />
+              <Route path="/admin/vehiclemasters" element={<VehicleMasterManage />} />
+              <Route path="/admin/vehiclemasters/add" element={<VehicleMasterAdd />} />
+              <Route path="/admin/vehiclemasters/edit/:id" element={<VehicleMasterEdit />} />
+
               <Route path="/admin/driver-masters" element={<DriverMasterManage />} />
               <Route path="/admin/driver-masters/add" element={<DriverMasterAdd />} />
               <Route path="/admin/driver-masters/edit/:id" element={<DriverMasterEdit />} />
+              <Route path="/admin/drivermasters" element={<DriverMasterManage />} />
+              <Route path="/admin/drivermasters/add" element={<DriverMasterAdd />} />
+              <Route path="/admin/drivermasters/edit/:id" element={<DriverMasterEdit />} />
+
               <Route path="/admin/vehicle-rate-cards" element={<VehicleRateCardManage />} />
               <Route path="/admin/vehicle-rate-cards/add" element={<VehicleRateCardAdd />} />
               <Route path="/admin/vehicle-rate-cards/edit/:id" element={<VehicleRateCardEdit />} />
+              <Route path="/admin/vehicleratecards" element={<VehicleRateCardManage />} />
+              <Route path="/admin/vehicleratecards/add" element={<VehicleRateCardAdd />} />
+              <Route path="/admin/vehicleratecards/edit/:id" element={<VehicleRateCardEdit />} />
+
               <Route path="/admin/pickup-point-masters" element={<PickupPointManage />} />
+              <Route path="/admin/pickuppointmasters" element={<PickupPointManage />} />
 
               {/* Management Country Routes */}
               <Route path="/admin/management-country" element={<CountryManagement />} />
+              <Route path="/admin/managementcountry" element={<CountryManagement />} />
               <Route path="/admin/management-country/countries/add" element={<CountryAdd />} />
               <Route path="/admin/management-country/countries/edit/:id" element={<CountryEdit />} />
 
@@ -345,6 +400,11 @@ const App = () => {
               <Route path="/admin/logisticsmaster" element={<LogisticsProviderManage />} />
               <Route path="/admin/logistics-master" element={<LogisticsProviderManage />} />
               <Route path="/admin/logistics-providers" element={<LogisticsProviderManage />} />
+              <Route path="/admin/cataloguemaster" element={<CatalogueMasterManage />} />
+              <Route path="/admin/catalogue-master" element={<CatalogueMasterManage />} />
+              <Route path="/admin/catalogue-masters" element={<CatalogueMasterManage />} />
+
+
 
             </Route>
 

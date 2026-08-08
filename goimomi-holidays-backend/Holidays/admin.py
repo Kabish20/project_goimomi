@@ -252,3 +252,25 @@ class GoimomiProductAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+class SubCatalogueInline(admin.TabularInline):
+    model = SubCatalogue
+    extra = 1
+    fields = ('name', 'code', 'order', 'is_active')
+
+
+@admin.register(CatalogueMaster)
+class CatalogueMasterAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'code', 'description')
+    inlines = [SubCatalogueInline]
+
+
+@admin.register(SubCatalogue)
+class SubCatalogueAdmin(admin.ModelAdmin):
+    list_display = ('name', 'catalogue', 'code', 'order', 'is_active', 'created_at')
+    list_filter = ('catalogue', 'is_active')
+    search_fields = ('name', 'code', 'catalogue__name')
+

@@ -19,7 +19,8 @@ from .models import (
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
     PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal,
-    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking
+    GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking,
+    CatalogueMaster, SubCatalogue
 )
 
 class CantonEnquirySerializer(serializers.ModelSerializer):
@@ -791,14 +792,28 @@ class CabBookingSerializer(serializers.ModelSerializer):
 class GoimomiProductSerializer(serializers.ModelSerializer):
     discount_percent = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
+    catalogue_name = serializers.ReadOnlyField(source='catalogue.name', default=None)
+    sub_catalogue_name = serializers.ReadOnlyField(source='sub_catalogue.name', default=None)
+    sub_catalogue_details = serializers.SerializerMethodField()
 
     class Meta:
         model = GoimomiProduct
         fields = [
             'id', 'title', 'description', 'price', 'mrp',
             'quantity', 'stock_status', 'image',
+            'catalogue', 'sub_catalogue', 'sub_catalogues',
+            'catalogue_name', 'sub_catalogue_name', 'sub_catalogue_details',
             'discount_percent', 'images', 'created_at', 'updated_at',
         ]
+
+    def get_sub_catalogue_details(self, obj):
+        res = []
+        if obj.sub_catalogue:
+            res.append({'id': obj.sub_catalogue.id, 'name': obj.sub_catalogue.name})
+        for sc in obj.sub_catalogues.all():
+            if not any(item['id'] == sc.id for item in res):
+                res.append({'id': sc.id, 'name': sc.name})
+        return res
 
     def get_discount_percent(self, obj):
         return obj.discount_percent
@@ -841,4 +856,54 @@ class LogisticsProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = LogisticsProvider
         fields = "__all__"
+
+
+class SubCatalogueSerializer(serializers.ModelSerializer):
+    catalogue_name = serializers.ReadOnlyField(source='catalogue.name')
+
+    class Meta:
+        model = SubCatalogue
+        fields = "__all__"
+        extra_kwargs = {
+            'catalogue': {'required': False}
+        }
+
+
+class CatalogueMasterSerializer(serializers.ModelSerializer):
+    sub_catalogues = SubCatalogueSerializer(many=True, required=False)
+
+    class Meta:
+        model = CatalogueMaster
+        fields = "__all__"
+
+    def create(self, validated_data):
+        sub_catalogues_data = validated_data.pop('sub_catalogues', [])
+        catalogue = CatalogueMaster.objects.create(**validated_data)
+        for sub_data in sub_catalogues_data:
+            SubCatalogue.objects.create(catalogue=catalogue, **sub_data)
+        return catalogue
+
+    def update(self, instance, validated_data):
+        sub_catalogues_data = validated_data.pop('sub_catalogues', None)
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if sub_catalogues_data is not None:
+            for sub_data in sub_catalogues_data:
+                sub_id = sub_data.get('id', None)
+                if sub_id:
+                    sub_obj = SubCatalogue.objects.filter(id=sub_id, catalogue=instance).first()
+                    if sub_obj:
+                        for sub_attr, sub_val in sub_data.items():
+                            setattr(sub_obj, sub_attr, sub_val)
+                        sub_obj.save()
+                    else:
+                        SubCatalogue.objects.create(catalogue=instance, **sub_data)
+                else:
+                    SubCatalogue.objects.create(catalogue=instance, **sub_data)
+
+        return instance
+
 
