@@ -1440,12 +1440,14 @@ def send_product_shipped_email(order):
         # Attach bill copy file if uploaded
         if order.bill_copy:
             try:
-                file_path = order.bill_copy.path
-                if os.path.exists(file_path):
-                    with open(file_path, 'rb') as bf:
-                        ext = os.path.splitext(file_path)[1].lower()
-                        mime_type = 'application/pdf' if ext == '.pdf' else f'image/{ext.replace(".", "")}'
-                        msg.attach(f"Shipping_Bill_{order_ref}{ext}", bf.read(), mime_type)
+                fname = os.path.basename(order.bill_copy.name)
+                ext = os.path.splitext(fname)[1].lower() if fname else '.pdf'
+                mime_type = 'application/pdf' if ext == '.pdf' else f'image/{ext.replace(".", "") or "png"}'
+                order.bill_copy.open('rb')
+                content = order.bill_copy.read()
+                order.bill_copy.close()
+                if content:
+                    msg.attach(f"Shipping_Bill_{order_ref}{ext}", content, mime_type)
             except Exception as file_e:
                 print(f"Notice attaching bill copy file to email: {file_e}")
 

@@ -2727,14 +2727,20 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         response = super().partial_update(request, *args, **kwargs)
         order.refresh_from_db()
 
-        # If status changed to Shipped or trigger_shipped_email passed, trigger shipping email
-        is_shipped_event = (order.status.lower() == 'shipped' and old_status.lower() != 'shipped') or request.data.get('trigger_shipped_email') in (True, 'true', '1')
+        # If status is Shipped or trigger_shipped_email passed, trigger shipping email
+        trigger_flag = str(request.data.get('trigger_shipped_email', '')).lower() in ('true', '1')
+        is_shipped_event = (order.status and order.status.lower() == 'shipped') or trigger_flag
         
         if is_shipped_event:
             self._deduct_stock_and_notify(order)
             try:
                 from Holidays.utils import send_product_shipped_email
+                from Holidays.tasks import send_product_shipped_email_task
                 send_product_shipped_email(order)
+                try:
+                    send_product_shipped_email_task.delay(order.pk)
+                except Exception as c_err:
+                    print(f"Notice dispatching Celery shipped task: {c_err}")
                 print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}")
             except Exception as ship_err:
                 print(f"Error sending shipping email on status change: {ship_err}")
