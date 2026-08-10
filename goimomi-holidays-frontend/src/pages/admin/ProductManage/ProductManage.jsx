@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { 
   Edit2, Trash2, Plus, Search, Package, RefreshCw, Tag, CheckCircle, 
-  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText, Truck, Upload
+  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText, Truck, Upload, Download, Copy, Check
 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
@@ -62,6 +64,196 @@ const ProductManage = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [deleteConfirmProduct, setDeleteConfirmProduct] = useState(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleCopyOrderDetails = (order) => {
+    if (!order) return;
+    try {
+      const prodTitle = order.product_title || order.product_details?.title || "Product Order";
+      let cartBreakdown = "";
+      if (order.cart_items && order.cart_items.length > 0) {
+        cartBreakdown = "\nCart Items Breakdown:\n" + order.cart_items.map(item => `  • ${item.title} (x${item.quantity}) - ${formatCurrency(item.price * item.quantity)}`).join("\n");
+      }
+
+      const textToCopy = `=== GOIMOMI HOLIDAYS - ORDER DETAILS ===
+Order ID: ${order.order_id || `#${order.id}`}
+Order Date: ${formatDate(order.created_at)}
+Status: ${order.status || "Pending"}
+
+--- CUSTOMER INFORMATION ---
+Name: ${order.name || "N/A"}
+Phone: ${order.phone || "N/A"}
+Email: ${order.email || "N/A"}
+
+--- DELIVERY ADDRESS ---
+${order.address || "N/A"}
+
+--- INVOICE & SHIPPING INFO ---
+Book Invoice No.: ${order.book_invoice_number || "N/A"}
+Logistics Provider: ${order.logistics_provider || "N/A"}
+Tracking Number: ${order.tracking_number || "N/A"}
+
+--- PRODUCT SUMMARY ---
+Product: ${prodTitle}
+Quantity: ${order.quantity || 1}
+Unit Price: ${formatCurrency(order.price || (order.total_amount / (order.quantity || 1)))}
+Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
+=========================================`;
+
+      navigator.clipboard.writeText(textToCopy);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2500);
+    } catch (err) {
+      console.error("Copy to clipboard error:", err);
+      alert("Failed to copy order details.");
+    }
+  };
+
+  const handleDownloadOrderPdf = (order) => {
+    if (!order) return;
+    try {
+      const doc = new jsPDF();
+
+      // Header Banner
+      doc.setFillColor(20, 83, 45); // Emerald Green
+      doc.rect(0, 0, 210, 36, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("GOIMOMI HOLIDAYS", 14, 18);
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("CUSTOMER ORDER RECEIPT", 14, 27);
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(`ORDER: ${order.order_id || `#${order.id}`}`, 145, 18);
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date: ${formatDate(order.created_at)}`, 145, 25);
+      doc.text(`Status: ${(order.status || "Pending").toUpperCase()}`, 145, 31);
+
+      let yPos = 46;
+
+      // Customer Details Section Box
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(14, yPos, 88, 42, 3, 3, "FD");
+
+      doc.setTextColor(20, 83, 45);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("CUSTOMER INFORMATION", 18, yPos + 8);
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text(order.name || "N/A", 18, yPos + 17);
+
+      doc.setFont("helvetica", "normal");
+      doc.text(`Phone: ${order.phone || "N/A"}`, 18, yPos + 25);
+      doc.text(`Email: ${order.email || "N/A"}`, 18, yPos + 33);
+
+      // Delivery Address Section Box
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(108, yPos, 88, 42, 3, 3, "FD");
+
+      doc.setTextColor(20, 83, 45);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("DELIVERY ADDRESS", 112, yPos + 8);
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      const addressLines = doc.splitTextToSize(order.address || "N/A", 80);
+      doc.text(addressLines, 112, yPos + 17);
+
+      yPos += 48;
+
+      // Shipping & Invoice Details (If available)
+      if (order.book_invoice_number || order.logistics_provider || order.tracking_number) {
+        doc.setFillColor(240, 249, 255);
+        doc.setDrawColor(186, 230, 253);
+        doc.roundedRect(14, yPos, 182, 20, 3, 3, "FD");
+
+        doc.setTextColor(3, 105, 161);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("INVOICE & SHIPPING DETAILS", 18, yPos + 7);
+
+        doc.setTextColor(51, 65, 85);
+        doc.setFontSize(8.5);
+        doc.setFont("helvetica", "normal");
+        const shippingText = `Book Invoice: ${order.book_invoice_number || "N/A"}   |   Courier: ${order.logistics_provider || "N/A"}   |   Tracking #: ${order.tracking_number || "N/A"}`;
+        doc.text(shippingText, 18, yPos + 14);
+
+        yPos += 26;
+      }
+
+      // Products Table
+      const tableHead = [["Item Description", "Qty", "Unit Price", "Total Amount"]];
+      const tableBody = [];
+
+      if (order.cart_items && order.cart_items.length > 0) {
+        order.cart_items.forEach((item) => {
+          tableBody.push([
+            item.title || "Product Item",
+            item.quantity || 1,
+            `Rs. ${(item.price || 0).toLocaleString("en-IN")}`,
+            `Rs. ${((item.price || 0) * (item.quantity || 1)).toLocaleString("en-IN")}`
+          ]);
+        });
+      } else {
+        const prodTitle = order.product_title || order.product_details?.title || "Product Item";
+        const unitPrice = order.price || (order.total_amount / (order.quantity || 1));
+        tableBody.push([
+          prodTitle,
+          order.quantity || 1,
+          `Rs. ${(unitPrice || 0).toLocaleString("en-IN")}`,
+          `Rs. ${(order.total_amount || 0).toLocaleString("en-IN")}`
+        ]);
+      }
+
+      autoTable(doc, {
+        head: tableHead,
+        body: tableBody,
+        startY: yPos,
+        styles: { fontSize: 9, cellPadding: 4 },
+        headStyles: { fillColor: [20, 83, 45], textColor: 255, fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { left: 14, right: 14 }
+      });
+
+      const finalY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : yPos + 30) + 10;
+
+      // Summary Total Box
+      doc.setFillColor(240, 253, 244);
+      doc.setDrawColor(187, 247, 208);
+      doc.roundedRect(120, finalY, 76, 18, 3, 3, "FD");
+
+      doc.setTextColor(22, 101, 52);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("TOTAL AMOUNT:", 125, finalY + 11);
+      doc.text(`Rs. ${(order.total_amount || 0).toLocaleString("en-IN")}`, 190, finalY + 11, { align: "right" });
+
+      // Footer Note
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(148, 163, 184);
+      doc.text("Thank you for choosing Goimomi Holidays.", 105, 282, { align: "center" });
+
+      doc.save(`Order_${order.order_id || order.id}_Goimomi.pdf`);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      alert("Failed to generate PDF document.");
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -676,7 +868,7 @@ const ProductManage = () => {
                               {formatDate(order.created_at)}
                             </td>
                             <td className="py-3.5 px-4 text-center">
-                              <div className="flex gap-1.5 justify-center">
+                              <div className="flex gap-1.5 justify-center items-center">
                                 <button
                                   onClick={() => handleUpdateOrderStatus(order.id, "Shipped", order)}
                                   className="flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1 rounded-lg text-xs font-bold transition shadow-sm"
@@ -687,12 +879,28 @@ const ProductManage = () => {
                                 <button
                                   onClick={() => handleSelectOrder(order)}
                                   className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold transition"
+                                  title="View order details"
                                 >
                                   <Eye size={13} /> View
                                 </button>
                                 <button
+                                  onClick={() => handleDownloadOrderPdf(order)}
+                                  className="flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-1 rounded-lg text-xs font-bold transition"
+                                  title="Download Order PDF"
+                                >
+                                  <Download size={12} /> PDF
+                                </button>
+                                <button
+                                  onClick={() => handleCopyOrderDetails(order)}
+                                  className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-lg text-xs transition"
+                                  title="Copy order details to clipboard"
+                                >
+                                  <Copy size={13} />
+                                </button>
+                                <button
                                   onClick={() => handleDeleteOrder(order.id)}
-                                  className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded-lg text-xs font-semibold transition"
+                                  className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs transition"
+                                  title="Delete order"
                                 >
                                   <Trash2 size={13} />
                                 </button>
@@ -714,17 +922,38 @@ const ProductManage = () => {
               <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
                 
                 {/* Modal Header */}
-                <div className="p-5 bg-gradient-to-r from-[#14532d] to-[#1a6b3d] text-white flex justify-between items-start">
+                <div className="p-4 bg-gradient-to-r from-[#14532d] to-[#1a6b3d] text-white flex justify-between items-center">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200">Customer Order Detail</span>
-                    <h3 className="text-xl font-black mt-0.5">{selectedOrder.order_id || `#${selectedOrder.id}`}</h3>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200 block">Customer Order Detail</span>
+                    <h3 className="text-lg font-black mt-0.5">{selectedOrder.order_id || `#${selectedOrder.id}`}</h3>
                   </div>
-                  <button
-                    onClick={() => setSelectedOrder(null)}
-                    className="text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition"
-                  >
-                    <X size={18} />
-                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyOrderDetails(selectedOrder)}
+                      className="px-2.5 py-1 bg-white/15 hover:bg-white/25 text-white rounded-md text-xs font-semibold flex items-center gap-1 transition"
+                      title="Copy formatted order details"
+                    >
+                      {copySuccess ? <Check size={12} className="text-emerald-300" /> : <Copy size={12} />}
+                      {copySuccess ? "Copied" : "Copy"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadOrderPdf(selectedOrder)}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-xs font-semibold flex items-center gap-1 transition shadow-sm"
+                      title="Download order receipt PDF"
+                    >
+                      <Download size={12} /> PDF
+                    </button>
+                    <button
+                      onClick={() => setSelectedOrder(null)}
+                      className="text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition ml-1"
+                      aria-label="Close"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Modal Body */}

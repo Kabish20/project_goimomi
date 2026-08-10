@@ -2781,9 +2781,10 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         address_line2 = request.data.get('address_line2', '').strip()
         city = request.data.get('city', '').strip()
         state = request.data.get('state', '').strip()
+        pincode = request.data.get('pincode', '').strip()
 
         if not address:
-            address = ", ".join([s for s in [address_line1, address_line2, city, state] if s])
+            address = ", ".join([s for s in [address_line1, address_line2, city, state, pincode] if s])
 
         if not name or not phone or not address or not email:
             return Response({'error': 'Name, phone, email, and delivery address are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -2828,6 +2829,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 address_line2=address_line2,
                 city=city,
                 state=state,
+                pincode=pincode,
                 status='Pending'
             )
         else:
@@ -2865,6 +2867,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 address_line2=address_line2,
                 city=city,
                 state=state,
+                pincode=pincode,
                 cart_items=validated_items,
                 status='Pending'
             )

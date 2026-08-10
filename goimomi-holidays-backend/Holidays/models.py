@@ -959,6 +959,7 @@ class GoimomiProductOrder(models.Model):
     address_line2 = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
     state = models.CharField(max_length=100, blank=True, null=True)
+    pincode = models.CharField(max_length=20, blank=True, null=True)
     cart_items = models.JSONField(blank=True, null=True, help_text="Cart items list if cart checkout")
     status = models.CharField(
         max_length=50,

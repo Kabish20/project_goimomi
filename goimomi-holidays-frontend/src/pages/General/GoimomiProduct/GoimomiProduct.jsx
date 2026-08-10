@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ShoppingCart, Zap, Package, Search, X, CheckCircle, ShoppingBag, Star, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import api from "../../../api.js";
@@ -105,7 +105,8 @@ const BuyNowModal = ({ product, onClose }) => {
     address_line1: "",
     address_line2: "",
     city: "",
-    state: ""
+    state: "",
+    pincode: ""
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -213,7 +214,7 @@ const BuyNowModal = ({ product, onClose }) => {
 
     setLoading(true);
     try {
-      const fullAddress = [form.address_line1, form.address_line2, form.city, form.state]
+      const fullAddress = [form.address_line1, form.address_line2, form.city, form.state, form.pincode ? `PIN: ${form.pincode}` : ""]
         .map(s => (s || "").trim())
         .filter(Boolean)
         .join(", ");
@@ -229,6 +230,7 @@ const BuyNowModal = ({ product, onClose }) => {
         address_line2: (form.address_line2 || "").trim(),
         city: (form.city || "").trim(),
         state: (form.state || "").trim(),
+        pincode: (form.pincode || "").trim(),
       };
 
       if (product.isCartCheckout) {
@@ -409,14 +411,7 @@ const BuyNowModal = ({ product, onClose }) => {
                     />
                   </div>
                   <div>
-                    <div className="flex justify-between items-center">
-                      <label>Quantity</label>
-                      {!isCartCheckout && maxStock > 0 && (
-                        <span className="text-[11px] text-gray-500 font-medium">
-                          Max stock: {maxStock}
-                        </span>
-                      )}
-                    </div>
+                    <label htmlFor="gp-buy-qty">Quantity</label>
                     <div className="flex items-center border border-gray-200 rounded-lg h-[34px] overflow-hidden bg-white mt-1">
                       <button
                         type="button"
@@ -481,8 +476,8 @@ const BuyNowModal = ({ product, onClose }) => {
 
 
               {/* Structured Address Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                <div className="col-span-full">
+              <div className="grid grid-cols-1 gap-3 pt-1">
+                <div>
                   <label htmlFor="gp-buy-addr1">Address Line 1 *</label>
                   <input
                     id="gp-buy-addr1"
@@ -494,7 +489,7 @@ const BuyNowModal = ({ product, onClose }) => {
                     onChange={handleChange}
                   />
                 </div>
-                <div className="col-span-full">
+                <div>
                   <label htmlFor="gp-buy-addr2">Address Line 2</label>
                   <input
                     id="gp-buy-addr2"
@@ -505,6 +500,10 @@ const BuyNowModal = ({ product, onClose }) => {
                     onChange={handleChange}
                   />
                 </div>
+              </div>
+
+              {/* City, State, PIN Code in balanced 3-column row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label htmlFor="gp-buy-city">City *</label>
                   <input
@@ -534,6 +533,22 @@ const BuyNowModal = ({ product, onClose }) => {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label htmlFor="gp-buy-pincode">PIN Code *</label>
+                  <input
+                    id="gp-buy-pincode"
+                    name="pincode"
+                    type="text"
+                    required
+                    maxLength={6}
+                    placeholder="6-digit PIN"
+                    value={form.pincode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setForm((p) => ({ ...p, pincode: val }));
+                    }}
+                  />
+                </div>
               </div>
               
               <button type="submit" className="gp-modal-submit" disabled={loading}>
@@ -561,6 +576,10 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
   const maxStock = Number(product?.quantity) || 0;
   const [qty, setQty] = useState(Math.max(1, maxStock > 0 ? Math.min(1, maxStock) : 1));
   const isOutOfStock = product.stock_status === "out_of_stock" || (maxStock <= 0);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [product.id]);
 
   useEffect(() => {
     if (maxStock > 0 && qty > maxStock) {
@@ -595,9 +614,9 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
     <div className="gp-details-page-container">
       {/* Breadcrumb / Back button */}
       <div className="gp-details-breadcrumb">
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button onClick={onClose} className="gp-details-back-btn">
-            ← Back to Shop
+            <ChevronLeft size={16} /> Back to Shop
           </button>
           <span className="gp-details-separator">/</span>
           <span className="gp-details-active-crumb">{product.title}</span>
@@ -607,11 +626,11 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
           className="gp-cart-btn"
           id="gp-view-cart-details"
           onClick={onViewCart}
-          style={{ padding: "8px 16px" }}
+          style={{ padding: "7px 15px", fontSize: "12.5px" }}
         >
-          {cartCount > 0 && <span className="gp-cart-count">{cartCount}</span>}
           <ShoppingBag size={16} />
-          Cart
+          <span>Cart</span>
+          {cartCount > 0 && <span className="gp-cart-count">{cartCount}</span>}
         </button>
       </div>
 
@@ -666,7 +685,7 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
                 <span className="gp-details-mrp">M.R.P.: {formatCurrency(product.mrp)}</span>
               )}
             </div>
-            <p className="gp-details-tax-note">Inclusive of all taxes</p>
+            <p className="gp-details-tax-note">+ Delivery Charges Extra</p>
           </div>
 
           {/* Description */}
@@ -679,14 +698,7 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
           <div className="gp-details-actions-card">
             {!isOutOfStock && (
               <div className="gp-details-qty-row" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                  <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--gp-muted)" }}>Quantity:</label>
-                  {maxStock > 0 && (
-                    <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "500" }}>
-                      Max available stock: {maxStock}
-                    </span>
-                  )}
-                </div>
+                <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--gp-muted)" }}>Quantity:</label>
                 <div className="gp-details-qty-selector" style={{ display: "flex", alignItems: "center", border: "1px solid var(--gp-border)", borderRadius: "8px", overflow: "hidden", background: "white", height: "34px", width: "120px" }}>
                   <button
                     type="button"
@@ -990,9 +1002,33 @@ const CartDrawer = ({ isOpen, onClose, cartItems, onUpdateQty, onRemove, onCheck
 const GoimomiProduct = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts]         = useState([]);
+  const [catalogues, setCatalogues]     = useState([]);
   const [loading, setLoading]           = useState(true);
   const [search, setSearch]             = useState("");
   const [stockFilter, setStockFilter]   = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const categoryOptions = useMemo(() => {
+    const list = [];
+    const set = new Set();
+
+    // Only collect Master Categories
+    catalogues.forEach((c) => {
+      if (c.name && !set.has(c.name)) {
+        set.add(c.name);
+        list.push({ id: `cat-${c.id}`, name: c.name });
+      }
+    });
+
+    products.forEach((p) => {
+      if (p.catalogue_name && !set.has(p.catalogue_name)) {
+        set.add(p.catalogue_name);
+        list.push({ id: `pcat-${p.catalogue_name}`, name: p.catalogue_name });
+      }
+    });
+
+    return list;
+  }, [catalogues, products]);
   const [cartItems, setCartItems]       = useState(getCartItems());
   const [toast, setToast]               = useState(null);
   const [buyProduct, setBuyProduct]     = useState(null);
@@ -1048,19 +1084,24 @@ const GoimomiProduct = () => {
     return () => window.removeEventListener("open-goimomi-cart", handleOpenCart);
   }, []);
 
-  /* Fetch products */
+  /* Fetch products & catalogues */
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get("/api/goimomi-products/", { skipAuth: true });
-        setProducts(res.data || []);
+        const [prodRes, catRes] = await Promise.all([
+          api.get("/api/goimomi-products/", { skipAuth: true }),
+          api.get("/api/cataloguemasters/", { skipAuth: true }).catch(() => ({ data: [] }))
+        ]);
+        setProducts(prodRes.data || []);
+        const catData = Array.isArray(catRes.data) ? catRes.data : catRes.data?.results || [];
+        setCatalogues(catData);
       } catch (err) {
-        console.error("Failed to fetch products:", err);
+        console.error("Failed to fetch store data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   /* Show toast helper */
@@ -1168,7 +1209,13 @@ const GoimomiProduct = () => {
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase());
     const matchesStock = stockFilter === "all" || p.stock_status === stockFilter;
-    return matchesSearch && matchesStock;
+    const matchesCategory =
+      selectedCategory === "all" ||
+      p.catalogue_name === selectedCategory ||
+      p.sub_catalogue_name === selectedCategory ||
+      (p.sub_catalogue_details && p.sub_catalogue_details.some((sc) => sc.name === selectedCategory));
+
+    return matchesSearch && matchesStock && matchesCategory;
   });
 
   const cartIds = new Set(cartItems.map((i) => i.id));
@@ -1194,55 +1241,93 @@ const GoimomiProduct = () => {
             <div className="gp-hero-orb gp-hero-orb-1" />
             <div className="gp-hero-orb gp-hero-orb-2" />
             <div className="gp-hero-badge">
-              <Star size={12} /> Goimomi Store
+              <Star size={12} /> Goimomi Shop
             </div>
             <h1>Premium Products<br />Curated for You</h1>
             <p>Discover our exclusive collection of top-quality products with unbeatable prices.</p>
           </section>
 
-          {/* ── Toolbar ── */}
+          {/* ── Toolbar Console ── */}
           <div className="gp-toolbar">
             <div className="gp-toolbar-inner">
-              {/* Search */}
-              <div className="gp-search">
-                <Search size={16} className="gp-search-icon" />
-                <input
-                  id="gp-search-input"
-                  type="text"
-                  placeholder="Search products…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-
-              {/* Stock filter */}
-              <div className="gp-filter-btns">
-                {[
-                  { key: "all", label: "All" },
-                  { key: "in_stock", label: "In Stock" },
-                  { key: "out_of_stock", label: "Out of Stock" },
-                ].map((f) => (
-                  <button
-                    key={f.key}
-                    className={`gp-filter-btn ${stockFilter === f.key ? "active" : ""}`}
-                    onClick={() => setStockFilter(f.key)}
-                    id={`filter-${f.key}`}
+              
+              {/* Combined Search & Category Bar */}
+              <div className="gp-search-group">
+                {/* Master Category Filter Dropdown */}
+                <div className="gp-category-select-wrap">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="gp-category-select"
+                    id="gp-category-filter"
+                    aria-label="Filter by Category"
                   >
-                    {f.label}
-                  </button>
-                ))}
+                    <option value="all">All Categories</option>
+                    {categoryOptions.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="gp-search-divider" />
+
+                {/* Main Search Input */}
+                <div className="gp-search">
+                  <Search size={17} className="gp-search-icon" />
+                  <input
+                    id="gp-search-input"
+                    type="text"
+                    placeholder="Search products by name, description, tags…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch("")}
+                      className="gp-search-clear-btn"
+                      aria-label="Clear search"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Cart button */}
-              <button
-                className="gp-cart-btn"
-                id="gp-view-cart"
-                onClick={() => setIsCartOpen(true)}
-              >
-                {cartCount > 0 && <span className="gp-cart-count">{cartCount}</span>}
-                <ShoppingBag size={16} />
-                Cart
-              </button>
+              {/* Right Control Group: Stock Status & Cart */}
+              <div className="gp-toolbar-right-group">
+                {/* Segmented Stock filter */}
+                <div className="gp-filter-btns">
+                  {[
+                    { key: "all", label: "All" },
+                    { key: "in_stock", label: "In Stock" },
+                    { key: "out_of_stock", label: "Out of Stock" },
+                  ].map((f) => (
+                    <button
+                      key={f.key}
+                      className={`gp-filter-btn ${stockFilter === f.key ? "active" : ""}`}
+                      onClick={() => setStockFilter(f.key)}
+                      id={`filter-${f.key}`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Cart button */}
+                <button
+                  className="gp-cart-btn"
+                  id="gp-view-cart"
+                  onClick={() => setIsCartOpen(true)}
+                >
+                  <ShoppingBag size={17} />
+                  <span>Cart</span>
+                  {cartCount > 0 && <span className="gp-cart-count">{cartCount}</span>}
+                </button>
+              </div>
+
             </div>
           </div>
 
