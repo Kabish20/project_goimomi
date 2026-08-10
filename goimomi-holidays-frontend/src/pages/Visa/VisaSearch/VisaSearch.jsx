@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search, Home, Plane, Calendar, MapPin, ChevronDown, Zap,
@@ -9,7 +9,8 @@ import {
 import { motion } from "framer-motion";
 import api from "../../../api";
 import visaBg from "../../../assets/Hero/visa_bg.jpg";
-import { getImageUrl } from "../../../utils/imageUtils";
+import CountryVisaCard from "../../../components/CountryVisaCard";
+import { all196Countries } from "../../../data/countriesVisaData";
 import usePageSEO from "../../../hooks/usePageSEO";
 
 const VisaSearch = () => {
@@ -39,8 +40,44 @@ const VisaSearch = () => {
   const [goingToSearch, setGoingToSearch] = useState("");
   const [popularDestinations, setPopularDestinations] = useState([]);
   const [openFaq, setOpenFaq] = useState(null);
+  const [countryFilter, setCountryFilter] = useState("");
   const citizenRef = useRef(null);
   const goingToRef = useRef(null);
+
+  const displayCountries = useMemo(() => {
+    const map = new Map();
+
+    all196Countries.forEach((c) => {
+      if (c && c.name) map.set(c.name.toLowerCase(), c);
+    });
+
+    (countries || []).forEach((c) => {
+      if (c && c.name && !map.has(c.name.toLowerCase())) {
+        map.set(c.name.toLowerCase(), {
+          name: c.name,
+          flag: c.flag || "🌐",
+          image: c.card_image || c.image || "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=800&auto=format&fit=crop",
+        });
+      }
+    });
+
+    const list = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    if (!countryFilter.trim()) return list;
+    return list.filter((item) =>
+      item.name.toLowerCase().includes(countryFilter.toLowerCase().trim())
+    );
+  }, [countries, countryFilter]);
+
+  const handleCountryCardSelect = (countryName) => {
+    setGoingTo(countryName);
+    const params = new URLSearchParams({
+      citizenOf,
+      goingTo: countryName,
+      departureDate: travelDate || "",
+      returnDate: returnDate || "",
+    });
+    navigate(`/visa/results?${params.toString()}`);
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -495,6 +532,73 @@ const VisaSearch = () => {
               <p className="text-[10px] uppercase tracking-widest text-emerald-200 font-bold mt-1">{s.label}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ─── ALL VISA DESTINATIONS CARDS GRID ─── */}
+      <div className="py-20 px-6 bg-slate-950 text-white relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+            <div>
+              <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-400 font-black">
+                Explore World Destinations
+              </span>
+              <h2 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none mt-2">
+                All Visa <span className="text-emerald-400">Destinations</span>
+              </h2>
+              <p className="text-slate-400 text-sm mt-3 max-w-lg">
+                Browse through all international travel destinations. Click any country card to view instant visa requirements and processing options.
+              </p>
+            </div>
+
+            {/* Quick Country Search Field */}
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search destination country..."
+                value={countryFilter}
+                onChange={(e) => setCountryFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-500 transition-all shadow-inner"
+              />
+              {countryFilter && (
+                <button
+                  type="button"
+                  onClick={() => setCountryFilter("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs bg-slate-800 rounded-full w-5 h-5 flex items-center justify-center"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {displayCountries.map((c) => (
+              <motion.div
+                key={c.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
+              >
+                <CountryVisaCard country={c} onSelect={handleCountryCardSelect} />
+              </motion.div>
+            ))}
+          </div>
+
+          {displayCountries.length === 0 && (
+            <div className="py-16 text-center text-slate-400">
+              <p className="text-base font-semibold">No countries found matching "{countryFilter}"</p>
+              <button
+                onClick={() => setCountryFilter("")}
+                className="mt-3 text-xs font-bold text-emerald-400 uppercase tracking-wider underline"
+              >
+                Clear Search Filter
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
