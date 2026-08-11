@@ -2853,6 +2853,38 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
+    def partial_update(self, request, *args, **kwargs):
+        order = self.get_object()
+        old_status = order.status
+        response = super().partial_update(request, *args, **kwargs)
+        order.refresh_from_db()
+
+        trigger_flag = str(request.data.get('trigger_shipped_email', '')).lower() in ('true', '1')
+        is_shipped_event = (order.status and order.status.lower() == 'shipped') or trigger_flag
+
+        if is_shipped_event:
+            try:
+                self._deduct_stock_and_notify(order)
+            except Exception as s_err:
+                print(f"Notice during stock deduction check: {s_err}")
+
+            try:
+                from Holidays.utils import send_product_shipped_email
+                from Holidays.tasks import send_product_shipped_email_task
+                
+                # Direct send email synchronously to confirm delivery
+                sent = send_product_shipped_email(order)
+                try:
+                    send_product_shipped_email_task.delay(order.pk)
+                except Exception as c_err:
+                    print(f"Notice queueing Celery shipped task: {c_err}")
+
+                print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}")
+            except Exception as ship_err:
+                print(f"Error sending shipping email on status change: {ship_err}")
+
+        return response
+
     def create(self, request, *args, **kwargs):
         product_id = request.data.get('product')  # None if cart checkout
         cart_items = request.data.get('cart_items')

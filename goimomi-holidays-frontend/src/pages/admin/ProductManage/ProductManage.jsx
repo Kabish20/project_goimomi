@@ -5,13 +5,19 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
   Edit2, Trash2, Plus, Search, Package, RefreshCw, Tag, CheckCircle, 
-  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText, Truck, Upload, Download, Copy, Check
+  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText, Truck, Upload, Download, Copy, Check, ExternalLink
 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value || 0);
+
+const getMediaUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return url;
+};
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -816,11 +822,24 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                           <tr key={order.id} className="hover:bg-green-50/60 transition-colors">
                             <td className="py-3.5 px-4 font-bold text-gray-900 whitespace-nowrap">
                               <div>{order.order_id || `#${order.id}`}</div>
-                              {order.book_invoice_number && (
-                                <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold text-sky-800 bg-sky-50 border border-sky-200 rounded-md">
-                                  Book Inv: {order.book_invoice_number}
-                                </span>
-                              )}
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {order.book_invoice_number && (
+                                  <span className="inline-block px-2 py-0.5 text-[10px] font-bold text-sky-800 bg-sky-50 border border-sky-200 rounded-md">
+                                    Book Inv: {order.book_invoice_number}
+                                  </span>
+                                )}
+                                {order.bill_copy && (
+                                  <a
+                                    href={getMediaUrl(order.bill_copy)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-md transition"
+                                    title="Click to open customer shipping bill copy"
+                                  >
+                                    <FileText size={10} /> Bill Copy
+                                  </a>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3.5 px-4">
                               <p className="font-bold text-gray-900">{order.name}</p>
@@ -988,6 +1007,64 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                       {selectedOrder.address}
                     </p>
                   </div>
+
+                  {/* Uploaded Customer Shipping Bill / Receipt Copy Card */}
+                  {selectedOrder.bill_copy && (
+                    <div className="bg-emerald-50/80 p-4 rounded-xl border border-emerald-200 space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <FileText size={14} className="text-emerald-700" /> Saved Customer Shipping Bill / Receipt
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
+                          Uploaded
+                        </span>
+                      </h4>
+
+                      <div className="flex items-center justify-between gap-3 pt-1">
+                        <div className="flex items-center gap-2 truncate">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-xs">
+                            📄
+                          </div>
+                          <div className="truncate">
+                            <p className="text-xs font-bold text-gray-900 truncate" title={selectedOrder.bill_copy.split('/').pop()}>
+                              {selectedOrder.bill_copy.split('/').pop()}
+                            </p>
+                            <p className="text-[10px] text-gray-500 font-medium">Saved Customer Shipping Receipt Copy</p>
+                          </div>
+                        </div>
+
+                        <a
+                          href={getMediaUrl(selectedOrder.bill_copy)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-1 shrink-0"
+                        >
+                          <ExternalLink size={13} /> Open / View Bill Copy
+                        </a>
+                      </div>
+
+                      {/* Image Thumbnail Preview if image */}
+                      {/\.(jpg|jpeg|png|webp|gif)$/i.test(selectedOrder.bill_copy) && (
+                        <div className="mt-2 pt-2 border-t border-emerald-200/60">
+                          <a
+                            href={getMediaUrl(selectedOrder.bill_copy)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block group relative rounded-lg overflow-hidden border border-emerald-300 bg-white max-h-48 text-center"
+                          >
+                            <img
+                              src={getMediaUrl(selectedOrder.bill_copy)}
+                              alt="Shipping Bill Copy Preview"
+                              className="w-full max-h-48 object-contain mx-auto py-1 transition-transform group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                              <ExternalLink size={14} /> Click to View Full Image
+                            </div>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Book Invoice & Dispatch Information Card */}
                   <div className="bg-sky-50/70 p-4 rounded-xl border border-sky-200 space-y-3">

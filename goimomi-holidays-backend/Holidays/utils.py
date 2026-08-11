@@ -1544,8 +1544,9 @@ def send_product_shipped_email(order):
         )
 
         sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'Goimomi Holidays <support@goimomi.com>')
-        recipients = [order.email] if order.email else ['hello@goimomi.com']
-        cc_recipients = ['hello@goimomi.com', 'support@goimomi.com']
+        customer_email = str(order.email or '').strip()
+        recipients = [customer_email] if customer_email else ['hello@goimomi.com']
+        cc_recipients = [c for c in ['hello@goimomi.com', 'support@goimomi.com'] if c.lower() not in [r.lower() for r in recipients]]
 
         msg = EmailMultiAlternatives(
             subject=subject,
@@ -1557,6 +1558,16 @@ def send_product_shipped_email(order):
         )
         msg.attach_alternative(html_content, "text/html")
 
+        # Generate & attach official Tax Invoice PDF
+        try:
+            pdf_bytes = generate_product_order_invoice_pdf(order)
+            if pdf_bytes:
+                inv_filename = f"Invoice_{order_ref}.pdf"
+                msg.attach(inv_filename, pdf_bytes, "application/pdf")
+                print(f"Attached {inv_filename} to shipped email for {order_ref}")
+        except Exception as pdf_err:
+            print(f"Notice generating PDF invoice attachment for shipped email: {pdf_err}")
+
         # Attach bill copy file if uploaded
         if order.bill_copy:
             try:
@@ -1567,7 +1578,7 @@ def send_product_shipped_email(order):
                 content = order.bill_copy.read()
                 order.bill_copy.close()
                 if content:
-                    msg.attach(f"Shipping_Bill_{order_ref}{ext}", content, mime_type)
+                    msg.attach(f"Shipping_Receipt_{order_ref}{ext}", content, mime_type)
             except Exception as file_e:
                 print(f"Notice attaching bill copy file to email: {file_e}")
 
