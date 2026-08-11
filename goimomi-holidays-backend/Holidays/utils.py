@@ -6,12 +6,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 
-# ReportLab imports
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
-
 def format_time_field(raw_time):
     if not raw_time or raw_time == "N/A":
         return "N/A"

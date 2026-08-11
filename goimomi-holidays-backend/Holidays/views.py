@@ -1,5 +1,4 @@
 import json
-import requests as http_requests
 from decimal import Decimal, InvalidOperation
 
 # Django Imports
@@ -14,9 +13,8 @@ from django.db.models import Q, F
 
 
 # Rest Framework Imports
-from rest_framework import status, serializers
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
-from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework import status
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import authentication_classes, permission_classes, action
