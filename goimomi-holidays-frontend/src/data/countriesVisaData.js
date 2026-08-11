@@ -67,6 +67,53 @@ const regionImages = {
 };
 
 // Full Master List of 196 World Countries from A to Z
+// Locally generated destination art used where the generic regional fallback
+// would otherwise show an unrelated country.
+export const countryCardImageOverrides = {
+  Afghanistan: "/images/visa_cards/afghanistan.png",
+  Albania: "/images/visa_cards/albania.png",
+  Algeria: "/images/visa_cards/algeria.png",
+  Andorra: "/images/visa_cards/andorra.png",
+  Angola: "/images/visa_cards/angola.png",
+  "Antigua and Barbuda": "/images/visa_cards/antigua-and-barbuda.png",
+  Argentina: "/images/visa_cards/argentina.png",
+  Armenia: "/images/visa_cards/armenia.png",
+  Australia: "/images/visa_cards/australia.png",
+  Austria: "/images/visa_cards/austria.png",
+  Azerbaijan: "/images/visa_cards/azerbaijan.png",
+  Bahamas: "/images/visa_cards/bahamas.png",
+  Bahrain: "/images/visa_cards/bahrain.png",
+  Bangladesh: "/images/visa_cards/bangladesh.png",
+  Barbados: "/images/visa_cards/barbados.png",
+  Vanuatu: "/images/visa_cards/vanuatu.png",
+  "Vatican City": "/images/visa_cards/vatican-city.png",
+  Venezuela: "/images/visa_cards/venezuela.png",
+  Vietnam: "/images/visa_cards/vietnam-country.png",
+  Yemen: "/images/visa_cards/yemen.png",
+  Zambia: "/images/visa_cards/zambia.png",
+  Zimbabwe: "/images/visa_cards/zimbabwe.png",
+  Turkey: "/images/visa_cards/turkey.png",
+  Turkmenistan: "/images/visa_cards/turkmenistan.png",
+  Tuvalu: "/images/visa_cards/tuvalu.png",
+  Uganda: "/images/visa_cards/uganda.png",
+  Ukraine: "/images/visa_cards/ukraine.png",
+  "United Arab Emirates": "/images/visa_cards/united-arab-emirates.png",
+  "United Kingdom": "/images/visa_cards/united-kingdom.png",
+  "United States": "/images/visa_cards/united-states.png",
+  Uruguay: "/images/visa_cards/uruguay.png",
+  Uzbekistan: "/images/visa_cards/uzbekistan.png",
+  Belarus: "/images/visa_cards/belarus.png",
+  Belgium: "/images/visa_cards/belgium.png",
+  Belize: "/images/visa_cards/belize.png",
+  Benin: "/images/visa_cards/benin.png",
+  Bhutan: "/images/visa_cards/bhutan.png",
+  Bolivia: "/images/visa_cards/bolivia.png",
+  "Bosnia and Herzegovina": "/images/visa_cards/bosnia-and-herzegovina.png",
+  Botswana: "/images/visa_cards/botswana.png",
+  Brazil: "/images/visa_cards/brazil.png",
+  Brunei: "/images/visa_cards/brunei.png",
+};
+
 export const all196Countries = [
   { name: "Afghanistan", flag: "🇦🇫", image: regionImages.asia },
   { name: "Albania", flag: "🇦🇱", image: regionImages.europe },
@@ -262,3 +309,110 @@ export const all196Countries = [
   { name: "Zambia", flag: "🇿🇲", image: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?q=80&w=800&auto=format&fit=crop" },
   { name: "Zimbabwe", flag: "🇿🇼", image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?q=80&w=800&auto=format&fit=crop" },
 ];
+
+// Destinations currently offered on the Visa page. Keep this separate from
+// the master country data so other features can continue to use the full list.
+export const visaDestinationCountryNames = [
+  // Asia
+  "Azerbaijan", "Bahrain", "Bangladesh", "Bhutan", "Cambodia", "China",
+  "Georgia", "Hong Kong SAR China", "Indonesia", "Israel", "Japan", "Jordan",
+  "Kazakhstan", "Kuwait", "Kyrgyzstan", "Laos", "Macao", "Malaysia",
+  "Maldives", "Mongolia", "Nepal", "Oman", "Philippines", "Qatar",
+  "Saudi Arabia", "Singapore", "South Korea", "Sri Lanka", "Taiwan",
+  "Tajikistan", "Thailand", "Turkey", "United Arab Emirates", "Uzbekistan",
+  "Vietnam",
+
+  // Europe
+  "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
+  "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
+  "Iceland", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta",
+  "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Slovakia",
+  "Slovenia", "Spain", "Sweden", "Switzerland", "United Kingdom",
+
+  // Africa
+  "Algeria", "Benin", "Burkina Faso", "Burundi", "Cameroon", "Chad", "Comoros",
+  "Côte d’Ivoire", "Djibouti", "Egypt", "Equatorial Guinea", "Eritrea", "Ethiopia",
+  "Gabon", "Gambia", "Guinea", "Guinea-Bissau", "Kenya", "Liberia", "Madagascar",
+  "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", "Mozambique", "Namibia",
+  "Nigeria", "Rwanda", "Senegal", "Seychelles", "Sierra Leone", "Somalia",
+  "South Africa", "South Sudan", "Tanzania", "Togo", "Tunisia", "Uganda", "Zambia",
+  "Zimbabwe",
+
+  // North America & Caribbean
+  "Antigua and Barbuda", "Anguilla", "Bahamas", "Barbados", "British Virgin Islands",
+  "Cuba", "Dominica", "Dominican Republic", "El Salvador", "Guatemala", "Haiti",
+  "Honduras", "Jamaica", "Mexico", "Nicaragua", "Saint Kitts and Nevis", "Saint Lucia",
+  "Saint Vincent and the Grenadines", "Trinidad and Tobago", "Turks and Caicos Islands",
+
+  // South America
+  "Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Guyana", "Uruguay", "Venezuela",
+
+  // Oceania
+  "Australia", "Fiji", "Cook Islands", "Marshall Islands", "Micronesia", "New Zealand",
+  "Niue", "Palau", "Papua New Guinea", "Samoa", "Solomon Islands",
+];
+
+// API and legacy naming variations that point to the same allowed destination.
+export const visaDestinationCountryAliases = {
+  "hong kong": "hong kong sar china",
+  "türkiye": "turkey",
+  uae: "united arab emirates",
+  czechia: "czech republic",
+  "virgin islands (british)": "british virgin islands",
+  "ivory coast": "côte d’ivoire",
+  "cote d'ivoire": "côte d’ivoire",
+  "côte d'ivoire": "côte d’ivoire",
+  "guinea bissau": "guinea-bissau",
+  macau: "macao",
+  "macao sar china": "macao",
+  "turks & caicos islands": "turks and caicos islands",
+};
+
+// These user-requested destinations are not part of the 196-country master
+// list, so retain a card even when the API has no matching record yet.
+export const visaDestinationFallbackCountries = [
+  { name: "Macao", flag: "🇲🇴", image: regionImages.asia },
+  { name: "Côte d’Ivoire", flag: "🇨🇮", image: regionImages.africa },
+  { name: "Guinea-Bissau", flag: "🇬🇼", image: regionImages.africa },
+  { name: "Anguilla", flag: "🇦🇮", image: regionImages.americas },
+  { name: "British Virgin Islands", flag: "🇻🇬", image: regionImages.americas },
+  { name: "Turks and Caicos Islands", flag: "🇹🇨", image: regionImages.americas },
+  { name: "Cook Islands", flag: "🇨🇰", image: regionImages.oceania },
+  { name: "Niue", flag: "🇳🇺", image: regionImages.oceania },
+];
+
+const directLocalVisaCardCountries = new Set([
+  "Hong Kong SAR China",
+  "Indonesia",
+  "Japan",
+  "Malaysia",
+  "Sri Lanka",
+  "Thailand",
+]);
+
+const toVisaCardImageFilename = (name) =>
+  name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+// Existing bespoke art is retained; every remaining supported destination
+// receives a country-specific local image using this predictable filename.
+export const visaDestinationImageOverrides = {
+  ...countryCardImageOverrides,
+  ...Object.fromEntries(
+    visaDestinationCountryNames
+      .filter(
+        (name) =>
+          !countryCardImageOverrides[name] &&
+          !directLocalVisaCardCountries.has(name)
+      )
+      .map((name) => [
+        name,
+        `/images/visa_cards/${toVisaCardImageFilename(name)}.png`,
+      ])
+  ),
+};

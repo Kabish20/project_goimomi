@@ -10,8 +10,28 @@ import { motion } from "framer-motion";
 import api from "../../../api";
 import visaBg from "../../../assets/Hero/visa_bg.jpg";
 import CountryVisaCard from "../../../components/CountryVisaCard";
-import { all196Countries } from "../../../data/countriesVisaData";
+import {
+  all196Countries,
+  visaDestinationCountryAliases,
+  visaDestinationCountryNames,
+  visaDestinationFallbackCountries,
+  visaDestinationImageOverrides,
+} from "../../../data/countriesVisaData";
 import usePageSEO from "../../../hooks/usePageSEO";
+
+const normaliseCountryName = (name) => (name || "").trim().toLowerCase();
+
+const getVisaDestinationKey = (name) => {
+  const normalisedName = normaliseCountryName(name);
+  return visaDestinationCountryAliases[normalisedName] || normalisedName;
+};
+
+const visaDestinationKeys = new Set(
+  visaDestinationCountryNames.map(getVisaDestinationKey)
+);
+
+const isVisaDestination = (name) =>
+  visaDestinationKeys.has(getVisaDestinationKey(name));
 
 const VisaSearch = () => {
   const navigate = useNavigate();
@@ -48,17 +68,55 @@ const VisaSearch = () => {
     const map = new Map();
 
     all196Countries.forEach((c) => {
-      if (c && c.name) map.set(c.name.toLowerCase(), c);
+      if (!c?.name) return;
+
+      const key = getVisaDestinationKey(c.name);
+      if (visaDestinationKeys.has(key)) map.set(key, c);
+    });
+
+    visaDestinationFallbackCountries.forEach((c) => {
+      const key = getVisaDestinationKey(c.name);
+      if (visaDestinationKeys.has(key)) map.set(key, c);
     });
 
     (countries || []).forEach((c) => {
-      if (c && c.name && !map.has(c.name.toLowerCase())) {
-        map.set(c.name.toLowerCase(), {
+      if (!c?.name) return;
+
+      const key = getVisaDestinationKey(c.name);
+      if (visaDestinationKeys.has(key) && !map.has(key)) {
+        map.set(key, {
           name: c.name,
           flag: c.flag || "🌐",
           image: c.card_image || c.image || "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=800&auto=format&fit=crop",
         });
       }
+    });
+
+    Object.entries(visaDestinationImageOverrides).forEach(([name, image]) => {
+      const key = getVisaDestinationKey(name);
+      const existingCountry = map.get(key);
+
+      if (existingCountry) {
+        map.set(key, { ...existingCountry, image });
+      }
+    });
+
+    // Let a destination-specific image uploaded in the admin/API replace the
+    // static image. This keeps country cards unique as new images are added.
+    (countries || []).forEach((country) => {
+      if (!country?.name || (!country.card_image && !country.image)) return;
+
+      const key = getVisaDestinationKey(country.name);
+      if (!visaDestinationKeys.has(key)) return;
+
+      const existingCountry = map.get(key);
+
+      map.set(key, {
+        ...existingCountry,
+        name: existingCountry?.name || country.name,
+        flag: country.flag || existingCountry?.flag || "🌐",
+        image: country.card_image || country.image || existingCountry?.image,
+      });
     });
 
     const list = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
@@ -136,7 +194,9 @@ const VisaSearch = () => {
     c?.name?.toLowerCase().includes(citizenSearch.toLowerCase())
   );
   const filteredGoingToCountries = (countries || []).filter((c) =>
-    c?.name?.toLowerCase().includes(goingToSearch.toLowerCase())
+    c?.name &&
+    isVisaDestination(c.name) &&
+    c.name.toLowerCase().includes(goingToSearch.toLowerCase())
   );
 
   const handleSearch = () => {
