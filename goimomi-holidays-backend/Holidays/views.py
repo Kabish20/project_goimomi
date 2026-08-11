@@ -2853,14 +2853,55 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
+    @action(detail=True, methods=['post'], url_path='send-shipping-email', permission_classes=[IsAdminUser])
+    def send_shipping_email_action(self, request, pk=None):
+        order = self.get_object()
+        logistics_provider = request.data.get('logistics_provider')
+        tracking_number = request.data.get('tracking_number')
+        book_invoice_number = request.data.get('book_invoice_number')
+
+        if logistics_provider is not None:
+            order.logistics_provider = str(logistics_provider).strip()
+        if tracking_number is not None:
+            order.tracking_number = str(tracking_number).strip()
+        if book_invoice_number is not None:
+            order.book_invoice_number = str(book_invoice_number).strip()
+        if 'bill_copy' in request.FILES:
+            order.bill_copy = request.FILES['bill_copy']
+
+        order.status = 'Shipped'
+        order.save()
+
+        try:
+            self._deduct_stock_and_notify(order)
+        except Exception as s_err:
+            print(f"Notice during stock deduction in send_shipping_email_action: {s_err}")
+
+        from Holidays.utils import send_product_shipped_email
+        sent = send_product_shipped_email(order)
+
+        from Holidays.serializers import GoimomiProductOrderSerializer
+        serialized_order = GoimomiProductOrderSerializer(order, context={'request': request}).data
+
+        return Response({
+            'success': True,
+            'sent': sent,
+            'message': f"Shipping email dispatched to {order.email or 'customer'} (Result: {'Success' if sent else 'Failed'})",
+            'order': serialized_order
+        })
+
     def partial_update(self, request, *args, **kwargs):
         order = self.get_object()
-        old_status = order.status
+        raw_trigger = request.data.get('trigger_shipped_email', '')
+        if isinstance(raw_trigger, (list, tuple)):
+            raw_trigger = raw_trigger[0] if raw_trigger else ''
+        trigger_flag = str(raw_trigger).lower() in ('true', '1')
+
         response = super().partial_update(request, *args, **kwargs)
         order.refresh_from_db()
 
-        trigger_flag = str(request.data.get('trigger_shipped_email', '')).lower() in ('true', '1')
-        is_shipped_event = (order.status and order.status.lower() == 'shipped') or trigger_flag
+        new_status = str(order.status or '').strip().lower()
+        is_shipped_event = (new_status == 'shipped') or trigger_flag
 
         if is_shipped_event:
             try:
@@ -2870,16 +2911,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
             try:
                 from Holidays.utils import send_product_shipped_email
-                from Holidays.tasks import send_product_shipped_email_task
-                
-                # Direct send email synchronously to confirm delivery
                 sent = send_product_shipped_email(order)
-                try:
-                    send_product_shipped_email_task.delay(order.pk)
-                except Exception as c_err:
-                    print(f"Notice queueing Celery shipped task: {c_err}")
-
-                print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}")
+                print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}, Result: {sent}")
             except Exception as ship_err:
                 print(f"Error sending shipping email on status change: {ship_err}")
 

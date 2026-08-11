@@ -416,19 +416,25 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
         formData.append("bill_copy", shippingBillFile);
       }
 
-      const res = await api.patch(
-        `/api/goimomi-product-orders/${shippingOrder.id}/`,
+      const res = await api.post(
+        `/api/goimomi-product-orders/${shippingOrder.id}/send-shipping-email/`,
         formData
       );
 
-      const updated = res.data;
+      const updated = res.data.order || res.data;
       setOrders(prev => prev.map(o => o.id === shippingOrder.id ? { ...o, ...updated } : o));
       if (selectedOrder && selectedOrder.id === shippingOrder.id) {
         setSelectedOrder(prev => ({ ...prev, ...updated }));
       }
       setShowShippingModal(false);
-      setMessage(`Order ${shippingOrder.order_id || shippingOrder.id} marked as Shipped! Notification email sent to ${shippingOrder.email || "customer"}.`);
-      setTimeout(() => setMessage(""), 4000);
+      const targetEmail = shippingOrder.email || updated.email || "customer";
+      const isSent = res.data.sent;
+      if (isSent) {
+        setMessage(`Order ${shippingOrder.order_id || shippingOrder.id} marked as Shipped! Notification email sent to ${targetEmail} with CC to hello@goimomi.com & support@goimomi.com.`);
+      } else {
+        setMessage(`Order ${shippingOrder.order_id || shippingOrder.id} updated to Shipped, but email dispatch reported an issue for ${targetEmail}.`);
+      }
+      setTimeout(() => setMessage(""), 5000);
     } catch (err) {
       console.error("Error updating shipping status:", err);
       const errMsg = err.response?.data?.error || err.response?.data?.detail || JSON.stringify(err.response?.data) || "Failed to update shipping status.";
