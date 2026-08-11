@@ -126,7 +126,9 @@ const Canton = () => {
           try {
             rfr = window.self !== window.top ? window.top.location.href :
               (/^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}/i.test(rfr) ? rfr : "");
-          } catch (e) {}
+          } catch {
+            // Accessing a parent window can fail for cross-origin embeds.
+          }
           if (rfr && rfr !== "") {
             if (rfr.length > 1800) {
               const qi = rfr.indexOf("?");
@@ -136,7 +138,9 @@ const Canton = () => {
             zf_src += ((zf_src.indexOf("?") > 0) ? "&" : "?") + "referrername=" + encodeURIComponent(rfr);
           }
         }
-      } catch (e) {}
+      } catch {
+        // Leave the Zoho form source unchanged if its optional setup fails.
+      }
       return zf_src;
     }
 

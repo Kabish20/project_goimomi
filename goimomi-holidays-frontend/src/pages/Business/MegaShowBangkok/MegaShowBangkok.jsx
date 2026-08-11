@@ -11,7 +11,9 @@ const MegaShowBangkok = () => {
           let rfr = window.location.href;
           try {
             rfr = window.self !== window.top ? window.top.location.href : (/^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}/i.test(rfr) ? rfr : "");
-          } catch (e) { }
+          } catch {
+            // Accessing a parent window can fail for cross-origin embeds.
+          }
           if (rfr && rfr !== "") {
             if (rfr.length > 1800) {
               let queryIndex = rfr.indexOf('?');
@@ -29,7 +31,9 @@ const MegaShowBangkok = () => {
           zf_frame.src = ifrmSrc;
         }
       }
-    } catch (e) { }
+    } catch {
+      // Leave the embedded form unchanged if its optional setup fails.
+    }
   }, []);
 
   const faqs = [

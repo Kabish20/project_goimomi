@@ -110,7 +110,7 @@ const CatalogueMasterManage = lazyRetry(() => import("./pages/admin/CatalogueMas
 
 
 
-const AdminLogin = lazyRetry(() => import("./pages/General/AdminLogin/AdminLogin.jsx"));
+import AdminLogin from "./pages/General/AdminLogin/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute/ProtectedRoute";
 
 import ErrorBoundary from './components/ErrorBoundary.jsx'

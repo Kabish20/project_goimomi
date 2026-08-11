@@ -87,9 +87,18 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
 
         setLoading(true);
 
+        const nights = Math.max(Number(formData.nights) || 1, 1);
         const payload = {
             ...formData,
             package_type: packageData?.title || "Custom Package",
+            start_city: packageData?.starting_city || "Not specified",
+            holiday_type: packageData?.category || "Holiday Package",
+            rooms: Math.max(Number(formData.rooms) || 1, 1),
+            nights,
+            cities: [{
+                destination: formData.destination || packageData?.destination_name || packageData?.title || "Custom Package",
+                nights,
+            }],
             message: `Room Type: ${formData.room_type}\nMeal Plan: ${formData.meal_plan}\nTransfer: ${formData.transfer_details}\nOther Inclusions: ${formData.other_inclusions}`,
             room_details: [{
                 adults: formData.adults,

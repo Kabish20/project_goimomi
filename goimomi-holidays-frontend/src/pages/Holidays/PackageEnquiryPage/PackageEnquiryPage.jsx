@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from "../../../api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
@@ -106,10 +106,35 @@ const PackageEnquiryPage = () => {
 
         setSubmitting(true);
         try {
-            await api.post("/api/enquiries/", {
-                ...formData,
-                source: "Package Enquiry Page",
-                package_id: packageData?.id
+            const packageTitle = packageData?.title || formData.package_type;
+            await api.post("/api/holiday-form/", {
+                package_type: packageTitle,
+                start_city: packageData?.starting_city || "Not specified",
+                nationality: "Not specified",
+                travel_date: formData.departure_date,
+                rooms: 1,
+                room_details: [{
+                    adults: Number(formData.adults),
+                    children: Number(formData.children),
+                    child_ages: [],
+                }],
+                adults: Number(formData.adults),
+                children: Number(formData.children),
+                star_rating: formData.hotel_rating,
+                holiday_type: packageData?.category || "Holiday Package",
+                budget: formData.budget,
+                full_name: formData.full_name,
+                email: formData.email,
+                phone: formData.phone,
+                message: [
+                    packageData?.id ? "Package ID: " + packageData.id : null,
+                    formData.message,
+                ].filter(Boolean).join("\n"),
+                nights: Number(formData.nights),
+                cities: [{
+                    destination: packageData?.destination_name || packageTitle,
+                    nights: Number(formData.nights),
+                }],
             });
             setShowSuccessModal(true);
             setTimeout(() => {

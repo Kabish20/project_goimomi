@@ -87,7 +87,9 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
           window.$zoho.salesiq.visitor.email(emailObj.value);
         }
       }
-    } catch (e) { }
+    } catch {
+      // SalesIQ tracking is optional and must not block form submission.
+    }
   };
 
   const handleZohoSubmit = (e) => {

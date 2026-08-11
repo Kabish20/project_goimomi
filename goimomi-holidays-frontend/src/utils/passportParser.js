@@ -97,7 +97,7 @@ const parseYYMMDD = (yymmddStr, isBirthDate = false) => {
 // Format DD/MM/YYYY or DD-MM-YYYY into YYYY-MM-DD
 const parseStandardDate = (dateStr) => {
     if (!dateStr) return "";
-    const parts = dateStr.split(/[\/\.-]/);
+    const parts = dateStr.split(/[/.-]/);
     if (parts.length === 3) {
         if (parts[2].length === 4) {
             // DD/MM/YYYY
@@ -139,7 +139,7 @@ export const parsePassportText = (rawText) => {
 
     // ─── 1. MRZ PARSING ──────────────────────────────────────────────────────────
     const normalizedLines = lines.map(line => {
-        return line.replace(/[«‹\(\)\{\}\]\[]/g, '<');
+        return line.replace(/[«‹(){}\][]/g, '<');
     });
 
     let mrzLine1 = null;
@@ -213,24 +213,24 @@ export const parsePassportText = (rawText) => {
         }
     }
 
-    const dateMatches = [...rawText.matchAll(/(\d{2}[\/\.-]\d{2}[\/\.-]\d{4})/g)].map(m => m[1]);
+    const dateMatches = [...rawText.matchAll(/(\d{2}[/.-]\d{2}[/.-]\d{4})/g)].map(m => m[1]);
 
     if (!result.dob) {
-        const dobMatch = rawText.match(/(?:Date\s*of\s*Birth|DOB|Birth\s*Date)\s*[:\.\-]?\s*(\d{2}[\/\.-]\d{2}[\/\.-]\d{4})/i);
+        const dobMatch = rawText.match(/(?:Date\s*of\s*Birth|DOB|Birth\s*Date)\s*[:.-]?\s*(\d{2}[/.-]\d{2}[/.-]\d{4})/i);
         if (dobMatch) {
             result.dob = parseStandardDate(dobMatch[1]);
         }
     }
 
     if (!result.date_of_issue) {
-        const doiMatch = rawText.match(/(?:Date\s*of\s*Issue|Issue\s*Date)\s*[:\.\-]?\s*(\d{2}[\/\.-]\d{2}[\/\.-]\d{4})/i);
+        const doiMatch = rawText.match(/(?:Date\s*of\s*Issue|Issue\s*Date)\s*[:.-]?\s*(\d{2}[/.-]\d{2}[/.-]\d{4})/i);
         if (doiMatch) {
             result.date_of_issue = parseStandardDate(doiMatch[1]);
         }
     }
 
     if (!result.date_of_expiry) {
-        const doeMatch = rawText.match(/(?:Date\s*of\s*Expiry|Expiry\s*Date|Valid\s*Until)\s*[:\.\-]?\s*(\d{2}[\/\.-]\d{2}[\/\.-]\d{4})/i);
+        const doeMatch = rawText.match(/(?:Date\s*of\s*Expiry|Expiry\s*Date|Valid\s*Until)\s*[:.-]?\s*(\d{2}[/.-]\d{2}[/.-]\d{4})/i);
         if (doeMatch) {
             result.date_of_expiry = parseStandardDate(doeMatch[1]);
         }
@@ -270,7 +270,7 @@ export const parsePassportText = (rawText) => {
         }
     }
 
-    const pobMatch = rawText.match(/(?:Place\s*of\s*Birth|Birth\s*Place)\s*[:\.\-]?\s*([A-Z\s,]{3,30})/i);
+    const pobMatch = rawText.match(/(?:Place\s*of\s*Birth|Birth\s*Place)\s*[:.-]?\s*([A-Z\s,]{3,30})/i);
     if (pobMatch) {
         const pob = pobMatch[1].trim().replace(/\n.*/, '');
         if (pob && !pob.toLowerCase().includes("date") && !pob.toLowerCase().includes("sex")) {
@@ -278,7 +278,7 @@ export const parsePassportText = (rawText) => {
         }
     }
 
-    const poiMatch = rawText.match(/(?:Place\s*of\s*Issue|Issue\s*Place)\s*[:\.\-]?\s*([A-Z\s,]{3,30})/i);
+    const poiMatch = rawText.match(/(?:Place\s*of\s*Issue|Issue\s*Place)\s*[:.-]?\s*([A-Z\s,]{3,30})/i);
     if (poiMatch) {
         const poi = poiMatch[1].trim().replace(/\n.*/, '');
         if (poi && !poi.toLowerCase().includes("date") && !poi.toLowerCase().includes("expiry")) {
@@ -302,7 +302,11 @@ export const parsePassportImage = async (fileOrUrl) => {
     } catch (err) {
         console.error("Passport OCR Error:", err);
         if (worker) {
-            try { await worker.terminate(); } catch (e) {}
+            try {
+                await worker.terminate();
+            } catch {
+                // The worker may already have been terminated.
+            }
         }
         return parsePassportText("");
     }

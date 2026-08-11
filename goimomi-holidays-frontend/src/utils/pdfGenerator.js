@@ -59,13 +59,19 @@ export const downloadPackagePDF = async (pkg) => {
     try {
       doc.addImage(baseImgs[imgIndex % baseImgs.length], 'JPEG', 0, sidebarY, colW, imgSize, undefined, 'FAST');
       doc.addImage(baseImgs[(imgIndex + 1) % baseImgs.length], 'JPEG', colW, sidebarY, colW, imgSize, undefined, 'FAST');
-    } catch (e) { }
+    } catch {
+      // Continue creating the PDF if an optional sidebar image cannot be drawn.
+    }
     sidebarY += imgSize;
     imgIndex += 2;
   }
 
   let centerX = sidebarWidth + (pageWidth - sidebarWidth) / 2;
-  try { doc.addImage(goimomilogo, 'PNG', centerX - 35, 25, 70, 25); } catch (e) { }
+  try {
+    doc.addImage(goimomilogo, 'PNG', centerX - 35, 25, 70, 25);
+  } catch {
+    // Continue creating the PDF if the logo cannot be drawn.
+  }
 
   doc.setTextColor(31, 41, 55);
   doc.setFont("helvetica", "bold");

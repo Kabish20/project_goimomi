@@ -16,7 +16,9 @@ const HolidayCard = React.memo(({ pkg, navigate, generateShareText, setEmailModa
           const name = acc.hotelName || acc.hotel_name;
           if (name && !hotels.includes(name)) hotels.push(name);
         });
-      } catch (e) { }
+      } catch {
+        // Ignore malformed optional itinerary details.
+      }
     });
     return hotels;
   }, [pkg.itinerary]);
@@ -29,7 +31,9 @@ const HolidayCard = React.memo(({ pkg, navigate, generateShareText, setEmailModa
         (details?.sightseeing || []).forEach(item => {
           if (item && !s.includes(item)) s.push(item);
         });
-      } catch (e) { }
+      } catch {
+        // Ignore malformed optional itinerary details.
+      }
     });
     return s;
   }, [pkg.itinerary]);

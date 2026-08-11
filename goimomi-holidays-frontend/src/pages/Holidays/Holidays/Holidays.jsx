@@ -803,7 +803,9 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
             price = Number(tierData[0].offer_price || tierData[0].Offer_price || tierData[0].price || 0);
           }
         }
-      } catch (e) {}
+      } catch {
+        // Keep the default price when fixed-departure data is malformed.
+      }
     }
 
     const flightMatch =
