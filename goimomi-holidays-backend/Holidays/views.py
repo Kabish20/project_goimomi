@@ -282,21 +282,14 @@ class CityViewSet(ModelViewSet):
         return queryset
 
     def list(self, request, *args, **kwargs):
-        print("DEBUG: CityViewSet list called!")
         queryset = self.get_queryset().select_related('country', 'region').values(
             'id', 'name', 
             country_name=F('country__name'), 
             region_name=F('region__name')
         )
-        res_list = list(queryset)
-        print(f"DEBUG: CityViewSet returning {len(res_list)} cities.")
-        return Response(res_list)
+        return Response(list(queryset))
 
 class DashboardStatsAPI(APIView):
-    """
-    Optimized endpoint for the Admin Dashboard Hub.
-    Returns all counts and the recent consolidated enquiries list in ONE request.
-    """
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -320,7 +313,7 @@ class DashboardStatsAPI(APIView):
 
         # 2. Recent Enquiries (Limited to 10 latest across types to avoid heavy load)
         recent = []
-        
+
         # General/Other Enquiries (Enquiry model handles Cab, Cruise, Hotel, Business)
         for e in Enquiry.objects.all().order_by('-created_at')[:8]:
             purpose = e.purpose

@@ -29,25 +29,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  define: {
-    'process.env': {}
-  },
+  // define process.env only when needed safely, avoid replacing entire process.env object
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    chunkSizeWarningLimit: 1000,
-    minify: 'esbuild',
+    chunkSizeWarningLimit: 2000,
+    minify: false,
     cssCodeSplit: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-icons': ['lucide-react'],
-          'vendor-pdf': ['jspdf', 'html2canvas'],
-        }
-      }
-    }
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'lucide-react'],
