@@ -1300,6 +1300,35 @@ def generate_product_order_invoice_pdf(order):
     return pdf_buffer.getvalue()
 
 
+def _attach_thank_you_poster_pdf(msg):
+    """
+    Attaches Goimomi_Crescent_Thank_You_Order_Poster_.pdf to outgoing product emails.
+    """
+    try:
+        poster_paths = [
+            os.path.join(settings.BASE_DIR, 'Goimomi_Crescent_Thank_You_Order_Poster_.pdf'),
+            os.path.join(settings.BASE_DIR, 'Holidays', 'Goimomi_Crescent_Thank_You_Order_Poster_.pdf'),
+            os.path.join(os.path.dirname(__file__), 'Goimomi_Crescent_Thank_You_Order_Poster_.pdf'),
+            os.path.join(os.path.dirname(__file__), '..', 'Goimomi_Crescent_Thank_You_Order_Poster_.pdf'),
+        ]
+        poster_path = None
+        for p in poster_paths:
+            if os.path.exists(p):
+                poster_path = p
+                break
+
+        if poster_path:
+            with open(poster_path, 'rb') as f:
+                poster_bytes = f.read()
+            if poster_bytes:
+                msg.attach("Goimomi_Crescent_Thank_You_Order_Poster.pdf", poster_bytes, "application/pdf")
+                print("Attached Goimomi_Crescent_Thank_You_Order_Poster.pdf to email.")
+        else:
+            print("Notice: Goimomi_Crescent_Thank_You_Order_Poster_.pdf path not found.")
+    except Exception as err:
+        print(f"Notice attaching thank you order poster PDF: {err}")
+
+
 def send_product_order_email(order):
     """
     Sends a professional product order confirmation email to the customer.
@@ -1426,6 +1455,9 @@ def send_product_order_email(order):
                 print(f"Attached {inv_filename} to product order email for {order_ref}")
         except Exception as pdf_err:
             print(f"Notice generating PDF invoice attachment: {pdf_err}")
+
+        # Attach Goimomi Crescent Thank You Order Poster PDF
+        _attach_thank_you_poster_pdf(msg)
 
         try:
             msg.send(fail_silently=False)
@@ -1581,6 +1613,9 @@ def send_product_shipped_email(order):
                     msg.attach(f"Shipping_Receipt_{order_ref}{ext}", content, mime_type)
             except Exception as file_e:
                 print(f"Notice attaching bill copy file to email: {file_e}")
+
+        # Attach Goimomi Crescent Thank You Order Poster PDF
+        _attach_thank_you_poster_pdf(msg)
 
         try:
             msg.send(fail_silently=False)
