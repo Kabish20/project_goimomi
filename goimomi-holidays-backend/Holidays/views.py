@@ -1,12 +1,15 @@
 import json
 import requests as http_requests
+from decimal import Decimal, InvalidOperation
 
 # Django Imports
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.core import signing
 from django.conf import settings
 from django.utils import timezone
+from django.db import transaction
 from django.db.models import Q, F
 
 
@@ -17,7 +20,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import authentication_classes, permission_classes, action
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly, BasePermission
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework.throttling import AnonRateThrottle
 
 class IsAuthenticatedOrWriteOnly(BasePermission):
@@ -30,8 +33,144 @@ class IsAuthenticatedOrWriteOnly(BasePermission):
             return True
         return request.user and request.user.is_authenticated
 
+
+class IsAdminOrReadOnly(BasePermission):
+    """Expose public catalogue reads while reserving management changes for staff."""
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        return bool(request.user and request.user.is_authenticated and request.user.is_staff)
+
 class EmailSharingRateThrottle(AnonRateThrottle):
     rate = '5/minute' # limit email requests to 5 per minute per IP
+
+
+class AdminLoginRateThrottle(AnonRateThrottle):
+    rate = '5/minute'
+
+
+class InsufficientProductStock(Exception):
+    """Raised when a paid product order cannot be fulfilled from current inventory."""
+
+
+def verify_zoho_payment_session(callback_session_id, stored_session_id, reference_number, amount):
+    """Verify a paid Zoho checkout session without trusting redirect query parameters."""
+    if not stored_session_id:
+        return False
+    if callback_session_id and callback_session_id != stored_session_id:
+        return False
+
+    try:
+        from Holidays.services.zoho_payment import ZohoPaymentService
+
+        currency = 'USD' if getattr(settings, 'ZOHO_PAYMENTS_EDITION', 'IN_SANDBOX').upper() == 'US' else 'INR'
+        return ZohoPaymentService.verify_paid_session(
+            stored_session_id,
+            reference_number=reference_number,
+            amount=amount,
+            currency=currency,
+        )
+    except Exception as error:
+        print(f"Unable to verify Zoho payment session for {reference_number}: {error}")
+        return False
+
+
+def _normalise_cab_city(value):
+    city = str(value or '').split('(')[0].split(',')[0].strip().lower()
+    aliases = {
+        'makkah': 'mecca',
+        'mekka': 'mecca',
+        'medina': 'madinah',
+        'madina': 'madinah',
+    }
+    return aliases.get(city, city)
+
+
+def _cab_value_matches(rate_value, requested_value):
+    rate_value = str(rate_value or '').strip().lower()
+    requested_value = str(requested_value or '').strip().lower()
+    if not rate_value or not requested_value:
+        return True
+    return rate_value == requested_value or rate_value in requested_value or requested_value in rate_value
+
+
+def quote_cab_fare(vehicle_id, from_city, to_city, pickup_date, pickup_point='', drop_point=''):
+    """Resolve the authoritative fare for a public cab booking from active rate cards."""
+    try:
+        vehicle = VehicleMaster.objects.select_related('brand').get(pk=int(vehicle_id))
+        travel_date = timezone.datetime.strptime(str(pickup_date), '%Y-%m-%d').date()
+    except (VehicleMaster.DoesNotExist, TypeError, ValueError):
+        return None, None
+
+    from_city = _normalise_cab_city(from_city)
+    to_city = _normalise_cab_city(to_city)
+    if not from_city or not to_city:
+        return None, None
+
+    vehicle_names = {str(vehicle.name or '').strip().lower()}
+    if vehicle.brand_id:
+        vehicle_names.add(f"{vehicle.brand.name} {vehicle.name}".strip().lower())
+
+    fares = []
+    rate_cards = VehicleRateCard.objects.filter(
+        validity_start__lte=travel_date,
+        validity_end__gte=travel_date,
+    )
+    for rate_card in rate_cards:
+        routes = rate_card.routes
+        columns = rate_card.column_vehicles
+        if isinstance(routes, str):
+            try:
+                routes = json.loads(routes)
+            except (TypeError, ValueError):
+                routes = []
+        if isinstance(columns, str):
+            try:
+                columns = json.loads(columns)
+            except (TypeError, ValueError):
+                columns = []
+
+        for route in routes or []:
+            if not isinstance(route, dict):
+                continue
+            if not _cab_value_matches(_normalise_cab_city(route.get('start_city')), from_city):
+                continue
+            if not _cab_value_matches(_normalise_cab_city(route.get('drop_city')), to_city):
+                continue
+            if not _cab_value_matches(route.get('start_from'), pickup_point):
+                continue
+            if not _cab_value_matches(route.get('drop_to'), drop_point):
+                continue
+
+            for index, name in enumerate(columns or []):
+                if str(name or '').strip().lower() not in vehicle_names:
+                    continue
+                try:
+                    fare = Decimal(str(route.get(f'v{index + 1}')))
+                except (InvalidOperation, TypeError, ValueError):
+                    continue
+                if fare > 0:
+                    fares.append(fare)
+
+    return vehicle, min(fares) if fares else None
+
+
+def build_cab_document_token(booking):
+    return signing.dumps(
+        {'booking_id': booking.booking_id, 'booking_pk': booking.pk},
+        salt='cab-booking-document',
+    )
+
+
+def get_cab_document_booking(token):
+    try:
+        payload = signing.loads(token, salt='cab-booking-document', max_age=60 * 60 * 24 * 30)
+        booking = CabBooking.objects.get(pk=payload.get('booking_pk'))
+    except (signing.BadSignature, CabBooking.DoesNotExist, TypeError, ValueError, AttributeError):
+        return None
+
+    return booking if booking.booking_id == payload.get('booking_id') else None
 
 
 from .models import (
@@ -71,7 +210,7 @@ class CantonEnquiryAPI(ModelViewSet):
     pagination_class = None
 
 class AirportViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = AirportSerializer
     pagination_class = None
 
@@ -86,7 +225,7 @@ class AirportViewSet(ModelViewSet):
         return queryset
 
 class CruiseTerminalViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = CruiseTerminalSerializer
     pagination_class = None
 
@@ -98,13 +237,13 @@ class CruiseTerminalViewSet(ModelViewSet):
         return queryset
 
 class CountryViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Country.objects.all().order_by('name')
     serializer_class = CountrySerializer
     pagination_class = None
 
 class NationalityViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = NationalitySerializer
     pagination_class = None
 
@@ -116,7 +255,7 @@ class NationalityViewSet(ModelViewSet):
         return queryset
 
 class RegionViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = RegionSerializer
     pagination_class = None
 
@@ -128,7 +267,7 @@ class RegionViewSet(ModelViewSet):
         return queryset
 
 class CityViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = CitySerializer
     pagination_class = None
 
@@ -158,7 +297,7 @@ class DashboardStatsAPI(APIView):
     Optimized endpoint for the Admin Dashboard Hub.
     Returns all counts and the recent consolidated enquiries list in ONE request.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         # 1. Counts (Cheap operations)
@@ -247,6 +386,8 @@ class DashboardStatsAPI(APIView):
 @authentication_classes([])
 @permission_classes([AllowAny])
 class AdminLoginView(APIView):
+    throttle_classes = [AdminLoginRateThrottle]
+
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -318,7 +459,7 @@ class EnquiryAPI(ModelViewSet):
 
 
 class HolidayPackageViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = HolidayPackage.objects.all()
     serializer_class = HolidayPackageSerializer
 
@@ -326,7 +467,7 @@ class HolidayPackageViewSet(ModelViewSet):
         queryset = HolidayPackage.objects.prefetch_related(
             'inclusions', 'exclusions', 'highlights', 'cancellation_policies', 
             'extra_destinations', 'extra_destinations__destination', 'itinerary', 'vehicles'
-        ).select_related('supplier').all()
+        ).select_related('supplier').order_by('-created_at', '-id')
         
         # Admin can pass ?all=true to see both active and inactive in lists
         is_all = self.request.query_params.get('all', 'false').lower() == 'true'
@@ -390,7 +531,7 @@ class HolidayPackageViewSet(ModelViewSet):
 
 
 class ItineraryMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = ItineraryMaster.objects.all()
     serializer_class = ItineraryMasterSerializer
     pagination_class = None
@@ -398,7 +539,7 @@ class ItineraryMasterViewSet(ModelViewSet):
 
 
 class UserViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = None
@@ -412,7 +553,7 @@ class UserViewSet(ModelViewSet):
 
 
 class VisaViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Visa.objects.all()
     serializer_class = VisaSerializer
     pagination_class = None
@@ -441,19 +582,40 @@ class VisaViewSet(ModelViewSet):
 
 
 class VisaApplicationViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrWriteOnly]
+    permission_classes = [IsAdminUser]
     queryset = VisaApplication.objects.all().order_by('-created_at')
     serializer_class = VisaApplicationSerializer
     pagination_class = None
 
+    def get_permissions(self):
+        if self.action in {'create', 'create_zoho_payment_session', 'verify_zoho_payment'}:
+            return [AllowAny()]
+        return [IsAdminUser()]
+
     def create(self, request, *args, **kwargs):
-        data = request.data
+        data = request.data.copy()
         applicants_json = data.get('applicants_data')
         try:
             applicants_list = json.loads(applicants_json) if applicants_json else []
-        except:
-            applicants_list = []
-            
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return Response({'error': 'Applicants data must be valid JSON.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(applicants_list, list) or not applicants_list or not all(isinstance(item, dict) for item in applicants_list):
+            return Response({'error': 'At least one valid applicant is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            visa = Visa.objects.get(pk=int(data.get('visa')), is_active=True)
+        except (Visa.DoesNotExist, TypeError, ValueError):
+            return Response({'error': 'Selected visa is unavailable.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # The visa and applicant count determine the amount; browser totals are untrusted.
+        data['visa'] = visa.pk
+        data['total_price'] = str(visa.selling_price * len(applicants_list))
+        data['status'] = 'Pending'
+        data['payment_status'] = 'Pending'
+        for field in ('zoho_payment_session_id', 'zoho_access_key', 'invoice_number'):
+            data.pop(field, None)
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         application = serializer.save()
@@ -606,11 +768,10 @@ class VisaApplicationViewSet(ModelViewSet):
     @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
     def verify_zoho_payment(self, request):
         from django.http import HttpResponseRedirect
-        from Holidays.services.zoho_payment import ZohoPaymentService
         import random
 
         application_id = request.GET.get('application_id') or request.GET.get('visa_app_id')
-        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+        callback_session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
 
         application = None
@@ -620,9 +781,9 @@ class VisaApplicationViewSet(ModelViewSet):
             except VisaApplication.DoesNotExist:
                 pass
 
-        if not application and session_id:
+        if not application and callback_session_id:
             try:
-                application = VisaApplication.objects.get(zoho_payment_session_id=session_id)
+                application = VisaApplication.objects.get(zoho_payment_session_id=callback_session_id)
             except VisaApplication.DoesNotExist:
                 pass
 
@@ -631,67 +792,84 @@ class VisaApplicationViewSet(ModelViewSet):
 
         frontend_failure_url = f"{frontend_url}/payment-failed?visa_app_id={application.id}"
 
-        if not session_id:
-            session_id = application.zoho_payment_session_id
-
-        if not session_id:
+        if not verify_zoho_payment_session(
+            callback_session_id,
+            application.zoho_payment_session_id,
+            f"VISA-{application.id}",
+            application.total_price,
+        ):
             return HttpResponseRedirect(frontend_failure_url)
 
-        # Mark application as Paid & Processing
-        application.payment_status = 'Paid'
-        application.status = 'Processing'
-        if not application.invoice_number:
-            application.invoice_number = f"GM-VSA-{random.randint(100000, 999999)}"
-        application.save()
+        newly_paid = application.payment_status != 'Paid'
+        if newly_paid:
+            application.payment_status = 'Paid'
+            application.status = 'Processing'
+            if not application.invoice_number:
+                application.invoice_number = f"GM-VSA-{random.randint(100000, 999999)}"
+            application.save()
 
-        # Send visa details email/notification if applicant phone/email available
-        try:
-            first_applicant = application.applicants.first()
-            if first_applicant and first_applicant.phone:
-                from Holidays.utils import send_visa_whatsapp_msg
-                import threading
-                threading.Thread(
-                    target=send_visa_whatsapp_msg,
-                    args=(first_applicant.phone, f"Your payment for Visa Application #{application.id} ({application.visa.country}) is confirmed! Invoice: {application.invoice_number}")
-                ).start()
-        except Exception as notify_err:
-            print(f"Error sending Visa payment confirmation notification: {notify_err}")
+            # Send a notification only once after the provider has verified payment.
+            try:
+                first_applicant = application.applicants.first()
+                if first_applicant and first_applicant.phone:
+                    from Holidays.utils import send_visa_whatsapp_msg
+                    import threading
+                    threading.Thread(
+                        target=send_visa_whatsapp_msg,
+                        args=(first_applicant.phone, f"Your payment for Visa Application #{application.id} ({application.visa.country}) is confirmed! Invoice: {application.invoice_number}")
+                    ).start()
+            except Exception as notify_err:
+                print(f"Error sending Visa payment confirmation notification: {notify_err}")
 
         return HttpResponseRedirect(f"{frontend_url}/?payment_success=true&visa_app_id={application.id}&invoice={application.invoice_number}")
 
 
 class PackageBookingViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrWriteOnly]
+    permission_classes = [IsAdminUser]
     queryset = PackageBooking.objects.all().order_by('-created_at')
     serializer_class = PackageBookingSerializer
     pagination_class = None
 
+    def get_permissions(self):
+        if self.action in {'create', 'create_zoho_payment_session', 'verify_zoho_payment'}:
+            return [AllowAny()]
+        return [IsAdminUser()]
+
     def create(self, request, *args, **kwargs):
         package_id = request.data.get('package')
-        package_title = request.data.get('package_title', 'Customized Holiday Package')
-        full_name = request.data.get('full_name')
-        email = request.data.get('email', '').strip()
-        phone = request.data.get('phone')
-        travel_date = request.data.get('travel_date')
-        adults = int(request.data.get('adults', 1))
-        children = int(request.data.get('children', 0))
-        total_price = request.data.get('total_price', 0)
+        full_name = str(request.data.get('full_name') or '').strip()
+        email = str(request.data.get('email') or '').strip()
+        phone = str(request.data.get('phone') or '').strip()
+        try:
+            travel_date = timezone.datetime.strptime(
+                str(request.data.get('travel_date') or ''), '%Y-%m-%d'
+            ).date()
+        except ValueError:
+            return Response({'error': 'Travel date must use YYYY-MM-DD format.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            adults = int(request.data.get('adults', 1))
+            children = int(request.data.get('children', 0))
+        except (TypeError, ValueError):
+            return Response({'error': 'Adults and children must be whole numbers.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not full_name or not email or not phone or not travel_date or not total_price:
-            return Response({'error': 'Full name, email, phone, travel date, and total price are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not full_name or not email or not phone or not travel_date:
+            return Response({'error': 'Full name, email, phone, and travel date are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if adults < 1 or children < 0:
+            return Response({'error': 'At least one adult is required and children cannot be negative.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        pkg_obj = None
-        if package_id:
-            try:
-                pkg_obj = HolidayPackage.objects.get(pk=package_id)
-                if not package_title or package_title == 'Customized Holiday Package':
-                    package_title = pkg_obj.title
-            except HolidayPackage.DoesNotExist:
-                pass
+        try:
+            pkg_obj = HolidayPackage.objects.get(pk=int(package_id), is_active=True)
+        except (HolidayPackage.DoesNotExist, TypeError, ValueError):
+            return Response({'error': 'Select an available package before starting online payment.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        unit_price = pkg_obj.price or pkg_obj.Offer_price or 0
+        if unit_price <= 0:
+            return Response({'error': 'This package does not have an online payment price.'}, status=status.HTTP_400_BAD_REQUEST)
+        total_price = unit_price * adults
 
         booking = PackageBooking.objects.create(
             package=pkg_obj,
-            package_title=package_title,
+            package_title=pkg_obj.title,
             full_name=full_name,
             email=email,
             phone=phone,
@@ -822,7 +1000,7 @@ class PackageBookingViewSet(ModelViewSet):
         import random
 
         booking_id = request.GET.get('booking_id')
-        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+        callback_session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
 
         booking = None
@@ -832,9 +1010,9 @@ class PackageBookingViewSet(ModelViewSet):
             except PackageBooking.DoesNotExist:
                 pass
 
-        if not booking and session_id:
+        if not booking and callback_session_id:
             try:
-                booking = PackageBooking.objects.get(zoho_payment_session_id=session_id)
+                booking = PackageBooking.objects.get(zoho_payment_session_id=callback_session_id)
             except PackageBooking.DoesNotExist:
                 pass
 
@@ -843,37 +1021,40 @@ class PackageBookingViewSet(ModelViewSet):
 
         frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
 
-        if not session_id:
-            session_id = booking.zoho_payment_session_id
-
-        if not session_id:
+        if not verify_zoho_payment_session(
+            callback_session_id,
+            booking.zoho_payment_session_id,
+            booking.booking_id,
+            booking.total_price,
+        ):
             return HttpResponseRedirect(frontend_failure_url)
 
-        booking.payment_status = 'Paid'
-        booking.status = 'Confirmed'
-        if not booking.invoice_number:
-            booking.invoice_number = f"GM-PKG-{random.randint(100000, 999999)}"
-        booking.save()
+        newly_paid = booking.payment_status != 'Paid'
+        if newly_paid:
+            booking.payment_status = 'Paid'
+            booking.status = 'Confirmed'
+            if not booking.invoice_number:
+                booking.invoice_number = f"GM-PKG-{random.randint(100000, 999999)}"
+            booking.save()
 
-        # Send enquiry email / confirmation email
-        try:
-            from Holidays.utils import send_enquiry_email
-            send_enquiry_email(booking, f"Package Booking Confirmed ({booking.package_title})")
-        except Exception as mail_err:
-            print(f"Error sending package booking email: {mail_err}")
+            try:
+                from Holidays.utils import send_enquiry_email
+                send_enquiry_email(booking, f"Package Booking Confirmed ({booking.package_title})")
+            except Exception as mail_err:
+                print(f"Error sending package booking email: {mail_err}")
 
         return HttpResponseRedirect(f"{frontend_url}/?payment_success=true&booking_id={booking.booking_id}&invoice={booking.invoice_number}")
 
 
 class VisaApplicantViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = VisaApplicant.objects.all()
     serializer_class = VisaApplicantSerializer
     pagination_class = None
 
 
 class VisaAdditionalDocumentViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = VisaAdditionalDocument.objects.all()
     serializer_class = VisaAdditionalDocumentSerializer
     pagination_class = None
@@ -882,7 +1063,7 @@ class VisaAdditionalDocumentViewSet(ModelViewSet):
 
 
 class SupplierViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = Supplier.objects.all().order_by('-created_at')
     serializer_class = SupplierSerializer
     pagination_class = None
@@ -893,16 +1074,27 @@ class SendVisaDetailsAPI(APIView):
     throttle_classes = [EmailSharingRateThrottle]
 
     def post(self, request):
-        email = request.data.get("email")
-        subject = request.data.get("subject")
-        body = request.data.get("body")
-        
+        email = str(request.data.get("email") or '').strip()
+        subject = str(request.data.get("subject") or '').strip()
+        body = str(request.data.get("body") or '').strip()
+
         if not email or not subject or not body:
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+        if len(subject) > 160 or len(body) > 5000 or '\n' in subject or '\r' in subject:
+            return Response({"error": "Invalid email content."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            from django.core.validators import validate_email
+            from django.core.exceptions import ValidationError
+            validate_email(email)
+        except ValidationError:
+            return Response({"error": "A valid email address is required."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             from django.core.mail import EmailMultiAlternatives
+            from django.utils.html import escape
             sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Reservations@goimomi.com')
+            html_safe_body = escape(body).replace('\n', '<br>')
             
             # Build rich HTML body to avoid spam filters
             html_body = f"""
@@ -916,7 +1108,7 @@ class SendVisaDetailsAPI(APIView):
   </div>
   <div style="background: #fff; padding: 24px; border: 1px solid #e0e0e0; border-top: none;">
     <p style="font-size: 15px; color: #333;">Dear Traveler,</p>
-    <p style="font-size: 14px; color: #555; white-space: pre-wrap;">{body}</p>
+    <p style="font-size: 14px; color: #555; white-space: pre-wrap;">{html_safe_body}</p>
     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
     <p style="font-size: 13px; color: #888;">
       For queries, call us at <strong>+91 81100 82222</strong> or email 
@@ -948,10 +1140,12 @@ class SendVisaDetailsAPI(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SendVisaWhatsAppAPI(APIView):
+    permission_classes = [IsAdminUser]
+
     def post(self, request):
-        phone = request.data.get("phone")
-        title = request.data.get("title")
-        description = request.data.get("description")
+        phone = str(request.data.get("phone") or '').strip()
+        title = str(request.data.get("title") or '').strip()
+        description = str(request.data.get("description") or '').strip()
         
         if not phone or not title:
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
@@ -967,50 +1161,39 @@ class SendVisaWhatsAppAPI(APIView):
         message_body += "Shared via Goimomi Holidays."
         
         try:
-            from django.conf import settings
-            import importlib
-            
-            account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', '')
-            auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
-            whatsapp_number = getattr(settings, 'TWILIO_WHATSAPP_NUMBER', '')
-            
-            if account_sid and auth_token and whatsapp_number:
-                twilio_rest = importlib.import_module('twilio.rest')
-                client = twilio_rest.Client(account_sid, auth_token)
-                client.messages.create(
-                    from_=f"whatsapp:{whatsapp_number}",
-                    body=message_body,
-                    to=f"whatsapp:{cleaned_phone}"
+            from Holidays.utils import _send_twilio_whatsapp
+
+            message_id = _send_twilio_whatsapp(cleaned_phone, message_body)
+            if not message_id:
+                return Response(
+                    {"error": "WhatsApp delivery is not configured or failed."},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
-                return Response({"success": "WhatsApp message sent successfully via Twilio"})
-            else:
-                # Log simulated WhatsApp
-                print(f"[MOCK WHATSAPP SEND] To: {cleaned_phone}\nBody:\n{message_body}")
-                return Response({"success": "WhatsApp message sent (simulated)"})
+            return Response({"success": "WhatsApp message sent successfully", "message_id": message_id})
         except Exception as e:
             print(f"Error sending WhatsApp: {e}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CruiseCalendarViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = CruiseCalendar.objects.all().order_by('-created_at')
     serializer_class = CruiseCalendarSerializer
     pagination_class = None
 
 class HotelMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = HotelMaster.objects.all().order_by('name')
     serializer_class = HotelMasterSerializer
     pagination_class = None
 
 class AirlineViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Airline.objects.all().order_by('name')
     serializer_class = AirlineSerializer
     pagination_class = None
 
 class SightseeingMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = SightseeingMaster.objects.all()
     serializer_class = SightseeingMasterSerializer
     pagination_class = None
@@ -1065,13 +1248,13 @@ class SightseeingMasterViewSet(ModelViewSet):
         return Response(serializer.data)
 
 class MealMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = MealMaster.objects.all()
     serializer_class = MealMasterSerializer
     pagination_class = None
 
 class VehicleBrandViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = VehicleBrand.objects.all().order_by('name')
     serializer_class = VehicleBrandSerializer
     pagination_class = None
@@ -1082,7 +1265,7 @@ class VehicleBrandViewSet(ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class AccommodationViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = Accommodation.objects.all().order_by('-created_at')
     serializer_class = AccommodationSerializer
     pagination_class = None
@@ -1118,25 +1301,25 @@ class AccommodationViewSet(ModelViewSet):
         return Response(serializer.data)
 
 class RoomTypeViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = RoomType.objects.all()
     serializer_class = RoomTypeSerializer
     pagination_class = None
 
 class VehicleMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = VehicleMaster.objects.all().order_by('-created_at')
     serializer_class = VehicleMasterSerializer
     pagination_class = None
 
 class DriverMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = DriverMaster.objects.all().order_by('-created_at')
     serializer_class = DriverMasterSerializer
     pagination_class = None
 
 class VehicleRateCardViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = VehicleRateCard.objects.all().order_by('-created_at')
     serializer_class = VehicleRateCardSerializer
     pagination_class = None
@@ -1151,7 +1334,7 @@ class VehicleRateCardViewSet(ModelViewSet):
             queryset = queryset.filter(vehicle_id=vehicle_id)
         return queryset
 class PickupPointMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = PickupPointMasterSerializer
     pagination_class = None
 
@@ -1170,14 +1353,29 @@ class PickupPointMasterViewSet(ModelViewSet):
 
 class CabBookingViewSet(ModelViewSet):
 
-    permission_classes = [IsAuthenticatedOrWriteOnly]
+    permission_classes = [IsAdminUser]
     queryset = CabBooking.objects.all().order_by('-created_at')
     serializer_class = CabBookingSerializer
     pagination_class = None
 
+    def get_permissions(self):
+        public_actions = {
+            'create', 'send_otp', 'verify_otp', 'create_zoho_payment_session',
+            'verify_zoho_payment', 'zoho_webhook', 'download_voucher_public',
+            'download_invoice_public',
+        }
+        if self.action in public_actions:
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    def get_throttles(self):
+        if self.action == 'send_otp':
+            return [EmailSharingRateThrottle()]
+        return super().get_throttles()
+
     @action(detail=False, methods=['post'], url_path='send-otp', permission_classes=[AllowAny])
     def send_otp(self, request):
-        email = request.data.get('email', '').strip().lower()
+        email = str(request.data.get('email') or '').strip().lower()
         if not email:
             return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1247,8 +1445,8 @@ class CabBookingViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='verify-otp', permission_classes=[AllowAny])
     def verify_otp(self, request):
-        email = request.data.get('email', '').strip().lower()
-        otp_input = request.data.get('otp', '').strip()
+        email = str(request.data.get('email') or '').strip().lower()
+        otp_input = str(request.data.get('otp') or '').strip()
         
         if not email or not otp_input:
             return Response({'error': 'Email and OTP are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -1270,19 +1468,55 @@ class CabBookingViewSet(ModelViewSet):
         return Response({'error': 'Invalid or expired OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            email = request.data.get('email', '').strip().lower()
+        is_staff_user = bool(request.user and request.user.is_authenticated and request.user.is_staff)
+        verified_otp = None
+        if not is_staff_user:
+            email = str(request.data.get('email') or '').strip().lower()
             try:
                 otp_obj = OTPVerification.objects.get(email=email)
                 from datetime import timedelta
                 if not otp_obj.is_verified or (timezone.now() - otp_obj.created_at > timedelta(minutes=30)):
                     return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
-                otp_obj.delete()
+                verified_otp = otp_obj
             except OTPVerification.DoesNotExist:
                 return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create the booking record via the parent class
-        response = super().create(request, *args, **kwargs)
+        data = request.data.copy()
+        if not is_staff_user:
+            vehicle, fare = quote_cab_fare(
+                data.get('vehicle_id'),
+                data.get('from_city'),
+                data.get('to_city'),
+                data.get('pickup_date'),
+                data.get('pickup_point'),
+                data.get('drop_point'),
+            )
+            if not vehicle or fare is None:
+                return Response(
+                    {'error': 'No active fare is available for the selected vehicle and route.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            data['vehicle_name'] = vehicle.name or ''
+            data['vehicle_category'] = vehicle.brand.name if vehicle.brand_id else 'Standard'
+            data['price'] = str(fare)
+            data['status'] = 'Booking Requested'
+            for field in (
+                'booking_id', 'driver', 'invoice_number', 'zoho_payment_session_id',
+                'zoho_access_key', 'created_at', 'vehicle_id', 'pickup_point', 'drop_point',
+            ):
+                data.pop(field, None)
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        response = Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=self.get_success_headers(serializer.data),
+        )
+        if verified_otp:
+            verified_otp.delete()
 
         # After successful creation, generate Zoho payment session and return it directly
         if response.status_code == 201:
@@ -1349,33 +1583,13 @@ class CabBookingViewSet(ModelViewSet):
 
         return response
 
-    @action(detail=True, methods=['post'], url_path='confirm-payment', permission_classes=[AllowAny])
+    @action(detail=True, methods=['post'], url_path='confirm-payment', permission_classes=[IsAdminUser])
     def confirm_payment(self, request, pk=None):
         try:
             booking = self.get_object()
-            
-            # Find all bookings created by this user (same email and phone) in the last 10 minutes that are still 'Booking Requested'
-            from datetime import timedelta
-            time_threshold = timezone.now() - timedelta(minutes=10)
-            
-            bookings_to_confirm = CabBooking.objects.filter(
-                email=booking.email,
-                phone=booking.phone,
-                status='Booking Requested',
-                created_at__gte=time_threshold
-            )
-            
             import random
-            confirmed_count = 0
             invoice_number = f"GM-TXN-{random.randint(100000, 999999)}"
-            
-            for b in bookings_to_confirm:
-                b.status = 'Confirmed'
-                b.invoice_number = invoice_number
-                b.save()
-                confirmed_count += 1
-                
-            # If the current booking was not in the filter (e.g. status was already changed), confirm it specifically
+            confirmed_count = 0
             if booking.status == 'Booking Requested':
                 booking.status = 'Confirmed'
                 booking.invoice_number = invoice_number
@@ -1482,11 +1696,10 @@ class CabBookingViewSet(ModelViewSet):
     @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
     def verify_zoho_payment(self, request):
         from django.http import HttpResponseRedirect
-        from Holidays.services.zoho_payment import ZohoPaymentService
         import random
 
         booking_id = request.GET.get('booking_id')
-        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+        callback_session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
 
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
 
@@ -1497,9 +1710,9 @@ class CabBookingViewSet(ModelViewSet):
             except CabBooking.DoesNotExist:
                 pass
 
-        if not booking and session_id:
+        if not booking and callback_session_id:
             try:
-                booking = CabBooking.objects.get(zoho_payment_session_id=session_id)
+                booking = CabBooking.objects.get(zoho_payment_session_id=callback_session_id)
             except CabBooking.DoesNotExist:
                 pass
 
@@ -1508,117 +1721,23 @@ class CabBookingViewSet(ModelViewSet):
 
         frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
 
-        if not session_id:
-            session_id = booking.zoho_payment_session_id
-
-        if not session_id:
+        if not verify_zoho_payment_session(
+            callback_session_id,
+            booking.zoho_payment_session_id,
+            booking.booking_id,
+            booking.price,
+        ):
             return HttpResponseRedirect(frontend_failure_url)
 
-        # Verify hosted checkout redirect signature (data integrity check)
-        signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
-        if signing_key:
-            signature = request.GET.get('signature')
-            if not signature:
-                print("Verify Error: Redirect signature missing")
-                return HttpResponseRedirect(frontend_failure_url)
-
-            # Get Zoho Payments signature parameters
-            payments_session_id = request.GET.get('payments_session_id', '')
-            payment_session_status = request.GET.get('payment_session_status', '')
-            payment_id = request.GET.get('payment_id', '')
-            payment_status = request.GET.get('payment_status', '')
-            amount = request.GET.get('amount', '')
-            mandate_id = request.GET.get('mandate_id', '')
-            udf1 = request.GET.get('udf1', '')
-            udf2 = request.GET.get('udf2', '')
-            udf3 = request.GET.get('udf3', '')
-            udf4 = request.GET.get('udf4', '')
-            udf5 = request.GET.get('udf5', '')
-
-            # Message format: payments_session_id.payment_session_status.payment_id.payment_status.amount.mandate_id.udf1.udf2.udf3.udf4.udf5
-            fields = [
-                payments_session_id,
-                payment_session_status,
-                payment_id,
-                payment_status,
-                amount,
-                mandate_id,
-                udf1,
-                udf2,
-                udf3,
-                udf4,
-                udf5
-            ]
-            fields = [f if f is not None else '' for f in fields]
-            data_to_sign = ".".join(fields)
-
-            import hmac
-            import hashlib
-            expected_signature = hmac.new(
-                signing_key.encode('utf-8'),
-                data_to_sign.encode('utf-8'),
-                hashlib.sha256
-            ).hexdigest()
-            
-            if not hmac.compare_digest(expected_signature, signature):
-                print(f"Verify Error: Redirect signature verification failed. Expected: {expected_signature}, Got: {signature}")
-                return HttpResponseRedirect(frontend_failure_url)
-
-        def _safe_get(obj, key, default=None):
-            if obj is None: return default
-            if isinstance(obj, dict): return obj.get(key, default)
-            return getattr(obj, key, default)
-
-        param_session_status = (request.GET.get('payment_session_status') or '').lower()
-        param_payment_status = (request.GET.get('payment_status') or '').lower()
-        param_success = (
-            param_session_status in ['paid', 'succeeded', 'completed', 'success'] or
-            param_payment_status in ['succeeded', 'paid', 'success', 'completed']
-        )
-
         try:
-            api_success = False
-            session_status = ''
-            try:
-                session = ZohoPaymentService.get_payment_session(session_id)
-                session_status = _safe_get(session, 'status', '').lower()
-                payments_list = _safe_get(session, 'payments', [])
-                if not payments_list and isinstance(session, dict):
-                    payments_list = session.get('data', {}).get('payments', [])
-
-                has_succeeded_payment = any(_safe_get(p, 'status', '').lower() in ['succeeded', 'paid', 'success'] for p in (payments_list or []))
-                if session_status in ['paid', 'succeeded', 'completed', 'success'] or has_succeeded_payment:
-                    api_success = True
-            except Exception as s_err:
-                print(f"Notice getting Cab Zoho session: {s_err}")
-
-            if api_success or param_success:
-                # Mark booking as Confirmed (mimics confirm_payment action)
-                from datetime import timedelta
-                time_threshold = booking.created_at - timedelta(minutes=10)
-                
-                bookings_to_confirm = CabBooking.objects.filter(
-                    email=booking.email,
-                    phone=booking.phone,
-                    status='Booking Requested',
-                    created_at__gte=time_threshold
-                )
-                
+            newly_confirmed = booking.status == 'Booking Requested'
+            if newly_confirmed:
                 invoice_number = f"GM-TXN-{random.randint(100000, 999999)}"
-                
-                confirmed_count = 0
-                for b in bookings_to_confirm:
-                    b.status = 'Confirmed'
-                    b.invoice_number = invoice_number
-                    b.save()
-                    confirmed_count += 1
+                booking.status = 'Confirmed'
+                booking.invoice_number = invoice_number
+                booking.save()
 
-                if booking.status == 'Booking Requested':
-                    booking.status = 'Confirmed'
-                    booking.invoice_number = invoice_number
-                    booking.save()
-
-                # Sync user to Zoho CRM Contact list
+            if newly_confirmed:
                 try:
                     from Holidays.utils import upsert_zoho_crm_contact
                     crm_data = {
@@ -1641,9 +1760,13 @@ class CabBookingViewSet(ModelViewSet):
                 except Exception as email_err:
                     print(f"Error sending booking confirmation email after Zoho payment: {email_err}")
 
-                return HttpResponseRedirect(f"{frontend_url}/cab?payment_success=true&booking_id={booking.booking_id}")
-            else:
-                return HttpResponseRedirect(f"{frontend_url}/payment-failed?booking_id={booking.booking_id}&status={session_status}")
+            from urllib.parse import urlencode
+            query = urlencode({
+                'payment_success': 'true',
+                'booking_id': booking.booking_id,
+                'document_token': build_cab_document_token(booking),
+            })
+            return HttpResponseRedirect(f"{frontend_url}/cab?{query}")
 
         except Exception as e:
             print(f"Error verifying Zoho Payment: {e}")
@@ -1719,25 +1842,16 @@ class CabBookingViewSet(ModelViewSet):
                         pass
 
                 if booking:
+                    if not session_id or not verify_zoho_payment_session(
+                        session_id,
+                        booking.zoho_payment_session_id,
+                        booking.booking_id,
+                        booking.price,
+                    ):
+                        return HttpResponse("Payment session verification failed", status=400)
+
                     if booking.status == 'Booking Requested':
-                        # Mimics original confirm_payment logic
-                        from datetime import timedelta
-                        time_threshold = booking.created_at - timedelta(minutes=10)
-
-                        bookings_to_confirm = CabBooking.objects.filter(
-                            email=booking.email,
-                            phone=booking.phone,
-                            status='Booking Requested',
-                            created_at__gte=time_threshold
-                        )
-
                         invoice_number = invoice_no or f"GM-TXN-{random.randint(100000, 999999)}"
-
-                        for b in bookings_to_confirm:
-                            b.status = 'Confirmed'
-                            b.invoice_number = invoice_number
-                            b.save()
-
                         booking.status = 'Confirmed'
                         booking.invoice_number = invoice_number
                         booking.save()
@@ -1848,16 +1962,11 @@ class CabBookingViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='download-voucher-public', permission_classes=[AllowAny])
     def download_voucher_public(self, request):
-        booking_id = request.query_params.get('booking_id') or request.query_params.get('id')
-        if not booking_id:
-            return Response({"error": "booking_id query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        token = request.query_params.get('token')
+        booking = get_cab_document_booking(token)
+        if not booking:
+            return Response({"error": "A valid document link is required."}, status=status.HTTP_403_FORBIDDEN)
         try:
-            from Holidays.models import CabBooking
-            if booking_id.isdigit():
-                booking = CabBooking.objects.get(pk=booking_id)
-            else:
-                booking = CabBooking.objects.get(booking_id=booking_id)
-            
             from .utils import generate_booking_pdf
             pdf_bytes = generate_booking_pdf(booking)
             from django.http import HttpResponse
@@ -1865,23 +1974,16 @@ class CabBookingViewSet(ModelViewSet):
             b_id = booking.booking_id or f"GO-TRN-{str(booking.pk).zfill(4)}"
             response['Content-Disposition'] = f'attachment; filename="Voucher_{b_id}.pdf"'
             return response
-        except CabBooking.DoesNotExist:
-            return Response({"error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], url_path='download-invoice-public', permission_classes=[AllowAny])
     def download_invoice_public(self, request):
-        booking_id = request.query_params.get('booking_id') or request.query_params.get('id')
-        if not booking_id:
-            return Response({"error": "booking_id query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        token = request.query_params.get('token')
+        booking = get_cab_document_booking(token)
+        if not booking:
+            return Response({"error": "A valid document link is required."}, status=status.HTTP_403_FORBIDDEN)
         try:
-            from Holidays.models import CabBooking
-            if booking_id.isdigit():
-                booking = CabBooking.objects.get(pk=booking_id)
-            else:
-                booking = CabBooking.objects.get(booking_id=booking_id)
-            
             from .utils import generate_booking_invoice_pdf
             pdf_bytes = generate_booking_invoice_pdf(booking)
             from django.http import HttpResponse
@@ -1889,13 +1991,11 @@ class CabBookingViewSet(ModelViewSet):
             invoice_no = booking.invoice_number or f"INV-{booking.booking_id}"
             response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice_no}.pdf"'
             return response
-        except CabBooking.DoesNotExist:
-            return Response({"error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CabAdditionalDocumentViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = CabAdditionalDocument.objects.all()
     serializer_class = CabAdditionalDocumentSerializer
     pagination_class = None
@@ -2472,13 +2572,16 @@ class DestinationHierarchyAPI(APIView):
 
 
 def payment_callback(request):
-    from django.http import HttpResponse
+    from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
     import requests
     from django.conf import settings
 
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return HttpResponseForbidden("Staff access is required.")
+
     code = request.GET.get('code')
     if not code:
-        return HttpResponse("Zoho OAuth Callback reached, but no code query parameter was provided. Visit the Zoho Developer Console to start the OAuth flow.")
+        return HttpResponseBadRequest("Missing Zoho authorization code.")
 
     zoho_client_id = getattr(settings, 'ZOHO_CRM_CLIENT_ID', '').strip()
     zoho_client_secret = getattr(settings, 'ZOHO_CRM_CLIENT_SECRET', '').strip()
@@ -2497,53 +2600,20 @@ def payment_callback(request):
     try:
         response = requests.post('https://accounts.zoho.in/oauth/v2/token', data=payload, timeout=15)
         token_data = response.json()
-        
-        if 'error' in token_data:
-            return HttpResponse(f"Zoho OAuth Failed: {token_data.get('error')}<br>Details: {token_data}<br>Payload used: {payload}")
+
+        if response.status_code >= 400 or 'error' in token_data:
+            return HttpResponse("Zoho OAuth authorization failed.", status=502)
             
         refresh_token = token_data.get('refresh_token')
-        access_token = token_data.get('access_token')
-        
+        if not refresh_token:
+            return HttpResponse("Zoho OAuth did not return a refresh token.", status=502)
+
         from Holidays.utils import update_env_file
-        
-        env_updated = False
-        if refresh_token:
-            # Save the tokens in the .env file
-            update_env_file('ZOHO_CRM_REFRESH_TOKEN', refresh_token)
-            
-            # Dynamically update settings in memory
-            setattr(settings, 'ZOHO_CRM_REFRESH_TOKEN', refresh_token)
-            env_updated = True
-            
-        status_message = "Refresh tokens have been successfully updated in your backend .env file and loaded in memory!" if env_updated else "No new refresh token was returned (you might need to use prompt=consent or revoke existing authorization)."
-        
-        html_content = f"""
-        <html>
-        <head>
-            <title>Zoho OAuth Successful</title>
-            <style>
-                body {{ font-family: sans-serif; padding: 40px; background-color: #f9f9f9; }}
-                .container {{ background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }}
-                h1 {{ color: #2e7d32; }}
-                .status-box {{ background: #e8f5e9; border: 1px solid #a5d6a7; padding: 15px; border-radius: 4px; color: #1b5e20; font-weight: bold; margin: 15px 0; }}
-                .token-box {{ background: #f1f8e9; border: 1px solid #c5e1a5; padding: 15px; border-radius: 4px; font-family: monospace; word-break: break-all; margin: 15px 0; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Zoho OAuth Successful!</h1>
-                <div class="status-box">{status_message}</div>
-                <p><strong>Refresh Token:</strong></p>
-                <div class="token-box">ZOHO_CRM_REFRESH_TOKEN={refresh_token}</div>
-                <p><strong>Raw Response:</strong></p>
-                <div class="token-box">{token_data}</div>
-            </div>
-        </body>
-        </html>
-        """
-        return HttpResponse(html_content)
-    except Exception as e:
-        return HttpResponse(f"Error exchanging authorization code: {e}")
+        update_env_file('ZOHO_CRM_REFRESH_TOKEN', refresh_token)
+        setattr(settings, 'ZOHO_CRM_REFRESH_TOKEN', refresh_token)
+        return HttpResponse("Zoho CRM authorization completed. You can close this window.")
+    except (requests.RequestException, ValueError):
+        return HttpResponse("Unable to exchange the Zoho authorization code.", status=502)
 
 
 
@@ -2564,7 +2634,7 @@ class GoimomiProductViewSet(ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [IsAdminUser()]
 
     def get_queryset(self):
         queryset = GoimomiProduct.objects.all()
@@ -2614,14 +2684,24 @@ class GoimomiProductViewSet(ModelViewSet):
 
 
 class GoimomiProductOrderViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrWriteOnly]
+    permission_classes = [IsAdminUser]
     queryset = GoimomiProductOrder.objects.all().order_by('-created_at')
     serializer_class = GoimomiProductOrderSerializer
     pagination_class = None
 
+    def get_permissions(self):
+        if self.action in {'create', 'send_otp', 'verify_otp', 'verify_zoho_payment', 'zoho_webhook'}:
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+    def get_throttles(self):
+        if self.action == 'send_otp':
+            return [EmailSharingRateThrottle()]
+        return super().get_throttles()
+
     @action(detail=False, methods=['post'], url_path='send-otp', permission_classes=[AllowAny])
     def send_otp(self, request):
-        email = request.data.get('email', '').strip().lower()
+        email = str(request.data.get('email') or '').strip().lower()
         if not email:
             return Response({'error': 'Email ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -2676,8 +2756,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='verify-otp', permission_classes=[AllowAny])
     def verify_otp(self, request):
-        email = request.data.get('email', '').strip().lower()
-        otp_input = request.data.get('otp', '').strip()
+        email = str(request.data.get('email') or '').strip().lower()
+        otp_input = str(request.data.get('otp') or '').strip()
         
         if not email or not otp_input:
             return Response({'error': 'Email address and OTP are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -2699,63 +2779,76 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
     def _deduct_stock_and_notify(self, order):
         """
-        Deducts quantity from product stock and auto-updates stock_status to 'out_of_stock' when quantity reaches 0.
+        Deducts stock once for an order and records the deduction durably.
+
+        Payment callbacks can be delivered more than once, so the order row is
+        locked before checking or writing the marker. This keeps duplicate
+        callbacks from reducing inventory more than once.
         """
-        if getattr(order, '_stock_deducted', False):
-            return
+        with transaction.atomic():
+            locked_order = GoimomiProductOrder.objects.select_for_update().get(pk=order.pk)
+            if locked_order.stock_deducted_at:
+                order.stock_deducted_at = locked_order.stock_deducted_at
+                return False
 
-        if order.product:
-            prod = order.product
-            prod.quantity = max(0, prod.quantity - order.quantity)
-            prod.save()  # Triggers GoimomiProduct.save() which sets stock_status='out_of_stock' if quantity <= 0
-        elif order.cart_items:
-            for item in order.cart_items:
-                pid = item.get('product_id')
-                qty = int(item.get('quantity', 1))
-                try:
-                    prod = GoimomiProduct.objects.get(pk=pid)
-                    prod.quantity = max(0, prod.quantity - qty)
-                    prod.save()  # Triggers GoimomiProduct.save()
-                except GoimomiProduct.DoesNotExist:
-                    pass
-        
-        order._stock_deducted = True
+            requirements = {}
+            if locked_order.product_id:
+                if locked_order.quantity < 1:
+                    raise InsufficientProductStock('Order quantity must be at least one.')
+                requirements[locked_order.product_id] = locked_order.quantity
+            elif locked_order.cart_items:
+                for item in locked_order.cart_items:
+                    try:
+                        product_id = int(item.get('product_id'))
+                        quantity = int(item.get('quantity'))
+                    except (AttributeError, TypeError, ValueError):
+                        raise InsufficientProductStock('Order contains an invalid product quantity.')
+                    if quantity < 1:
+                        raise InsufficientProductStock('Order quantity must be at least one.')
+                    requirements[product_id] = requirements.get(product_id, 0) + quantity
+            else:
+                raise InsufficientProductStock('Order has no products to fulfil.')
 
-    def partial_update(self, request, *args, **kwargs):
-        order = self.get_object()
-        old_status = order.status
-        response = super().partial_update(request, *args, **kwargs)
-        order.refresh_from_db()
+            products = {
+                product.pk: product
+                for product in GoimomiProduct.objects.select_for_update().filter(
+                    pk__in=sorted(requirements)
+                ).order_by('pk')
+            }
+            for product_id, quantity in requirements.items():
+                product = products.get(product_id)
+                if not product:
+                    raise InsufficientProductStock('A product in this order no longer exists.')
+                if product.stock_status == 'out_of_stock' or product.quantity < quantity:
+                    raise InsufficientProductStock(
+                        f"Insufficient stock for {product.title}. Available: {product.quantity}, requested: {quantity}."
+                    )
 
-        # If status is Shipped or trigger_shipped_email passed, trigger shipping email
-        trigger_flag = str(request.data.get('trigger_shipped_email', '')).lower() in ('true', '1')
-        is_shipped_event = (order.status and order.status.lower() == 'shipped') or trigger_flag
-        
-        if is_shipped_event:
-            self._deduct_stock_and_notify(order)
-            try:
-                from Holidays.utils import send_product_shipped_email
-                from Holidays.tasks import send_product_shipped_email_task
-                send_product_shipped_email(order)
-                try:
-                    send_product_shipped_email_task.delay(order.pk)
-                except Exception as c_err:
-                    print(f"Notice dispatching Celery shipped task: {c_err}")
-                print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}")
-            except Exception as ship_err:
-                print(f"Error sending shipping email on status change: {ship_err}")
-        elif old_status != order.status and order.status.lower() in ['confirmed', 'delivered', 'completed']:
-            self._deduct_stock_and_notify(order)
-            try:
-                from Holidays.utils import send_product_order_email
-                send_product_order_email(order)
-                print(f"Product Order email triggered for Order {order.order_id} (Status: {order.status}) to {order.email}")
-            except Exception as mail_err:
-                print(f"Error sending email on admin status change: {mail_err}")
+            for product_id, quantity in requirements.items():
+                product = products[product_id]
+                product.quantity -= quantity
+                product.save()  # Updates stock_status when quantity reaches zero.
 
-        return response
+            locked_order.stock_deducted_at = timezone.now()
+            locked_order.save(update_fields=['stock_deducted_at', 'updated_at'])
+            order.stock_deducted_at = locked_order.stock_deducted_at
 
-    @action(detail=True, methods=['get'], url_path='download-invoice', permission_classes=[AllowAny])
+        return True
+
+    def _confirm_paid_order(self, order):
+        """Confirm a pending paid order and deduct stock as one database transaction."""
+        with transaction.atomic():
+            locked_order = GoimomiProductOrder.objects.select_for_update().get(pk=order.pk)
+            if (locked_order.status or '').lower() != 'pending':
+                return False, locked_order
+
+            self._deduct_stock_and_notify(locked_order)
+            locked_order.status = 'Confirmed'
+            locked_order.invoice_number = locked_order.order_id or f"GO-ORD-{locked_order.id}"
+            locked_order.save(update_fields=['status', 'invoice_number', 'updated_at'])
+            return True, locked_order
+
+    @action(detail=True, methods=['get'], url_path='download-invoice', permission_classes=[IsAdminUser])
     def download_invoice(self, request, pk=None):
         order = self.get_object()
         from Holidays.utils import generate_product_order_invoice_pdf
@@ -2770,18 +2863,22 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         return response
 
     def create(self, request, *args, **kwargs):
-        product_id = request.data.get('product') # None if cart checkout
-        cart_items = request.data.get('cart_items') # list of dicts: [{'product_id': id, 'quantity': qty, 'price': price}]
-        quantity = int(request.data.get('quantity', 1))
-        name = request.data.get('name')
-        email = request.data.get('email', '').strip()
-        phone = request.data.get('phone')
-        address = request.data.get('address')
-        address_line1 = request.data.get('address_line1', '').strip()
-        address_line2 = request.data.get('address_line2', '').strip()
-        city = request.data.get('city', '').strip()
-        state = request.data.get('state', '').strip()
-        pincode = request.data.get('pincode', '').strip()
+        product_id = request.data.get('product')  # None if cart checkout
+        cart_items = request.data.get('cart_items')
+        has_product_id = product_id not in (None, '')
+        try:
+            quantity = int(request.data.get('quantity', 1))
+        except (TypeError, ValueError):
+            return Response({'error': 'Quantity must be a whole number.'}, status=status.HTTP_400_BAD_REQUEST)
+        name = str(request.data.get('name') or '').strip()
+        email = str(request.data.get('email') or '').strip()
+        phone = str(request.data.get('phone') or '').strip()
+        address = str(request.data.get('address') or '').strip()
+        address_line1 = str(request.data.get('address_line1') or '').strip()
+        address_line2 = str(request.data.get('address_line2') or '').strip()
+        city = str(request.data.get('city') or '').strip()
+        state = str(request.data.get('state') or '').strip()
+        pincode = str(request.data.get('pincode') or '').strip()
 
         if not address:
             address = ", ".join([s for s in [address_line1, address_line2, city, state, pincode] if s])
@@ -2797,17 +2894,25 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             except OTPVerification.DoesNotExist:
                 return Response({'error': 'Email address has not been verified with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not product_id and not cart_items:
+        if has_product_id and cart_items:
+            return Response({'error': 'Provide either a single product or cart items, not both.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not has_product_id and not cart_items:
             return Response({'error': 'Either a single product or cart items must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        if has_product_id and quantity < 1:
+            return Response({'error': 'Quantity must be at least one.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not has_product_id and (not isinstance(cart_items, list) or not cart_items):
+            return Response({'error': 'Cart items must be a non-empty list.'}, status=status.HTTP_400_BAD_REQUEST)
 
         total_amount = 0
         order_price = 0
+        product_obj = None
+        validated_items = []
 
-        if product_id:
+        if has_product_id:
             # Single product checkout
             try:
-                product_obj = GoimomiProduct.objects.get(pk=product_id)
-            except GoimomiProduct.DoesNotExist:
+                product_obj = GoimomiProduct.objects.get(pk=int(product_id))
+            except (GoimomiProduct.DoesNotExist, TypeError, ValueError):
                 return Response({'error': 'Selected product does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
 
             if product_obj.stock_status == 'out_of_stock' or product_obj.quantity < quantity:
@@ -2833,27 +2938,37 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 status='Pending'
             )
         else:
-            # Cart checkout
-            validated_items = []
+            requested_quantities = {}
             for item in cart_items:
-                pid = item.get('product_id')
-                qty = int(item.get('quantity', 1))
+                if not isinstance(item, dict):
+                    return Response({'error': 'Each cart item must be an object.'}, status=status.HTTP_400_BAD_REQUEST)
                 try:
-                    p_obj = GoimomiProduct.objects.get(pk=pid)
-                except GoimomiProduct.DoesNotExist:
-                    return Response({'error': f"Product with ID {pid} in cart does not exist."}, status=status.HTTP_400_BAD_REQUEST)
-                
-                if p_obj.stock_status == 'out_of_stock' or p_obj.quantity < qty:
-                    return Response({'error': f"Product '{p_obj.title}' is out of stock or requested quantity ({qty}) exceeds available stock ({p_obj.quantity})."}, status=status.HTTP_400_BAD_REQUEST)
-                
-                total_amount += p_obj.price * qty
+                    product_key = int(item.get('product_id'))
+                    item_quantity = int(item.get('quantity'))
+                except (TypeError, ValueError):
+                    return Response({'error': 'Each cart item needs a valid product and quantity.'}, status=status.HTTP_400_BAD_REQUEST)
+                if item_quantity < 1:
+                    return Response({'error': 'Each cart item quantity must be at least one.'}, status=status.HTTP_400_BAD_REQUEST)
+                requested_quantities[product_key] = requested_quantities.get(product_key, 0) + item_quantity
+
+            products = GoimomiProduct.objects.in_bulk(requested_quantities)
+            for product_key, item_quantity in requested_quantities.items():
+                p_obj = products.get(product_key)
+                if not p_obj:
+                    return Response({'error': f"Product with ID {product_key} in cart does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+                if p_obj.stock_status == 'out_of_stock' or p_obj.quantity < item_quantity:
+                    return Response({'error': f"Product '{p_obj.title}' is out of stock or requested quantity ({item_quantity}) exceeds available stock ({p_obj.quantity})."}, status=status.HTTP_400_BAD_REQUEST)
+
+                total_amount += p_obj.price * item_quantity
                 validated_items.append({
                     'product_id': p_obj.id,
                     'title': p_obj.title,
                     'price': float(p_obj.price),
-                    'quantity': qty
+                    'quantity': item_quantity,
                 })
-            
+
+            # Product prices and quantities are derived from database records, never the cart payload.
+            validated_items.sort(key=lambda item: item['product_id'])
             order = GoimomiProductOrder.objects.create(
                 product=None,
                 name=name,
@@ -2945,23 +3060,24 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 response_data = serializer.data
                 response_data['payment_url'] = payment_url
                 return Response(response_data, status=status.HTTP_201_CREATED)
-            else:
-                serializer = self.get_serializer(order)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                {'error': 'Unable to start the payment session. Please try again.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
         except Exception as e:
             print(f"Zoho payment session notice: {e}")
-            serializer = self.get_serializer(order)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                {'error': 'Unable to start the payment session. Please try again.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
     @action(detail=False, methods=['get'], url_path='verify-zoho-payment', permission_classes=[AllowAny])
     def verify_zoho_payment(self, request):
         from django.http import HttpResponseRedirect
-        from Holidays.services.zoho_payment import ZohoPaymentService
-        import random
 
         order_id = request.GET.get('order_id')
-        session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
+        callback_session_id = request.GET.get('session_id') or request.GET.get('payments_session_id')
 
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
 
@@ -2972,9 +3088,9 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             except GoimomiProductOrder.DoesNotExist:
                 pass
 
-        if not order and session_id:
+        if not order and callback_session_id:
             try:
-                order = GoimomiProductOrder.objects.get(zoho_payment_session_id=session_id)
+                order = GoimomiProductOrder.objects.get(zoho_payment_session_id=callback_session_id)
             except GoimomiProductOrder.DoesNotExist:
                 pass
 
@@ -2983,143 +3099,42 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
         frontend_failure_url = f"{frontend_url}/payment-failed?order_id={order.order_id}"
 
-        if not session_id:
-            session_id = order.zoho_payment_session_id
-
-        if not session_id:
+        if not verify_zoho_payment_session(
+            callback_session_id,
+            order.zoho_payment_session_id,
+            order.order_id,
+            order.total_amount,
+        ):
             return HttpResponseRedirect(frontend_failure_url)
 
-        def _safe_get(obj, key, default=None):
-            if obj is None: return default
-            if isinstance(obj, dict): return obj.get(key, default)
-            return getattr(obj, key, default)
-
-        param_session_status = (request.GET.get('payment_session_status') or '').lower()
-        param_payment_status = (request.GET.get('payment_status') or '').lower()
-        param_success = (
-            param_session_status in ['paid', 'succeeded', 'completed', 'success'] or
-            param_payment_status in ['succeeded', 'paid', 'success', 'completed']
-        )
-
-        signature_ok = True
-        signing_key = getattr(settings, 'ZOHO_PAYMENTS_SIGNING_KEY', '')
-        if signing_key:
-            signature = request.GET.get('signature')
-            if signature:
-                payments_session_id = request.GET.get('payments_session_id', '')
-                payment_session_status = request.GET.get('payment_session_status', '')
-                payment_id = request.GET.get('payment_id', '')
-                payment_status = request.GET.get('payment_status', '')
-                amount = request.GET.get('amount', '')
-                mandate_id = request.GET.get('mandate_id', '')
-                udf1 = request.GET.get('udf1', '')
-                udf2 = request.GET.get('udf2', '')
-                udf3 = request.GET.get('udf3', '')
-                udf4 = request.GET.get('udf4', '')
-                udf5 = request.GET.get('udf5', '')
-
-                fields = [
-                    payments_session_id, payment_session_status, payment_id,
-                    payment_status, amount, mandate_id, udf1, udf2, udf3, udf4, udf5
-                ]
-                fields = [f if f is not None else '' for f in fields]
-                data_to_sign = ".".join(fields)
-
-                import hmac
-                import hashlib
-                expected_signature = hmac.new(
-                    signing_key.encode('utf-8'),
-                    data_to_sign.encode('utf-8'),
-                    hashlib.sha256
-                ).hexdigest()
-                
-                if not hmac.compare_digest(expected_signature, signature):
-                    print(f"Verify Warning: Product Order signature mismatch. Expected: {expected_signature}, Got: {signature}")
-                    signature_ok = False
         try:
-            param_success = False
-            session_status = request.GET.get('payment_session_status') or request.GET.get('payment_status') or request.POST.get('payment_session_status') or request.POST.get('payment_status')
-            if session_status in ['paid', 'completed', 'succeeded', 'PAID', 'COMPLETED', 'SUCCEEDED']:
-                param_success = True
-
-            signature_ok = True
-            signature = request.GET.get('signature') or request.POST.get('signature')
-            signing_key = getattr(settings, 'ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY', '')
-            if signature and signing_key:
+            newly_confirmed, order = self._confirm_paid_order(order)
+            if newly_confirmed:
                 try:
-                    import hmac, hashlib
-                    payments_session_id = session_id or getattr(order, 'zoho_payment_session_id', '')
-                    payment_session_status = session_status or 'paid'
-                    payment_id = request.GET.get('payment_id', '')
-                    payment_status = request.GET.get('payment_status', '')
-                    amount = str(request.GET.get('amount', ''))
-                    mandate_id = request.GET.get('mandate_id', '')
-                    udf1 = request.GET.get('udf1', '')
-                    udf2 = request.GET.get('udf2', '')
-                    udf3 = request.GET.get('udf3', '')
-                    udf4 = request.GET.get('udf4', '')
-                    udf5 = request.GET.get('udf5', '')
-                    
-                    data_str = f"{payments_session_id}|{payment_session_status}|{payment_id}|{payment_status}|{amount}|{mandate_id}|{udf1}|{udf2}|{udf3}|{udf4}|{udf5}"
-                    expected_signature = hmac.new(signing_key.encode('utf-8'), data_str.encode('utf-8'), hashlib.sha256).hexdigest()
-                    if not hmac.compare_digest(expected_signature, signature):
-                        print("Notice: Query params signature mismatch, verifying via API...")
-                        signature_ok = False
-                except Exception as sig_err:
-                    print(f"Signature check notice: {sig_err}")
+                    from Holidays.utils import upsert_zoho_crm_contact
+                    crm_data = {
+                        'first_name': order.name.split(' ')[0] if ' ' in order.name else order.name,
+                        'last_name': order.name.split(' ', 1)[1] if ' ' in order.name else 'Customer',
+                        'email': order.email,
+                        'phone': order.phone
+                    }
+                    if crm_data['email']:
+                        import threading
+                        threading.Thread(target=upsert_zoho_crm_contact, args=(crm_data,)).start()
+                except Exception as crm_err:
+                    print(f"Error syncing product customer to Zoho CRM: {crm_err}")
 
-            api_success = False
-            try:
-                from Holidays.services.zoho_payment import ZohoPaymentService
-                s_status, s_data = ZohoPaymentService.get_payment_session(order.zoho_payment_session_id)
-                def _safe_get(obj, key, default=None):
-                    if isinstance(obj, dict):
-                        return obj.get(key, default)
-                    return getattr(obj, key, default)
+                try:
+                    from Holidays.utils import send_product_order_email
+                    send_product_order_email(order)
+                except Exception as mail_err:
+                    print(f"Error sending product order email: {mail_err}")
 
-                remote_status = str(_safe_get(s_data, 'status', '')).lower()
-                if remote_status in ['paid', 'completed', 'succeeded']:
-                    api_success = True
-            except Exception as s_err:
-                print(f"Notice retrieving Product Zoho session: {s_err}")
+            return HttpResponseRedirect(f"{frontend_url}/goimomi-product?payment_success=true&order_id={order.order_id}")
 
-            if (param_success and signature_ok) or api_success or param_success:
-                # Mark order as Confirmed / Completed
-                if order.status in ['Pending', 'pending']:
-                    order.status = 'Confirmed'
-                    order.invoice_number = order.order_id or f"GO-ORD-{order.id}"
-                    order.save()
-
-                    # Deduct product stock quantity and auto-update stock_status
-                    self._deduct_stock_and_notify(order)
-
-                    # Sync user to Zoho CRM Contact list
-                    try:
-                        from Holidays.utils import upsert_zoho_crm_contact
-                        crm_data = {
-                            'first_name': order.name.split(' ')[0] if ' ' in order.name else order.name,
-                            'last_name': order.name.split(' ', 1)[1] if ' ' in order.name else 'Customer',
-                            'email': order.email,
-                            'phone': order.phone
-                        }
-                        if crm_data['email']:
-                            import threading
-                            threading.Thread(target=upsert_zoho_crm_contact, args=(crm_data,)).start()
-                    except Exception as crm_err:
-                        print(f"Error syncing product customer to Zoho CRM: {crm_err}")
-
-                    # Send Product Order confirmation email (From: support@goimomi.com, CC: hello@goimomi.com)
-                    try:
-                        from Holidays.utils import send_product_order_email
-                        send_product_order_email(order)
-                    except Exception as mail_err:
-                        print(f"Error sending product order email: {mail_err}")
-
-                # Redirect to frontend success page
-                return HttpResponseRedirect(f"{frontend_url}/goimomi-product?payment_success=true&order_id={order.order_id}")
-            else:
-                return HttpResponseRedirect(f"{frontend_url}/payment-failed?order_id={order.order_id}&status={session_status}")
-
+        except InsufficientProductStock as stock_error:
+            print(f"Product payment received but inventory is unavailable for {order.order_id}: {stock_error}")
+            return HttpResponseRedirect(frontend_failure_url)
         except Exception as e:
             print(f"Error verifying Zoho Product Payment: {e}")
             return HttpResponseRedirect(frontend_failure_url)
@@ -3129,32 +3144,42 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         import hmac
         import hashlib
         import json
-        import random
         from django.http import HttpResponse
 
         signature_header = request.headers.get('X-Zoho-Webhook-Signature')
-        raw_body = request.body.decode('utf-8')
-
         signing_key = getattr(settings, 'ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY', '')
-        if signature_header and signing_key:
-            try:
-                parts = {part.split('=')[0]: part.split('=')[1] for part in signature_header.split(',')}
-                timestamp = parts.get('t')
-                received_signature = parts.get('v')
+        if not signature_header:
+            return HttpResponse("Missing signature header", status=400)
+        if not signing_key:
+            return HttpResponse("Signing key not configured", status=500)
 
-                if timestamp and received_signature:
-                    data_to_verify = f"{timestamp}.{raw_body}"
-                    expected_signature = hmac.new(
-                        signing_key.encode('utf-8'),
-                        data_to_verify.encode('utf-8'),
-                        hashlib.sha256
-                    ).hexdigest()
+        try:
+            parts = {}
+            for part in signature_header.split(','):
+                key, separator, value = part.strip().partition('=')
+                if separator:
+                    parts[key] = value
+            timestamp = parts.get('t')
+            received_signature = parts.get('v')
+            if not timestamp or not received_signature:
+                return HttpResponse("Invalid signature header format", status=400)
 
-                    if not hmac.compare_digest(expected_signature, received_signature):
-                        print("Webhook Error: Signature verification failed")
-                        return HttpResponse("Unauthorized signature", status=401)
-            except Exception as sig_err:
-                print(f"Webhook Signature Check Notice: {sig_err}")
+            raw_body_bytes = request.body
+            data_to_verify = timestamp.encode('utf-8') + b'.' + raw_body_bytes
+            expected_signature = hmac.new(
+                signing_key.encode('utf-8'),
+                data_to_verify,
+                hashlib.sha256,
+            ).hexdigest()
+            if not hmac.compare_digest(expected_signature, received_signature):
+                print("Webhook Error: Product signature verification failed")
+                return HttpResponse("Unauthorized signature", status=401)
+            raw_body = raw_body_bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            return HttpResponse("Webhook body must be UTF-8", status=400)
+        except Exception as signature_error:
+            print(f"Webhook signature check failed: {signature_error}")
+            return HttpResponse("Invalid signature header", status=400)
 
         try:
             payload = json.loads(raw_body)
@@ -3164,9 +3189,12 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
             print(f"Webhook Received: Event {event_type} for Product Order")
 
-            if event_type in ['payment.succeeded', 'payment_session.paid', 'payment_session.completed', 'payment.created', 'hosted_page.payment_succeeded']:
+            if event_type == 'payment.succeeded':
                 order_id = payment.get('reference_number') or event_object.get('reference_number')
                 session_id = payment.get('payments_session_id') or event_object.get('payments_session_id')
+
+                if not session_id:
+                    return HttpResponse("Missing payment session ID", status=400)
 
                 order = None
                 if order_id:
@@ -3182,14 +3210,17 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                         pass
 
                 if order:
-                    if order.status in ['Pending', 'pending']:
-                        order.status = 'Confirmed'
-                        order.invoice_number = order.order_id or f"GO-ORD-{order.id}"
-                        order.save()
-                        print(f"Webhook Success: Product Order {order.order_id} confirmed via webhook")
+                    if not verify_zoho_payment_session(
+                        session_id,
+                        order.zoho_payment_session_id,
+                        order.order_id,
+                        order.total_amount,
+                    ):
+                        return HttpResponse("Payment session verification failed", status=400)
 
-                        # Deduct product stock quantity and auto-update stock_status
-                        self._deduct_stock_and_notify(order)
+                    newly_confirmed, order = self._confirm_paid_order(order)
+                    if newly_confirmed:
+                        print(f"Webhook Success: Product Order {order.order_id} confirmed via webhook")
 
                         # Sync user to Zoho CRM Contact list
                         try:
@@ -3222,28 +3253,66 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             return HttpResponse(str(e), status=400)
 
     def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        old_status = instance.status
-        response = super().partial_update(request, *args, **kwargs)
-        instance.refresh_from_db()
-        if old_status != instance.status and instance.status in ['Confirmed', 'Completed']:
+        order = self.get_object()
+        inventory_fields = {'product', 'quantity', 'cart_items'}
+        if order.stock_deducted_at and inventory_fields.intersection(request.data.keys()):
+            return Response(
+                {'error': 'Product, quantity, and cart items cannot change after stock has been deducted.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            with transaction.atomic():
+                old_status = order.status
+                response = super().partial_update(request, *args, **kwargs)
+                order.refresh_from_db()
+
+                status_changed = old_status != order.status
+                new_status_normalized = (order.status or '').lower()
+                enters_fulfilment = (
+                    status_changed
+                    and new_status_normalized in {'confirmed', 'shipped', 'delivered', 'completed'}
+                )
+                if enters_fulfilment:
+                    self._deduct_stock_and_notify(order)
+        except InsufficientProductStock as stock_error:
+            return Response({'error': str(stock_error)}, status=status.HTTP_400_BAD_REQUEST)
+
+        trigger_shipped_email = str(request.data.get('trigger_shipped_email', '')).lower() in ('true', '1')
+
+        if (status_changed and new_status_normalized == 'shipped') or trigger_shipped_email:
+            try:
+                from Holidays.tasks import send_product_shipped_email_task
+                send_product_shipped_email_task.delay(order.pk)
+                print(f"Product shipping email queued for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}")
+            except Exception as celery_error:
+                try:
+                    from Holidays.utils import send_product_shipped_email
+
+                    send_product_shipped_email(order)
+                    print(f"Product shipping email sent directly for Order {order.order_id}; Celery was unavailable: {celery_error}")
+                except Exception as ship_error:
+                    print(f"Error sending shipping email on status change: {ship_error}")
+        elif status_changed and new_status_normalized in {'confirmed', 'delivered', 'completed'}:
             try:
                 from Holidays.utils import send_product_order_email
-                send_product_order_email(instance)
-            except Exception as mail_err:
-                print(f"Error sending product order email on partial_update: {mail_err}")
+                send_product_order_email(order)
+                print(f"Product order email triggered for Order {order.order_id} (Status: {order.status}) to {order.email}")
+            except Exception as mail_error:
+                print(f"Error sending product order email on partial_update: {mail_error}")
+
         return response
 
 
 class LogisticsProviderViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = LogisticsProvider.objects.all().order_by('name')
     serializer_class = LogisticsProviderSerializer
     pagination_class = None
 
 
 class CatalogueMasterViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = CatalogueMaster.objects.all().order_by('name')
     serializer_class = CatalogueMasterSerializer
     pagination_class = None
@@ -3297,7 +3366,7 @@ class CatalogueMasterViewSet(ModelViewSet):
 
 
 class SubCatalogueViewSet(ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = SubCatalogue.objects.all().order_by('order', 'name')
     serializer_class = SubCatalogueSerializer
     pagination_class = None

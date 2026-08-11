@@ -19,7 +19,6 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
-CORS_ALLOW_ALL_ORIGINS = True
 
 
 # Quick-start development settings - unsuitable for production
@@ -30,6 +29,13 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-&t4_sd6+&#m!@p4e$n7@+84rtr
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
+
+_cors_origins = os.getenv(
+    'CORS_ALLOWED_ORIGINS',
+    'https://goimomi.com,https://www.goimomi.com,http://localhost:5174,http://127.0.0.1:5174',
+)
+CORS_ALLOWED_ORIGINS = [origin.strip().rstrip('/') for origin in _cors_origins.split(',') if origin.strip()]
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'goimomi.com,www.goimomi.com,54.81.116.105,localhost,127.0.0.1').split(',')
 
@@ -159,7 +165,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',

@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.core.cache import cache
 from zohopayments import ZohoPayments, Edition
@@ -13,6 +14,14 @@ from zohopayments.params import (
 logger = logging.getLogger(__name__)
 
 class ZohoPaymentService:
+    PAID_STATUSES = {'paid', 'succeeded', 'completed', 'success'}
+
+    @staticmethod
+    def _get_value(value, field, default=None):
+        if isinstance(value, dict):
+            return value.get(field, default)
+        return getattr(value, field, default)
+
     @staticmethod
     def get_client():
         """
@@ -268,6 +277,44 @@ class ZohoPaymentService:
         except Exception as e:
             logger.error(f"[ZohoPayments] Error retrieving payment session {session_id}: {e}", exc_info=True)
             raise e
+
+    @classmethod
+    def verify_paid_session(cls, session_id, *, reference_number, amount, currency):
+        """Return whether Zoho confirms the exact stored checkout session was paid."""
+        if not session_id:
+            return False
+
+        session = cls.get_payment_session(session_id)
+        actual_session_id = cls._get_value(session, 'payments_session_id')
+        actual_reference = cls._get_value(session, 'reference_number')
+        actual_currency = cls._get_value(session, 'currency')
+        actual_amount = cls._get_value(session, 'amount')
+
+        if actual_session_id != session_id or actual_reference != reference_number:
+            logger.warning("[ZohoPayments] Payment session identity or reference mismatch for %s", reference_number)
+            return False
+
+        if str(actual_currency or '').upper() != str(currency or '').upper():
+            logger.warning("[ZohoPayments] Payment currency mismatch for %s", reference_number)
+            return False
+
+        try:
+            expected_amount = Decimal(str(amount)).quantize(Decimal('0.01'))
+            received_amount = Decimal(str(actual_amount)).quantize(Decimal('0.01'))
+        except (InvalidOperation, TypeError, ValueError):
+            logger.warning("[ZohoPayments] Invalid payment amount returned for %s", reference_number)
+            return False
+
+        if received_amount != expected_amount:
+            logger.warning("[ZohoPayments] Payment amount mismatch for %s", reference_number)
+            return False
+
+        session_status = str(cls._get_value(session, 'status', '')).lower()
+        payment_statuses = {
+            str(cls._get_value(payment, 'status', '')).lower()
+            for payment in (cls._get_value(session, 'payments', []) or [])
+        }
+        return session_status in cls.PAID_STATUSES or bool(payment_statuses & cls.PAID_STATUSES)
 
     @classmethod
     def create_customer(cls, name, email, phone=None, country_code=None):

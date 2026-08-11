@@ -843,6 +843,7 @@ class GoimomiProductOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoimomiProductOrder
         fields = "__all__"
+        read_only_fields = ['stock_deducted_at']
 
     def get_product_title(self, obj):
         if obj.product:

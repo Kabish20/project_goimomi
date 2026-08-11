@@ -36,7 +36,7 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // Prevent infinite loops if refresh endpoint itself fails
-        if (originalRequest.url.includes('/api/token/refresh/')) {
+        if (!originalRequest || originalRequest.url?.includes('/api/token/refresh/')) {
             return Promise.reject(error);
         }
 

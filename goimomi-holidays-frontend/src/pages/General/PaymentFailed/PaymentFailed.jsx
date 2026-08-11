@@ -6,6 +6,8 @@ import usePageSEO from '../../../hooks/usePageSEO';
 const PaymentFailed = () => {
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get('booking_id') || searchParams.get('id') || searchParams.get('booking') || '';
+  const orderId = searchParams.get('order_id') || '';
+  const paymentReference = bookingId || orderId;
 
   usePageSEO(
     "Payment Failed | Goimomi Holidays",
@@ -31,13 +33,13 @@ const PaymentFailed = () => {
           Transaction declined or cancelled
         </p>
 
-        {bookingId && (
+        {paymentReference && (
           <div className="bg-red-50/50 border border-red-100 rounded-2xl p-4 mb-6">
             <span className="text-xs font-bold text-red-800 uppercase tracking-wider block mb-1">
-              Attempted Booking ID
+              Attempted {orderId ? 'Order' : 'Booking'} ID
             </span>
             <span className="text-xl font-black text-red-950 tracking-wide font-mono">
-              {bookingId}
+              {paymentReference}
             </span>
           </div>
         )}
@@ -74,10 +76,10 @@ const PaymentFailed = () => {
             <Home size={14} /> Home
           </Link>
           <Link 
-            to="/holidays" 
+            to={orderId ? "/goimomi-product?cart=open" : "/holidays"}
             className="flex items-center justify-center gap-2 bg-red-600 text-white px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 shadow-xl shadow-red-900/20 transition-all active:scale-95"
           >
-            Retry Booking
+            {orderId ? "Retry Order" : "Retry Booking"}
           </Link>
         </div>
       </div>

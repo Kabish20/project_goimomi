@@ -503,10 +503,10 @@ const AdminDashboard = () => {
                     </h3>
                     <div className="grid grid-cols-1 gap-2 text-xs">
                       <button
-                        onClick={() => navigate("/admin/visa-applications/add")}
+                        onClick={() => navigate("/admin/visa-applications")}
                         className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left font-bold text-slate-800 flex justify-between items-center transition cursor-pointer"
                       >
-                        <span className="flex items-center gap-2">🌐 Create Visa Application</span>
+                        <span className="flex items-center gap-2">🌐 Manage Visa Applications</span>
                         <ArrowRight size={14} className="text-gray-400" />
                       </button>
 

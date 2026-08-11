@@ -246,7 +246,7 @@ const BuyNowModal = ({ product, onClose }) => {
       const response = await api.post("/api/goimomi-product-orders/", payload, { skipAuth: true });
       
       if (product.isCartCheckout) {
-        localStorage.removeItem("goimomi_cart");
+        localStorage.setItem("goimomi_pending_cart_order_id", response.data?.order_id || "");
       }
 
       if (response.data && response.data.payment_url) {
@@ -1038,6 +1038,19 @@ const GoimomiProduct = () => {
     searchParams.get("payment_success") === "true"
   );
   const successOrderId = searchParams.get("order_id");
+
+  useEffect(() => {
+    const pendingCartOrderId = localStorage.getItem("goimomi_pending_cart_order_id");
+    if (
+      searchParams.get("payment_success") === "true" &&
+      successOrderId &&
+      pendingCartOrderId === successOrderId
+    ) {
+      localStorage.removeItem("goimomi_cart");
+      localStorage.removeItem("goimomi_pending_cart_order_id");
+      setCartItems([]);
+    }
+  }, [searchParams, successOrderId]);
 
   const handleViewDetails = (product) => {
     const newParams = new URLSearchParams(searchParams);

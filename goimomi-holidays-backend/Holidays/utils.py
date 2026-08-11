@@ -763,39 +763,53 @@ def upsert_zoho_crm_contact(customer_data: dict) -> dict:
         return {}
 
 
+def _twilio_whatsapp_address(phone_number):
+    raw_value = str(phone_number or '').strip()
+    if raw_value.startswith('whatsapp:'):
+        return raw_value
+    digits = ''.join(filter(str.isdigit, raw_value))
+    return f"whatsapp:+{digits}" if digits else None
+
+
+def _send_twilio_whatsapp(phone_number, message):
+    import requests
+
+    account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', '')
+    auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
+    sender = _twilio_whatsapp_address(getattr(settings, 'TWILIO_WHATSAPP_NUMBER', ''))
+    recipient = _twilio_whatsapp_address(phone_number)
+    if not (account_sid and auth_token and sender and recipient):
+        print("Twilio credentials or WhatsApp phone numbers are not configured.")
+        return None
+
+    response = requests.post(
+        f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json",
+        data={'From': sender, 'To': recipient, 'Body': message},
+        auth=(account_sid, auth_token),
+        timeout=15,
+    )
+    response.raise_for_status()
+    return response.json().get('sid')
+
+
 def send_whatsapp_confirmation(phone_number: str, booking_id: str, amount: str):
-    """
-    Sends a WhatsApp booking confirmation message to the customer.
-    This example uses Twilio API; replace with your WhatsApp API provider.
-    """
+    """Send a cab payment confirmation through Twilio WhatsApp."""
     try:
-        import importlib
-        try:
-            twilio_rest = importlib.import_module('twilio.rest')
-            Client = twilio_rest.Client
-        except ImportError:
-            print("twilio package is not installed. Skipping WhatsApp message.")
-            return None
-            
-        account_sid = getattr(settings, 'TWILIO_ACCOUNT_SID', '')
-        auth_token = getattr(settings, 'TWILIO_AUTH_TOKEN', '')
-        whatsapp_number = getattr(settings, 'TWILIO_WHATSAPP_NUMBER', '')
-        
-        if not (account_sid and auth_token and whatsapp_number):
-            print("Twilio credentials not fully configured. Skipping WhatsApp message.")
-            return None
-            
-        client = Client(account_sid, auth_token)
-        
-        # Format phone number to E.164 if necessary
-        message = client.messages.create(
-            from_=f"whatsapp:{whatsapp_number}",
-            body=f"Hi! Your payment of INR {amount} for Booking ID {booking_id} has been received and confirmed. Thank you for booking with Goimomi Holidays!",
-            to=f"whatsapp:{phone_number}"
+        return _send_twilio_whatsapp(
+            phone_number,
+            f"Hi! Your payment of INR {amount} for Booking ID {booking_id} has been received and confirmed. Thank you for booking with Goimomi Holidays!",
         )
-        return message.sid
     except Exception as e:
         print(f"Error sending WhatsApp notification: {e}")
+        return None
+
+
+def send_visa_whatsapp_msg(phone_number: str, message: str):
+    """Send a custom WhatsApp message for a visa application update."""
+    try:
+        return _send_twilio_whatsapp(phone_number, message)
+    except Exception as e:
+        print(f"Error sending visa WhatsApp notification: {e}")
         return None
 
 
@@ -1573,5 +1587,3 @@ def send_product_shipped_email(order):
     except Exception as e:
         print(f"Error sending product shipped email: {e}")
         return False
-
-

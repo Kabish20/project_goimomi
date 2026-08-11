@@ -25,6 +25,7 @@ const Cab = () => {
     urlSearchParams.get("payment_success") === "true" || urlSearchParams.get("status") === "success"
   );
   const successBookingId = urlSearchParams.get("booking_id") || urlSearchParams.get("booking");
+  const successDocumentToken = urlSearchParams.get("document_token");
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
@@ -34,6 +35,7 @@ const Cab = () => {
     newParams.delete("status");
     newParams.delete("booking_id");
     newParams.delete("booking");
+    newParams.delete("document_token");
     setUrlSearchParams(newParams, { replace: true });
   };
 
@@ -186,50 +188,46 @@ const Cab = () => {
       return;
     }
 
+    if (cart.length !== 1) {
+      alert("Please book one cab at a time.");
+      return;
+    }
+
     setBookingStatus({ loading: true, success: false, error: null });
 
     try {
-      // Parallel booking creation for each vehicle in the cart
-      const bookingPromises = cart.map(item => {
-        const payload = {
-          vehicle_name: item.name,
-          vehicle_category: item.category,
-          price: item.price,
-          from_city: item.fromCity || searchParams.fromName,
-          to_city: item.toCity || searchParams.toName,
-          pickup_date: item.pickupDate || searchParams.pickupDate,
-          guests: searchParams.guests,
-          title: bookingFormData.title,
-          first_name: bookingFormData.firstName,
-          last_name: bookingFormData.lastName,
-          email: bookingFormData.email,
-          phone: phone,
-          luggage_count: bookingFormData.luggageCount,
-          transfer_type: item.transferType,
-          flight_number: item.flightNumber || "",
-          terminal: item.terminal || "",
-          airport_name: item.airportName || "",
-          arrival_time: item.transferType === 'airport' ? `${item.arrivalDate || ""} ${item.arrivalTime || ""}`.trim() : "",
-          departure_time: item.transferType === 'airport' ? `${item.departureDate || ""} ${item.departureTime || ""}`.trim() : "",
-          pickup_location_details: item.transferType === 'intercity' ? `Pickup: ${item.pickupPoint}, Drop: ${item.dropPoint}. ${item.pickupLocationDetails || ""}` : `Pickup: ${item.pickupPoint}, Drop: ${item.dropPoint}.`,
-          pickup_time: item.transferType === 'intercity' ? `${item.pickupDate || ""} ${item.pickupTime || ""}`.trim() : "",
-          special_requirements: bookingFormData.specialRequirements
-        };
+      const item = cart[0];
+      const payload = {
+        vehicle_id: item.id,
+        from_city: item.fromCity || searchParams.fromName,
+        to_city: item.toCity || searchParams.toName,
+        pickup_date: item.pickupDate || searchParams.pickupDate,
+        pickup_point: item.pickupPoint || "",
+        drop_point: item.dropPoint || "",
+        guests: searchParams.guests,
+        title: bookingFormData.title,
+        first_name: bookingFormData.firstName,
+        last_name: bookingFormData.lastName,
+        email: bookingFormData.email,
+        phone,
+        luggage_count: bookingFormData.luggageCount,
+        transfer_type: item.transferType,
+        flight_number: item.flightNumber || "",
+        terminal: item.terminal || "",
+        airport_name: item.airportName || "",
+        arrival_time: item.transferType === 'airport' ? `${item.arrivalDate || ""} ${item.arrivalTime || ""}`.trim() : "",
+        departure_time: item.transferType === 'airport' ? `${item.departureDate || ""} ${item.departureTime || ""}`.trim() : "",
+        pickup_location_details: item.transferType === 'intercity' ? `Pickup: ${item.pickupPoint}, Drop: ${item.dropPoint}. ${item.pickupLocationDetails || ""}` : `Pickup: ${item.pickupPoint}, Drop: ${item.dropPoint}.`,
+        pickup_time: item.transferType === 'intercity' ? `${item.pickupDate || ""} ${item.pickupTime || ""}`.trim() : "",
+        special_requirements: bookingFormData.specialRequirements
+      };
+      const response = await api.post("/api/cab-bookings/", payload);
+      const bookingId = response?.data?.booking_id;
+      const paymentUrl = response?.data?.payment_url;
+      setConfirmedBookingIds(bookingId ? [bookingId] : []);
 
-        return api.post("/api/cab-bookings/", payload);
-      });
-
-      const responses = await Promise.all(bookingPromises);
-
-      // Extract booking_ids from responses
-      const ids = responses
-        .filter(r => r?.data?.booking_id)
-        .map(r => r.data.booking_id);
-      setConfirmedBookingIds(ids);
-
-      // If any response contains a payment_url, redirect the customer to pay now.
-      // We use the first booking's payment link (for multi-cart, the first link covers all).
-      const firstPaymentUrl = responses.find(r => r?.data?.payment_url)?.data?.payment_url;
+      // Redirect only after the server returns a checkout URL for this booking.
+      const firstPaymentUrl = paymentUrl;
       if (firstPaymentUrl) {
         // Brief status update so user sees feedback before redirect
         setBookingStatus({ loading: true, success: false, error: null });
@@ -254,7 +252,7 @@ const Cab = () => {
       }
 
       // Fallback: no payment link — show booking request confirmed modal
-      setBookingStatus({ loading: false, success: true, error: null });
+      setBookingStatus({ loading: false, success: false, error: "Unable to start the payment session. Please try again." });
 
     } catch (err) {
       console.error("Booking error:", err);
@@ -429,6 +427,10 @@ const Cab = () => {
   };
 
   const handleAddToCart = (car) => {
+    if (cart.length > 0) {
+      alert("Please complete or remove the current cab booking before adding another.");
+      return;
+    }
     const newItem = {
       cartId: Date.now() + Math.random(),
       ...car,
@@ -448,7 +450,7 @@ const Cab = () => {
       departureTime: "",
       pickupLocationDetails: ""
     };
-    setCart(prev => [...prev, newItem]);
+    setCart([newItem]);
     alert(`${car.name} added to cart!`);
   };
 
@@ -472,7 +474,7 @@ const Cab = () => {
       departureTime: "",
       pickupLocationDetails: ""
     };
-    setCart(prev => [...prev, newItem]);
+    setCart([newItem]);
     setIsBooking(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -1757,15 +1759,7 @@ const Cab = () => {
                             </div>
                             <div className="flex flex-col gap-1 w-full mt-2">
                               <button
-                                onClick={() => {
-                                  // Add to cart if not already present, then checkout immediately
-                                  const isAlreadyInCart = cart.some(c => c.id === car.id);
-                                  if (!isAlreadyInCart) {
-                                    handleAddToCart(car);
-                                  }
-                                  setIsBooking(true);
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
+                                onClick={() => handleBookNow(car)}
                                 className="w-full bg-[#14532d] text-white py-1.5 px-3 rounded-lg font-black text-[8px] uppercase tracking-[0.2em] hover:bg-[#0f4022] transition-all shadow-sm active:scale-95 whitespace-nowrap"
                               >
                                 Book Now
@@ -1929,7 +1923,7 @@ const Cab = () => {
       <CabPrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
 
       {showSuccessModal && (
-        <PaymentSuccessModal bookingId={successBookingId} onClose={handleCloseSuccessModal} />
+        <PaymentSuccessModal bookingId={successBookingId} documentToken={successDocumentToken} onClose={handleCloseSuccessModal} />
       )}
 
       {/* Floating Cart Bar */}
@@ -2030,14 +2024,18 @@ const Cab = () => {
 };
 
 
-const PaymentSuccessModal = ({ bookingId, onClose }) => {
+const PaymentSuccessModal = ({ bookingId, documentToken, onClose }) => {
+  const documentQuery = documentToken
+    ? `booking_id=${encodeURIComponent(bookingId)}&token=${encodeURIComponent(documentToken)}`
+    : null;
+
   useEffect(() => {
-    if (bookingId) {
+    if (bookingId && documentQuery) {
       // Small timeout to allow the browser to parse/render before triggering downloads
       const timer = setTimeout(() => {
         // Automatically trigger voucher PDF download
         const voucherLink = document.createElement('a');
-        voucherLink.href = `/api/cab-bookings/download-voucher-public/?booking_id=${bookingId}`;
+        voucherLink.href = `/api/cab-bookings/download-voucher-public/?${documentQuery}`;
         voucherLink.target = '_blank';
         voucherLink.download = `Voucher_${bookingId}.pdf`;
         document.body.appendChild(voucherLink);
@@ -2046,7 +2044,7 @@ const PaymentSuccessModal = ({ bookingId, onClose }) => {
 
         // Automatically trigger invoice PDF download
         const invoiceLink = document.createElement('a');
-        invoiceLink.href = `/api/cab-bookings/download-invoice-public/?booking_id=${bookingId}`;
+        invoiceLink.href = `/api/cab-bookings/download-invoice-public/?${documentQuery}`;
         invoiceLink.target = '_blank';
         invoiceLink.download = `Invoice_${bookingId}.pdf`;
         document.body.appendChild(invoiceLink);
@@ -2055,7 +2053,7 @@ const PaymentSuccessModal = ({ bookingId, onClose }) => {
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, [bookingId]);
+  }, [bookingId, documentQuery]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -2091,10 +2089,10 @@ const PaymentSuccessModal = ({ bookingId, onClose }) => {
           We have automatically started downloading your voucher and invoice.
         </p>
 
-        {bookingId && (
+        {bookingId && documentQuery && (
           <div className="flex flex-col gap-2 mb-6">
             <a
-              href={`/api/cab-bookings/download-voucher-public/?booking_id=${bookingId}`}
+              href={`/api/cab-bookings/download-voucher-public/?${documentQuery}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3 bg-[#14532d] hover:bg-[#0f3d21] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
@@ -2102,7 +2100,7 @@ const PaymentSuccessModal = ({ bookingId, onClose }) => {
               📄 Download Booking Voucher (PDF)
             </a>
             <a
-              href={`/api/cab-bookings/download-invoice-public/?booking_id=${bookingId}`}
+              href={`/api/cab-bookings/download-invoice-public/?${documentQuery}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3 bg-white border border-[#14532d] text-[#14532d] hover:bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"

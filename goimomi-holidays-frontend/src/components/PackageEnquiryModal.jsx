@@ -9,7 +9,10 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
     const getTomorrowDate = () => {
         const d = new Date();
         d.setDate(d.getDate() + 1);
-        return d.toISOString().split('T')[0];
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
     };
 
     const [formData, setFormData] = useState({
@@ -37,10 +40,11 @@ const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
 
     useEffect(() => {
         if (packageData) {
+            const packageDays = Number(packageData.days);
             setFormData((prev) => ({
                 ...prev,
                 destination: packageData.title || "",
-                nights: packageData.days ? packageData.days - 1 : 1,
+                nights: Number.isFinite(packageDays) ? Math.max(packageDays - 1, 1) : 1,
             }));
         }
     }, [packageData]);

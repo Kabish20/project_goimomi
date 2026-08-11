@@ -782,55 +782,11 @@ class CabBooking(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
-        old_status = None
-        if not is_new:
-            try:
-                old_status = CabBooking.objects.get(pk=self.pk).status
-            except CabBooking.DoesNotExist:
-                pass
-
-        # First save to get the PK, then assign booking_id
         super().save(*args, **kwargs)
         if is_new and not self.booking_id:
             self.booking_id = f'GO-TRN-{str(self.pk).zfill(4)}'
             CabBooking.objects.filter(pk=self.pk).update(booking_id=self.booking_id)
             self.booking_id = f'GO-TRN-{str(self.pk).zfill(4)}'
-
-        # Propagate status to related bookings created around the same time (within 10 seconds)
-        if not is_new and self.status != old_status:
-            from datetime import timedelta
-            if self.created_at:
-                start_time = self.created_at - timedelta(seconds=10)
-                end_time = self.created_at + timedelta(seconds=10)
-                related_qs = CabBooking.objects.filter(
-                    email=self.email,
-                    created_at__range=(start_time, end_time)
-                ).exclude(pk=self.pk)
-                
-                if self.status == 'Confirmed' and self.invoice_number:
-                    related_qs.update(status=self.status, invoice_number=self.invoice_number)
-                else:
-                    related_qs.update(status=self.status)
-
-        # Trigger email auto-send on status change to Confirmed, Tentative Confirmation, or Booking Requested
-        if self.status in ['Booking Requested', 'Confirmed', 'Tentative Confirmation']:
-            if is_new or (self.status != old_status and old_status not in ['Confirmed', 'Tentative Confirmation']):
-                try:
-                    from Holidays.utils import send_booking_voucher
-                    import threading
-                    threading.Thread(target=send_booking_voucher, args=(self,)).start()
-                except Exception as thread_err:
-                    print(f"Error starting background email thread: {thread_err}")
-
-        # Trigger invoice email on status change to Confirmed
-        if self.status == 'Confirmed':
-            if is_new or (self.status != old_status and old_status != 'Confirmed'):
-                try:
-                    from Holidays.utils import send_booking_invoice
-                    import threading
-                    threading.Thread(target=send_booking_invoice, args=(self,)).start()
-                except Exception as thread_err:
-                    print(f"Error starting background invoice thread: {thread_err}")
 
     def __str__(self):
         return f"{self.booking_id or self.pk} - {self.first_name} {self.last_name} ({self.vehicle_name})"
@@ -979,6 +935,7 @@ class GoimomiProductOrder(models.Model):
     logistics_provider = models.CharField(max_length=100, blank=True, null=True, help_text="Courier / Logistics Provider Name")
     tracking_number = models.CharField(max_length=100, blank=True, null=True, help_text="Courier Tracking / Waybill Number")
     bill_copy = models.FileField(upload_to='orders/bills/', blank=True, null=True, help_text="Uploaded shipping bill/receipt copy")
+    stock_deducted_at = models.DateTimeField(blank=True, null=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

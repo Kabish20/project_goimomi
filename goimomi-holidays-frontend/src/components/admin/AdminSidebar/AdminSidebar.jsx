@@ -193,13 +193,13 @@ const AdminSidebar = () => {
       case "Driver Masters": return handleAddDriverMaster;
       case "Route rate card": return handleAddRateCard;
       case "Pickup Point Masters": return () => navigate("/admin/management-country/pickup-points");
-      case "Country": return () => navigate("/admin/management-country/add");
+      case "Country": return () => navigate("/admin/management-country/countries/add");
       case "Nationality": return () => navigate("/admin/management-country/nationalities/add");
       case "Region": return () => navigate("/admin/management-country/regions/add");
       case "City": return () => navigate("/admin/management-country/cities/add");
-      case "Airport": return () => navigate("/admin/management-country/airports/add");
-      case "PickupPoints": return () => navigate("/admin/management-country/pickup-points/add");
-      case "CruiseTerminal": return () => navigate("/admin/management-country/cruise-terminals/add");
+      case "Airport": return handleManagementAirport;
+      case "PickupPoints": return handleManagementPickupPoints;
+      case "CruiseTerminal": return handleManagementCruiseTerminal;
       case "Goimomi Products": return handleAddProduct;
       case "Catalogue Master":
       case "CatalogueMaster": return () => navigate("/admin/cataloguemaster?action=add");
