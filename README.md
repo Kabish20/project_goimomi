@@ -6,6 +6,33 @@
 
 ---
 
+## ⚡ Quick Start & Development Workflow
+
+Start both the backend REST API and React frontend dev server effortlessly:
+
+### Windows:
+Run the one-click local development launcher:
+```cmd
+start_dev.bat
+```
+
+### Linux / macOS:
+```bash
+chmod +x start_dev.sh
+./start_dev.sh
+```
+
+### Workspace npm Commands:
+```bash
+npm run dev:backend    # Start Django API server (port 8000)
+npm run dev:frontend   # Start React Vite dev server (port 5174)
+npm run check:backend  # Run backend system & compilation checks
+npm run test:backend   # Run Django unit tests
+npm run lint:frontend  # Run ESLint frontend checks
+```
+
+---
+
 ## ✈️ About Goimomi Holidays
 
 **Goimomi Holidays** is a full-stack travel and holiday management platform developed to provide customers with a seamless digital experience for discovering destinations, exploring curated holiday packages, finding travel services, and submitting travel enquiries.
