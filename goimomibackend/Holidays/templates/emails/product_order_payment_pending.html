@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Pending - {{ order_id }} | Goimomi Holidays</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 620px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+            padding: 32px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            color: #fef3c7;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-weight: 600;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #fef3c7;
+            color: #b45309;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 18px;
+            border-radius: 20px;
+            margin-top: 14px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: 1px solid #fde68a;
+        }
+        .content {
+            padding: 35px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 22px;
+            color: #1e293b;
+        }
+        .pending-notice-card {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 5px solid #d97706;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 26px;
+        }
+        .pending-notice-card h3 {
+            margin: 0 0 6px 0;
+            font-size: 15px;
+            color: #b45309;
+            font-weight: 800;
+        }
+        .pending-notice-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #92400e;
+            line-height: 1.5;
+        }
+        .cta-box {
+            text-align: center;
+            margin: 25px 0 30px 0;
+            padding: 22px;
+            background-color: #fefce8;
+            border: 1px solid #fef08a;
+            border-radius: 12px;
+        }
+        .cta-box .amount-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #a16207;
+        }
+        .cta-box .amount-val {
+            font-size: 28px;
+            font-weight: 900;
+            color: #854d0e;
+            margin: 6px 0 16px 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        .pay-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+            color: #ffffff !important;
+            font-size: 14px;
+            font-weight: 800;
+            padding: 14px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+            transition: all 0.2s ease;
+        }
+        .order-summary-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+        .summary-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-grid td {
+            padding: 6px 0;
+            font-size: 13px;
+        }
+        .summary-grid .label {
+            color: #64748b;
+            font-weight: 600;
+            width: 42%;
+        }
+        .summary-grid .value {
+            color: #0f172a;
+            font-weight: 700;
+            text-align: right;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #1e293b;
+            margin: 28px 0 14px 0;
+            border-bottom: 2px solid #d97706;
+            padding-bottom: 6px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        .items-table th {
+            background-color: #b45309;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .items-table th.right, .items-table td.right {
+            text-align: right;
+        }
+        .items-table td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .total-row td {
+            background-color: #fffbeb;
+            font-weight: 800;
+            font-size: 15px;
+            color: #b45309;
+            border-top: 2px solid #fde68a;
+            padding: 14px;
+        }
+        .address-box {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 28px;
+        }
+        .address-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #d97706;
+            font-weight: 800;
+        }
+        .address-box p {
+            margin: 3px 0;
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.5;
+        }
+        .support-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .support-box p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: #166534;
+        }
+        .support-box strong {
+            color: #14532d;
+        }
+        .footer {
+            background-color: #0f172a;
+            padding: 28px 20px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        .footer p {
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #4ade80;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>GOIMOMI HOLIDAYS</h1>
+            <p>E-Commerce Order Payment Pending</p>
+            <div class="status-badge">⏳ Payment Pending</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Dear <strong>{{ customer_name }}</strong>,<br><br>
+                Thank you for choosing <strong>Goimomi Holidays</strong>! Your product order <strong>#{{ order_id }}</strong> has been recorded and is currently awaiting payment completion.
+            </div>
+
+            <!-- Pending Notice Card -->
+            <div class="pending-notice-card">
+                <h3>Action Required: Complete Your Order Payment</h3>
+                <p>To finalize your order and initiate fast dispatch, please complete your pending payment using the link below or contact our sales team for assistance.</p>
+            </div>
+
+            <!-- CTA Box (Amount & Payment Link) -->
+            {% if payment_url %}
+            <div class="cta-box">
+                <div class="amount-label">Total Amount Outstanding</div>
+                <div class="amount-val">₹{{ total_amount }}</div>
+                <a href="{{ payment_url }}" target="_blank" class="pay-btn">💳 Complete Payment Now</a>
+            </div>
+            {% endif %}
+
+            <!-- Order Summary Card -->
+            <div class="order-summary-box">
+                <table class="summary-grid">
+                    <tr>
+                        <td class="label">Order Number:</td>
+                        <td class="value">{{ order_id }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Order Date:</td>
+                        <td class="value">{{ order_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Invoice / Ref No:</td>
+                        <td class="value">{{ invoice_number }}</td>
+                    </tr>
+                    {% if book_invoice_number %}
+                    <tr>
+                        <td class="label">Book Invoice No:</td>
+                        <td class="value" style="color: #0284c7;">{{ book_invoice_number }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td class="label">Payment Status:</td>
+                        <td class="value" style="color: #d97706;">⏳ Pending Payment</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Products Table -->
+            <div class="section-title">Order Items Breakdown</div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th class="right">Qty</th>
+                        <th class="right">Unit Price</th>
+                        <th class="right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.title }}</strong></td>
+                        <td class="right">{{ item.quantity }}</td>
+                        <td class="right">₹{{ item.price|floatformat:2 }}</td>
+                        <td class="right">₹{{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="3">Total Outstanding Amount:</td>
+                        <td class="right">₹{{ total_amount }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Delivery Address Card -->
+            <div class="section-title">Delivery & Customer Details</div>
+            <div class="address-box">
+                <h4>Delivery Recipient</h4>
+                <p><strong>Name:</strong> {{ customer_name }}</p>
+                <p><strong>Phone:</strong> {{ customer_phone }}</p>
+                {% if customer_email %}
+                <p><strong>Email:</strong> {{ customer_email }}</p>
+                {% endif %}
+                <p style="margin-top: 10px;"><strong>Delivery Address:</strong></p>
+                <p style="white-space: pre-line; color: #1e293b;">{{ delivery_address }}</p>
+            </div>
+
+            <!-- Support Box -->
+            <div class="support-box">
+                <p style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Need Assistance with Payment?</p>
+                <p>Contact Customer Support: <strong>support@goimomi.com</strong> | <strong>hello@goimomi.com</strong></p>
+                <p>Customer Care Helpline: <strong>+91 81100 82222</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Goimomi Holidays & E-Commerce</strong></p>
+            <p>Visit our website: <a href="https://goimomi.com" target="_blank">www.goimomi.com</a></p>
+            <p style="margin-top: 12px; font-size: 11px; color: #64748b;">
+                This email was sent regarding pending payment for order {{ order_id }}.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

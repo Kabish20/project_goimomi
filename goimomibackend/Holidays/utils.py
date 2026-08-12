@@ -1421,13 +1421,20 @@ def send_product_order_email(order):
             'items': items
         }
 
-        html_content = render_to_string('emails/product_order_confirmation.html', context)
+        is_pending = (getattr(order, 'status', '') == 'Pending')
+        if is_pending:
+            subject = f"Action Required: Payment Pending for Order #{order_ref} - Goimomi Holidays"
+            template_name = 'emails/product_order_payment_pending.html'
+        else:
+            subject = f"Order Placed & Confirmed: {order_ref} - Goimomi Holidays"
+            template_name = 'emails/product_order_confirmation.html'
+
+        html_content = render_to_string(template_name, context)
 
         text_content = (
             f"Dear {order.name},\n\n"
-            f"Thank you for your purchase with Goimomi Holidays!\n"
-            f"Order ID / Invoice: {order_ref}\n"
-            f"Total Amount Paid: INR {order.total_amount}\n"
+            f"{'Your product order #' + order_ref + ' is awaiting payment completion.' if is_pending else 'Thank you for your purchase with Goimomi Holidays! Order ID / Invoice: ' + order_ref}\n"
+            f"Total Amount: INR {order.total_amount}\n"
             f"Delivery Address: {order.address}\n\n"
             f"For support, contact support@goimomi.com or hello@goimomi.com.\n"
         )
@@ -1461,13 +1468,114 @@ def send_product_order_email(order):
 
         try:
             msg.send(fail_silently=False)
-            print(f"Product order email dispatched for order {order.order_id} to {recipients} with CC {cc_recipients}")
+            print(f"Product order email ({template_name}) dispatched for order {order.order_id} to {recipients} with CC {cc_recipients}")
             return True
         except Exception as mail_e:
             print(f"Email send error for order {order.order_id}: {mail_e}")
             return False
     except Exception as e:
         print(f"Error sending product order email: {e}")
+        return False
+
+
+def send_product_payment_pending_email(order, payment_url=None):
+    """
+    Sends a dedicated Product Order Payment Pending email to the customer.
+    Sender: support@goimomi.com
+    CC: hello@goimomi.com, support@goimomi.com
+    Recipient: customer email (or hello@goimomi.com)
+    """
+    try:
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+        from django.conf import settings
+
+        order_ref = getattr(order, 'order_id', None) or f"GO-ORD-{order.id}"
+        subject = f"Action Required: Payment Pending for Order #{order_ref} - Goimomi Holidays"
+        
+        items = []
+        if getattr(order, 'cart_items', None) and isinstance(order.cart_items, list):
+            for item in order.cart_items:
+                title = item.get('title') or item.get('name') or "Product Item"
+                qty = int(item.get('quantity', 1))
+                price = float(item.get('price', 0))
+                items.append({
+                    'title': title,
+                    'quantity': qty,
+                    'price': price,
+                    'total': price * qty
+                })
+        elif getattr(order, 'product', None):
+            items.append({
+                'title': order.product.title,
+                'quantity': order.quantity,
+                'price': float(order.price),
+                'total': float(order.total_amount)
+            })
+        else:
+            items.append({
+                'title': "Product Order",
+                'quantity': getattr(order, 'quantity', 1),
+                'price': float(getattr(order, 'price', 0) or getattr(order, 'total_amount', 0)),
+                'total': float(getattr(order, 'total_amount', 0))
+            })
+
+        order_date_str = order.created_at.strftime('%d %b %Y, %I:%M %p') if getattr(order, 'created_at', None) else "N/A"
+        inv_no = getattr(order, 'invoice_number', '') or order_ref
+
+        context = {
+            'customer_name': getattr(order, 'name', 'Valued Customer'),
+            'order_id': order_ref,
+            'order_date': order_date_str,
+            'invoice_number': inv_no,
+            'book_invoice_number': getattr(order, 'book_invoice_number', ''),
+            'total_amount': f"{float(getattr(order, 'total_amount', 0)):,.2f}",
+            'customer_phone': getattr(order, 'phone', ''),
+            'customer_email': getattr(order, 'email', ''),
+            'delivery_address': getattr(order, 'address', ''),
+            'payment_url': payment_url,
+            'items': items
+        }
+
+        html_content = render_to_string('emails/product_order_payment_pending.html', context)
+        text_content = (
+            f"Dear {order.name},\n\n"
+            f"Your product order #{order_ref} has been created and is awaiting payment completion.\n"
+            f"Total Amount Outstanding: INR {order.total_amount}\n"
+            f"Delivery Address: {order.address}\n\n"
+            f"For assistance or payment queries, contact support@goimomi.com or hello@goimomi.com.\n"
+        )
+
+        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'Goimomi Holidays <support@goimomi.com>')
+        recipients = [order.email] if getattr(order, 'email', None) else ['hello@goimomi.com']
+        cc_recipients = ['hello@goimomi.com', 'support@goimomi.com']
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=sender,
+            to=recipients,
+            cc=cc_recipients,
+            reply_to=['support@goimomi.com', 'hello@goimomi.com']
+        )
+        msg.attach_alternative(html_content, "text/html")
+
+        # Attach Tax Invoice PDF
+        try:
+            pdf_bytes = generate_product_order_invoice_pdf(order)
+            if pdf_bytes:
+                inv_filename = f"Invoice_{order_ref}.pdf"
+                msg.attach(inv_filename, pdf_bytes, "application/pdf")
+        except Exception as pdf_err:
+            print(f"Notice generating PDF invoice attachment for pending order: {pdf_err}")
+
+        _attach_thank_you_poster_pdf(msg)
+
+        msg.send(fail_silently=False)
+        print(f"Payment Pending email dispatched for order {order_ref} to {recipients} with CC {cc_recipients}")
+        return True
+    except Exception as e:
+        print(f"Error sending payment pending email: {e}")
         return False
 
 
