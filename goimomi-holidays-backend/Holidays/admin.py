@@ -222,7 +222,7 @@ class CabBookingAdmin(admin.ModelAdmin):
     )
 
 
-from .models import GoimomiProduct, GoimomiProductImage
+from .models import GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider
 
 class GoimomiProductImageInline(admin.TabularInline):
     model = GoimomiProductImage
@@ -230,15 +230,16 @@ class GoimomiProductImageInline(admin.TabularInline):
 
 @admin.register(GoimomiProduct)
 class GoimomiProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price', 'mrp', 'quantity', 'stock_status', 'created_at')
-    list_filter = ('stock_status',)
-    search_fields = ('title',)
+    list_display = ('title', 'price', 'mrp', 'quantity', 'stock_status', 'catalogue', 'created_at')
+    list_filter = ('stock_status', 'catalogue')
+    search_fields = ('title', 'description')
     list_editable = ('stock_status', 'quantity')
     readonly_fields = ('created_at', 'updated_at')
     inlines = [GoimomiProductImageInline]
+    filter_horizontal = ('sub_catalogues',)
     fieldsets = (
         ('Product Details', {
-            'fields': ('title', 'description', 'image')
+            'fields': ('title', 'description', 'image', 'catalogue', 'sub_catalogue', 'sub_catalogues')
         }),
         ('Pricing', {
             'fields': ('price', 'mrp')
@@ -251,6 +252,52 @@ class GoimomiProductAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(GoimomiProductOrder)
+class GoimomiProductOrderAdmin(admin.ModelAdmin):
+    list_display = (
+        'order_id', 'name', 'phone', 'email', 'get_product_title', 
+        'total_amount', 'status', 'book_invoice_number', 
+        'logistics_provider', 'tracking_number', 'created_at'
+    )
+    list_filter = ('status', 'logistics_provider', 'created_at')
+    search_fields = ('order_id', 'name', 'phone', 'email', 'book_invoice_number', 'tracking_number', 'address')
+    readonly_fields = ('order_id', 'created_at', 'updated_at', 'stock_deducted_at')
+    
+    fieldsets = (
+        ('Order Identification', {
+            'fields': ('order_id', 'status', 'created_at', 'updated_at')
+        }),
+        ('Customer Details', {
+            'fields': ('name', 'phone', 'email', 'address', 'address_line1', 'address_line2', 'city', 'state', 'pincode')
+        }),
+        ('Product & Pricing', {
+            'fields': ('product', 'quantity', 'price', 'total_amount', 'cart_items')
+        }),
+        ('Manual Book Invoice & Shipping Details', {
+            'fields': ('book_invoice_number', 'logistics_provider', 'tracking_number', 'bill_copy')
+        }),
+        ('Payment Gateway Details (Zoho)', {
+            'classes': ('collapse',),
+            'fields': ('zoho_payment_session_id', 'zoho_access_key', 'invoice_number', 'stock_deducted_at')
+        }),
+    )
+
+    def get_product_title(self, obj):
+        if obj.product:
+            return obj.product.title
+        if obj.cart_items:
+            return ", ".join([item.get('title', '') for item in obj.cart_items if item.get('title')])
+        return "N/A"
+    get_product_title.short_description = 'Product / Cart'
+
+
+@admin.register(LogisticsProvider)
+class LogisticsProviderAdmin(admin.ModelAdmin):
+    list_display = ('name', 'tracking_link', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'tracking_link')
 
 
 class SubCatalogueInline(admin.TabularInline):
@@ -272,4 +319,5 @@ class SubCatalogueAdmin(admin.ModelAdmin):
     list_display = ('name', 'catalogue', 'code', 'order', 'is_active', 'created_at')
     list_filter = ('catalogue', 'is_active')
     search_fields = ('name', 'code', 'catalogue__name')
+
 

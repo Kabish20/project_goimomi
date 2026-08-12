@@ -20,6 +20,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import authentication_classes, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework.throttling import AnonRateThrottle
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 class IsAuthenticatedOrWriteOnly(BasePermission):
     """
@@ -2679,6 +2680,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
     queryset = GoimomiProductOrder.objects.all().order_by('-created_at')
     serializer_class = GoimomiProductOrderSerializer
     pagination_class = None
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_permissions(self):
         if self.action in {'create', 'send_otp', 'verify_otp', 'verify_zoho_payment', 'zoho_webhook'}:
@@ -2919,6 +2921,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         return response
 
     def create(self, request, *args, **kwargs):
+        is_manual = str(request.data.get('is_manual') or '').lower() in ('true', '1', 'yes') or (request.user and request.user.is_authenticated and request.data.get('is_manual') == 'true')
         product_id = request.data.get('product')  # None if cart checkout
         cart_items = request.data.get('cart_items')
         has_product_id = product_id not in (None, '')
@@ -2938,6 +2941,121 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
         if not address:
             address = ", ".join([s for s in [address_line1, address_line2, city, state, pincode] if s])
+
+        # Manual Order Creation Flow (For Admin / Manual Add Details)
+        if is_manual:
+            if not name or not phone or not address:
+                return Response({'error': 'Customer Name, phone number, and delivery address are required for manual order.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            status_val = str(request.data.get('status') or 'Confirmed').strip()
+            book_invoice_number = str(request.data.get('book_invoice_number') or '').strip()
+            logistics_provider = str(request.data.get('logistics_provider') or '').strip()
+            tracking_number = str(request.data.get('tracking_number') or '').strip()
+            bill_copy_file = request.FILES.get('bill_copy')
+            custom_product_title = str(request.data.get('custom_product_title') or request.data.get('product_title') or '').strip()
+            
+            product_obj = None
+            if has_product_id:
+                try:
+                    product_obj = GoimomiProduct.objects.get(pk=int(product_id))
+                except (GoimomiProduct.DoesNotExist, TypeError, ValueError):
+                    return Response({'error': 'Selected product does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Price determination
+            raw_price = request.data.get('price')
+            if raw_price not in (None, '', 'undefined'):
+                try:
+                    order_price = Decimal(str(raw_price))
+                except (InvalidOperation, TypeError, ValueError):
+                    return Response({'error': 'Invalid price format.'}, status=status.HTTP_400_BAD_REQUEST)
+            elif product_obj:
+                order_price = product_obj.price
+            else:
+                order_price = Decimal('0')
+
+            raw_total = request.data.get('total_amount')
+            if raw_total not in (None, '', 'undefined'):
+                try:
+                    total_amount = Decimal(str(raw_total))
+                except (InvalidOperation, TypeError, ValueError):
+                    return Response({'error': 'Invalid total amount format.'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                total_amount = order_price * quantity
+
+            cart_items_data = None
+            if not product_obj and custom_product_title:
+                cart_items_data = [{
+                    'title': custom_product_title,
+                    'price': float(order_price),
+                    'quantity': quantity
+                }]
+
+            order = GoimomiProductOrder.objects.create(
+                product=product_obj,
+                name=name,
+                email=email or None,
+                phone=phone,
+                quantity=quantity,
+                price=order_price,
+                total_amount=total_amount,
+                address=address,
+                address_line1=address_line1 or None,
+                address_line2=address_line2 or None,
+                city=city or None,
+                state=state or None,
+                pincode=pincode or None,
+                cart_items=cart_items_data,
+                status=status_val,
+                book_invoice_number=book_invoice_number or None,
+                logistics_provider=logistics_provider or None,
+                tracking_number=tracking_number or None,
+                bill_copy=bill_copy_file
+            )
+
+            # Deduct stock if product selected and status is Confirmed or Shipped
+            if product_obj and status_val in ('Confirmed', 'Shipped') and product_obj.quantity >= quantity:
+                try:
+                    product_obj.quantity -= quantity
+                    if product_obj.quantity <= 0:
+                        product_obj.quantity = 0
+                        product_obj.stock_status = 'out_of_stock'
+                    product_obj.save()
+                    order.stock_deducted_at = timezone.now()
+                    order.save(update_fields=['stock_deducted_at'])
+                except Exception as s_err:
+                    print(f"Notice during manual order stock deduction: {s_err}")
+
+            # Record in Enquiry table for admin tracking
+            try:
+                prod_info = product_obj.title if product_obj else (custom_product_title or "Manual Order Item")
+                Enquiry.objects.create(
+                    name=name,
+                    email=email or "",
+                    phone=phone,
+                    destination=f"Manual Product Order: {prod_info}",
+                    purpose=f"Address: {address} | Quantity: {order.quantity} | Total: ₹{total_amount} | Order ID: {order.order_id}",
+                    enquiry_type="General"
+                )
+            except Exception as eq_err:
+                print(f"Error creating general enquiry backup for manual order: {eq_err}")
+
+            # Trigger Initial Order Status email to customer with CC to hello@goimomi.com & support@goimomi.com
+            sent_email = False
+            try:
+                from Holidays.utils import send_product_order_email, send_product_shipped_email
+                if status_val == 'Shipped':
+                    sent_email = send_product_shipped_email(order)
+                else:
+                    sent_email = send_product_order_email(order)
+                print(f"Manual Product Order status email sent for Order {order.order_id} (Status: {status_val}) to customer '{order.email}' with CC to hello@goimomi.com & support@goimomi.com. Result: {sent_email}")
+            except Exception as mail_err:
+                print(f"Error sending manual order status email: {mail_err}")
+
+            from Holidays.serializers import GoimomiProductOrderSerializer
+            serialized_data = GoimomiProductOrderSerializer(order, context={'request': request}).data
+            target_recipient = order.email or 'hello@goimomi.com'
+            msg_text = f"Manual product order #{order.order_id} created successfully! Initial order status ('{status_val}') email sent to {target_recipient} with CC to hello@goimomi.com & support@goimomi.com."
+            return Response({'message': msg_text, 'order': serialized_data, 'sent_email': sent_email}, status=status.HTTP_201_CREATED)
 
         if not name or not phone or not address or not email:
             return Response({'error': 'Name, phone, email, and delivery address are required.'}, status=status.HTTP_400_BAD_REQUEST)

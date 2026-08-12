@@ -66,6 +66,187 @@ const ProductManage = () => {
   const [shippingBillFile, setShippingBillFile] = useState(null);
   const [submittingShipping, setSubmittingShipping] = useState(false);
 
+  // Manual Add Order State
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [submittingManual, setSubmittingManual] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    product_id: "",
+    custom_product_title: "",
+    quantity: 1,
+    price: "",
+    total_amount: "",
+    status: "Confirmed",
+    book_invoice_number: "",
+    logistics_provider: "",
+    tracking_number: "",
+    bill_copy: null,
+    trigger_shipped_email: true
+  });
+
+  const handleOpenManualModal = () => {
+    setManualForm({
+      name: "",
+      phone: "",
+      email: "",
+      address: "",
+      product_id: "",
+      custom_product_title: "",
+      quantity: 1,
+      price: "",
+      total_amount: "",
+      status: "Confirmed",
+      book_invoice_number: "",
+      logistics_provider: "",
+      tracking_number: "",
+      bill_copy: null,
+      trigger_shipped_email: true
+    });
+    setShowManualModal(true);
+  };
+
+  const handleManualProductChange = (prodId) => {
+    if (!prodId) {
+      setManualForm(prev => ({
+        ...prev,
+        product_id: "",
+        price: "",
+        total_amount: ""
+      }));
+      return;
+    }
+    if (prodId === "custom") {
+      setManualForm(prev => ({
+        ...prev,
+        product_id: "",
+        custom_product_title: prev.custom_product_title || ""
+      }));
+      return;
+    }
+    const selectedProd = products.find(p => String(p.id) === String(prodId));
+    if (selectedProd) {
+      const priceVal = selectedProd.price || 0;
+      const qty = Number(manualForm.quantity) || 1;
+      setManualForm(prev => ({
+        ...prev,
+        product_id: prodId,
+        custom_product_title: "",
+        price: priceVal,
+        total_amount: priceVal * qty
+      }));
+    } else {
+      setManualForm(prev => ({ ...prev, product_id: prodId }));
+    }
+  };
+
+  const handleManualQuantityChange = (qty) => {
+    const numQty = Math.max(1, Number(qty) || 1);
+    setManualForm(prev => {
+      const unitPrice = Number(prev.price) || 0;
+      return {
+        ...prev,
+        quantity: numQty,
+        total_amount: unitPrice ? unitPrice * numQty : prev.total_amount
+      };
+    });
+  };
+
+  const handleManualPriceChange = (priceVal) => {
+    setManualForm(prev => {
+      const p = Number(priceVal) || 0;
+      const qty = Number(prev.quantity) || 1;
+      return {
+        ...prev,
+        price: priceVal,
+        total_amount: p ? p * qty : prev.total_amount
+      };
+    });
+  };
+
+  const handleSubmitManualOrder = async (e) => {
+    e.preventDefault();
+
+    if (!manualForm.name.trim()) {
+      alert("Customer Name is required.");
+      return;
+    }
+    if (!manualForm.phone.trim()) {
+      alert("Phone Number is required.");
+      return;
+    }
+    if (!manualForm.email.trim()) {
+      alert("Email Address is required.");
+      return;
+    }
+    if (!manualForm.address.trim()) {
+      alert("Delivery Address is required.");
+      return;
+    }
+    if (!manualForm.product_id && !manualForm.custom_product_title.trim()) {
+      alert("Please select a Product from the catalog or enter a Custom Product Title.");
+      return;
+    }
+    if (manualForm.price === "" || manualForm.price === null || isNaN(manualForm.price)) {
+      alert("Unit Price is required.");
+      return;
+    }
+    if (manualForm.status === "Shipped") {
+      if (!manualForm.logistics_provider.trim()) {
+        alert("Logistics Provider / Courier Name is required when status is Shipped.");
+        return;
+      }
+      if (!manualForm.tracking_number.trim()) {
+        alert("Tracking Number is required when status is Shipped.");
+        return;
+      }
+    }
+
+    setSubmittingManual(true);
+    try {
+      const formData = new FormData();
+      formData.append("is_manual", "true");
+      formData.append("name", manualForm.name.trim());
+      formData.append("phone", manualForm.phone.trim());
+      formData.append("email", manualForm.email.trim());
+      formData.append("address", manualForm.address.trim());
+      if (manualForm.product_id) {
+        formData.append("product", manualForm.product_id);
+      }
+      if (manualForm.custom_product_title) {
+        formData.append("custom_product_title", manualForm.custom_product_title.trim());
+      }
+      formData.append("quantity", manualForm.quantity);
+      if (manualForm.price !== "") formData.append("price", manualForm.price);
+      if (manualForm.total_amount !== "") formData.append("total_amount", manualForm.total_amount);
+      formData.append("status", manualForm.status);
+      if (manualForm.book_invoice_number) formData.append("book_invoice_number", manualForm.book_invoice_number.trim());
+      if (manualForm.logistics_provider) formData.append("logistics_provider", manualForm.logistics_provider.trim());
+      if (manualForm.tracking_number) formData.append("tracking_number", manualForm.tracking_number.trim());
+      if (manualForm.bill_copy) formData.append("bill_copy", manualForm.bill_copy);
+      if (manualForm.trigger_shipped_email) formData.append("trigger_shipped_email", "true");
+
+      const res = await api.post("/api/goimomi-product-orders/", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      const newOrder = res.data.order || res.data;
+      setMessage(res.data.message || `Manual Order #${newOrder.order_id || newOrder.id} created successfully! Notification email sent to ${newOrder.email || 'customer'} with CC to hello@goimomi.com & support@goimomi.com.`);
+      setShowManualModal(false);
+      fetchOrders();
+      fetchProducts();
+      setTimeout(() => setMessage(""), 4000);
+    } catch (err) {
+      console.error("Error creating manual order:", err);
+      const errMsg = err.response?.data?.error || err.response?.data?.detail || "Failed to create manual product order.";
+      alert(`Manual Order Creation Error: ${errMsg}`);
+    } finally {
+      setSubmittingManual(false);
+    }
+  };
+
   // Common UI State
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -523,6 +704,13 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                 <RefreshCw size={15} /> Refresh
               </button>
               <button
+                onClick={handleOpenManualModal}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 text-sm font-semibold shadow-xs"
+                title="Manually record a product order enquiry or offline sale"
+              >
+                <Plus size={15} /> Manual Add Order
+              </button>
+              <button
                 onClick={() => navigate("/admin/products/add")}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm font-semibold"
               >
@@ -794,6 +982,13 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                   <option value="Delivered">Delivered</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
+                <button
+                  onClick={handleOpenManualModal}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 text-sm font-semibold shrink-0 shadow-xs"
+                  title="Manually record a new product order"
+                >
+                  <Plus size={15} /> Add Manual Order
+                </button>
               </div>
 
               {/* Orders Table */}
@@ -1313,6 +1508,295 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                   {submittingShipping ? "Processing..." : "Save & Send Shipping Email"}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MANUAL ADD PRODUCT ORDER MODAL */}
+      {showManualModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 max-h-[90vh] flex flex-col">
+            
+            {/* Header */}
+            <div className="p-5 bg-gradient-to-r from-[#14532d] to-[#1a6b3d] text-white flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white">
+                  <Plus size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black leading-tight">Manually Add Product Order Details</h3>
+                  <p className="text-xs text-emerald-200 mt-0.5">Record offline sales, custom customer enquiries, or backend orders</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowManualModal(false)}
+                className="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmitManualOrder} className="p-6 overflow-y-auto space-y-5 flex-1">
+              
+              {/* Customer Information */}
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
+                  <User size={14} className="text-emerald-700" /> Customer Information
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Customer Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Akbar Ali"
+                      value={manualForm.name}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Phone Number *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. +91 9876543210"
+                      value={manualForm.phone}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, phone: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-700 font-bold mb-1">Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. customer@example.com"
+                      value={manualForm.email}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-700 font-bold mb-1">Full Delivery Address *</label>
+                    <textarea
+                      required
+                      rows={2}
+                      placeholder="Enter street, city, state, pincode..."
+                      value={manualForm.address}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, address: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Product & Pricing Information */}
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
+                  <Package size={14} className="text-emerald-700" /> Product & Pricing Details
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-700 font-bold mb-1">Select Product from Catalog *</label>
+                    <select
+                      value={manualForm.product_id || (manualForm.custom_product_title ? "custom" : "")}
+                      onChange={(e) => handleManualProductChange(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
+                    >
+                      <option value="">-- Choose Product (Or Custom Item) --</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.title} - ₹{p.price} ({p.stock_status === "in_stock" ? `Stock: ${p.quantity ?? 1}` : "Out of stock"})
+                        </option>
+                      ))}
+                      <option value="custom">✏️ Enter Custom / Manual Product Title</option>
+                    </select>
+                  </div>
+
+                  {(!manualForm.product_id || manualForm.custom_product_title) && (
+                    <div className="md:col-span-2">
+                      <label className="block text-gray-700 font-bold mb-1">Custom Product Title *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Zam Zam Water 5L Bottle"
+                        value={manualForm.custom_product_title}
+                        onChange={(e) => setManualForm(prev => ({ ...prev, custom_product_title: e.target.value }))}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Quantity *</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={manualForm.quantity}
+                      onChange={(e) => handleManualQuantityChange(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Unit Price (₹) *</label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      step="any"
+                      placeholder="e.g. 2400"
+                      value={manualForm.price}
+                      onChange={(e) => handleManualPriceChange(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-700 font-bold mb-1">Total Order Amount (₹) *</label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      step="any"
+                      placeholder="Auto-calculated (Qty x Price)"
+                      value={manualForm.total_amount}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, total_amount: e.target.value }))}
+                      className="w-full px-3 py-2 bg-emerald-50 border border-emerald-300 text-emerald-900 font-bold rounded-lg font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice & Dispatch Details */}
+              <div className="bg-sky-50/70 p-4 rounded-xl border border-sky-200 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-sky-800 flex items-center gap-1.5">
+                  <Truck size={14} className="text-sky-700" /> Book Invoice & Dispatch Details
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Initial Order Status *</label>
+                    <select
+                      value={manualForm.status}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-sky-300 rounded-lg font-bold text-gray-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    >
+                      <option value="Confirmed">Confirmed</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Book Invoice No. (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. INV/2026/048"
+                      value={manualForm.book_invoice_number}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, book_invoice_number: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-sky-300 rounded-lg font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">
+                      Logistics Provider / Courier {manualForm.status === "Shipped" ? "*" : "(Optional)"}
+                    </label>
+                    <input
+                      type="text"
+                      required={manualForm.status === "Shipped"}
+                      list="logistics-manual-list"
+                      placeholder="e.g. Blue Dart, Delhivery"
+                      value={manualForm.logistics_provider}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, logistics_provider: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    />
+                    <datalist id="logistics-manual-list">
+                      {logisticsProviders.map(lp => (
+                        <option key={lp.id} value={lp.name} />
+                      ))}
+                    </datalist>
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">
+                      Tracking Number {manualForm.status === "Shipped" ? "*" : "(Optional)"}
+                    </label>
+                    <input
+                      type="text"
+                      required={manualForm.status === "Shipped"}
+                      placeholder="e.g. 1849209123"
+                      value={manualForm.tracking_number}
+                      onChange={(e) => setManualForm(prev => ({ ...prev, tracking_number: e.target.value }))}
+                      className="w-full px-3 py-2 bg-white border border-sky-300 rounded-lg font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-gray-700 font-bold mb-1">Upload Bill Copy / Shipping Receipt (PDF / Image)</label>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/*"
+                      onChange={(e) => setManualForm(prev => ({ ...prev, bill_copy: e.target.files[0] }))}
+                      className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-sky-100 file:text-sky-800 hover:file:bg-sky-200 cursor-pointer"
+                    />
+                  </div>
+
+                  {manualForm.status === "Shipped" && manualForm.email && (
+                    <div className="md:col-span-2 pt-1">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={manualForm.trigger_shipped_email}
+                          onChange={(e) => setManualForm(prev => ({ ...prev, trigger_shipped_email: e.target.checked }))}
+                          className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                        />
+                        Automatically send Shipped notification email to customer ({manualForm.email})
+                      </label>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-3 border-t border-gray-100 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowManualModal(false)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingManual}
+                  className="px-6 py-2.5 bg-[#14532d] hover:bg-[#1a6b3d] text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-2 transition"
+                >
+                  {submittingManual ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" /> Saving Order...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={15} /> Save & Add Product Order
+                    </>
+                  )}
+                </button>
+              </div>
+
             </form>
           </div>
         </div>
