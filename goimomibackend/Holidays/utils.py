@@ -1256,7 +1256,7 @@ def generate_product_order_invoice_pdf(order):
     logo_data_uri = ""
     local_logo_paths = [
         os.path.join(settings.BASE_DIR, 'Holidays', 'static', 'goimomilogo.png'),
-        os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomi-holidays-frontend', 'src', 'assets', 'goimomilogo.png'),
+        os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomifrontend', 'src', 'assets', 'goimomilogo.png'),
     ]
     for l_path in local_logo_paths:
         if os.path.exists(l_path):
@@ -1377,7 +1377,7 @@ def send_product_order_email(order):
         logo_data_uri = ""
         local_logo_paths = [
             os.path.join(settings.BASE_DIR, 'Holidays', 'static', 'goimomilogo.png'),
-            os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomi-holidays-frontend', 'src', 'assets', 'goimomilogo.png'),
+            os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomifrontend', 'src', 'assets', 'goimomilogo.png'),
         ]
         for l_path in local_logo_paths:
             if os.path.exists(l_path):

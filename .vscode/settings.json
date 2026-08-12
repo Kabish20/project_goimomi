@@ -1,10 +1,9 @@
 {
   "python.analysis.extraPaths": [
-    "D:/G/goimomi-holidays-backend",
-    "D:/G/goimomi-holidays-backend/Holidays",
-    "C:/Users/kabis/AppData/Local/Programs/Python/Python313/Lib/site-packages"
+    "./goimomibackend",
+    "./goimomibackend/Holidays"
   ],
-  "python.testing.cwd": "D:/G/goimomi-holidays-backend",
+  "python.testing.cwd": "./goimomibackend",
   "python.defaultInterpreterPath": "C:/Users/kabis/AppData/Local/Programs/Python/Python313/python.exe",
   "python.analysis.typeCheckingMode": "basic",
   "postman.settings.dotenv-detection-notification-visibility": false

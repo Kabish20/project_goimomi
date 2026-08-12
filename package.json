@@ -1,14 +1,14 @@
 {
-  "name": "goimomi-holidays-workspace",
+  "name": "goimomi-workspace",
   "private": true,
   "version": "1.0.0",
-  "description": "Goimomi Holidays Full-Stack Workspace",
+  "description": "Goimomi Full-Stack Workspace",
   "scripts": {
-    "dev:backend": "cd goimomi-holidays-backend && python manage.py runserver 0.0.0.0:8000",
-    "dev:frontend": "cd goimomi-holidays-frontend && npm run dev",
-    "build:frontend": "cd goimomi-holidays-frontend && npm run build",
-    "check:backend": "cd goimomi-holidays-backend && python manage.py check && python -m compileall .",
-    "test:backend": "cd goimomi-holidays-backend && python manage.py test",
-    "lint:frontend": "cd goimomi-holidays-frontend && npm run lint"
+    "dev:backend": "cd goimomibackend && python manage.py runserver 0.0.0.0:8000",
+    "dev:frontend": "cd goimomifrontend && npm run dev",
+    "build:frontend": "cd goimomifrontend && npm run build",
+    "check:backend": "cd goimomibackend && python manage.py check && python -m compileall .",
+    "test:backend": "cd goimomibackend && python manage.py test",
+    "lint:frontend": "cd goimomifrontend && npm run lint"
   }
 }

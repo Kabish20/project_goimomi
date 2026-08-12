@@ -13,14 +13,14 @@ Thumbs.db
 __pycache__/
 *.py[cod]
 *$py.class
-goimomi-holidays-backend/.env
-goimomi-holidays-backend/mig_out.txt
-goimomi-holidays-backend/db.sqlite3
+goimomibackend/.env
+goimomibackend/mig_out.txt
+goimomibackend/db.sqlite3
 
 # Node
 node_modules/
-goimomi-holidays-frontend/dist/
-goimomi-holidays-frontend/.env
+goimomifrontend/dist/
+goimomifrontend/.env
 
 # Local development
 .env

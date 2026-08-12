@@ -27,8 +27,8 @@ def create_zip(filename, source_dirs):
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     sources = [
-        os.path.join(base_dir, 'goimomi-holidays-backend'),
-        os.path.join(base_dir, 'goimomi-holidays-frontend')
+        os.path.join(base_dir, 'goimomibackend'),
+        os.path.join(base_dir, 'goimomifrontend')
     ]
     create_zip(os.path.join(base_dir, 'update_package.zip'), sources)
     print("Zip created successfully.")

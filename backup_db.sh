@@ -2,7 +2,7 @@
 # Goimomi DB Auto-Backup Script
 set -e
 
-BACKEND_DIR=/home/ubuntu/goimomi/goimomi-holidays-backend
+BACKEND_DIR=/home/ubuntu/goimomi/goimomibackend
 BACKUP_DIR=/home/ubuntu/backups
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 

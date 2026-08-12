@@ -1,3 +1,4 @@
+import os
 import json
 from decimal import Decimal, InvalidOperation
 
@@ -2296,7 +2297,7 @@ class DynamicSEOView(APIView):
 
         # 3. Load the index.html
         # Note: Set frontend_dist_path correctly in your settings.py or use an absolute path
-        frontend_dist_path = os.path.join(settings.BASE_DIR, '..', 'goimomi-holidays-frontend', 'dist', 'index.html')
+        frontend_dist_path = os.path.join(settings.BASE_DIR, '..', 'goimomifrontend', 'dist', 'index.html')
         
         # Fallback for local dev or different structure
         if not os.path.exists(frontend_dist_path):

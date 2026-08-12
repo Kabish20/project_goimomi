@@ -1,5 +1,5 @@
 unzip -o update_package.zip -d /home/ubuntu/goimomi
-cd /home/ubuntu/goimomi/goimomi-holidays-backend
+cd /home/ubuntu/goimomi/goimomibackend
 
 # Update ALLOWED_HOSTS and DB_PASSWORD
 python3 -c "import os; p = '.env'; c = open(p).read(); open(p, 'w').write(c.replace('DB_PASSWORD=Goimomi@123', 'DB_PASSWORD=\"DCXServer321$\"').replace('DEBUG=True', 'DEBUG=False'))"
@@ -15,6 +15,6 @@ python manage.py fix_package_images
 sudo systemctl restart goimomi
 
 # Build frontend
-cd ../goimomi-holidays-frontend
+cd ../goimomifrontend
 npm install
 npm run build
