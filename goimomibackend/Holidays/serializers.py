@@ -796,15 +796,20 @@ class GoimomiProductSerializer(serializers.ModelSerializer):
     sub_catalogue_name = serializers.ReadOnlyField(source='sub_catalogue.name', default=None)
     sub_catalogue_details = serializers.SerializerMethodField()
 
+    product_id = serializers.SerializerMethodField()
+
     class Meta:
         model = GoimomiProduct
         fields = [
-            'id', 'title', 'description', 'price', 'mrp',
+            'id', 'product_id', 'title', 'description', 'price', 'mrp',
             'quantity', 'stock_status', 'image',
             'catalogue', 'sub_catalogue', 'sub_catalogues',
             'catalogue_name', 'sub_catalogue_name', 'sub_catalogue_details',
             'discount_percent', 'images', 'created_at', 'updated_at',
         ]
+
+    def get_product_id(self, obj):
+        return obj.product_id or f'GO-PRO-{str(obj.pk).zfill(4)}'
 
     def get_sub_catalogue_details(self, obj):
         res = []

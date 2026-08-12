@@ -838,6 +838,7 @@ class GoimomiProduct(models.Model):
         ('out_of_stock', 'Out of Stock'),
     ]
 
+    product_id = models.CharField(max_length=100, blank=True, null=True, unique=True, help_text="Product ID format e.g. GO-PRO-0001")
     title = models.CharField(max_length=255)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Selling price")
@@ -861,7 +862,8 @@ class GoimomiProduct(models.Model):
         verbose_name_plural = "Goimomi Products"
 
     def __str__(self):
-        return self.title
+        pid = self.product_id or f'GO-PRO-{str(self.pk).zfill(4)}'
+        return f"{pid} - {self.title}"
 
     def save(self, *args, **kwargs):
         if self.quantity is not None:
@@ -871,6 +873,9 @@ class GoimomiProduct(models.Model):
             elif self.quantity > 0 and self.stock_status == 'out_of_stock':
                 self.stock_status = 'in_stock'
         super().save(*args, **kwargs)
+        if not self.product_id:
+            self.product_id = f'GO-PRO-{str(self.pk).zfill(4)}'
+            GoimomiProduct.objects.filter(pk=self.pk).update(product_id=self.product_id)
 
     @property
     def discount_percent(self):

@@ -205,19 +205,32 @@ const ProductAdd = () => {
                       Product Information
                     </h2>
                     <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor="pa-title">
-                          Product Title <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          id="pa-title"
-                          name="title"
-                          required
-                          value={form.title}
-                          onChange={handleChange}
-                          placeholder="e.g. Premium Leather Jacket"
-                          className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">
+                            Product ID
+                          </label>
+                          <input
+                            type="text"
+                            disabled
+                            value="GO-PRO-XXXX (Auto-generated)"
+                            className="w-full border border-emerald-200 bg-emerald-50 rounded-lg px-3 py-1.5 text-sm font-mono font-bold text-emerald-900"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor="pa-title">
+                            Product Title <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            id="pa-title"
+                            name="title"
+                            required
+                            value={form.title}
+                            onChange={handleChange}
+                            placeholder="e.g. Premium Ihram Set for Hajj & Umrah"
+                            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                          />
+                        </div>
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-gray-600 mb-1" htmlFor="pa-desc">

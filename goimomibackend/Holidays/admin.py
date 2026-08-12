@@ -230,16 +230,16 @@ class GoimomiProductImageInline(admin.TabularInline):
 
 @admin.register(GoimomiProduct)
 class GoimomiProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price', 'mrp', 'quantity', 'stock_status', 'catalogue', 'created_at')
+    list_display = ('product_id', 'title', 'price', 'mrp', 'quantity', 'stock_status', 'catalogue', 'created_at')
     list_filter = ('stock_status', 'catalogue')
-    search_fields = ('title', 'description')
+    search_fields = ('product_id', 'title', 'description')
     list_editable = ('stock_status', 'quantity')
     readonly_fields = ('created_at', 'updated_at')
     inlines = [GoimomiProductImageInline]
     filter_horizontal = ('sub_catalogues',)
     fieldsets = (
         ('Product Details', {
-            'fields': ('title', 'description', 'image', 'catalogue', 'sub_catalogue', 'sub_catalogues')
+            'fields': ('product_id', 'title', 'description', 'image', 'catalogue', 'sub_catalogue', 'sub_catalogues')
         }),
         ('Pricing', {
             'fields': ('price', 'mrp')

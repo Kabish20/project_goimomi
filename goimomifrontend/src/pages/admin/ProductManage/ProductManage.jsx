@@ -491,10 +491,15 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
   useEffect(() => {
     let result = products;
     if (productSearchTerm) {
-      result = result.filter((p) =>
-        p.title?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-        p.description?.toLowerCase().includes(productSearchTerm.toLowerCase())
-      );
+      const term = productSearchTerm.toLowerCase();
+      result = result.filter((p) => {
+        const pId = (p.product_id || `GO-PRO-${String(p.id).padStart(4, '0')}`).toLowerCase();
+        return (
+          pId.includes(term) ||
+          p.title?.toLowerCase().includes(term) ||
+          p.description?.toLowerCase().includes(term)
+        );
+      });
     }
     if (stockFilter !== "all") {
       result = result.filter((p) => p.stock_status === stockFilter);
@@ -769,7 +774,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                   <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search by title or description…"
+                    placeholder="Search by Product ID (e.g. GO-PRO-0001), title, or description…"
                     value={productSearchTerm}
                     onChange={(e) => setProductSearchTerm(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -803,7 +808,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                     <table className="w-full min-w-[700px]">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          {["Image", "Title", "Price", "MRP", "Discount", "Qty", "Stock Status", "Actions"].map((h) => (
+                          {["Product ID", "Image", "Title", "Price", "MRP", "Discount", "Qty", "Stock Status", "Actions"].map((h) => (
                             <th key={h} className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-5 py-3">
                               {h}
                             </th>
@@ -813,6 +818,11 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                       <tbody className="divide-y divide-gray-100">
                         {filteredProducts.map((product) => (
                           <tr key={product.id} className="hover:bg-green-50 transition-colors">
+                            <td className="px-5 py-3">
+                              <span className="bg-emerald-50 text-emerald-900 font-mono font-bold text-xs px-2.5 py-1 rounded-md border border-emerald-200 shadow-sm inline-block">
+                                {product.product_id || `GO-PRO-${String(product.id).padStart(4, '0')}`}
+                              </span>
+                            </td>
                             <td className="px-5 py-3">
                               {product.image ? (
                                 <img src={product.image} alt={product.title} className="w-12 h-12 object-cover rounded-lg border border-gray-200" />
@@ -1614,7 +1624,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                       <option value="">-- Choose Product (Or Custom Item) --</option>
                       {products.map(p => (
                         <option key={p.id} value={p.id}>
-                          {p.title} - ₹{p.price} ({p.stock_status === "in_stock" ? `Stock: ${p.quantity ?? 1}` : "Out of stock"})
+                          [{p.product_id || `GO-PRO-${String(p.id).padStart(4, '0')}`}] {p.title} - ₹{p.price} ({p.stock_status === "in_stock" ? `Stock: ${p.quantity ?? 1}` : "Out of stock"})
                         </option>
                       ))}
                       <option value="custom">✏️ Enter Custom / Manual Product Title</option>

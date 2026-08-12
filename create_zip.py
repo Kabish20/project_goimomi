@@ -1,34 +1,40 @@
 import zipfile
 import os
 
-def create_zip(filename, source_dirs):
+def create_zip(filename, mapping):
     with zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for source_dir in source_dirs:
-            for root, dirs, files in os.walk(source_dir):
+        for local_dir, zip_prefixes in mapping.items():
+            if not os.path.exists(local_dir):
+                print(f"Skipping non-existent directory: {local_dir}")
+                continue
+            for root, dirs, files in os.walk(local_dir):
                 # Exclude node_modules, venv, and dist
-                if 'node_modules' in dirs:
-                    dirs.remove('node_modules')
-                if 'venv' in dirs:
-                    dirs.remove('venv')
-                if 'dist' in dirs:
-                    dirs.remove('dist')
-                if '__pycache__' in dirs:
-                    dirs.remove('__pycache__')
-                if '.git' in dirs:
-                    dirs.remove('.git')
-                if 'media' in dirs:
-                    dirs.remove('media')
+                for exc in ['node_modules', 'venv', 'dist', '__pycache__', '.git', 'media']:
+                    if exc in dirs:
+                        dirs.remove(exc)
                 
                 for file in files:
                     file_path = os.path.join(root, file)
-                    arcname = os.path.relpath(file_path, os.path.join(source_dir, '..')).replace('\\', '/')
-                    zipf.write(file_path, arcname)
+                    rel_path = os.path.relpath(file_path, local_dir).replace('\\', '/')
+                    for prefix in zip_prefixes:
+                        arcname = f"{prefix}/{rel_path}"
+                        zipf.write(file_path, arcname)
 
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    sources = [
-        os.path.join(base_dir, 'goimomibackend'),
-        os.path.join(base_dir, 'goimomifrontend')
-    ]
-    create_zip(os.path.join(base_dir, 'update_package.zip'), sources)
-    print("Zip created successfully.")
+    
+    mapping = {}
+    
+    # Map local backend
+    backend_local = os.path.join(base_dir, 'goimomibackend') if os.path.exists(os.path.join(base_dir, 'goimomibackend')) else os.path.join(base_dir, 'goimomi-holidays-backend')
+    if os.path.exists(backend_local):
+        mapping[backend_local] = ['goimomi-holidays-backend', 'goimomibackend']
+        
+    # Map local frontend
+    frontend_local = os.path.join(base_dir, 'goimomifrontend') if os.path.exists(os.path.join(base_dir, 'goimomifrontend')) else os.path.join(base_dir, 'goimomi-holidays-frontend')
+    if os.path.exists(frontend_local):
+        mapping[frontend_local] = ['goimomi-holidays-frontend', 'goimomifrontend']
+
+    zip_output = os.path.join(base_dir, 'update_package.zip')
+    create_zip(zip_output, mapping)
+    print("Zip created successfully with mapped remote paths.")
