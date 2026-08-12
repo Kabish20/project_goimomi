@@ -20,11 +20,17 @@ const Navbar = () => {
   const businessRef = useRef(null);
   const shopRef = useRef(null);
 
+  const closeMobileMenu = () => {
+    setMobileOpen(false);
+    setMobileHoliday(false);
+    setMobileUmrah(false);
+    setMobileBusiness(false);
+    setMobileShop(false);
+  };
+
   const handleOpenCartClick = (e) => {
     if (e) e.preventDefault();
-    setDesktopShop(false);
-    setMobileShop(false);
-    setMobileOpen(false);
+    closeMobileMenu();
     navigate("/shop?cart=open");
     window.dispatchEvent(new Event("open-goimomi-cart"));
   };
@@ -379,7 +385,7 @@ const Navbar = () => {
           {/* Mobile menu button */}
           <button
             className="lg:hidden p-2 rounded-md border border-slate-200"
-            onClick={() => setMobileOpen((prev) => !prev)}
+            onClick={() => mobileOpen ? closeMobileMenu() : setMobileOpen(true)}
           >
             <span className="sr-only">Toggle menu</span>
             <svg
@@ -401,17 +407,17 @@ const Navbar = () => {
         {mobileOpen && (
           <>
             <div 
-              className="fixed inset-0 top-[110px] bg-black/40 backdrop-blur-xs z-30 lg:hidden animate-fadeIn"
-              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 top-[75px] md:top-[110px] bg-black/50 backdrop-blur-xs z-30 lg:hidden animate-fadeIn"
+              onClick={closeMobileMenu}
             />
-            <div className="relative z-40 lg:hidden border-t bg-white shadow-xl animate-slideDown max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar">
-              <div className="px-5 py-4 space-y-3 text-base font-medium">
+            <div className="fixed left-0 right-0 top-[75px] md:top-[110px] bottom-0 z-40 lg:hidden bg-white shadow-2xl overflow-y-auto custom-scrollbar border-t border-slate-100">
+              <div className="px-5 py-4 space-y-3 text-base font-medium pb-20">
 
                 <a
                   href="https://booking.goimomi.com/"
                   rel="noopener noreferrer"
                   className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-                  onClick={() => setMobileOpen(false)}
+                  onClick={closeMobileMenu}
                 >
                   <img src="https://cdn-icons-png.flaticon.com/128/1350/1350120.png" alt="Flight" className="w-6 h-6 object-contain" />
                   Flight
@@ -421,13 +427,13 @@ const Navbar = () => {
                   href="https://booking.goimomi.com/hotel"
                   rel="noopener noreferrer"
                   className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-                  onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+                  onClick={closeMobileMenu}
                 >
                   <img src="https://cdn-icons-png.flaticon.com/128/3168/3168622.png" alt="Hotels" className="w-6 h-6 object-contain" />
                   Hotels
                 </a>
 
-                <NavLink to="/visa" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+                <NavLink to="/visa" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
                   <img src="https://cdn-icons-png.flaticon.com/128/15544/15544932.png" alt="Visa" className="w-6 h-6 object-contain" />
                   Visa
                 </NavLink>
@@ -456,16 +462,16 @@ const Navbar = () => {
                   </button>
                   {mobileBusiness && (
                     <div className="pl-6 space-y-2 animate-fadeIn">
-                      <NavLink to="/businesshome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={() => setMobileOpen(false)}>
+                      <NavLink to="/businesshome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={closeMobileMenu}>
                         Business Travel Home
                       </NavLink>
-                      <NavLink to="/holidays?category=Business Travel" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
+                      <NavLink to="/holidays?category=Business Travel" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
                         Business Travel
                       </NavLink>
-                      <NavLink to="/canton" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
+                      <NavLink to="/canton" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
                         Canton Fair
                       </NavLink>
-                      <NavLink to="/megashowbangkok" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
+                      <NavLink to="/megashowbangkok" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
                         Mega Show Bangkok
                       </NavLink>
                     </div>
@@ -477,6 +483,7 @@ const Navbar = () => {
                     onClick={() => {
                       setMobileUmrah(!mobileUmrah);
                       setMobileHoliday(false);
+                      setMobileBusiness(false);
                     }}
                     className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition"
                   >
@@ -495,13 +502,13 @@ const Navbar = () => {
                   </button>
                   {mobileUmrah && (
                     <div className="pl-6 space-y-2 animate-fadeIn">
-                      <NavLink to="/holidayhome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={() => setMobileOpen(false)}>
+                      <NavLink to="/holidayhome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={closeMobileMenu}>
                         Umrah Packages Home
                       </NavLink>
-                      <NavLink to="/holidays?category=Umrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
+                      <NavLink to="/holidays?category=Umrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
                         Umrah
                       </NavLink>
-                      <NavLink to="/customizedumrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={() => setMobileOpen(false)}>
+                      <NavLink to="/customizedumrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
                         Customized Umrah
                       </NavLink>
                     </div>
@@ -513,6 +520,7 @@ const Navbar = () => {
                     onClick={() => {
                       setMobileHoliday(!mobileHoliday);
                       setMobileUmrah(false);
+                      setMobileBusiness(false);
                     }}
                     className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition"
                   >
@@ -535,35 +543,35 @@ const Navbar = () => {
                     <NavLink
                       to="/holidayhome"
                       className="flex items-center gap-3 py-1 pl-2 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b"
-                      onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+                      onClick={closeMobileMenu}
                     >
                       Holiday Packages Home
                     </NavLink>
                     <NavLink
                       to="/holidays?category=Domestic"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+                      onClick={closeMobileMenu}
                     >
                       Domestic
                     </NavLink>
                     <NavLink
                       to="/holidays?category=International"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+                      onClick={closeMobileMenu}
                     >
                       International
                     </NavLink>
                     <NavLink
                       to="/customizedHolidays"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+                      onClick={closeMobileMenu}
                     >
                       Customized Holidays
                     </NavLink>
                     <NavLink
                       to="/Europeantours"
                       className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}
+                      onClick={closeMobileMenu}
                     >
                       European Tour
                     </NavLink>
@@ -572,12 +580,12 @@ const Navbar = () => {
               </div>
 
 
-              <NavLink to="/cab" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+              <NavLink to="/cab" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
                 <img src="https://cdn-icons-png.flaticon.com/128/4874/4874225.png" alt="Cabs" className="w-6 h-6 object-contain" />
                 Cabs
               </NavLink>
 
-              <NavLink to="/cruise" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+              <NavLink to="/cruise" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
                 <img src="https://cdn-icons-png.flaticon.com/128/4320/4320227.png" alt="Cruise" className="w-6 h-6 object-contain" />
                 Cruise Bookings
               </NavLink>
@@ -586,7 +594,7 @@ const Navbar = () => {
                 to="/shop"
                 id="mobile-nav-shop-link"
                 className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-                onClick={() => setMobileOpen(false)}
+                onClick={closeMobileMenu}
               >
                 <div className="relative">
                   <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
@@ -598,12 +606,12 @@ const Navbar = () => {
               </NavLink>
 
 
-              <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+              <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
                 <img src="https://cdn-icons-png.flaticon.com/128/471/471664.png" alt="About" className="w-6 h-6 object-contain opacity-70" />
                 About Us
               </NavLink>
 
-              <NavLink to="/contactus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={() => { setMobileOpen(false); setMobileHoliday(false); }}>
+              <NavLink to="/contactus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
                 <img src="https://cdn-icons-png.flaticon.com/128/1034/1034153.png" alt="Contact" className="w-6 h-6 object-contain opacity-70" />
                 Contact Us
               </NavLink>
@@ -631,13 +639,13 @@ const Navbar = () => {
                     href="https://b2b.goimomi.com/"
                     className="flex-1 text-center bg-slate-100 text-[#14532d] rounded-xl py-2.5 font-bold hover:bg-slate-200 transition-all text-xs uppercase tracking-wide border border-slate-200"
                     rel="noopener noreferrer"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={closeMobileMenu}
                   >
                     Agent Login
                   </a>
                   <button
                     onClick={() => {
-                      setMobileOpen(false);
+                      closeMobileMenu();
                       setIsAdminLoginOpen(true);
                     }}
                     className="flex-1 text-center bg-[#14532d] text-white rounded-xl py-2.5 font-bold hover:bg-[#1a6338] transition-all text-xs uppercase tracking-wide shadow-sm"

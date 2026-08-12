@@ -293,6 +293,7 @@ const AdminSidebar = () => {
                     e.stopPropagation();
                     const handler = getAddHandler(item);
                     if (handler) handler();
+                    setIsMobileOpen(false);
                   }}
                   className="text-green-400 hover:text-green-300"
                 >
@@ -305,6 +306,7 @@ const AdminSidebar = () => {
                     e.stopPropagation();
                     const handler = getChangeHandler(item);
                     if (handler) handler();
+                    setIsMobileOpen(false);
                   }}
                   className="text-amber-400 hover:text-amber-300"
                 >
