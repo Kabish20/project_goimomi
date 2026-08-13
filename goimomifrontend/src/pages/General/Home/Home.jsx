@@ -667,6 +667,7 @@ const Home = () => {
                   if (countryLower.includes("dubai") || countryLower.includes("emirates") || countryLower.includes("uae")) fallbackImg = dubaiVisa;
                   else if (countryLower.includes("saudi")) fallbackImg = saudiVisa;
                   else if (countryLower.includes("azerbaijan")) fallbackImg = azerbaijanVisa;
+                  else if (countryLower.includes("thailand")) fallbackImg = thailandOffer;
                   else if (countryLower.includes("vietnam")) fallbackImg = vietnamVisa;
                   else if (countryLower.includes("singapore")) fallbackImg = singaporeVisa;
                   else if (countryLower.includes("bahrain")) fallbackImg = BahrainDeal;
@@ -674,6 +675,9 @@ const Home = () => {
                   else if (countryLower.includes("jordan")) fallbackImg = JordanDeal;
                   else if (countryLower.includes("indonesia") || countryLower.includes("bali")) fallbackImg = IndonesiaDeal;
                   else if (countryLower.includes("turkey")) fallbackImg = TurkeyDeal;
+                  else if (countryLower.includes("oman")) fallbackImg = oman;
+                  else if (countryLower.includes("morocco")) fallbackImg = moroccoVisa;
+                  else if (countryLower.includes("uzbekistan")) fallbackImg = uzbekistanVisa;
 
                   return {
                     id: v.id,

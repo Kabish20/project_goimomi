@@ -1182,7 +1182,7 @@ Goimomi Holidays
 
 def generate_product_order_invoice_pdf(order):
     """
-    Generates a high-quality vector-based PDF Tax Invoice for product orders
+    Generates a high-quality vector-based PDF Invoice for product orders
     using product_order_invoice_pdf.html and xhtml2pdf.
     Matches the exact UI layout of Cab Booking Invoices.
     """
@@ -1560,7 +1560,7 @@ def send_product_payment_pending_email(order, payment_url=None):
         )
         msg.attach_alternative(html_content, "text/html")
 
-        # Attach Tax Invoice PDF
+        # Attach Invoice PDF
         try:
             pdf_bytes = generate_product_order_invoice_pdf(order)
             if pdf_bytes:
@@ -1698,7 +1698,7 @@ def send_product_shipped_email(order):
         )
         msg.attach_alternative(html_content, "text/html")
 
-        # Generate & attach official Tax Invoice PDF
+        # Generate & attach official Invoice PDF
         try:
             pdf_bytes = generate_product_order_invoice_pdf(order)
             if pdf_bytes:

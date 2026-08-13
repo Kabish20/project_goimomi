@@ -20,7 +20,7 @@ data = [
         "photography_required": "Color photo on white background, Size 35mm x 45mm, 80% face view",
         "visa_type": "✈️ Tourist Visa",
         "is_active": True,
-        "is_popular": True,
+        "is_popular": False,
     },
     {
         "country": "Yemen",
@@ -35,7 +35,7 @@ data = [
         "photography_required": "Recent passport photo with white background",
         "visa_type": "✈️ Tourist Visa",
         "is_active": True,
-        "is_popular": True,
+        "is_popular": False,
     },
     {
         "country": "Zambia",
@@ -50,7 +50,7 @@ data = [
         "photography_required": "Digital passport photo, clear background, JPG format",
         "visa_type": "✈️ Tourist Visa",
         "is_active": True,
-        "is_popular": True,
+        "is_popular": False,
     },
     {
         "country": "Zimbabwe",
@@ -65,7 +65,7 @@ data = [
         "photography_required": "Clear passport format photo, white background",
         "visa_type": "✈️ Tourist Visa",
         "is_active": True,
-        "is_popular": True,
+        "is_popular": False,
     },
 ]
 
