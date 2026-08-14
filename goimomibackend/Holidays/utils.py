@@ -1300,6 +1300,155 @@ def generate_product_order_invoice_pdf(order):
     return pdf_buffer.getvalue()
 
 
+def generate_product_order_packing_slip_pdf(order):
+    """
+    Generates a professional vector-based Packing Slip PDF for product shipping
+    using product_order_packing_slip_pdf.html and xhtml2pdf.
+    Includes Goimomi address & logo, Ship To / Bill To customer address,
+    Order #, Order Date & Time, Payment Method, Product items, images, quantity & subtotal.
+    """
+    import os
+    import io
+    import base64
+    import requests
+    from django.template.loader import render_to_string
+    from django.conf import settings
+    import django.utils.timezone as timezone
+    from xhtml2pdf import pisa
+
+    if not order:
+        return None
+
+    def get_image_as_base64_uri(image_url_or_path):
+        if not image_url_or_path:
+            return ""
+        if isinstance(image_url_or_path, str) and os.path.exists(image_url_or_path):
+            try:
+                with open(image_url_or_path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode("utf-8")
+                    ext = os.path.splitext(image_url_or_path)[1].lower()
+                    mime = "image/png" if ext == ".png" else "image/jpeg"
+                    return f"data:{mime};base64,{encoded}"
+            except Exception:
+                return ""
+        if hasattr(image_url_or_path, 'path') and os.path.exists(getattr(image_url_or_path, 'path', '')):
+            try:
+                with open(image_url_or_path.path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode("utf-8")
+                    mime = "image/jpeg"
+                    return f"data:{mime};base64,{encoded}"
+            except Exception:
+                return ""
+        if isinstance(image_url_or_path, str) and image_url_or_path.startswith("http"):
+            try:
+                resp = requests.get(image_url_or_path, timeout=5)
+                if resp.status_code == 200:
+                    encoded = base64.b64encode(resp.content).decode("utf-8")
+                    content_type = resp.headers.get("content-type", "image/png")
+                    return f"data:{content_type};base64,{encoded}"
+            except Exception:
+                pass
+        return ""
+
+    order_ref = order.order_id or f"GO-ORD-{order.id}"
+    order_date_str = order.created_at.strftime('%B %d, %Y %I:%M:%S %p') if getattr(order, 'created_at', None) else timezone.now().strftime('%B %d, %Y %I:%M:%S %p')
+
+    items = []
+    if order.cart_items and isinstance(order.cart_items, list):
+        for item in order.cart_items:
+            price = float(item.get('price', 0))
+            qty = int(item.get('quantity', 1))
+            img_uri = ""
+            if item.get('image'):
+                img_uri = get_image_as_base64_uri(item.get('image'))
+            elif item.get('image_url'):
+                img_uri = get_image_as_base64_uri(item.get('image_url'))
+            items.append({
+                'product_id': item.get('product_id') or item.get('id') or '',
+                'title': item.get('title', 'Product Item'),
+                'quantity': qty,
+                'price': f"{price:,.2f}",
+                'total': f"{(price * qty):,.2f}",
+                'image_base64': img_uri,
+                'variant': item.get('variant', '')
+            })
+    elif order.product:
+        unit_p = float(order.price or getattr(order.product, 'price', 0))
+        img_uri = ""
+        if getattr(order.product, 'image', None):
+            img_uri = get_image_as_base64_uri(order.product.image)
+        items.append({
+            'product_id': getattr(order.product, 'product_id', '') or str(order.product.id),
+            'title': order.product.title,
+            'quantity': order.quantity,
+            'price': f"{unit_p:,.2f}",
+            'total': f"{float(order.total_amount):,.2f}",
+            'image_base64': img_uri,
+            'variant': ''
+        })
+    else:
+        unit_p = float(order.price or order.total_amount)
+        items.append({
+            'product_id': '',
+            'title': "Product Order",
+            'quantity': order.quantity,
+            'price': f"{unit_p:,.2f}",
+            'total': f"{float(order.total_amount):,.2f}",
+            'image_base64': '',
+            'variant': ''
+        })
+
+    logo_data_uri = ""
+    local_logo_paths = [
+        os.path.join(settings.BASE_DIR, 'Holidays', 'static', 'goimomilogo.png'),
+        os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomifrontend', 'src', 'assets', 'goimomilogo.png'),
+    ]
+    for l_path in local_logo_paths:
+        if os.path.exists(l_path):
+            try:
+                with open(l_path, "rb") as lf:
+                    encoded_logo = base64.b64encode(lf.read()).decode("utf-8")
+                    logo_data_uri = f"data:image/png;base64,{encoded_logo}"
+                    break
+            except Exception:
+                pass
+
+    if not logo_data_uri:
+        logo_data_uri = get_image_as_base64_uri("https://goimomi.com/logo.png")
+
+    delivery_addr = order.address
+    if not delivery_addr or len(delivery_addr.strip()) == 0:
+        addr_parts = [p for p in [order.address_line1, order.address_line2, order.city, order.state, order.pincode] if p]
+        delivery_addr = ", ".join(addr_parts) if addr_parts else "N/A"
+
+    context = {
+        'logo_data_uri': logo_data_uri,
+        'customer_name': order.name,
+        'order_id': order_ref,
+        'order_date': order_date_str,
+        'payment_method': 'Online Payment (PAID)' if (order.status or '').lower() in ['confirmed', 'shipped', 'delivered'] else 'Direct Online Payment',
+        'customer_phone': order.phone or '',
+        'customer_email': order.email or '',
+        'delivery_address': delivery_addr,
+        'total_amount': f"{float(order.total_amount):,.2f}",
+        'items': items
+    }
+
+    html_content = render_to_string('emails/product_order_packing_slip_pdf.html', context)
+
+    pdf_buffer = io.BytesIO()
+    pisa_status = pisa.CreatePDF(
+        io.BytesIO(html_content.encode("utf-8")),
+        dest=pdf_buffer
+    )
+
+    if pisa_status.err:
+        print(f"xhtml2pdf generation failed for product packing slip: {pisa_status.err}")
+
+    return pdf_buffer.getvalue()
+
+
+
 def _attach_thank_you_poster_pdf(msg):
     """
     Attaches Goimomi_Crescent_Thank_You_Order_Poster_.pdf to outgoing product emails.
@@ -1405,6 +1554,62 @@ def send_product_order_email(order):
             except Exception:
                 pass
 
+        current_status = str(getattr(order, 'status', '') or 'Confirmed').strip()
+        status_key = current_status.lower()
+
+        if status_key == 'pending':
+            subject = f"Action Required: Payment Pending for Order #{order_ref} - Goimomi Holidays"
+            header_subtitle = "E-Commerce Payment Pending"
+            status_badge_text = "PAYMENT PENDING"
+            status_badge_class = "status-badge-pending"
+            status_badge_style = "background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;"
+            template_name = 'emails/product_order_payment_pending.html'
+            status_message = f"Your product order <strong>#{order_ref}</strong> has been created and is awaiting payment completion."
+        elif status_key == 'shipped':
+            subject = f"Order Shipped & Dispatched: #{order_ref} - Goimomi Holidays"
+            header_subtitle = "E-Commerce Order Dispatch"
+            status_badge_text = "ORDER SHIPPED & DISPATCHED"
+            status_badge_class = "status-badge-shipped"
+            status_badge_style = "background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;"
+            template_name = 'emails/product_order_confirmation.html'
+            logistics = getattr(order, 'logistics_provider', '') or 'Courier Express'
+            tracking = getattr(order, 'tracking_number', '') or 'N/A'
+            status_message = f"Great news! Your product order <strong>#{order_ref}</strong> has been packed and shipped via <strong>{logistics}</strong> (Tracking / Waybill No: <strong>{tracking}</strong>)."
+        elif status_key == 'delivered':
+            subject = f"Order Delivered: #{order_ref} - Goimomi Holidays"
+            header_subtitle = "Order Delivery Confirmation"
+            status_badge_text = "✅ DELIVERED SUCCESSFULLY"
+            status_badge_class = "status-badge-delivered"
+            status_badge_style = "background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;"
+            template_name = 'emails/product_order_delivered.html'
+            status_message = f"We're happy to let you know that your order <strong>#{order_ref}</strong> has been <strong>successfully delivered</strong>! We hope you love your purchase from <strong>Goimomi Holidays</strong>."
+        elif status_key == 'cancelled':
+            subject = f"Order Cancelled: #{order_ref} - Goimomi Holidays"
+            header_subtitle = "Order Cancellation Notice"
+            status_badge_text = "❌ ORDER CANCELLED"
+            status_badge_class = "status-badge-cancelled"
+            status_badge_style = "background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;"
+            template_name = 'emails/product_order_cancelled.html'
+            status_message = f"We're writing to inform you that your order <strong>#{order_ref}</strong> has been <strong>cancelled</strong>. We're sorry for any inconvenience this may cause."
+        else:
+            subject = f"Order Placed & Confirmed: {order_ref} - Goimomi Holidays"
+            header_subtitle = "E-Commerce Order Confirmation"
+            status_badge_text = "ORDER PLACED & CONFIRMED"
+            status_badge_class = "status-badge-confirmed"
+            status_badge_style = "background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;"
+            template_name = 'emails/product_order_confirmation.html'
+            status_message = f"Thank you for your purchase with <strong>Goimomi Holidays</strong>! We are pleased to confirm that your order has been successfully placed and payment has been processed."
+
+        # Build delivered date from updated_at if available
+        delivered_date = ''
+        delivered_time = ''
+        cancelled_date = ''
+        if status_key == 'delivered' and getattr(order, 'updated_at', None):
+            delivered_date = order.updated_at.strftime('%d %b %Y')
+            delivered_time = order.updated_at.strftime('%I:%M %p')
+        elif status_key == 'cancelled' and getattr(order, 'updated_at', None):
+            cancelled_date = order.updated_at.strftime('%d %b %Y, %I:%M %p')
+
         context = {
             'logo_data_uri': logo_data_uri,
             'customer_name': order.name,
@@ -1418,22 +1623,27 @@ def send_product_order_email(order):
             'customer_phone': order.phone,
             'customer_email': order.email or '',
             'delivery_address': order.address,
-            'items': items
+            'items': items,
+            'header_subtitle': header_subtitle,
+            'status_badge_text': status_badge_text,
+            'status_badge_class': status_badge_class,
+            'status_badge_style': status_badge_style,
+            'status_message': status_message,
+            # Delivered-specific
+            'delivered_date': delivered_date,
+            'delivered_time': delivered_time,
+            # Cancelled-specific
+            'cancelled_date': cancelled_date,
+            'cancellation_reason': getattr(order, 'cancellation_reason', ''),
+            'refund_amount': getattr(order, 'refund_amount', ''),
         }
-
-        is_pending = (getattr(order, 'status', '') == 'Pending')
-        if is_pending:
-            subject = f"Action Required: Payment Pending for Order #{order_ref} - Goimomi Holidays"
-            template_name = 'emails/product_order_payment_pending.html'
-        else:
-            subject = f"Order Placed & Confirmed: {order_ref} - Goimomi Holidays"
-            template_name = 'emails/product_order_confirmation.html'
 
         html_content = render_to_string(template_name, context)
 
         text_content = (
             f"Dear {order.name},\n\n"
-            f"{'Your product order #' + order_ref + ' is awaiting payment completion.' if is_pending else 'Thank you for your purchase with Goimomi Holidays! Order ID / Invoice: ' + order_ref}\n"
+            f"Order Ref: #{order_ref}\n"
+            f"Status: {current_status.upper()}\n"
             f"Total Amount: INR {order.total_amount}\n"
             f"Delivery Address: {order.address}\n\n"
             f"For support, contact support@goimomi.com or hello@goimomi.com.\n"
@@ -1734,4 +1944,235 @@ def send_product_shipped_email(order):
             return False
     except Exception as e:
         print(f"Error sending product shipped email: {e}")
+        return False
+
+
+def send_product_delivered_email(order):
+    """
+    Sends a dedicated Product Order Delivered email to the customer using the
+    product_order_delivered.html template.
+    Sender: Goimomi Holidays <support@goimomi.com>
+    CC: hello@goimomi.com, support@goimomi.com
+    """
+    try:
+        if not order:
+            return False
+
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+        from django.conf import settings
+
+        order_ref = order.order_id or f"GO-ORD-{order.id}"
+        subject = f"Order Delivered Successfully! #{order_ref} - Goimomi Holidays"
+
+        # Items list
+        items = []
+        if order.cart_items and isinstance(order.cart_items, list):
+            for item in order.cart_items:
+                price = float(item.get('price', 0))
+                qty = int(item.get('quantity', 1))
+                items.append({
+                    'title': item.get('title') or item.get('name') or 'Product Item',
+                    'quantity': qty,
+                    'price': price,
+                    'total': price * qty
+                })
+        elif order.product:
+            items.append({
+                'title': order.product.title,
+                'quantity': order.quantity,
+                'price': float(order.price),
+                'total': float(order.total_amount)
+            })
+        else:
+            items.append({
+                'title': "Product Order",
+                'quantity': order.quantity,
+                'price': float(order.price or order.total_amount),
+                'total': float(order.total_amount)
+            })
+
+        order_date_str = order.created_at.strftime('%d %b %Y, %I:%M %p') if getattr(order, 'created_at', None) else "N/A"
+        inv_no = getattr(order, 'invoice_number', '') or order_ref
+
+        # Delivered date/time from updated_at
+        delivered_date = ''
+        delivered_time = ''
+        if getattr(order, 'updated_at', None):
+            delivered_date = order.updated_at.strftime('%d %b %Y')
+            delivered_time = order.updated_at.strftime('%I:%M %p')
+
+        context = {
+            'customer_name': order.name,
+            'order_id': order_ref,
+            'order_date': order_date_str,
+            'invoice_number': inv_no,
+            'book_invoice_number': getattr(order, 'book_invoice_number', ''),
+            'logistics_provider': getattr(order, 'logistics_provider', ''),
+            'tracking_number': getattr(order, 'tracking_number', ''),
+            'total_amount': f"{float(order.total_amount):,.2f}",
+            'customer_phone': order.phone,
+            'customer_email': order.email or '',
+            'delivery_address': order.address,
+            'items': items,
+            'delivered_date': delivered_date,
+            'delivered_time': delivered_time,
+        }
+
+        html_content = render_to_string('emails/product_order_delivered.html', context)
+        text_content = (
+            f"Dear {order.name},\n\n"
+            f"Great news! Your order #{order_ref} has been delivered successfully!\n"
+            f"Delivered on: {delivered_date} at {delivered_time}\n"
+            f"Total Amount: INR {order.total_amount}\n\n"
+            f"Thank you for shopping with Goimomi Holidays!\n"
+        )
+
+        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'Goimomi Holidays <support@goimomi.com>')
+        customer_email = str(order.email or '').strip()
+        recipients = [customer_email] if customer_email else ['hello@goimomi.com']
+        cc_recipients = [c for c in ['hello@goimomi.com', 'support@goimomi.com'] if c.lower() not in [r.lower() for r in recipients]]
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=sender,
+            to=recipients,
+            cc=cc_recipients,
+            reply_to=['support@goimomi.com', 'hello@goimomi.com']
+        )
+        msg.attach_alternative(html_content, "text/html")
+
+        # Generate & attach official Invoice PDF
+        try:
+            pdf_bytes = generate_product_order_invoice_pdf(order)
+            if pdf_bytes:
+                inv_filename = f"Invoice_{order_ref}.pdf"
+                msg.attach(inv_filename, pdf_bytes, "application/pdf")
+                print(f"Attached {inv_filename} to delivered email for {order_ref}")
+        except Exception as pdf_err:
+            print(f"Notice generating PDF invoice attachment for delivered email: {pdf_err}")
+
+        # Attach Goimomi Crescent Thank You Order Poster PDF
+        _attach_thank_you_poster_pdf(msg)
+
+        try:
+            msg.send(fail_silently=False)
+            print(f"Product delivered email dispatched for order {order_ref} to {recipients} with CC {cc_recipients}")
+            return True
+        except Exception as mail_e:
+            print(f"Email send error for delivered order {order_ref}: {mail_e}")
+            return False
+    except Exception as e:
+        print(f"Error sending product delivered email: {e}")
+        return False
+
+
+def send_product_cancelled_email(order):
+    """
+    Sends a dedicated Product Order Cancelled email to the customer using the
+    product_order_cancelled.html template.
+    Sender: Goimomi Holidays <support@goimomi.com>
+    CC: hello@goimomi.com, support@goimomi.com
+    """
+    try:
+        if not order:
+            return False
+
+        from django.core.mail import EmailMultiAlternatives
+        from django.template.loader import render_to_string
+        from django.conf import settings
+
+        order_ref = order.order_id or f"GO-ORD-{order.id}"
+        subject = f"Order Cancelled: #{order_ref} - Goimomi Holidays"
+
+        # Items list
+        items = []
+        if order.cart_items and isinstance(order.cart_items, list):
+            for item in order.cart_items:
+                price = float(item.get('price', 0))
+                qty = int(item.get('quantity', 1))
+                items.append({
+                    'title': item.get('title') or item.get('name') or 'Product Item',
+                    'quantity': qty,
+                    'price': price,
+                    'total': price * qty
+                })
+        elif order.product:
+            items.append({
+                'title': order.product.title,
+                'quantity': order.quantity,
+                'price': float(order.price),
+                'total': float(order.total_amount)
+            })
+        else:
+            items.append({
+                'title': "Product Order",
+                'quantity': order.quantity,
+                'price': float(order.price or order.total_amount),
+                'total': float(order.total_amount)
+            })
+
+        order_date_str = order.created_at.strftime('%d %b %Y, %I:%M %p') if getattr(order, 'created_at', None) else "N/A"
+        inv_no = getattr(order, 'invoice_number', '') or order_ref
+
+        # Cancelled date from updated_at
+        cancelled_date = ''
+        if getattr(order, 'updated_at', None):
+            cancelled_date = order.updated_at.strftime('%d %b %Y, %I:%M %p')
+
+        context = {
+            'customer_name': order.name,
+            'order_id': order_ref,
+            'order_date': order_date_str,
+            'invoice_number': inv_no,
+            'book_invoice_number': getattr(order, 'book_invoice_number', ''),
+            'total_amount': f"{float(order.total_amount):,.2f}",
+            'customer_phone': order.phone,
+            'customer_email': order.email or '',
+            'delivery_address': order.address,
+            'items': items,
+            'cancelled_date': cancelled_date,
+            'cancellation_reason': getattr(order, 'cancellation_reason', ''),
+            'refund_amount': getattr(order, 'refund_amount', ''),
+            'logistics_provider': getattr(order, 'logistics_provider', ''),
+            'tracking_number': getattr(order, 'tracking_number', ''),
+        }
+
+        html_content = render_to_string('emails/product_order_cancelled.html', context)
+        text_content = (
+            f"Dear {order.name},\n\n"
+            f"We regret to inform you that your order #{order_ref} has been cancelled.\n"
+            f"Cancelled on: {cancelled_date}\n"
+            f"Total Amount: INR {order.total_amount}\n\n"
+            f"If you have any questions, contact support@goimomi.com or hello@goimomi.com.\n"
+        )
+
+        sender = getattr(settings, 'PRODUCT_ORDER_FROM_EMAIL', 'Goimomi Holidays <support@goimomi.com>')
+        customer_email = str(order.email or '').strip()
+        recipients = [customer_email] if customer_email else ['hello@goimomi.com']
+        cc_recipients = [c for c in ['hello@goimomi.com', 'support@goimomi.com'] if c.lower() not in [r.lower() for r in recipients]]
+
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=sender,
+            to=recipients,
+            cc=cc_recipients,
+            reply_to=['support@goimomi.com', 'hello@goimomi.com']
+        )
+        msg.attach_alternative(html_content, "text/html")
+
+        # Attach Goimomi Crescent Thank You Order Poster PDF
+        _attach_thank_you_poster_pdf(msg)
+
+        try:
+            msg.send(fail_silently=False)
+            print(f"Product cancelled email dispatched for order {order_ref} to {recipients} with CC {cc_recipients}")
+            return True
+        except Exception as mail_e:
+            print(f"Email send error for cancelled order {order_ref}: {mail_e}")
+            return False
+    except Exception as e:
+        print(f"Error sending product cancelled email: {e}")
         return False

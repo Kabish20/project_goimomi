@@ -191,8 +191,8 @@
         <!-- Header -->
         <div class="header">
             <h1>GOIMOMI HOLIDAYS</h1>
-            <p>Your Order Has Been Dispatched!</p>
-            <div class="shipping-badge">✈️ Order Status: Shipped</div>
+            <p>{{ header_subtitle|default:"Your Order Has Been Dispatched!" }}</p>
+            <div class="shipping-badge">{{ status_badge_text|default:"✈️ Order Status: Shipped" }}</div>
         </div>
 
         <!-- Main Content -->

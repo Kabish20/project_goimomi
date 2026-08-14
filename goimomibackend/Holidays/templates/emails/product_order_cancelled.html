@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Cancelled - {{ order_id }} | Goimomi Holidays</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 620px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
+            padding: 32px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            color: #fecaca;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-weight: 600;
+        }
+        .cancelled-badge {
+            display: inline-block;
+            background-color: #fee2e2;
+            color: #991b1b;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 18px;
+            border-radius: 20px;
+            margin-top: 14px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border: 1px solid #fca5a5;
+        }
+        .content {
+            padding: 35px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        /* Cancellation Notice Card */
+        .cancellation-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5;
+            border-radius: 14px;
+            padding: 28px 24px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .cancellation-card .cancel-icon {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        .cancellation-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #991b1b;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .cancellation-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #b91c1c;
+            line-height: 1.6;
+        }
+
+        /* Cancellation Reason Card */
+        .reason-card {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 28px;
+        }
+        .reason-card h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #92400e;
+            font-weight: 800;
+        }
+        .reason-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #78350f;
+            line-height: 1.6;
+        }
+
+        /* Order Details Card */
+        .order-details-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+        .order-details-card h4 {
+            margin: 0 0 14px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #991b1b;
+            font-weight: 800;
+        }
+        .summary-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-grid td {
+            padding: 6px 0;
+            font-size: 13px;
+        }
+        .summary-grid .label {
+            color: #64748b;
+            font-weight: 600;
+            width: 45%;
+        }
+        .summary-grid .value {
+            color: #0f172a;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #1e293b;
+            margin: 28px 0 14px 0;
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 6px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+        .items-table th {
+            background-color: #7f1d1d;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            text-align: left;
+        }
+        .items-table th.right, .items-table td.right {
+            text-align: right;
+        }
+        .items-table td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .total-row td {
+            background-color: #fef2f2;
+            font-weight: 800;
+            font-size: 15px;
+            color: #991b1b;
+            border-top: 2px solid #fca5a5;
+            padding: 14px;
+        }
+
+        /* Refund Info Card */
+        .refund-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #a7f3d0;
+            border-radius: 14px;
+            padding: 22px 24px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .refund-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #065f46;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .refund-card p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: #166534;
+            line-height: 1.6;
+        }
+        .refund-amount {
+            display: inline-block;
+            background-color: #ffffff;
+            border: 2px solid #16a34a;
+            border-radius: 10px;
+            padding: 10px 24px;
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: 800;
+            color: #14532d;
+            letter-spacing: 0.02em;
+        }
+
+        .address-box {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 28px;
+        }
+        .address-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            font-weight: 800;
+        }
+        .address-box p {
+            margin: 3px 0;
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        /* Re-order CTA */
+        .reorder-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .reorder-card p {
+            margin: 0 0 14px 0;
+            font-size: 14px;
+            color: #0c4a6e;
+            font-weight: 600;
+        }
+        .reorder-btn {
+            display: inline-block;
+            background-color: #16a34a;
+            color: #ffffff !important;
+            font-weight: 800;
+            font-size: 14px;
+            padding: 12px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+            letter-spacing: 0.03em;
+        }
+
+        .support-box {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .support-box p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: #475569;
+        }
+        .support-box strong {
+            color: #1e293b;
+        }
+        .footer {
+            background-color: #0f172a;
+            padding: 28px 20px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        .footer p {
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+        .footer a {
+            color: #4ade80;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>GOIMOMI HOLIDAYS</h1>
+            <p>{{ header_subtitle|default:"Order Cancellation Notice" }}</p>
+            <div class="cancelled-badge">{{ status_badge_text|default:"❌ Order Cancelled" }}</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="greeting">
+                Dear <strong>{{ customer_name }}</strong>,<br><br>
+                {% if status_message %}
+                    {{ status_message|safe }}
+                {% else %}
+                    We're writing to inform you that your order <strong>{{ order_id }}</strong> has been <strong>cancelled</strong>. We're sorry for any inconvenience this may cause.
+                {% endif %}
+            </div>
+
+            <!-- Cancellation Notice Card -->
+            <div class="cancellation-card">
+                <div class="cancel-icon">🚫</div>
+                <h3>Order Cancelled</h3>
+                <p>Your order has been cancelled as requested.
+                {% if cancelled_date %}<br>Cancelled on: <strong>{{ cancelled_date }}</strong>{% endif %}
+                {% if cancelled_by %}<br>Cancelled by: <strong>{{ cancelled_by }}</strong>{% endif %}
+                </p>
+            </div>
+
+            <!-- Cancellation Reason -->
+            {% if cancellation_reason %}
+            <div class="reason-card">
+                <h4>⚠️ Reason for Cancellation</h4>
+                <p>{{ cancellation_reason }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Order Details Summary -->
+            <div class="order-details-card">
+                <h4>Cancelled Order Details</h4>
+                <table class="summary-grid">
+                    <tr>
+                        <td class="label">Order Number:</td>
+                        <td class="value">{{ order_id }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Order Date:</td>
+                        <td class="value">{{ order_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Invoice Number:</td>
+                        <td class="value">{{ invoice_number }}</td>
+                    </tr>
+                    {% if book_invoice_number %}
+                    <tr>
+                        <td class="label">Book Invoice No:</td>
+                        <td class="value" style="color: #0284c7;">{{ book_invoice_number }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if cancelled_date %}
+                    <tr>
+                        <td class="label">Cancelled On:</td>
+                        <td class="value" style="color: #dc2626;">{{ cancelled_date }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td class="label">Order Status:</td>
+                        <td class="value" style="color: #991b1b;">Cancelled</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Cancelled Items Table -->
+            <div class="section-title">Cancelled Items</div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th class="right">Qty</th>
+                        <th class="right">Unit Price</th>
+                        <th class="right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.title }}</strong></td>
+                        <td class="right">{{ item.quantity }}</td>
+                        <td class="right">₹{{ item.price|floatformat:2 }}</td>
+                        <td class="right">₹{{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="3">Order Total:</td>
+                        <td class="right">₹{{ total_amount }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Refund Information Card -->
+            {% if refund_amount %}
+            <div class="refund-card">
+                <h4>💰 Refund Information</h4>
+                <p>A refund has been initiated for your cancelled order.</p>
+                <div class="refund-amount">₹{{ refund_amount }}</div>
+                {% if refund_method %}
+                <p style="margin-top: 12px;"><strong>Refund Method:</strong> {{ refund_method }}</p>
+                {% endif %}
+                {% if refund_timeline %}
+                <p><strong>Expected Timeline:</strong> {{ refund_timeline }}</p>
+                {% else %}
+                <p><strong>Expected Timeline:</strong> 5–7 business days</p>
+                {% endif %}
+                {% if refund_reference %}
+                <p style="font-family: monospace; font-size: 12px; color: #065f46; margin-top: 6px;">Refund Ref: {{ refund_reference }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Important Notes -->
+            <div style="background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 10px; padding: 16px; margin-bottom: 24px; font-size: 12px; color: #991b1b;">
+                <p style="margin: 0 0 6px 0; font-weight: 800; font-size: 13px;">📋 Please Note:</p>
+                <p style="margin: 3px 0;">• If a payment was made, the refund will be processed to your original payment method.</p>
+                <p style="margin: 3px 0;">• Refund timelines may vary depending on your bank or payment provider.</p>
+                <p style="margin: 3px 0;">• If you did not request this cancellation, please contact our support team immediately.</p>
+            </div>
+
+            <!-- Customer Details -->
+            <div class="section-title">Customer Details</div>
+            <div class="address-box">
+                <h4>Order Placed By</h4>
+                <p><strong>Name:</strong> {{ customer_name }}</p>
+                <p><strong>Phone:</strong> {{ customer_phone }}</p>
+                {% if customer_email %}
+                <p><strong>Email:</strong> {{ customer_email }}</p>
+                {% endif %}
+                {% if delivery_address %}
+                <p style="margin-top: 10px;"><strong>Delivery Address:</strong></p>
+                <p style="white-space: pre-line; color: #1e293b;">{{ delivery_address }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Re-order CTA -->
+            {% if reorder_url %}
+            <div class="reorder-card">
+                <p>Changed your mind? You can place a new order anytime!</p>
+                <a href="{{ reorder_url }}" target="_blank" class="reorder-btn">
+                    Shop Again on Goimomi →
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Support Box -->
+            <div class="support-box">
+                <p style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Questions About Your Cancellation?</p>
+                <p>Contact Customer Support: <strong>support@goimomi.com</strong> | <strong>hello@goimomi.com</strong></p>
+                <p>Customer Care Helpline: <strong>+91 81100 82222</strong></p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Goimomi Holidays & E-Commerce</strong></p>
+            <p>Your Trusted Partner for Travel, Holidays & Quality Products</p>
+            <p>Visit our website: <a href="https://goimomi.com" target="_blank">www.goimomi.com</a></p>
+            <p style="margin-top: 12px; font-size: 11px; color: #64748b;">
+                This email was sent regarding order {{ order_id }}. Please keep a copy of this email for your records.
+            </p>
+            <p style="font-size: 11px; color: #64748b;">© 2026 Goimomi. All rights reserved.</p>
+        </div>
+    </div>
+
+</body>
+</html>

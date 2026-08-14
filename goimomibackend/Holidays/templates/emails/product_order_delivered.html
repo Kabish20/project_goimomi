@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation - {{ order_id }} | Goimomi</title>
+    <title>Order Delivered - {{ order_id }} | Goimomi Holidays</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -43,43 +43,18 @@
             letter-spacing: 0.18em;
             font-weight: 600;
         }
-        .status-badge {
+        .delivered-badge {
             display: inline-block;
-            background-color: #dcfce7;
-            color: #15803d;
+            background-color: #d1fae5;
+            color: #065f46;
             font-size: 12px;
             font-weight: 800;
-            padding: 6px 16px;
+            padding: 6px 18px;
             border-radius: 20px;
             margin-top: 14px;
             letter-spacing: 0.05em;
             text-transform: uppercase;
-            border: 1px solid #bbf7d0;
-        }
-        .status-badge-pending {
-            background-color: #fef3c7 !important;
-            color: #92400e !important;
-            border-color: #fde68a !important;
-        }
-        .status-badge-shipped {
-            background-color: #e0e7ff !important;
-            color: #3730a3 !important;
-            border-color: #c7d2fe !important;
-        }
-        .status-badge-delivered {
-            background-color: #d1fae5 !important;
-            color: #065f46 !important;
-            border-color: #a7f3d0 !important;
-        }
-        .status-badge-cancelled {
-            background-color: #fee2e2 !important;
-            color: #991b1b !important;
-            border-color: #fca5a5 !important;
-        }
-        .status-badge-confirmed {
-            background-color: #dcfce7 !important;
-            color: #15803d !important;
-            border-color: #bbf7d0 !important;
+            border: 1px solid #a7f3d0;
         }
         .content {
             padding: 35px 30px;
@@ -90,12 +65,51 @@
             margin-bottom: 20px;
             color: #1e293b;
         }
-        .order-summary-box {
+
+        /* Delivery Success Card */
+        .delivery-success-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #a7f3d0;
+            border-radius: 14px;
+            padding: 28px 24px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .delivery-success-card .check-icon {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+        .delivery-success-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #065f46;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .delivery-success-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #166534;
+            line-height: 1.6;
+        }
+
+        /* Delivery Details Card */
+        .delivery-details-card {
             background-color: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 28px;
+        }
+        .delivery-details-card h4 {
+            margin: 0 0 14px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #065f46;
+            font-weight: 800;
         }
         .summary-grid {
             width: 100%;
@@ -108,13 +122,14 @@
         .summary-grid .label {
             color: #64748b;
             font-weight: 600;
-            width: 40%;
+            width: 45%;
         }
         .summary-grid .value {
             color: #0f172a;
             font-weight: 700;
             text-align: right;
         }
+
         .section-title {
             font-size: 14px;
             font-weight: 800;
@@ -177,9 +192,46 @@
         .address-box p {
             margin: 3px 0;
             font-size: 13px;
-            color: #334155;
+            color: #475569;
             line-height: 1.5;
         }
+
+        /* Feedback Section */
+        .feedback-card {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .feedback-card h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #92400e;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .feedback-card p {
+            margin: 0 0 14px 0;
+            font-size: 13px;
+            color: #78350f;
+            line-height: 1.5;
+        }
+        .feedback-btn {
+            display: inline-block;
+            background-color: #16a34a;
+            color: #ffffff !important;
+            font-weight: 800;
+            font-size: 14px;
+            padding: 12px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+            letter-spacing: 0.03em;
+        }
+
         .support-box {
             background-color: #f0fdf4;
             border: 1px solid #bbf7d0;
@@ -215,14 +267,13 @@
     </style>
 </head>
 <body>
+
     <div class="container">
         <!-- Header -->
         <div class="header">
             <h1>GOIMOMI HOLIDAYS</h1>
-            <p>{{ header_subtitle|default:"E-Commerce Order Confirmation" }}</p>
-            <div class="status-badge {{ status_badge_class }}">
-                {{ status_badge_text|default:"Order Placed & Confirmed" }}
-            </div>
+            <p>{{ header_subtitle|default:"Order Delivery Confirmation" }}</p>
+            <div class="delivered-badge">{{ status_badge_text|default:"✅ Delivered Successfully" }}</div>
         </div>
 
         <!-- Main Content -->
@@ -232,12 +283,23 @@
                 {% if status_message %}
                     {{ status_message|safe }}
                 {% else %}
-                    Thank you for your purchase with <strong>Goimomi Holidays</strong>! We are pleased to confirm that your order has been successfully placed and payment has been processed.
+                    We're happy to let you know that your order <strong>{{ order_id }}</strong> has been <strong>successfully delivered</strong>! We hope you love your purchase from <strong>Goimomi Holidays</strong>.
                 {% endif %}
             </div>
 
-            <!-- Order Summary Card -->
-            <div class="order-summary-box">
+            <!-- Delivery Success Card -->
+            <div class="delivery-success-card">
+                <div class="check-icon">📦✅</div>
+                <h3>Order Delivered!</h3>
+                <p>Your package has been delivered to the address on file.<br>
+                {% if delivered_date %}Delivered on: <strong>{{ delivered_date }}</strong>{% endif %}
+                {% if delivered_time %} at <strong>{{ delivered_time }}</strong>{% endif %}
+                </p>
+            </div>
+
+            <!-- Delivery Details Summary -->
+            <div class="delivery-details-card">
+                <h4>Delivery Summary</h4>
                 <table class="summary-grid">
                     <tr>
                         <td class="label">Order Number:</td>
@@ -259,25 +321,31 @@
                     {% endif %}
                     {% if logistics_provider %}
                     <tr>
-                        <td class="label">Logistics Provider:</td>
+                        <td class="label">Courier Partner:</td>
                         <td class="value">{{ logistics_provider }}</td>
                     </tr>
                     {% endif %}
                     {% if tracking_number %}
                     <tr>
-                        <td class="label">Tracking Number:</td>
-                        <td class="value">{{ tracking_number }}</td>
+                        <td class="label">Tracking / AWB No:</td>
+                        <td class="value" style="font-family: monospace; color: #0284c7;">{{ tracking_number }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if delivered_date %}
+                    <tr>
+                        <td class="label">Delivered On:</td>
+                        <td class="value" style="color: #16a34a;">{{ delivered_date }}{% if delivered_time %} at {{ delivered_time }}{% endif %}</td>
                     </tr>
                     {% endif %}
                     <tr>
-                        <td class="label">Payment Status:</td>
-                        <td class="value" style="color: #16a34a;">Paid & Confirmed</td>
+                        <td class="label">Order Status:</td>
+                        <td class="value" style="color: #065f46;">Delivered & Completed</td>
                     </tr>
                 </table>
             </div>
 
-            <!-- Products Table -->
-            <div class="section-title">Order Items Breakdown</div>
+            <!-- Delivered Items Table -->
+            <div class="section-title">Delivered Items</div>
             <table class="items-table">
                 <thead>
                     <tr>
@@ -297,14 +365,14 @@
                     </tr>
                     {% endfor %}
                     <tr class="total-row">
-                        <td colspan="3">Grand Total Paid:</td>
+                        <td colspan="3">Total Amount Paid:</td>
                         <td class="right">₹{{ total_amount }}</td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- Delivery Address Card -->
-            <div class="section-title">Delivery & Customer Details</div>
+            <div class="section-title">Delivered To</div>
             <div class="address-box">
                 <h4>Delivery Recipient</h4>
                 <p><strong>Name:</strong> {{ customer_name }}</p>
@@ -316,10 +384,29 @@
                 <p style="white-space: pre-line; color: #1e293b;">{{ delivery_address }}</p>
             </div>
 
+            <!-- Feedback / Review Section -->
+            {% if feedback_url %}
+            <div class="feedback-card">
+                <h4>⭐ We'd Love Your Feedback!</h4>
+                <p>Your opinion matters to us. Please take a moment to share your experience with the product and delivery.</p>
+                <a href="{{ feedback_url }}" target="_blank" class="feedback-btn">
+                    Rate & Review Your Order →
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Important Notes -->
+            <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 16px; margin-bottom: 24px; font-size: 12px; color: #0369a1;">
+                <p style="margin: 0 0 6px 0; font-weight: 800; font-size: 13px;">📋 Important Information:</p>
+                <p style="margin: 3px 0;">• If you received a damaged or incorrect item, please contact us within 48 hours of delivery.</p>
+                <p style="margin: 3px 0;">• Keep the original packaging until you've inspected all items.</p>
+                <p style="margin: 3px 0;">• For return or exchange requests, please reach out to our support team.</p>
+            </div>
+
             <!-- Support Box -->
             <div class="support-box">
-                <p style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Need Help with Your Order?</p>
-                <p>Contact Customer Support: <strong>support@goimomi.com</strong> </p>
+                <p style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">Need Help with Your Delivery?</p>
+                <p>Contact Customer Support: <strong>support@goimomi.com</strong> | <strong>hello@goimomi.com</strong></p>
                 <p>Customer Care Helpline: <strong>+91 81100 82222</strong></p>
             </div>
         </div>
@@ -327,11 +414,14 @@
         <!-- Footer -->
         <div class="footer">
             <p><strong>Goimomi Holidays & E-Commerce</strong></p>
+            <p>Your Trusted Partner for Travel, Holidays & Quality Products</p>
             <p>Visit our website: <a href="https://goimomi.com" target="_blank">www.goimomi.com</a></p>
             <p style="margin-top: 12px; font-size: 11px; color: #64748b;">
                 This email was sent regarding order {{ order_id }}. Please keep a copy of this email for your records.
             </p>
+            <p style="font-size: 11px; color: #64748b;">© 2026 Goimomi. All rights reserved.</p>
         </div>
     </div>
+
 </body>
 </html>

@@ -41,6 +41,48 @@ def send_product_shipped_email_task(self, order_pk):
         logger.error(f"[Celery] Error sending product shipped email: {exc}")
         raise self.retry(exc=exc)
 
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_product_delivered_email_task(self, order_pk):
+    """
+    Celery task to send product delivery confirmation email asynchronously.
+    """
+    try:
+        from Holidays.models import GoimomiProductOrder
+        from Holidays.utils import send_product_delivered_email
+
+        order = GoimomiProductOrder.objects.get(pk=order_pk)
+        success = send_product_delivered_email(order)
+        if not success:
+            logger.warning(f"[Celery] Delivered email attempt returned False for order_pk={order_pk}")
+        return success
+    except GoimomiProductOrder.DoesNotExist:
+        logger.error(f"[Celery] Order with pk={order_pk} does not exist.")
+        return False
+    except Exception as exc:
+        logger.error(f"[Celery] Error sending product delivered email: {exc}")
+        raise self.retry(exc=exc)
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def send_product_cancelled_email_task(self, order_pk):
+    """
+    Celery task to send product order cancellation email asynchronously.
+    """
+    try:
+        from Holidays.models import GoimomiProductOrder
+        from Holidays.utils import send_product_cancelled_email
+
+        order = GoimomiProductOrder.objects.get(pk=order_pk)
+        success = send_product_cancelled_email(order)
+        if not success:
+            logger.warning(f"[Celery] Cancelled email attempt returned False for order_pk={order_pk}")
+        return success
+    except GoimomiProductOrder.DoesNotExist:
+        logger.error(f"[Celery] Order with pk={order_pk} does not exist.")
+        return False
+    except Exception as exc:
+        logger.error(f"[Celery] Error sending product cancelled email: {exc}")
+        raise self.retry(exc=exc)
+
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)

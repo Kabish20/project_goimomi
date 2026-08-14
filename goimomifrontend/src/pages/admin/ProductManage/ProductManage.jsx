@@ -442,6 +442,160 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
     }
   };
 
+  const handleDownloadPackingSlip = async (order) => {
+    if (!order) return;
+    const orderId = order.id;
+    const orderRef = order.order_id || `GO-ORD-${orderId}`;
+    try {
+      // Fetch high-quality HTML-to-PDF packing slip from backend endpoint
+      const res = await api.get(`/api/goimomi-product-orders/${orderId}/download-packing-slip/`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Packing_Slip_${orderRef}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (apiErr) {
+      console.warn("Backend packing slip endpoint unavailable, generating client-side fallback PDF:", apiErr);
+      try {
+        const doc = new jsPDF();
+
+        // Header Left: Title & Store Address
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("Packing Slip", 14, 20);
+
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50, 50, 50);
+        doc.text("Goimomi Shop", 14, 26);
+        doc.text("5, Crescent Paark, Ground Floor,", 14, 30);
+        doc.text("Sulaiman Hazrath St, opp. Jamal Mohamed Masjid,", 14, 34);
+        doc.text("Tiruchirappalli, Tamil Nadu 620020, India", 14, 38);
+        doc.text("support@goimomi.com | +91 81100 82222", 14, 42);
+
+        // Header Right: Goimomi Brand Title
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(20, 83, 45);
+        doc.text("goimomi", 196, 22, { align: "right" });
+
+        let yPos = 48;
+
+        // From / To Header Bars (Solid Forest Green)
+        doc.setFillColor(20, 83, 45);
+        doc.rect(14, yPos, 88, 8, "F");
+        doc.rect(108, yPos, 88, 8, "F");
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("FROM", 18, yPos + 5.5);
+        doc.text("TO", 112, yPos + 5.5);
+
+        // From / To Outer Box Borders
+        doc.setDrawColor(20, 83, 45);
+        doc.setLineWidth(0.3);
+        doc.rect(14, yPos, 88, 40);
+        doc.rect(108, yPos, 88, 40);
+
+        // From Content
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(8.5);
+        doc.setFont("helvetica", "bold");
+        doc.text("Goimomi Shop", 18, yPos + 14);
+
+        doc.setFont("helvetica", "normal");
+        doc.text("5, Crescent Paark, Ground Floor,", 18, yPos + 19);
+        doc.text("Sulaiman Hazrath St, opp. Jamal Mohamed Masjid,", 18, yPos + 23.5);
+        doc.text("Tiruchirappalli, Tamil Nadu 620020, India", 18, yPos + 28);
+        doc.text("Ph: +91 81100 82222", 18, yPos + 32.5);
+        doc.text("support@goimomi.com", 18, yPos + 36.5);
+
+        // To Content
+        doc.setFont("helvetica", "bold");
+        doc.text(order.name || "N/A", 112, yPos + 14);
+
+        doc.setFont("helvetica", "normal");
+        const shipAddrLines = doc.splitTextToSize(order.address || "N/A", 80);
+        doc.text(shipAddrLines, 112, yPos + 19);
+        if (order.phone) {
+          doc.text(`Ph: ${order.phone}`, 112, yPos + 32.5);
+        }
+        if (order.email) {
+          doc.text(order.email, 112, yPos + 36.5);
+        }
+
+        yPos += 46;
+
+        // Order Meta Summary Box (2 Columns)
+        doc.rect(14, yPos, 182, 16);
+        doc.line(105, yPos, 105, yPos + 16);
+
+        // Col 1: Order Number
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.text("Order Number", 59.5, yPos + 5, { align: "center" });
+        doc.setFontSize(9.5);
+        doc.text(orderRef, 59.5, yPos + 11.5, { align: "center" });
+
+        // Col 2: Order Date & Time
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.text("Order Date & Time", 150.5, yPos + 5, { align: "center" });
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text(formatDate(order.created_at), 150.5, yPos + 11.5, { align: "center" });
+
+        yPos += 22;
+
+        // Product Items Table
+        const tableHead = [["Product Name", "Quantity"]];
+        const tableBody = [];
+
+        if (order.cart_items && order.cart_items.length > 0) {
+          order.cart_items.forEach((item) => {
+            tableBody.push([
+              item.title || "Product Item",
+              item.quantity || 1
+            ]);
+          });
+        } else {
+          const prodTitle = order.product_title || order.product_details?.title || "Product Item";
+          tableBody.push([
+            prodTitle,
+            order.quantity || 1
+          ]);
+        }
+
+        autoTable(doc, {
+          head: tableHead,
+          body: tableBody,
+          startY: yPos,
+          styles: { fontSize: 9, cellPadding: 5, halign: "left" },
+          headStyles: { fillColor: [0, 0, 0], textColor: 255, fontStyle: "bold" },
+          columnStyles: {
+            0: { cellWidth: 140 },
+            1: { halign: "center", cellWidth: 42 }
+          },
+          alternateRowStyles: { fillColor: [248, 250, 252] },
+          margin: { left: 14, right: 14 }
+        });
+
+        doc.save(`Packing_Slip_${orderRef}.pdf`);
+      } catch (clientErr) {
+        console.error("Client side PDF generation error:", clientErr);
+        alert("Failed to generate Packing Slip PDF.");
+      }
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchOrders();
@@ -1116,9 +1270,16 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                                 <button
                                   onClick={() => handleDownloadOrderPdf(order)}
                                   className="flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-1 rounded-lg text-xs font-bold transition"
-                                  title="Download Order PDF"
+                                  title="Download Order Invoice PDF"
                                 >
-                                  <Download size={12} /> PDF
+                                  <Download size={12} /> Invoice
+                                </button>
+                                <button
+                                  onClick={() => handleDownloadPackingSlip(order)}
+                                  className="flex items-center gap-1 bg-black hover:bg-gray-800 text-white px-2 py-1 rounded-lg text-xs font-bold transition shadow-sm"
+                                  title="Download Package Shipping / Packing Slip PDF"
+                                >
+                                  <FileText size={12} /> Packing Slip
                                 </button>
                                 <button
                                   onClick={() => handleCopyOrderDetails(order)}
@@ -1174,7 +1335,15 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                       className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-xs font-semibold flex items-center gap-1 transition shadow-sm"
                       title="Download order receipt PDF"
                     >
-                      <Download size={12} /> PDF
+                      <Download size={12} /> Invoice PDF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPackingSlip(selectedOrder)}
+                      className="px-2.5 py-1 bg-black hover:bg-gray-900 text-white rounded-md text-xs font-bold flex items-center gap-1 transition shadow-sm border border-white/20"
+                      title="Download Package Shipping / Packing Slip PDF"
+                    >
+                      <FileText size={12} /> Packing Slip
                     </button>
                     <button
                       onClick={() => setSelectedOrder(null)}
@@ -1407,6 +1576,14 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                   </button>
 
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPackingSlip(selectedOrder)}
+                      className="px-3 py-1.5 bg-black hover:bg-gray-900 text-white text-xs font-bold rounded-lg transition shadow flex items-center gap-1.5"
+                      title="Download Package Shipping / Packing Slip PDF"
+                    >
+                      <FileText size={13} /> Packing Slip
+                    </button>
                     <button
                       onClick={() => handleUpdateOrderStatus(selectedOrder.id, "Shipped", selectedOrder)}
                       className="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition shadow flex items-center gap-1.5"

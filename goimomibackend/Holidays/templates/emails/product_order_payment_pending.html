@@ -250,8 +250,8 @@
         <!-- Header -->
         <div class="header">
             <h1>GOIMOMI HOLIDAYS</h1>
-            <p>E-Commerce Order Payment Pending</p>
-            <div class="status-badge">⏳ Payment Pending</div>
+            <p>{{ header_subtitle|default:"E-Commerce Order Payment Pending" }}</p>
+            <div class="status-badge">{{ status_badge_text|default:"⏳ Payment Pending" }}</div>
         </div>
 
         <!-- Main Content -->

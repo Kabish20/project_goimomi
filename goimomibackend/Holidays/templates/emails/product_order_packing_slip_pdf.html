@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Packing Slip</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 25px;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 9pt;
+            background-color: #ffffff;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .header-table td {
+            vertical-align: top;
+            border: none !important;
+        }
+        .title-main {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #14532d;
+            margin: 0;
+            padding: 0 0 6px 0;
+            line-height: 1;
+        }
+        .store-address {
+            font-size: 8pt;
+            color: #333333;
+            line-height: 1.35;
+        }
+        .address-box-table {
+            width: 100%;
+            margin-top: 15px;
+            margin-bottom: 12px;
+        }
+        .address-card {
+            border: 1px solid #14532d;
+            border-radius: 4px;
+            overflow: hidden;
+            vertical-align: top;
+        }
+        .address-header {
+            background-color: #14532d;
+            color: #ffffff;
+            font-size: 10pt;
+            font-weight: bold;
+            padding: 6px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .address-body {
+            padding: 10px;
+            font-size: 8.5pt;
+            line-height: 1.45;
+            color: #1e293b;
+        }
+        .meta-box-table {
+            width: 100%;
+            border: 1px solid #14532d;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .meta-box-table td {
+            padding: 8px 12px;
+            text-align: center;
+            border-right: 1px solid #14532d;
+            vertical-align: middle;
+        }
+        .meta-box-table td:last-child {
+            border-right: none !important;
+        }
+        .meta-label {
+            font-size: 8.5pt;
+            font-weight: bold;
+            color: #14532d;
+            margin-bottom: 4px;
+        }
+        .meta-value {
+            font-size: 10pt;
+            color: #1e293b;
+        }
+        .items-table {
+            width: 100%;
+            border: 1px solid #14532d;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .items-table th {
+            background-color: #14532d;
+            color: #ffffff;
+            font-size: 9pt;
+            font-weight: bold;
+            padding: 8px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none !important;
+        }
+        .items-table td {
+            padding: 10px;
+            font-size: 9pt;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+            vertical-align: middle;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none !important;
+        }
+        .product-img-box {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background-color: #f8fafc;
+            text-align: center;
+            vertical-align: middle;
+            margin: 0 auto;
+        }
+        .product-img {
+            max-width: 40px;
+            max-height: 40px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        .totals-table {
+            width: 250px;
+            margin-left: auto;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .totals-table td {
+            padding: 4px 8px;
+            font-size: 9.5pt;
+            color: #14532d;
+        }
+        .total-row {
+            font-weight: bold;
+            font-size: 11pt;
+            border-top: 1.5px solid #14532d;
+            border-bottom: 1.5px solid #14532d;
+        }
+        .footer-note {
+            margin-top: 25px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 7.5pt;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td>
+            <!-- 1. HEADER SECTION -->
+            <table class="header-table" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 15px;">
+                <tr>
+                    <!-- Left: Title & Store Address -->
+                    <td width="65%" align="left" valign="top">
+                        <div class="title-main">Packing Slip</div>
+                        <div class="store-address">
+                            <strong>Goimomi Shop</strong><br>
+                            5, Crescent Paark, Ground Floor,<br>
+                            Sulaiman Hazrath St, opp. Jamal Mohamed Masjid,<br>
+                            Tiruchirappalli, Tamil Nadu 620020, India<br>
+                            support@goimomi.com | +91 81100 82222
+                        </div>
+                    </td>
+                    <!-- Right: Goimomi Logo -->
+                    <td width="35%" align="right" valign="top">
+                        {% if logo_data_uri %}
+                        <img src="{{ logo_data_uri }}" height="55" alt="Goimomi Logo" style="display: block;">
+                        {% else %}
+                        <img src="https://goimomi.com/logo.png" height="55" alt="Goimomi Logo" style="display: block;">
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+
+            <!-- 2. SHIP TO & BILL TO BOXES -->
+            <table class="address-box-table" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <!-- From Card -->
+                    <td width="48%" class="address-card">
+                        <div class="address-header">From</div>
+                        <div class="address-body">
+                            <strong>Goimomi Shop</strong><br>
+                            5, Crescent Paark, Ground Floor,<br>
+                            Sulaiman Hazrath St, opp. Jamal Mohamed Masjid,<br>
+                            Tiruchirappalli, Tamil Nadu 620020, India<br>
+                            Ph: +91 81100 82222<br>
+                            support@goimomi.com
+                        </div>
+                    </td>
+                    <!-- Spacer -->
+                    <td width="4%"></td>
+                    <!-- To Card -->
+                    <td width="48%" class="address-card">
+                        <div class="address-header">To</div>
+                        <div class="address-body">
+                            <strong>{{ customer_name }}</strong><br>
+                            {% if delivery_address %}
+                                {{ delivery_address|linebreaksbr }}<br>
+                            {% else %}
+                                N/A<br>
+                            {% endif %}
+                            {% if customer_phone %}Ph: {{ customer_phone }}<br>{% endif %}
+                            {% if customer_email %}{{ customer_email }}{% endif %}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- 3. ORDER METADATA BOX -->
+            <table class="meta-box-table" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td width="50%">
+                        <div class="meta-label">Order Number</div>
+                        <div class="meta-value"><strong>{{ order_id }}</strong></div>
+                    </td>
+                    <td width="50%">
+                        <div class="meta-label">Order Date & Time</div>
+                        <div class="meta-value">{{ order_date }}</div>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- 4. PRODUCT ITEMS TABLE -->
+            <table class="items-table" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th width="25%" align="left">Product ID</th>
+                        <th width="50%" align="left">Product Name</th>
+                        <th width="25%" align="center">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td align="left" valign="middle">
+                            <strong>{{ item.product_id|default:item.id|default:"—" }}</strong>
+                        </td>
+                        <td align="left" valign="middle">
+                            <strong>{{ item.title }}</strong>
+                            {% if item.variant %}
+                            <br><span style="font-size: 7.5pt; color: #64748b;">Variant: {{ item.variant }}</span>
+                            {% endif %}
+                        </td>
+                        <td align="center" valign="middle">
+                            <strong>{{ item.quantity }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- 6. FOOTER NOTE -->
+            <div class="footer-note">
+                Thank you for your order with <strong>Goimomi.store / Goimomi Holidays</strong>.<br>
+                For customer support or order inquiry, email <strong>support@goimomi.com</strong> or call <strong>+91 81100 82222</strong>.
+            </div>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

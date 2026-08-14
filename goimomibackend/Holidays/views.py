@@ -2856,6 +2856,38 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
+    @action(detail=True, methods=['get'], url_path='download-packing-slip', permission_classes=[IsAdminUser])
+    def download_packing_slip(self, request, pk=None):
+        order = self.get_object()
+        from Holidays.utils import generate_product_order_packing_slip_pdf
+        pdf_bytes = generate_product_order_packing_slip_pdf(order)
+        if not pdf_bytes:
+            return Response({'error': 'Failed to generate Packing Slip PDF.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        order_ref = order.order_id or f"GO-ORD-{order.id}"
+        filename = f"Packing_Slip_{order_ref}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    @action(detail=True, methods=['get'], url_path='download-packing-slip-public', permission_classes=[AllowAny])
+    def download_packing_slip_public(self, request, pk=None):
+        try:
+            order = self.get_object()
+        except Exception:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        from Holidays.utils import generate_product_order_packing_slip_pdf
+        pdf_bytes = generate_product_order_packing_slip_pdf(order)
+        if not pdf_bytes:
+            return Response({'error': 'Failed to generate Packing Slip PDF.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        order_ref = order.order_id or f"GO-ORD-{order.id}"
+        filename = f"Packing_Slip_{order_ref}.pdf"
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
     @action(detail=True, methods=['post'], url_path='send-shipping-email', permission_classes=[IsAdminUser])
     def send_shipping_email_action(self, request, pk=None):
         order = self.get_object()
@@ -2895,6 +2927,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         order = self.get_object()
+        prev_status = getattr(order, 'status', '')
         raw_trigger = request.data.get('trigger_shipped_email', '')
         if isinstance(raw_trigger, (list, tuple)):
             raw_trigger = raw_trigger[0] if raw_trigger else ''
@@ -2918,8 +2951,25 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}, Result: {sent}")
             except Exception as ship_err:
                 print(f"Error sending shipping email on status change: {ship_err}")
+        elif prev_status != order.status:
+            try:
+                if new_status == 'delivered':
+                    from Holidays.utils import send_product_delivered_email
+                    sent = send_product_delivered_email(order)
+                    print(f"Product Delivered email triggered for Order {order.order_id} to {order.email}, Result: {sent}")
+                elif new_status == 'cancelled':
+                    from Holidays.utils import send_product_cancelled_email
+                    sent = send_product_cancelled_email(order)
+                    print(f"Product Cancelled email triggered for Order {order.order_id} to {order.email}, Result: {sent}")
+                else:
+                    from Holidays.utils import send_product_order_email
+                    sent = send_product_order_email(order)
+                    print(f"Product status update email ({order.status}) triggered for Order {order.order_id} to {order.email}, Result: {sent}")
+            except Exception as status_err:
+                print(f"Error sending status update email: {status_err}")
 
         return response
+
 
     def create(self, request, *args, **kwargs):
         is_manual = str(request.data.get('is_manual') or '').lower() in ('true', '1', 'yes') or (request.user and request.user.is_authenticated and request.data.get('is_manual') == 'true')
@@ -3043,10 +3093,17 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             # Trigger Initial Order Status email to customer with CC to hello@goimomi.com & support@goimomi.com
             sent_email = False
             try:
-                from Holidays.utils import send_product_order_email, send_product_shipped_email
                 if status_val == 'Shipped':
+                    from Holidays.utils import send_product_shipped_email
                     sent_email = send_product_shipped_email(order)
+                elif status_val == 'Delivered':
+                    from Holidays.utils import send_product_delivered_email
+                    sent_email = send_product_delivered_email(order)
+                elif status_val == 'Cancelled':
+                    from Holidays.utils import send_product_cancelled_email
+                    sent_email = send_product_cancelled_email(order)
                 else:
+                    from Holidays.utils import send_product_order_email
                     sent_email = send_product_order_email(order)
                 print(f"Manual Product Order status email sent for Order {order.order_id} (Status: {status_val}) to customer '{order.email}' with CC to hello@goimomi.com & support@goimomi.com. Result: {sent_email}")
             except Exception as mail_err:
