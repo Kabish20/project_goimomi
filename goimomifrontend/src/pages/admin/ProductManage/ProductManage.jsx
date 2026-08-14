@@ -564,20 +564,29 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
         const tableHead = [["Product ID", "Product Name", "Quantity"]];
         const tableBody = [];
 
+        const formatProdId = (rawId) => {
+          if (!rawId) return "—";
+          const strId = String(rawId).trim();
+          if (strId.startsWith("GO-PRO-")) return strId;
+          const digits = strId.replace(/\D/g, "");
+          if (digits) return `GO-PRO-${digits.padStart(4, "0")}`;
+          return `GO-PRO-${strId.padStart(4, "0")}`;
+        };
+
         if (order.cart_items && order.cart_items.length > 0) {
           order.cart_items.forEach((item) => {
-            const pId = item.product_id || item.id || item.product || item.sku || "—";
+            const rawId = item.product_id || item.id || item.product || item.sku;
             tableBody.push([
-              String(pId),
+              formatProdId(rawId),
               item.title || "Product Item",
               item.quantity || 1
             ]);
           });
         } else {
-          const pId = order.product_id || order.product || order.product_details?.product_id || order.product_details?.id || "—";
+          const rawId = order.product_id || order.product || order.product_details?.product_id || order.product_details?.id;
           const prodTitle = order.product_title || order.product_details?.title || "Product Item";
           tableBody.push([
-            String(pId),
+            formatProdId(rawId),
             prodTitle,
             order.quantity || 1
           ]);
