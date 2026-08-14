@@ -1357,9 +1357,11 @@ def generate_product_order_packing_slip_pdf(order):
     order_date_str = order.created_at.strftime('%B %d, %Y %I:%M:%S %p') if getattr(order, 'created_at', None) else timezone.now().strftime('%B %d, %Y %I:%M:%S %p')
 
     def format_prod_id(raw_id):
-        if not raw_id:
+        if raw_id is None or raw_id == "":
             return "—"
         str_id = str(raw_id).strip()
+        if not str_id or str_id.lower() in ["none", "null", "undefined"]:
+            return "—"
         if str_id.startswith("GO-PRO-"):
             return str_id
         digits = ''.join(filter(str.isdigit, str_id))
@@ -1377,9 +1379,17 @@ def generate_product_order_packing_slip_pdf(order):
                 img_uri = get_image_as_base64_uri(item.get('image'))
             elif item.get('image_url'):
                 img_uri = get_image_as_base64_uri(item.get('image_url'))
-            p_id = format_prod_id(item.get('product_id') or item.get('id') or item.get('product'))
+            
+            raw_p = (
+                item.get('product_id') or 
+                item.get('id') or 
+                item.get('product') or 
+                item.get('sku')
+            )
+            p_id = format_prod_id(raw_p)
             items.append({
                 'product_id': p_id,
+                'id': p_id,
                 'title': item.get('title', 'Product Item'),
                 'quantity': qty,
                 'price': f"{price:,.2f}",
@@ -1392,10 +1402,19 @@ def generate_product_order_packing_slip_pdf(order):
         img_uri = ""
         if getattr(order.product, 'image', None):
             img_uri = get_image_as_base64_uri(order.product.image)
-        p_id = format_prod_id(getattr(order.product, 'product_id', '') or getattr(order.product, 'id', '') or getattr(order, 'product_id', '') or order.product)
+        
+        prod_obj = order.product
+        raw_p = (
+            getattr(prod_obj, 'product_id', '') or 
+            getattr(prod_obj, 'id', '') or 
+            getattr(order, 'product_id', '') or 
+            order.product
+        )
+        p_id = format_prod_id(raw_p)
         items.append({
             'product_id': p_id,
-            'title': order.product.title,
+            'id': p_id,
+            'title': getattr(prod_obj, 'title', 'Product Item'),
             'quantity': order.quantity,
             'price': f"{unit_p:,.2f}",
             'total': f"{float(order.total_amount):,.2f}",
@@ -1404,9 +1423,11 @@ def generate_product_order_packing_slip_pdf(order):
         })
     else:
         unit_p = float(order.price or order.total_amount)
-        p_id = format_prod_id(getattr(order, 'product_id', '') or getattr(order, 'product', ''))
+        raw_p = getattr(order, 'product_id', '') or getattr(order, 'product', '')
+        p_id = format_prod_id(raw_p)
         items.append({
             'product_id': p_id,
+            'id': p_id,
             'title': "Product Order",
             'quantity': order.quantity,
             'price': f"{unit_p:,.2f}",

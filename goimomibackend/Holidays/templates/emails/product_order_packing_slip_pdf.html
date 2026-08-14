@@ -251,7 +251,23 @@
                     {% for item in items %}
                     <tr>
                         <td align="left" valign="middle">
-                            <strong>{{ item.product_id|default:item.id|default:"—" }}</strong>
+                            <strong>
+                                {% if item.product_id %}
+                                    {% if "GO-PRO-" in item.product_id %}
+                                        {{ item.product_id }}
+                                    {% else %}
+                                        GO-PRO-{{ item.product_id|stringformat:"04d" }}
+                                    {% endif %}
+                                {% elif item.id %}
+                                    {% if "GO-PRO-" in item.id %}
+                                        {{ item.id }}
+                                    {% else %}
+                                        GO-PRO-{{ item.id|stringformat:"04d" }}
+                                    {% endif %}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </strong>
                         </td>
                         <td align="left" valign="middle">
                             <strong>{{ item.title }}</strong>

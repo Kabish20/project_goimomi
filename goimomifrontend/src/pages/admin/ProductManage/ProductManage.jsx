@@ -565,8 +565,12 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
         const tableBody = [];
 
         const formatProdId = (rawId) => {
-          if (!rawId) return "—";
+          if (rawId === null || rawId === undefined || rawId === "") return "—";
+          if (typeof rawId === "object") {
+            rawId = rawId.product_id || rawId.id || rawId.pk;
+          }
           const strId = String(rawId).trim();
+          if (!strId || strId.toLowerCase() === "none" || strId.toLowerCase() === "null" || strId.toLowerCase() === "undefined") return "—";
           if (strId.startsWith("GO-PRO-")) return strId;
           const digits = strId.replace(/\D/g, "");
           if (digits) return `GO-PRO-${digits.padStart(4, "0")}`;
@@ -583,7 +587,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
             ]);
           });
         } else {
-          const rawId = order.product_id || order.product || order.product_details?.product_id || order.product_details?.id;
+          const rawId = order.product_details?.product_id || order.product_id || (typeof order.product === 'object' ? order.product?.product_id || order.product?.id : null) || order.product_details?.id || order.product;
           const prodTitle = order.product_title || order.product_details?.title || "Product Item";
           tableBody.push([
             formatProdId(rawId),
