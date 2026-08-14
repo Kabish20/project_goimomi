@@ -179,7 +179,9 @@
                     </td>
                     <!-- Right: Goimomi Logo -->
                     <td width="35%" align="right" valign="top">
-                        {% if logo_data_uri %}
+                        {% if logo_path %}
+                        <img src="{{ logo_path }}" height="55" alt="Goimomi Logo" style="display: block;">
+                        {% elif logo_data_uri %}
                         <img src="{{ logo_data_uri }}" height="55" alt="Goimomi Logo" style="display: block;">
                         {% else %}
                         <img src="https://goimomi.com/logo.png" height="55" alt="Goimomi Logo" style="display: block;">

@@ -134,7 +134,9 @@
                 <tr>
                     <!-- Logo on left -->
                     <td width="30%" align="left" valign="middle">
-                        {% if logo_data_uri %}
+                        {% if logo_path %}
+                        <img src="{{ logo_path }}" height="50" alt="Goimomi Holidays" style="display: block;">
+                        {% elif logo_data_uri %}
                         <img src="{{ logo_data_uri }}" height="50" alt="Goimomi Holidays" style="display: block;">
                         {% else %}
                         <img src="https://goimomi.com/logo.png" height="50" alt="Goimomi Holidays" style="display: block;">

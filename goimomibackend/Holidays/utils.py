@@ -1254,12 +1254,14 @@ def generate_product_order_invoice_pdf(order):
         })
 
     logo_data_uri = ""
+    logo_path = ""
     local_logo_paths = [
         os.path.join(settings.BASE_DIR, 'Holidays', 'static', 'goimomilogo.png'),
         os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomifrontend', 'src', 'assets', 'goimomilogo.png'),
     ]
     for l_path in local_logo_paths:
         if os.path.exists(l_path):
+            logo_path = l_path.replace('\\', '/')
             try:
                 with open(l_path, "rb") as lf:
                     encoded_logo = base64.b64encode(lf.read()).decode("utf-8")
@@ -1272,6 +1274,7 @@ def generate_product_order_invoice_pdf(order):
         logo_data_uri = get_image_as_base64_uri("https://goimomi.com/logo.png")
 
     context = {
+        'logo_path': logo_path,
         'logo_data_uri': logo_data_uri,
         'customer_name': order.name,
         'order_id': order_ref,
@@ -1399,12 +1402,14 @@ def generate_product_order_packing_slip_pdf(order):
         })
 
     logo_data_uri = ""
+    logo_path = ""
     local_logo_paths = [
         os.path.join(settings.BASE_DIR, 'Holidays', 'static', 'goimomilogo.png'),
         os.path.join(os.path.dirname(settings.BASE_DIR), 'goimomifrontend', 'src', 'assets', 'goimomilogo.png'),
     ]
     for l_path in local_logo_paths:
         if os.path.exists(l_path):
+            logo_path = l_path.replace('\\', '/')
             try:
                 with open(l_path, "rb") as lf:
                     encoded_logo = base64.b64encode(lf.read()).decode("utf-8")
@@ -1422,6 +1427,7 @@ def generate_product_order_packing_slip_pdf(order):
         delivery_addr = ", ".join(addr_parts) if addr_parts else "N/A"
 
     context = {
+        'logo_path': logo_path,
         'logo_data_uri': logo_data_uri,
         'customer_name': order.name,
         'order_id': order_ref,

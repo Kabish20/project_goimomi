@@ -3,6 +3,7 @@ import api from "../../../api";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import goimomilogo from "../../../assets/goimomilogo.png";
 import { 
   Edit2, Trash2, Plus, Search, Package, RefreshCw, Tag, CheckCircle, 
   XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText, Truck, Upload, Download, Copy, Check, ExternalLink
@@ -480,11 +481,15 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
         doc.text("Tiruchirappalli, Tamil Nadu 620020, India", 14, 38);
         doc.text("support@goimomi.com | +91 81100 82222", 14, 42);
 
-        // Header Right: Goimomi Brand Title
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(20, 83, 45);
-        doc.text("goimomi", 196, 22, { align: "right" });
+        // Header Right: Goimomi Logo Image
+        try {
+          doc.addImage(goimomilogo, 'PNG', 148, 10, 48, 18);
+        } catch (logoErr) {
+          doc.setFontSize(18);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(20, 83, 45);
+          doc.text("goimomi", 196, 22, { align: "right" });
+        }
 
         let yPos = 48;
 
@@ -556,19 +561,23 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
         yPos += 22;
 
         // Product Items Table
-        const tableHead = [["Product Name", "Quantity"]];
+        const tableHead = [["Product ID", "Product Name", "Quantity"]];
         const tableBody = [];
 
         if (order.cart_items && order.cart_items.length > 0) {
           order.cart_items.forEach((item) => {
+            const pId = item.product_id || item.id || item.product || item.sku || "—";
             tableBody.push([
+              String(pId),
               item.title || "Product Item",
               item.quantity || 1
             ]);
           });
         } else {
+          const pId = order.product_id || order.product || order.product_details?.product_id || order.product_details?.id || "—";
           const prodTitle = order.product_title || order.product_details?.title || "Product Item";
           tableBody.push([
+            String(pId),
             prodTitle,
             order.quantity || 1
           ]);
@@ -579,10 +588,11 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
           body: tableBody,
           startY: yPos,
           styles: { fontSize: 9, cellPadding: 5, halign: "left" },
-          headStyles: { fillColor: [0, 0, 0], textColor: 255, fontStyle: "bold" },
+          headStyles: { fillColor: [20, 83, 45], textColor: 255, fontStyle: "bold" },
           columnStyles: {
-            0: { cellWidth: 140 },
-            1: { halign: "center", cellWidth: 42 }
+            0: { cellWidth: 45 },
+            1: { cellWidth: 97 },
+            2: { halign: "center", cellWidth: 40 }
           },
           alternateRowStyles: { fillColor: [248, 250, 252] },
           margin: { left: 14, right: 14 }
