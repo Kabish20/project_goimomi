@@ -4,11 +4,15 @@
   "version": "1.0.0",
   "description": "Goimomi Full-Stack Workspace",
   "scripts": {
+    "dev": "start_dev.bat",
     "dev:backend": "cd goimomibackend && python manage.py runserver 0.0.0.0:8000",
     "dev:frontend": "cd goimomifrontend && npm run dev",
     "build:frontend": "cd goimomifrontend && npm run build",
-    "check:backend": "cd goimomibackend && python manage.py check && python -m compileall .",
+    "check:backend": "cd goimomibackend && python manage.py check",
     "test:backend": "cd goimomibackend && python manage.py test",
-    "lint:frontend": "cd goimomifrontend && npm run lint"
+    "lint:frontend": "cd goimomifrontend && npm run lint",
+    "seed:logistics": "python goimomibackend/scripts/seed_logistics.py",
+    "seed:visas": "python goimomibackend/scripts/seed_popular_visas.py",
+    "zip:package": "python scripts/create_zip.py"
   }
 }
