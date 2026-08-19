@@ -390,7 +390,7 @@ const VisaSearch = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <div
-        className="relative pt-24 pb-36 bg-slate-900"
+        className="relative w-full pt-16 md:pt-24 pb-32 md:pb-36 bg-slate-900 overflow-hidden"
         style={{
           backgroundImage: `url(${visaBg})`,
           backgroundSize: "cover",

@@ -4,6 +4,24 @@ import api from "../../../api";
 import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
 import { getImageUrl } from "../../../utils/imageUtils";
 import usePageSEO from "../../../hooks/usePageSEO";
+import visaBg from "../../../assets/Hero/visa_bg.jpg";
+import {
+    all196Countries,
+    visaDestinationCountryAliases,
+    visaDestinationImageOverrides,
+} from "../../../data/countriesVisaData";
+
+const normaliseCountry = (name = "") => name.trim().toLowerCase();
+
+const getCountryHeroImage = (name) => {
+    const key = visaDestinationCountryAliases[normaliseCountry(name)] || normaliseCountry(name);
+    const override = Object.entries(visaDestinationImageOverrides).find(
+        ([country]) => normaliseCountry(country) === key
+    )?.[1];
+
+    if (override) return override;
+    return all196Countries.find((country) => normaliseCountry(country.name) === key)?.image || visaBg;
+};
 
 
 const VisaResults = () => {
@@ -292,10 +310,10 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Search Bar - Sticky & Interactive (Restored) */}
-            <div className="bg-white shadow-sm sticky top-0 z-50 py-2">
-                <div className="max-w-6xl mx-auto px-4">
-                    <div className="flex flex-col md:flex-row gap-2 bg-white rounded-2xl p-1 border border-gray-100 shadow-sm">
+            {/* Search Bar - Sticky & Interactive at the top */}
+            <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50 py-3.5">
+                <div className="max-w-7xl mx-auto px-4 md:px-8">
+                    <div className="flex flex-col md:flex-row gap-2 bg-white rounded-2xl p-1.5 border border-gray-100 shadow-sm">
                         {/* Citizen Of */}
                         <div className="flex-1 relative" ref={citizenRef}>
                             <div
@@ -440,8 +458,48 @@ Visa approval, processing time, and entry depend on authorities. Fees are non-re
                 </div>
             </div>
 
+            {/* Country Banner */}
+            <section
+                className="relative isolate w-full h-[280px] md:h-[360px] overflow-hidden flex items-center justify-center bg-[#082f3a]"
+            >
+                <img
+                    src={getCountryHeroImage(goingTo)}
+                    alt={`${goingTo || "International"} visa destination`}
+                    className="absolute inset-0 z-0 block h-full w-full object-cover object-center"
+                    onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = visaBg;
+                    }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#062d38]/85 via-[#062d38]/65 to-[#062d38]/95" />
+                <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+                    <div className="flex items-center justify-center gap-3 text-emerald-400 mb-3">
+                        <div className="w-8 h-[2px] bg-emerald-400" />
+                        <span className="text-[11px] uppercase tracking-[0.4em] font-black">
+                            Visa Requirements & Processing
+                        </span>
+                        <div className="w-8 h-[2px] bg-emerald-400" />
+                    </div>
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase italic tracking-tighter text-white leading-none mb-3">
+                        {goingTo ? `${goingTo} Visas` : "International Visas"}
+                    </h1>
+                    <p className="text-slate-300 text-xs md:text-sm max-w-xl mx-auto leading-relaxed">
+                        Accurate, hassle-free visa processing for {goingTo || "your destination"} with certified documentation support and 98% approval rate.
+                    </p>
+                </div>
+            </section>
+
             {/* Results */}
-            <div className="max-w-5xl mx-auto px-4 py-8">
+            <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+                {goingTo && visas.length > 0 && (
+                    <div className="mb-5 flex items-end justify-between gap-4">
+                        <div>
+                            <p className="text-[11px] uppercase tracking-[0.28em] font-black text-[#14532d]">Visa data cards</p>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 mt-1">Available options for {goingTo}</h2>
+                        </div>
+                        <span className="hidden sm:block text-xs font-bold text-gray-400">{visas.length} option{visas.length === 1 ? "" : "s"}</span>
+                    </div>
+                )}
                 {visas.length === 0 ? (
                     <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
                         <p className="text-gray-600 text-lg">No visas found for {goingTo}</p>

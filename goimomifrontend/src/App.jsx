@@ -1,5 +1,5 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import React, { useState, useEffect, Suspense } from 'react'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { lazyRetry } from './utils/lazyRetry'
 
 import Navbar from './components/Navbar.jsx'

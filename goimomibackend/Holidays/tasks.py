@@ -20,6 +20,10 @@ def send_product_order_email_task(self, order_pk):
     except GoimomiProductOrder.DoesNotExist:
         logger.error(f"[Celery] Order with pk={order_pk} does not exist.")
         return False
+    except Exception as exc:
+        logger.error(f"[Celery] Error sending product order email: {exc}")
+        raise self.retry(exc=exc)
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def send_product_shipped_email_task(self, order_pk):
     """
