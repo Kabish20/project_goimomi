@@ -1221,7 +1221,11 @@ const GoimomiProduct = () => {
     const matchesSearch =
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase());
-    const matchesStock = stockFilter === "all" || p.stock_status === stockFilter;
+    const isPOutOfStock = p.stock_status === "out_of_stock" || Number(p.quantity || 0) <= 0;
+    const matchesStock =
+      stockFilter === "all" ||
+      (stockFilter === "out_of_stock" && isPOutOfStock) ||
+      (stockFilter === "in_stock" && !isPOutOfStock);
     const matchesCategory =
       selectedCategory === "all" ||
       p.catalogue_name === selectedCategory ||

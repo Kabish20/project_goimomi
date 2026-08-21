@@ -395,7 +395,7 @@ const ProductAdd = () => {
                         }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${form.stock_status === "in_stock" ? "bg-white animate-pulse" : "bg-gray-300"}`} />
-                        Active
+                        In Stock
                       </button>
                       <button
                         type="button"
@@ -407,7 +407,7 @@ const ProductAdd = () => {
                         }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${form.stock_status === "out_of_stock" ? "bg-white animate-pulse" : "bg-gray-300"}`} />
-                        Inactive
+                        Out of Stock
                       </button>
                     </div>
                   </div>

@@ -679,12 +679,15 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
       });
     }
     if (stockFilter !== "all") {
-      result = result.filter((p) => p.stock_status === stockFilter);
+      result = result.filter((p) => {
+        const isPOutOfStock = p.stock_status === "out_of_stock" || Number(p.quantity || 0) <= 0;
+        return stockFilter === "out_of_stock" ? isPOutOfStock : !isPOutOfStock;
+      });
     }
     setFilteredProducts(result);
   }, [productSearchTerm, stockFilter, products]);
 
-  // Filter Orders
+  // Handle Order Filter
   useEffect(() => {
     let result = orders;
     if (orderSearchTerm) {
@@ -725,14 +728,19 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, stock_status: newStatus } : p))
       );
-      await api.patch(`/api/goimomi-products/${product.id}/`, { stock_status: newStatus });
-      setMessage(`"${product.title}" status updated to ${newStatus === "in_stock" ? "Active" : "Inactive"}!`);
+      const res = await api.patch(`/api/goimomi-products/${product.id}/`, { stock_status: newStatus });
+      const updatedStatus = res.data?.stock_status || newStatus;
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, stock_status: updatedStatus } : p))
+      );
+      const label = updatedStatus === "in_stock" ? "In Stock" : "Out of Stock";
+      setMessage(`"${product.title}" stock status updated to ${label}!`);
       setTimeout(() => setMessage(""), 2500);
     } catch (err) {
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, stock_status: product.stock_status } : p))
       );
-      setError("Failed to update status.");
+      setError("Failed to update stock status.");
       setTimeout(() => setError(""), 2500);
     }
   };

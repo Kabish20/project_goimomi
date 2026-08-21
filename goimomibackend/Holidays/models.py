@@ -890,7 +890,7 @@ class GoimomiProduct(models.Model):
             if self.quantity <= 0:
                 self.quantity = 0
                 self.stock_status = 'out_of_stock'
-            elif self.quantity > 0 and self.stock_status == 'out_of_stock':
+            elif not self.stock_status:
                 self.stock_status = 'in_stock'
         super().save(*args, **kwargs)
         if not self.product_id:
