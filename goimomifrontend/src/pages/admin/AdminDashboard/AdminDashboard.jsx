@@ -1,42 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
-  ExternalLink, RefreshCw, Settings,
-  MapPin, Package, Calendar, Users,
-  Phone, Ship, Building2, Globe,
-  Flag, CreditCard, ClipboardList,
-  Map, PlaneTakeoff, HelpCircle, Car, Plus, ArrowRight,
-  PieChart as PieChartIcon, TrendingUp, ShoppingCart, Search, Eye, Filter
+  RefreshCw, Package, Users, Phone, Mail, Ship, Building2, Globe,
+  CreditCard, ClipboardList, Map, HelpCircle, Car, Plus, ArrowRight,
+  PieChart as PieChartIcon, TrendingUp, ShoppingCart, Search, Eye, Filter,
+  Calendar, CheckCircle2, Clock, AlertCircle, ArrowUpRight, Copy, Check,
+  Sparkles, ShieldCheck, DollarSign, Layers, ChevronRight, UserCheck,
+  Send, ExternalLink, Activity, Award
 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
 
-// Interactive SVG Pie / Donut Chart Component
-const EnquiryPieChart = ({ data, onNavigate }) => {
+// Interactive SVG Donut / Segment Chart with Smooth Hover State
+const EnquiryPieChart = ({ data, onNavigate, total }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const total = data.reduce((acc, d) => acc + d.value, 0);
-  const size = 220;
+  const size = 240;
   const center = size / 2;
-  const radius = 70;
-  const strokeWidth = 26;
+  const radius = 78;
+  const strokeWidth = 28;
   const circumference = 2 * Math.PI * radius;
 
   let accumulatedPercent = 0;
 
   if (total === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-52 text-xs text-gray-400 font-bold uppercase tracking-wider">
-        <PieChartIcon size={36} className="text-gray-300 mb-2" />
+      <div className="flex flex-col items-center justify-center h-60 text-xs text-gray-400 font-bold uppercase tracking-wider">
+        <PieChartIcon size={40} className="text-gray-300 mb-2" />
         No enquiry data available yet
       </div>
     );
   }
 
+  const activeItem = hoveredIndex !== null ? data[hoveredIndex] : null;
+
   return (
-    <div className="flex flex-col lg:flex-row items-center gap-6 p-2">
-      {/* SVG Donut Chart */}
-      <div className="relative w-52 h-52 flex-shrink-0">
+    <div className="flex flex-col lg:flex-row items-center gap-8 py-2">
+      {/* SVG Donut */}
+      <div className="relative w-60 h-60 flex-shrink-0">
         <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full transform -rotate-90">
           {data.map((item, index) => {
             if (item.value === 0) return null;
@@ -55,17 +56,16 @@ const EnquiryPieChart = ({ data, onNavigate }) => {
                 r={radius}
                 fill="transparent"
                 stroke={item.color}
-                strokeWidth={isHovered ? strokeWidth + 4 : strokeWidth}
+                strokeWidth={isHovered ? strokeWidth + 6 : strokeWidth}
                 strokeDasharray={dashArray}
                 strokeDashoffset={dashOffset}
                 onClick={() => item.link && onNavigate(item.link)}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
                 className="transition-all duration-300 cursor-pointer"
-                title={`Click to view ${item.label}`}
                 style={{
                   transformOrigin: 'center',
-                  filter: isHovered ? 'drop-shadow(0px 4px 8px rgba(0,0,0,0.2))' : 'none'
+                  filter: isHovered ? 'drop-shadow(0px 6px 12px rgba(0,0,0,0.25))' : 'none'
                 }}
               />
             );
@@ -73,20 +73,25 @@ const EnquiryPieChart = ({ data, onNavigate }) => {
         </svg>
 
         {/* Center Total Summary */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-          <span className="text-3xl font-black text-slate-900 leading-none">
-            {hoveredIndex !== null ? data[hoveredIndex].value : total}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-4">
+          <span className="text-3xl font-black text-slate-900 leading-none tracking-tight">
+            {activeItem ? activeItem.value : total}
           </span>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-            {hoveredIndex !== null ? data[hoveredIndex].label : "Total Enquiries"}
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1.5 line-clamp-1 max-w-[130px]">
+            {activeItem ? activeItem.label : "Total Inquiries"}
           </span>
+          {activeItem && (
+            <span className="text-[10px] font-extrabold text-emerald-700 mt-0.5">
+              {((activeItem.value / total) * 100).toFixed(1)}% of total
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Legend Buttons Grid */}
-      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs w-full">
+      {/* Interactive Category Cards Grid */}
+      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
         {data.map((item, index) => {
-          const percent = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+          const percent = total > 0 ? ((item.value / total) * 100).toFixed(1) : "0.0";
           const isHovered = hoveredIndex === index;
           return (
             <button
@@ -97,19 +102,26 @@ const EnquiryPieChart = ({ data, onNavigate }) => {
               onMouseLeave={() => setHoveredIndex(null)}
               className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer group text-left ${
                 isHovered
-                  ? "bg-emerald-50/90 border-emerald-400 shadow-md translate-x-0.5 scale-[1.01]"
-                  : "bg-slate-50/80 border-slate-200/80 hover:bg-emerald-50/50 hover:border-emerald-300 hover:shadow-sm"
+                  ? "bg-emerald-50/90 border-emerald-400 shadow-md translate-x-1 scale-[1.01]"
+                  : "bg-slate-50/70 border-slate-200/80 hover:bg-emerald-50/40 hover:border-emerald-300 hover:shadow-xs"
               }`}
               title={`Click to view ${item.label}`}
             >
               <div className="flex items-center gap-2.5 truncate">
-                <span className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-xs" style={{ backgroundColor: item.color }} />
-                <span className="font-bold text-slate-800 group-hover:text-emerald-900 truncate">{item.label}</span>
+                <span
+                  className="w-3 h-3 rounded-full flex-shrink-0 shadow-xs ring-2 ring-white"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="font-bold text-slate-800 text-xs group-hover:text-emerald-900 truncate">
+                  {item.label}
+                </span>
               </div>
               <div className="text-right ml-2 flex-shrink-0 flex items-center gap-1.5">
-                <span className="font-black text-slate-900 group-hover:text-emerald-900">{item.value}</span>
+                <span className="font-black text-slate-900 text-xs group-hover:text-emerald-900">
+                  {item.value}
+                </span>
                 <span className="text-[10px] text-slate-400 font-semibold">({percent}%)</span>
-                <ArrowRight size={13} className="text-gray-400 group-hover:text-emerald-700 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight size={12} className="text-gray-400 group-hover:text-emerald-700 transition-transform group-hover:translate-x-0.5" />
               </div>
             </button>
           );
@@ -129,19 +141,42 @@ const AdminDashboard = () => {
     holidayEnquiries: 0,
     umrahEnquiries: 0,
     itineraryMasters: 0,
+    sightseeingMasters: 0,
+    accommodations: 0,
     visas: 0,
     visaApplications: 0,
     cantonEnquiries: 0,
     cabBookings: 0,
+    packageBookings: 0,
     productOrders: 0,
     goimomiProducts: 0,
+    vehicles: 0,
+    drivers: 0,
+    rateCards: 0,
+    cities: 0,
+    countries: 0,
+    airports: 0,
+    pickupPoints: 0,
+    cruiseTerminals: 0,
+    users: 0,
+    suppliers: 0,
+    cabRevenue: 0,
+    productRevenue: 0,
+    packageRevenue: 0,
+    totalRevenue: 0,
+    cabStatusCounts: { requested: 0, defined: 0, confirmed: 0, completed: 0, cancelled: 0 },
+    packageStatusCounts: { pending: 0, confirmed: 0, cancelled: 0 },
+    productStatusCounts: { pending: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 },
   });
+
   const [recentEnquiries, setRecentEnquiries] = useState([]);
-  const [filteredEnquiries, setFilteredEnquiries] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategoryTab, setActiveCategoryTab] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [lastRefreshed, setLastRefreshed] = useState(new Date());
   const [error, setError] = useState(null);
-  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
   const navigate = useNavigate();
 
   const API_BASE_URL = "/api";
@@ -165,16 +200,37 @@ const AdminDashboard = () => {
           holidayEnquiries: fetchedStats.holidayEnquiries || 0,
           umrahEnquiries: fetchedStats.umrahEnquiries || 0,
           itineraryMasters: fetchedStats.itineraryMasters || 0,
+          sightseeingMasters: fetchedStats.sightseeingMasters || 0,
+          accommodations: fetchedStats.accommodations || 0,
           visas: fetchedStats.visas || 0,
           visaApplications: fetchedStats.visaApplications || 0,
           cantonEnquiries: fetchedStats.cantonEnquiries || 0,
           cabBookings: fetchedStats.cabBookings || 0,
+          packageBookings: fetchedStats.packageBookings || 0,
           productOrders: fetchedStats.productOrders || 0,
           goimomiProducts: fetchedStats.goimomiProducts || 0,
+          vehicles: fetchedStats.vehicles || 0,
+          drivers: fetchedStats.drivers || 0,
+          rateCards: fetchedStats.rateCards || 0,
+          cities: fetchedStats.cities || 0,
+          countries: fetchedStats.countries || 0,
+          airports: fetchedStats.airports || 0,
+          pickupPoints: fetchedStats.pickupPoints || 0,
+          cruiseTerminals: fetchedStats.cruiseTerminals || 0,
+          users: fetchedStats.users || 0,
+          suppliers: fetchedStats.suppliers || 0,
+          cabRevenue: fetchedStats.cabRevenue || 0,
+          productRevenue: fetchedStats.productRevenue || 0,
+          packageRevenue: fetchedStats.packageRevenue || 0,
+          totalRevenue: fetchedStats.totalRevenue || 0,
+          cabStatusCounts: fetchedStats.cabStatusCounts || { requested: 0, defined: 0, confirmed: 0, completed: 0, cancelled: 0 },
+          packageStatusCounts: fetchedStats.packageStatusCounts || { pending: 0, confirmed: 0, cancelled: 0 },
+          productStatusCounts: fetchedStats.productStatusCounts || { pending: 0, confirmed: 0, shipped: 0, delivered: 0, cancelled: 0 },
         });
+
         const enquiries = response.data.recentEnquiries || [];
         setRecentEnquiries(enquiries);
-        setFilteredEnquiries(enquiries);
+        setLastRefreshed(new Date());
         setError(null);
       }
     } catch (err) {
@@ -189,427 +245,700 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredEnquiries(recentEnquiries);
-    } else {
+  const handleCopy = (text, fieldName) => {
+    if (!text || text === "—" || text === "N/A") return;
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldName);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  // Category stream configuration for Donut Chart & Category Cards
+  const categoryStreams = useMemo(() => [
+    { label: "Cab Bookings", value: stats.cabBookings, color: "#f59e0b", link: "/admin/cab-bookings", key: "cab" },
+    { label: "Cab Enquiries", value: stats.cabEnquiries, color: "#fbbf24", link: "/admin/cab-enquiries", key: "cab-enq" },
+    { label: "Holiday Enquiries", value: stats.holidayEnquiries, color: "#16a34a", link: "/admin/holiday-enquiries", key: "holiday" },
+    { label: "Umrah Pilgrimage", value: stats.umrahEnquiries, color: "#8b5cf6", link: "/admin/umrah-enquiries", key: "umrah" },
+    { label: "Visa Applications", value: stats.visaApplications, color: "#e11d48", link: "/admin/visa-applications", key: "visa" },
+    { label: "Product Orders", value: stats.productOrders, color: "#0d9488", link: "/admin/products", key: "product" },
+    { label: "Cruise Inquiries", value: stats.cruiseEnquiries, color: "#0284c7", link: "/admin/cruise-enquiries", key: "cruise" },
+    { label: "Hotel Bookings", value: stats.hotelEnquiries, color: "#10b981", link: "/admin/hotel-enquiries", key: "hotel" },
+    { label: "Canton Fair", value: stats.cantonEnquiries, color: "#ea580c", link: "/admin/canton-enquiries", key: "canton" },
+    { label: "General & Other", value: stats.enquiries, color: "#3b82f6", link: "/admin/general-enquiries", key: "general" },
+  ], [stats]);
+
+  const totalAllInquiries = useMemo(() => {
+    return categoryStreams.reduce((acc, d) => acc + d.value, 0);
+  }, [categoryStreams]);
+
+  const totalActiveBookingsCount = stats.cabBookings + stats.packageBookings + stats.productOrders;
+
+  // Filtered recent activity
+  const filteredSubmissions = useMemo(() => {
+    return recentEnquiries.filter((item) => {
+      // Category Tab Filter
+      if (activeCategoryTab !== "all") {
+        if (activeCategoryTab === "cab" && item.category_key !== "cab") return false;
+        if (activeCategoryTab === "package" && item.category_key !== "package") return false;
+        if (activeCategoryTab === "product" && item.category_key !== "product") return false;
+        if (activeCategoryTab === "visa" && item.category_key !== "visa") return false;
+        if (activeCategoryTab === "holiday_umrah" && item.category_key !== "holiday" && item.category_key !== "umrah") return false;
+        if (activeCategoryTab === "general" && item.category_key !== "general" && item.category_key !== "canton") return false;
+      }
+
+      // Text Search Filter
+      if (!searchTerm) return true;
       const term = searchTerm.toLowerCase();
-      setFilteredEnquiries(
-        recentEnquiries.filter(
-          e =>
-            (e.name && e.name.toLowerCase().includes(term)) ||
-            (e.email && e.email.toLowerCase().includes(term)) ||
-            (e.phone && e.phone.toLowerCase().includes(term)) ||
-            (e.type && e.type.toLowerCase().includes(term)) ||
-            (e.purpose && e.purpose.toLowerCase().includes(term))
-        )
+      return (
+        (item.name && item.name.toLowerCase().includes(term)) ||
+        (item.email && item.email.toLowerCase().includes(term)) ||
+        (item.phone && item.phone.toLowerCase().includes(term)) ||
+        (item.type && item.type.toLowerCase().includes(term)) ||
+        (item.purpose && item.purpose.toLowerCase().includes(term)) ||
+        (item.booking_id && item.booking_id.toLowerCase().includes(term)) ||
+        (item.status && item.status.toLowerCase().includes(term))
       );
-    }
-  }, [searchTerm, recentEnquiries]);
+    });
+  }, [recentEnquiries, activeCategoryTab, searchTerm]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-IN", {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-IN", {
       month: "short",
       day: "numeric",
       year: "numeric"
     });
   };
 
-  const getEnquiryName = (enquiry) => {
-    if (enquiry.name) return enquiry.name;
-    if (enquiry.full_name) return enquiry.full_name;
-    if (enquiry.first_name) return `${enquiry.first_name} ${enquiry.last_name || ""}`.trim();
-    if (enquiry.applicants && enquiry.applicants.length > 0) {
-      return `${enquiry.applicants[0].first_name} ${enquiry.applicants[0].last_name || ""}`.trim();
-    }
-    return "Unknown Customer";
+  const formatCurrency = (amount) => {
+    return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
   };
 
-  const getEnquiryPurpose = (enquiry) => {
-    if (enquiry.type === 'Visa') {
-      return `Visa for ${enquiry.visa_country || 'N/A'} - ${enquiry.visa_title || 'Application'}`;
+  const getStatusBadge = (status) => {
+    const s = (status || "").toLowerCase();
+    if (s.includes("confirmed") || s === "approved" || s === "delivered") {
+      return "bg-emerald-50 text-emerald-800 border-emerald-200";
     }
-    if (enquiry.type === 'Canton') {
-      return `Phase: ${enquiry.selected_phase || 'N/A'} (${enquiry.business_name || 'N/A'})`;
+    if (s.includes("requested") || s === "pending" || s === "processing") {
+      return "bg-amber-50 text-amber-800 border-amber-200";
     }
-    if (enquiry.type === 'Cab' || enquiry.type === 'Cab Booking') {
-      const vehicle = enquiry.vehicle_name || enquiry.vehicle || 'Cab Transfer';
-      const from = enquiry.from_city || 'N/A';
-      const to = enquiry.to_city || 'N/A';
-      return `${vehicle}: ${from} to ${to}`;
+    if (s.includes("defined") || s.includes("shipped")) {
+      return "bg-blue-50 text-blue-800 border-blue-200";
     }
-    return enquiry.purpose || enquiry.message || enquiry.destination || enquiry.description || "General Enquiry";
+    if (s.includes("completed")) {
+      return "bg-green-50 text-green-800 border-green-200";
+    }
+    if (s.includes("cancelled") || s.includes("rejected")) {
+      return "bg-red-50 text-red-800 border-red-200";
+    }
+    return "bg-slate-100 text-slate-700 border-slate-200";
   };
 
-  const getEnquiryContact = (enquiry) => {
-    let email = enquiry.email;
-    let phone = enquiry.phone;
-
-    if (!email && enquiry.applicants && enquiry.applicants.length > 0) {
-      email = enquiry.applicants[0].email;
-      phone = enquiry.applicants[0].phone;
-    }
-
-    if (enquiry.type === 'Canton') {
-      phone = enquiry.whatsapp_number;
-    }
-
-    return {
-      email: email || "N/A",
-      phone: phone || "N/A"
-    };
+  const getCategoryBadge = (type) => {
+    const t = (type || "").toLowerCase();
+    if (t.includes("cab")) return "bg-amber-50 text-amber-900 border-amber-200";
+    if (t.includes("visa")) return "bg-rose-50 text-rose-900 border-rose-200";
+    if (t.includes("product") || t.includes("order")) return "bg-teal-50 text-teal-900 border-teal-200";
+    if (t.includes("holiday") || t.includes("package")) return "bg-green-50 text-green-900 border-green-200";
+    if (t.includes("umrah")) return "bg-purple-50 text-purple-900 border-purple-200";
+    if (t.includes("canton")) return "bg-orange-50 text-orange-900 border-orange-200";
+    if (t.includes("cruise")) return "bg-sky-50 text-sky-900 border-sky-200";
+    if (t.includes("hotel")) return "bg-emerald-50 text-emerald-900 border-emerald-200";
+    return "bg-blue-50 text-blue-900 border-blue-200";
   };
 
-  // Pie Chart Data Setup with direct page links
-  const pieChartData = [
-    { label: "General Enquiries", value: stats.enquiries, color: "#3b82f6", link: "/admin/general-enquiries" },
-    { label: "Cab Enquiries", value: stats.cabEnquiries + stats.cabBookings, color: "#f59e0b", link: "/admin/cab-enquiries" },
-    { label: "Cruise Enquiries", value: stats.cruiseEnquiries, color: "#0284c7", link: "/admin/cruise-enquiries" },
-    { label: "Hotel Enquiries", value: stats.hotelEnquiries, color: "#10b981", link: "/admin/hotel-enquiries" },
-    { label: "Holiday Enquiries", value: stats.holidayEnquiries, color: "#16a34a", link: "/admin/holiday-enquiries" },
-    { label: "Umrah Enquiries", value: stats.umrahEnquiries, color: "#8b5cf6", link: "/admin/umrah-enquiries" },
-    { label: "Visa Applications", value: stats.visaApplications, color: "#e11d48", link: "/admin/visa-applications" },
-    { label: "Canton Enquiries", value: stats.cantonEnquiries, color: "#ea580c", link: "/admin/canton-enquiries" },
-    { label: "Product Orders", value: stats.productOrders, color: "#059669", link: "/admin/products" },
-  ];
-
-  const totalAllEnquiries = pieChartData.reduce((acc, d) => acc + d.value, 0);
+  const getDestinationManageLink = (item) => {
+    const type = (item?.type || "").toLowerCase();
+    if (type.includes("cab booking")) return "/admin/cab-bookings";
+    if (type.includes("cab")) return "/admin/cab-enquiries";
+    if (type.includes("visa")) return "/admin/visa-applications";
+    if (type.includes("product") || type.includes("order")) return "/admin/products";
+    if (type.includes("holiday")) return "/admin/holiday-enquiries";
+    if (type.includes("umrah")) return "/admin/umrah-enquiries";
+    if (type.includes("canton")) return "/admin/canton-enquiries";
+    if (type.includes("cruise")) return "/admin/cruise-enquiries";
+    if (type.includes("hotel")) return "/admin/hotel-enquiries";
+    return "/admin/general-enquiries";
+  };
 
   return (
-    <div className="flex bg-gray-100 h-full overflow-hidden font-sans">
+    <div className="flex bg-[#f8faf9] h-screen overflow-hidden font-sans">
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7 space-y-6">
 
-          {/* Top Banner Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-            <div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <TrendingUp size={22} className="text-emerald-700" />
-                Goimomi Analytics & Dashboard Hub
-              </h1>
-              <p className="text-xs text-gray-500 mt-1 font-medium">
-                Live metrics, enquiry distribution, catalog overview, and recent bookings.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={fetchDashboardData}
-                className="bg-[#14532d] hover:bg-[#0f3d21] text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center gap-2"
-              >
-                <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-                Refresh Data
-              </button>
+          {/* ═══════════════════════════════════════════════════════════
+              SECTION 1: EXECUTIVE COMMAND HEADER & REALTIME TOOLBAR
+          ═══════════════════════════════════════════════════════════ */}
+          <div className="bg-gradient-to-r from-[#0d2f1f] via-[#14532d] to-[#1b6b3c] rounded-3xl shadow-lg p-5 md:p-6 text-white relative overflow-hidden">
+            {/* Ambient background decoration */}
+            <div className="absolute right-0 top-0 w-96 h-full opacity-10 pointer-events-none bg-radial from-white to-transparent" />
+            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-emerald-400/10 blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/15 text-[10px] font-black uppercase tracking-widest text-emerald-300 backdrop-blur-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Live Operational Hub • Enterprise Sync
+                </div>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
+                  <Activity className="w-7 h-7 text-emerald-400" />
+                  Goimomi Executive Dashboard
+                </h1>
+                <p className="text-xs md:text-sm text-emerald-100/80 font-medium max-w-2xl">
+                  Unified command center for customer inquiries, cab bookings, visa processing, product sales, and holiday logistics.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="text-right hidden xl:block pr-3 border-r border-white/20">
+                  <p className="text-[10px] uppercase font-bold text-emerald-300/80 tracking-wider">Last Refreshed</p>
+                  <p className="text-xs font-black text-white">{lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={fetchDashboardData}
+                  disabled={loading}
+                  className="bg-white/15 hover:bg-white/25 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm border border-white/20 flex items-center gap-2 backdrop-blur-xs cursor-pointer"
+                >
+                  <RefreshCw size={14} className={loading ? "animate-spin text-emerald-300" : "text-emerald-300"} />
+                  {loading ? "Refreshing…" : "Sync Live Data"}
+                </button>
+
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Live Site</span>
+                  <ExternalLink size={13} />
+                </a>
+              </div>
             </div>
           </div>
 
-          {loading ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-200">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#14532d]"></div>
-              <p className="mt-3 text-sm text-gray-600 font-semibold">Loading dashboard metrics…</p>
+          {loading && !stats.packages ? (
+            <div className="text-center py-28 bg-white rounded-3xl border border-gray-200 shadow-xs">
+              <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-emerald-100 border-t-[#14532d]" />
+              <p className="mt-4 text-sm text-gray-700 font-black uppercase tracking-wider">Loading Executive Data Streams…</p>
             </div>
           ) : error ? (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl text-center">
-              <p className="font-bold">{error}</p>
+            <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-3xl text-center space-y-3">
+              <AlertCircle size={32} className="mx-auto text-red-500" />
+              <p className="font-bold text-sm">{error}</p>
               <button
                 onClick={fetchDashboardData}
-                className="mt-3 bg-red-600 text-white px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
               >
-                Retry
+                Retry Connection
               </button>
             </div>
           ) : (
             <>
-              {/* Top 4 Key Performance Metric Cards */}
+              {/* ═══════════════════════════════════════════════════════════
+                  SECTION 2: 4 TOP TIER HERO KPI METRIC CARDS
+              ═══════════════════════════════════════════════════════════ */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <div 
+
+                {/* KPI 1: Inbound Lead Volume */}
+                <div
                   onClick={() => navigate("/admin/general-enquiries")}
-                  className="bg-gradient-to-br from-emerald-800 to-emerald-950 text-white p-5 rounded-2xl shadow-md border border-emerald-700/40 relative overflow-hidden cursor-pointer hover:shadow-lg transition-all group"
-                  title="Click to view General Enquiries"
+                  className="bg-white hover:bg-slate-50/80 p-5 rounded-2xl shadow-xs border border-slate-200/80 cursor-pointer transition-all duration-200 group hover:shadow-md hover:border-emerald-300 relative overflow-hidden"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-emerald-200">Total Enquiries</p>
-                      <h2 className="text-3xl font-black mt-1.5">{totalAllEnquiries}</h2>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Customer Inquiries</span>
+                      <h2 className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{totalAllInquiries}</h2>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 backdrop-blur-xs group-hover:bg-white/20 transition-all">
-                      <HelpCircle size={20} />
+                    <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center group-hover:scale-105 group-hover:bg-[#14532d] group-hover:text-white transition-all shadow-xs">
+                      <HelpCircle size={22} />
                     </div>
                   </div>
-                  <p className="text-[11px] text-emerald-200/80 mt-3 font-medium flex items-center justify-between">
-                    <span>Across 9 category streams</span>
-                    <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
-                  </p>
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
+                    <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                      <Sparkles size={12} /> 9 Category Streams
+                    </span>
+                    <ArrowRight size={13} className="text-slate-400 group-hover:text-emerald-700 group-hover:translate-x-1 transition-all" />
+                  </div>
                 </div>
 
-                <div 
+                {/* KPI 2: Confirmed Bookings & Orders */}
+                <div
+                  onClick={() => navigate("/admin/cab-bookings")}
+                  className="bg-white hover:bg-slate-50/80 p-5 rounded-2xl shadow-xs border border-slate-200/80 cursor-pointer transition-all duration-200 group hover:shadow-md hover:border-amber-300 relative overflow-hidden"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Active Bookings & Orders</span>
+                      <h2 className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{totalActiveBookingsCount}</h2>
+                    </div>
+                    <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs">
+                      <Car size={22} />
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
+                    <span className="text-[11px] text-amber-700 font-bold">
+                      {stats.cabBookings} Cabs • {stats.productOrders} Orders
+                    </span>
+                    <ArrowRight size={13} className="text-slate-400 group-hover:text-amber-700 group-hover:translate-x-1 transition-all" />
+                  </div>
+                </div>
+
+                {/* KPI 3: Financial Volume / Estimated GMV */}
+                <div
+                  onClick={() => navigate("/admin/cab-bookings")}
+                  className="bg-white hover:bg-slate-50/80 p-5 rounded-2xl shadow-xs border border-slate-200/80 cursor-pointer transition-all duration-200 group hover:shadow-md hover:border-teal-300 relative overflow-hidden"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Booked Volume</span>
+                      <h2 className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{formatCurrency(stats.totalRevenue)}</h2>
+                    </div>
+                    <div className="w-11 h-11 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center group-hover:scale-105 group-hover:bg-teal-600 group-hover:text-white transition-all shadow-xs">
+                      <DollarSign size={22} />
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
+                    <span className="text-[11px] text-teal-700 font-bold truncate">
+                      Cab: {formatCurrency(stats.cabRevenue)} • Products: {formatCurrency(stats.productRevenue)}
+                    </span>
+                    <ArrowRight size={13} className="text-slate-400 group-hover:text-teal-700 group-hover:translate-x-1 transition-all" />
+                  </div>
+                </div>
+
+                {/* KPI 4: Holiday & Visa Infrastructure */}
+                <div
                   onClick={() => navigate("/admin/packages")}
-                  className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 relative cursor-pointer hover:border-green-400 hover:shadow-md transition-all group"
-                  title="Click to view Holiday Packages"
+                  className="bg-white hover:bg-slate-50/80 p-5 rounded-2xl shadow-xs border border-slate-200/80 cursor-pointer transition-all duration-200 group hover:shadow-md hover:border-rose-300 relative overflow-hidden"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Holiday Packages</p>
-                      <h2 className="text-3xl font-black text-slate-900 mt-1.5">{stats.packages}</h2>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Holiday Packages & Visas</span>
+                      <h2 className="text-3xl font-black text-slate-900 mt-1 tracking-tight">{stats.packages}</h2>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-green-50 text-green-700 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all">
-                      <Package size={20} />
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-gray-500 mt-3 font-semibold flex items-center justify-between">
-                    <span>{stats.itineraryMasters} Itineraries Configured</span>
-                    <ArrowRight size={13} className="text-gray-400 group-hover:text-green-700 group-hover:translate-x-1 transition-all" />
-                  </p>
-                </div>
-
-                <div 
-                  onClick={() => navigate("/admin/visa-applications")}
-                  className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 relative cursor-pointer hover:border-rose-400 hover:shadow-md transition-all group"
-                  title="Click to view Visa Applications"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Visa Applications</p>
-                      <h2 className="text-3xl font-black text-slate-900 mt-1.5">{stats.visaApplications}</h2>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all">
-                      <CreditCard size={20} />
+                    <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs">
+                      <Package size={22} />
                     </div>
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-3 font-semibold flex items-center justify-between">
-                    <span>{stats.visas} Active Visa Types</span>
-                    <ArrowRight size={13} className="text-gray-400 group-hover:text-rose-600 group-hover:translate-x-1 transition-all" />
-                  </p>
-                </div>
-
-                <div 
-                  onClick={() => navigate("/admin/products")}
-                  className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 relative cursor-pointer hover:border-teal-400 hover:shadow-md transition-all group"
-                  title="Click to view Product Orders"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Product Orders</p>
-                      <h2 className="text-3xl font-black text-slate-900 mt-1.5">{stats.productOrders}</h2>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-all">
-                      <ShoppingCart size={20} />
-                    </div>
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
+                    <span className="text-[11px] text-rose-700 font-bold">
+                      {stats.itineraryMasters} Itineraries • {stats.visas} Visa Types
+                    </span>
+                    <ArrowRight size={13} className="text-slate-400 group-hover:text-rose-700 group-hover:translate-x-1 transition-all" />
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-3 font-semibold flex items-center justify-between">
-                    <span>{stats.goimomiProducts} Products in Catalog</span>
-                    <ArrowRight size={13} className="text-gray-400 group-hover:text-teal-600 group-hover:translate-x-1 transition-all" />
-                  </p>
                 </div>
 
               </div>
 
-              {/* Main Analytics Grid: Donut Pie Chart + Catalog Breakdown */}
+              {/* ═══════════════════════════════════════════════════════════
+                  SECTION 3: OPERATIONS & FULFILLMENT PIPELINES
+              ═══════════════════════════════════════════════════════════ */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                {/* Cab Transfers Pipeline */}
+                <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 space-y-3.5">
+                  <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-amber-50 text-amber-700 rounded-lg">
+                        <Car size={16} />
+                      </div>
+                      <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">Cab Transfer Pipeline</h3>
+                    </div>
+                    <button
+                      onClick={() => navigate("/admin/cab-bookings")}
+                      className="text-[10px] font-bold text-emerald-700 hover:underline flex items-center gap-0.5 cursor-pointer"
+                    >
+                      Manage <ChevronRight size={12} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+                      <p className="text-[9px] font-bold uppercase text-amber-700">Requested</p>
+                      <p className="text-lg font-black text-amber-900 mt-0.5">{stats.cabStatusCounts.requested || 0}</p>
+                    </div>
+                    <div className="bg-blue-50/60 p-2.5 rounded-xl border border-blue-100">
+                      <p className="text-[9px] font-bold uppercase text-blue-700">Assigned</p>
+                      <p className="text-lg font-black text-blue-900 mt-0.5">{stats.cabStatusCounts.defined || 0}</p>
+                    </div>
+                    <div className="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+                      <p className="text-[9px] font-bold uppercase text-emerald-700">Confirmed</p>
+                      <p className="text-lg font-black text-emerald-900 mt-0.5">{stats.cabStatusCounts.confirmed || 0}</p>
+                    </div>
+                    <div className="bg-green-50/60 p-2.5 rounded-xl border border-green-100">
+                      <p className="text-[9px] font-bold uppercase text-green-700">Done</p>
+                      <p className="text-lg font-black text-green-900 mt-0.5">{stats.cabStatusCounts.completed || 0}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Visa & Pilgrimage Pipeline */}
+                <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 space-y-3.5">
+                  <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-rose-50 text-rose-700 rounded-lg">
+                        <CreditCard size={16} />
+                      </div>
+                      <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">Visa & Applications</h3>
+                    </div>
+                    <button
+                      onClick={() => navigate("/admin/visa-applications")}
+                      className="text-[10px] font-bold text-emerald-700 hover:underline flex items-center gap-0.5 cursor-pointer"
+                    >
+                      Manage <ChevronRight size={12} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-rose-50/60 p-2.5 rounded-xl border border-rose-100">
+                      <p className="text-[9px] font-bold uppercase text-rose-700">Applications</p>
+                      <p className="text-lg font-black text-rose-900 mt-0.5">{stats.visaApplications}</p>
+                    </div>
+                    <div className="bg-purple-50/60 p-2.5 rounded-xl border border-purple-100">
+                      <p className="text-[9px] font-bold uppercase text-purple-700">Umrah Pilgrims</p>
+                      <p className="text-lg font-black text-purple-900 mt-0.5">{stats.umrahEnquiries}</p>
+                    </div>
+                    <div className="bg-blue-50/60 p-2.5 rounded-xl border border-blue-100">
+                      <p className="text-[9px] font-bold uppercase text-blue-700">Visa Catalog</p>
+                      <p className="text-lg font-black text-blue-900 mt-0.5">{stats.visas}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* E-Commerce Order Fulfillment */}
+                <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 space-y-3.5">
+                  <div className="flex justify-between items-center pb-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-teal-50 text-teal-700 rounded-lg">
+                        <ShoppingCart size={16} />
+                      </div>
+                      <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">Product Fulfillment</h3>
+                    </div>
+                    <button
+                      onClick={() => navigate("/admin/products")}
+                      className="text-[10px] font-bold text-emerald-700 hover:underline flex items-center gap-0.5 cursor-pointer"
+                    >
+                      Manage <ChevronRight size={12} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="bg-teal-50/60 p-2.5 rounded-xl border border-teal-100">
+                      <p className="text-[9px] font-bold uppercase text-teal-700">Total Orders</p>
+                      <p className="text-lg font-black text-teal-900 mt-0.5">{stats.productOrders}</p>
+                    </div>
+                    <div className="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+                      <p className="text-[9px] font-bold uppercase text-emerald-700">Products</p>
+                      <p className="text-lg font-black text-emerald-900 mt-0.5">{stats.goimomiProducts}</p>
+                    </div>
+                    <div className="bg-cyan-50/60 p-2.5 rounded-xl border border-cyan-100">
+                      <p className="text-[9px] font-bold uppercase text-cyan-700">Volume</p>
+                      <p className="text-sm font-black text-cyan-900 mt-1">{formatCurrency(stats.productRevenue)}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* ═══════════════════════════════════════════════════════════
+                  SECTION 4: INTERACTIVE DISTRIBUTION & INVENTORY ASSETS
+              ═══════════════════════════════════════════════════════════ */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Left 2 Columns: Donut Pie Chart for Enquiry Breakdown */}
-                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
-                  <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <PieChartIcon size={20} className="text-[#14532d]" />
-                      <h2 className="text-base font-bold text-slate-900">Enquiry Distribution Breakdown</h2>
+                {/* Left 2 Cols: Donut Chart & Category Breakdown */}
+                <div className="lg:col-span-2 bg-white rounded-3xl shadow-xs border border-slate-200/80 p-5 md:p-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold">
+                        <PieChartIcon size={18} />
+                      </div>
+                      <div>
+                        <h2 className="text-sm md:text-base font-black text-slate-900 tracking-tight">
+                          Customer Inquiry & Booking Distribution
+                        </h2>
+                        <p className="text-[11px] text-slate-500 font-medium">Real-time volume across all 9 commercial services</p>
+                      </div>
                     </div>
-                    <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                      Click any category button to view enquiries
+
+                    <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100 px-3 py-1 rounded-full w-fit">
+                      Hover on segment or click to view
                     </span>
                   </div>
 
-                  <EnquiryPieChart data={pieChartData} onNavigate={(path) => navigate(path)} />
+                  <EnquiryPieChart
+                    data={categoryStreams}
+                    total={totalAllInquiries}
+                    onNavigate={(path) => navigate(path)}
+                  />
                 </div>
 
-                {/* Right 1 Column: Inventory & Quick Actions */}
-                <div className="space-y-6">
-                  
-                  {/* Catalog Inventory Progress Breakdown */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-                    <h3 className="text-sm font-bold text-slate-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                      <ClipboardList size={16} className="text-emerald-700" />
-                      Inventory & Catalog Breakdown
-                    </h3>
+                {/* Right 1 Col: Master Inventory & Asset Infrastructure */}
+                <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 p-5 md:p-6 space-y-5 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-800 flex items-center justify-center">
+                          <Layers size={15} />
+                        </div>
+                        <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+                          Catalog & Assets Infrastructure
+                        </h3>
+                      </div>
+                    </div>
 
-                    <div className="space-y-3 text-xs">
+                    <div className="space-y-3.5 text-xs">
+                      {/* Packages & Itineraries */}
                       <button
                         onClick={() => navigate("/admin/packages")}
-                        className="w-full text-left p-2 rounded-xl hover:bg-emerald-50/60 transition group cursor-pointer"
-                        title="View Holiday Packages"
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-emerald-50/60 transition group cursor-pointer border border-transparent hover:border-emerald-200"
                       >
-                        <div className="flex justify-between font-bold text-slate-700 group-hover:text-emerald-900 mb-1">
-                          <span className="flex items-center gap-1.5">Holiday Packages <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" /></span>
-                          <span>{stats.packages}</span>
+                        <div className="flex justify-between font-bold text-slate-800 group-hover:text-emerald-900 mb-1.5">
+                          <span className="flex items-center gap-1.5">Holiday Packages & Tours</span>
+                          <span className="font-black text-slate-900">{stats.packages} Active</span>
                         </div>
                         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${Math.min(100, stats.packages * 2)}%` }}></div>
+                          <div className="bg-emerald-600 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, Math.max(15, stats.packages * 2.5))}%` }} />
                         </div>
                       </button>
 
+                      {/* Fleet Vehicles & Drivers */}
+                      <button
+                        onClick={() => navigate("/admin/vehicles")}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-amber-50/60 transition group cursor-pointer border border-transparent hover:border-amber-200"
+                      >
+                        <div className="flex justify-between font-bold text-slate-800 group-hover:text-amber-900 mb-1.5">
+                          <span className="flex items-center gap-1.5">Fleet Vehicles & Drivers</span>
+                          <span className="font-black text-slate-900">{stats.vehicles} Cars • {stats.drivers} Drivers</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-amber-500 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, Math.max(20, (stats.vehicles + stats.drivers) * 4))}%` }} />
+                        </div>
+                      </button>
+
+                      {/* Global Destinations & Cities */}
+                      <button
+                        onClick={() => navigate("/admin/cities")}
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-blue-50/60 transition group cursor-pointer border border-transparent hover:border-blue-200"
+                      >
+                        <div className="flex justify-between font-bold text-slate-800 group-hover:text-blue-900 mb-1.5">
+                          <span className="flex items-center gap-1.5">Network Cities & Airports</span>
+                          <span className="font-black text-slate-900">{stats.cities} Cities • {stats.airports} Airports</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-blue-600 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, Math.max(25, stats.cities * 5))}%` }} />
+                        </div>
+                      </button>
+
+                      {/* Accommodations & Itinerary Masters */}
                       <button
                         onClick={() => navigate("/admin/itinerary-masters")}
-                        className="w-full text-left p-2 rounded-xl hover:bg-blue-50/60 transition group cursor-pointer"
-                        title="View Itinerary Masters"
+                        className="w-full text-left p-2.5 rounded-xl hover:bg-purple-50/60 transition group cursor-pointer border border-transparent hover:border-purple-200"
                       >
-                        <div className="flex justify-between font-bold text-slate-700 group-hover:text-blue-900 mb-1">
-                          <span className="flex items-center gap-1.5">Itinerary Masters <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" /></span>
-                          <span>{stats.itineraryMasters}</span>
+                        <div className="flex justify-between font-bold text-slate-800 group-hover:text-purple-900 mb-1.5">
+                          <span className="flex items-center gap-1.5">Itinerary Templates & Stays</span>
+                          <span className="font-black text-slate-900">{stats.itineraryMasters} Itineraries</span>
                         </div>
                         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-blue-600 h-full rounded-full" style={{ width: `${Math.min(100, (stats.itineraryMasters / 250) * 100)}%` }}></div>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => navigate("/admin/visas")}
-                        className="w-full text-left p-2 rounded-xl hover:bg-purple-50/60 transition group cursor-pointer"
-                        title="View Visa Types"
-                      >
-                        <div className="flex justify-between font-bold text-slate-700 group-hover:text-purple-900 mb-1">
-                          <span className="flex items-center gap-1.5">Visa Types <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" /></span>
-                          <span>{stats.visas}</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-purple-600 h-full rounded-full" style={{ width: `${Math.min(100, (stats.visas / 100) * 100)}%` }}></div>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => navigate("/admin/products")}
-                        className="w-full text-left p-2 rounded-xl hover:bg-teal-50/60 transition group cursor-pointer"
-                        title="View Goimomi Products"
-                      >
-                        <div className="flex justify-between font-bold text-slate-700 group-hover:text-teal-900 mb-1">
-                          <span className="flex items-center gap-1.5">Goimomi Products <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" /></span>
-                          <span>{stats.goimomiProducts}</span>
-                        </div>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-teal-600 h-full rounded-full" style={{ width: `${Math.min(100, (stats.goimomiProducts / 20) * 100)}%` }}></div>
+                          <div className="bg-purple-600 h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(100, Math.max(15, (stats.itineraryMasters / 200) * 100))}%` }} />
                         </div>
                       </button>
                     </div>
                   </div>
 
-                  {/* Quick Shortcuts */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-                    <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-                      <Plus size={16} className="text-emerald-700" /> Quick Management Shortcuts
-                    </h3>
-                    <div className="grid grid-cols-1 gap-2 text-xs">
-                      <button
-                        onClick={() => navigate("/admin/visa-applications")}
-                        className="w-full p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left font-bold text-slate-800 flex justify-between items-center transition cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2">🌐 Manage Visa Applications</span>
-                        <ArrowRight size={14} className="text-gray-400" />
-                      </button>
-
-                      <button
-                        onClick={() => navigate("/admin/cab-bookings")}
-                        className="w-full p-2.5 bg-amber-50/50 hover:bg-amber-50 border border-amber-200/60 rounded-xl text-left font-bold text-amber-900 flex justify-between items-center transition cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2">🚗 Manage Cab Bookings</span>
-                        <ArrowRight size={14} className="text-amber-500" />
-                      </button>
-
-                      <button
-                        onClick={() => navigate("/admin/products")}
-                        className="w-full p-2.5 bg-teal-50/50 hover:bg-teal-50 border border-teal-200/60 rounded-xl text-left font-bold text-teal-900 flex justify-between items-center transition cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2">🛍️ Product Orders & Catalog</span>
-                        <ArrowRight size={14} className="text-teal-600" />
-                      </button>
-                    </div>
+                  {/* System Management Quick Links */}
+                  <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => navigate("/admin/users")}
+                      className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-left border border-slate-200/80 transition cursor-pointer"
+                    >
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">System Users</p>
+                      <p className="text-xs font-black text-slate-900 mt-0.5">{stats.users} Admins</p>
+                    </button>
+                    <button
+                      onClick={() => navigate("/admin/suppliers")}
+                      className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-left border border-slate-200/80 transition cursor-pointer"
+                    >
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">Suppliers</p>
+                      <p className="text-xs font-black text-slate-900 mt-0.5">{stats.suppliers} Partners</p>
+                    </button>
                   </div>
-
                 </div>
 
               </div>
 
-              {/* Recent Enquiries Section */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-                  <div>
-                    <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                      <Users size={18} className="text-[#14532d]" />
-                      Recent Customer Enquiries & Activity
-                    </h2>
-                    <p className="text-xs text-gray-500 mt-0.5">Latest 10 submissions across all enquiry categories</p>
+              {/* ═══════════════════════════════════════════════════════════
+                  SECTION 5: LIVE ACTIVITY FEED WITH MULTI-CATEGORY TABS
+              ═══════════════════════════════════════════════════════════ */}
+              <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 p-5 md:p-6 space-y-5">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold">
+                        <ClipboardList size={18} />
+                      </div>
+                      <h2 className="text-base font-black text-slate-900 tracking-tight">
+                        Real-Time Customer Submissions & Activity Log
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Showing latest requests across transfers, visas, product orders, and holiday itineraries.
+                    </p>
                   </div>
 
-                  {/* Search Filter */}
-                  <div className="relative min-w-[240px]">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  {/* Search Filter Bar */}
+                  <div className="relative min-w-[280px]">
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
-                      placeholder="Search recent enquiries…"
+                      placeholder="Search by name, email, phone, route, ID…"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-9 pr-4 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-green-400 bg-gray-50"
+                      className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 bg-slate-50/70"
                     />
                   </div>
                 </div>
 
-                {filteredEnquiries.length > 0 ? (
-                  <div className="overflow-x-auto">
+                {/* Category Filter Tabs */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { id: "all", label: "All Submissions", count: recentEnquiries.length },
+                    { id: "cab", label: "🚗 Cab Bookings", count: recentEnquiries.filter(e => e.category_key === "cab").length },
+                    { id: "package", label: "📦 Package Bookings", count: recentEnquiries.filter(e => e.category_key === "package").length },
+                    { id: "product", label: "🛍️ Product Orders", count: recentEnquiries.filter(e => e.category_key === "product").length },
+                    { id: "visa", label: "🌐 Visa Applications", count: recentEnquiries.filter(e => e.category_key === "visa").length },
+                    { id: "holiday_umrah", label: "🌴 Holidays & Umrah", count: recentEnquiries.filter(e => e.category_key === "holiday" || e.category_key === "umrah").length },
+                    { id: "general", label: "📋 General & Other", count: recentEnquiries.filter(e => e.category_key === "general" || e.category_key === "canton").length },
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveCategoryTab(tab.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                        activeCategoryTab === tab.id
+                          ? "bg-[#14532d] text-white shadow-xs"
+                          : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60"
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                        activeCategoryTab === tab.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700"
+                      }`}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Submissions Table */}
+                {filteredSubmissions.length > 0 ? (
+                  <div className="overflow-x-auto rounded-2xl border border-slate-100">
                     <table className="w-full text-xs">
                       <thead className="bg-[#14532d] text-white">
                         <tr>
-                          <th className="text-left py-3 px-4 font-bold uppercase tracking-wider">Customer Name</th>
-                          <th className="text-left py-3 px-4 font-bold uppercase tracking-wider">Category</th>
-                          <th className="text-left py-3 px-4 font-bold uppercase tracking-wider">Email</th>
-                          <th className="text-left py-3 px-4 font-bold uppercase tracking-wider">Phone</th>
-                          <th className="text-left py-3 px-4 font-bold uppercase tracking-wider">Date</th>
-                          <th className="text-left py-3 px-4 font-bold uppercase tracking-wider">Purpose / Details</th>
-                          <th className="text-center py-3 px-4 font-bold uppercase tracking-wider">Action</th>
+                          <th className="text-left py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">ID / Reference</th>
+                          <th className="text-left py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">Customer Name</th>
+                          <th className="text-left py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">Service Category</th>
+                          <th className="text-left py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">Contact Details</th>
+                          <th className="text-left py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">Purpose / Details</th>
+                          <th className="text-left py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">Date</th>
+                          <th className="text-center py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">Status</th>
+                          <th className="text-center py-3.5 px-4 font-black uppercase tracking-wider whitespace-nowrap">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {filteredEnquiries.map((enquiry) => (
-                          <tr key={`${enquiry.type}-${enquiry.id}`} className="hover:bg-slate-50 transition-colors">
-                            <td className="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">
-                              {getEnquiryName(enquiry)}
-                            </td>
-                            <td className="py-3 px-4 whitespace-nowrap">
-                              <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full border ${
-                                enquiry.type === 'Holiday' ? 'bg-green-50 text-green-700 border-green-200' :
-                                enquiry.type === 'Umrah' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                enquiry.type === 'Cab' || enquiry.type === 'Cab Booking' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                enquiry.type === 'Cruise' ? 'bg-sky-50 text-sky-700 border-sky-200' :
-                                enquiry.type === 'Hotel' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                enquiry.type === 'Visa' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                                enquiry.type === 'Canton' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                enquiry.type === 'Product Order' ? 'bg-teal-50 text-teal-700 border-teal-200' :
-                                'bg-blue-50 text-blue-700 border-blue-200'
-                              }`}>
-                                {enquiry.type}
+                      <tbody className="divide-y divide-slate-100 bg-white">
+                        {filteredSubmissions.map((item, idx) => (
+                          <tr key={`${item.type}-${item.id}-${idx}`} className="hover:bg-emerald-50/30 transition-colors">
+                            {/* Booking / Reference ID */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className="font-mono text-[11px] font-black text-slate-800 px-2 py-0.5 bg-slate-100 rounded-lg border border-slate-200/80">
+                                {item.booking_id || `#${item.id}`}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-gray-600 font-medium whitespace-nowrap">
-                              {getEnquiryContact(enquiry).email}
+
+                            {/* Customer Profile */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-900 font-black flex items-center justify-center text-[11px] flex-shrink-0">
+                                  {item.name ? item.name.charAt(0).toUpperCase() : "U"}
+                                </div>
+                                <span className="font-bold text-slate-900">{item.name}</span>
+                              </div>
                             </td>
-                            <td className="py-3 px-4 text-gray-600 font-medium whitespace-nowrap">
-                              {getEnquiryContact(enquiry).phone}
+
+                            {/* Service Category */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className={`px-2.5 py-1 text-[10px] font-extrabold rounded-full border ${getCategoryBadge(item.type)}`}>
+                                {item.type}
+                              </span>
                             </td>
-                            <td className="py-3 px-4 text-gray-500 font-medium whitespace-nowrap">
-                              {formatDate(enquiry.created_at)}
+
+                            {/* Contact Details */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <div className="space-y-0.5 text-[11px]">
+                                {item.phone && item.phone !== "—" && (
+                                  <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                                    <Phone size={10} className="text-slate-400" />
+                                    <span>{item.phone}</span>
+                                  </div>
+                                )}
+                                {item.email && item.email !== "—" && (
+                                  <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                                    <Mail size={10} className="text-slate-400" />
+                                    <span className="max-w-[160px] truncate">{item.email}</span>
+                                  </div>
+                                )}
+                              </div>
                             </td>
-                            <td className="py-3 px-4 text-gray-700 max-w-[220px] truncate font-medium" title={getEnquiryPurpose(enquiry)}>
-                              {getEnquiryPurpose(enquiry)}
+
+                            {/* Purpose / Details */}
+                            <td className="py-3.5 px-4 max-w-[240px]">
+                              <p className="text-slate-800 font-semibold truncate" title={item.purpose}>
+                                {item.purpose}
+                              </p>
+                              {item.amount > 0 && (
+                                <span className="text-[10px] font-black text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-100">
+                                  {formatCurrency(item.amount)}
+                                </span>
+                              )}
                             </td>
-                            <td className="py-3 px-4 text-center">
-                              <button
-                                onClick={() => setSelectedEnquiry(enquiry)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs font-semibold transition shadow-xs flex items-center gap-1 mx-auto cursor-pointer"
-                              >
-                                <Eye size={12} /> View
-                              </button>
+
+                            {/* Date */}
+                            <td className="py-3.5 px-4 text-slate-500 font-semibold whitespace-nowrap">
+                              {formatDate(item.created_at)}
+                            </td>
+
+                            {/* Status */}
+                            <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                              <span className={`px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border ${getStatusBadge(item.status)}`}>
+                                {item.status || "Enquiry"}
+                              </span>
+                            </td>
+
+                            {/* Action Buttons */}
+                            <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedItem(item)}
+                                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors cursor-pointer"
+                                  title="Inspect full details"
+                                >
+                                  <Eye size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(getDestinationManageLink(item))}
+                                  className="p-1.5 bg-[#14532d]/10 hover:bg-[#14532d] text-[#14532d] hover:text-white rounded-lg transition-all cursor-pointer"
+                                  title="Jump to management module"
+                                >
+                                  <ArrowUpRight size={14} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -617,10 +946,71 @@ const AdminDashboard = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="py-12 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p className="font-semibold text-xs uppercase tracking-wider">No recent enquiries match your search</p>
+                  <div className="py-14 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <Search size={28} className="mx-auto text-slate-300 mb-2" />
+                    <p className="font-bold text-xs uppercase tracking-wider">No customer submissions match your filter</p>
                   </div>
                 )}
+              </div>
+
+              {/* ═══════════════════════════════════════════════════════════
+                  SECTION 6: QUICK ACTION OPERATIONAL LAUNCHPAD
+              ═══════════════════════════════════════════════════════════ */}
+              <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 p-5 md:p-6 space-y-3.5">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                  <Sparkles size={16} className="text-emerald-700" />
+                  Quick Operational Launchpad
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                  <button
+                    onClick={() => navigate("/admin/packages/add")}
+                    className="p-3 bg-emerald-50/50 hover:bg-emerald-100/60 border border-emerald-200/70 rounded-2xl text-left font-bold text-emerald-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-emerald-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Create Package</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/visas/add")}
+                    className="p-3 bg-rose-50/50 hover:bg-rose-100/60 border border-rose-200/70 rounded-2xl text-left font-bold text-rose-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-rose-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Visa Type</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/itinerary-masters/add")}
+                    className="p-3 bg-purple-50/50 hover:bg-purple-100/60 border border-purple-200/70 rounded-2xl text-left font-bold text-purple-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-purple-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Itinerary</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/vehicle-rate-cards/add")}
+                    className="p-3 bg-amber-50/50 hover:bg-amber-100/60 border border-amber-200/70 rounded-2xl text-left font-bold text-amber-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-amber-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Rate Card</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/products/add")}
+                    className="p-3 bg-teal-50/50 hover:bg-teal-100/60 border border-teal-200/70 rounded-2xl text-left font-bold text-teal-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-teal-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Product</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/users")}
+                    className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-left font-bold text-slate-900 flex flex-col justify-between gap-3 transition group cursor-pointer"
+                  >
+                    <UserCheck size={16} className="text-slate-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">System Users</span>
+                  </button>
+                </div>
               </div>
 
             </>
@@ -629,65 +1019,150 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Enquiry Detail Modal */}
-      {selectedEnquiry && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
-            <div className="bg-gradient-to-r from-[#14532d] to-[#1a6b3d] p-4 text-white flex justify-between items-center">
+      {/* ═══════════════════════════════════════════════════════════
+          SECTION 7: RICH DETAIL INSPECTION MODAL
+      ═══════════════════════════════════════════════════════════ */}
+      {selectedItem && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#0d2f1f] via-[#14532d] to-[#1a6b3d] p-5 text-white flex justify-between items-center">
               <div>
-                <h2 className="text-base font-bold">Enquiry Details</h2>
-                <p className="text-emerald-200 text-[10px] uppercase font-bold tracking-widest">{selectedEnquiry.type} Enquiry</p>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 bg-white/20 rounded-md text-[10px] font-mono font-black uppercase tracking-wider">
+                    {selectedItem.booking_id || `#${selectedItem.id}`}
+                  </span>
+                  <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-md border ${getStatusBadge(selectedItem.status)}`}>
+                    {selectedItem.status || "Enquiry"}
+                  </span>
+                </div>
+                <h2 className="text-lg font-black text-white mt-1">{selectedItem.type}</h2>
               </div>
               <button
-                onClick={() => setSelectedEnquiry(null)}
-                className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                className="hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer"
                 aria-label="Close"
               >
                 <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <div className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="space-y-1">
-                  <p className="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Customer Name</p>
-                  <p className="font-bold text-gray-900 text-sm">{getEnquiryName(selectedEnquiry)}</p>
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
+              {/* Customer Profile Grid */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Customer Profile</span>
+                  <span className="text-[11px] font-bold text-slate-500">Submitted: {formatDate(selectedItem.created_at)}</span>
                 </div>
-                <div className="space-y-1">
-                  <p className="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Date Submitted</p>
-                  <p className="font-semibold text-gray-900">{formatDate(selectedEnquiry.created_at || selectedEnquiry.submitted_at)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Email Address</p>
-                  <p className="font-semibold text-blue-600 break-all">{getEnquiryContact(selectedEnquiry).email}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Phone Number</p>
-                  <p className="font-semibold text-gray-900">{getEnquiryContact(selectedEnquiry).phone}</p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Customer Name</p>
+                    <p className="text-sm font-black text-slate-900 mt-0.5">{selectedItem.name}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Phone Number</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <p className="font-black text-slate-900">{selectedItem.phone || "—"}</p>
+                      {selectedItem.phone && selectedItem.phone !== "—" && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(selectedItem.phone, 'phone')}
+                          className="text-slate-400 hover:text-emerald-700 cursor-pointer"
+                          title="Copy phone"
+                        >
+                          {copiedField === 'phone' ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="col-span-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Email Address</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <p className="font-bold text-emerald-800 break-all">{selectedItem.email || "—"}</p>
+                      {selectedItem.email && selectedItem.email !== "—" && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(selectedItem.email, 'email')}
+                          className="text-slate-400 hover:text-emerald-700 cursor-pointer"
+                          title="Copy email"
+                        >
+                          {copiedField === 'email' ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-gray-100">
-                <p className="font-bold text-gray-400 uppercase tracking-widest text-[9px] mb-1.5">Purpose / Description</p>
-                <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-800 font-medium leading-relaxed border border-gray-200 max-h-[180px] overflow-y-auto">
-                  {getEnquiryPurpose(selectedEnquiry)}
+              {/* Service & Operational Specifics */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Service Specifics & Details</p>
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Primary Requirement</p>
+                      <p className="text-xs font-bold text-slate-900 mt-0.5">{selectedItem.purpose}</p>
+                    </div>
+                    {selectedItem.amount > 0 && (
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Total Amount</p>
+                        <p className="text-sm font-black text-emerald-800 mt-0.5">{formatCurrency(selectedItem.amount)}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedItem.details && (
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-[11px]">
+                      {Object.entries(selectedItem.details).map(([key, val]) => {
+                        if (val === undefined || val === null || val === "") return null;
+                        const formattedKey = key.replace(/_/g, " ").toUpperCase();
+                        return (
+                          <div key={key} className="bg-slate-50 p-2 rounded-xl">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase block">{formattedKey}</span>
+                            <span className="font-bold text-slate-800">{String(val)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-end">
+            {/* Modal Footer Actions */}
+            <div className="bg-slate-50 p-4 border-t border-slate-100 flex items-center justify-between">
               <button
-                onClick={() => setSelectedEnquiry(null)}
-                className="px-5 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold uppercase transition-all"
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
               >
-                Close View
+                Close
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const targetPath = getDestinationManageLink(selectedItem);
+                  setSelectedItem(null);
+                  navigate(targetPath);
+                }}
+                className="px-5 py-2 bg-[#14532d] hover:bg-[#0f3d21] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Open in Management Portal</span>
+                <ArrowRight size={13} />
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };

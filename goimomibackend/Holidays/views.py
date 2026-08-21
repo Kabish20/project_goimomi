@@ -293,83 +293,285 @@ class DashboardStatsAPI(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        # 1. Counts (Cheap operations)
+        cab_bookings_qs = CabBooking.objects.all()
+        visa_apps_qs = VisaApplication.objects.select_related('visa').prefetch_related('applicants').all()
+        product_orders_qs = GoimomiProductOrder.objects.select_related('product').all()
+        package_bookings_qs = PackageBooking.objects.all()
+
+        # Revenue aggregations
+        cab_revenue = sum(float(b.price or 0) for b in cab_bookings_qs if b.price)
+        product_revenue = sum(float(o.total_amount or 0) for o in product_orders_qs if o.total_amount)
+        package_revenue = sum(float(pb.total_price or 0) for pb in package_bookings_qs if pb.total_price)
+        total_revenue = cab_revenue + product_revenue + package_revenue
+
+        # Operational status breakdowns
+        cab_status_counts = {
+            'requested': cab_bookings_qs.filter(status='Booking Requested').count(),
+            'defined': cab_bookings_qs.filter(status='defined').count(),
+            'confirmed': cab_bookings_qs.filter(status='Confirmed').count(),
+            'completed': cab_bookings_qs.filter(status='Completed').count(),
+            'cancelled': cab_bookings_qs.filter(status='Cancelled').count(),
+        }
+
+        package_status_counts = {
+            'pending': package_bookings_qs.filter(status='Pending').count(),
+            'confirmed': package_bookings_qs.filter(status='Confirmed').count(),
+            'cancelled': package_bookings_qs.filter(status='Cancelled').count(),
+        }
+
+        product_status_counts = {
+            'pending': product_orders_qs.filter(status='Pending').count(),
+            'confirmed': product_orders_qs.filter(status='Confirmed').count(),
+            'shipped': product_orders_qs.filter(status='Shipped').count(),
+            'delivered': product_orders_qs.filter(status='Delivered').count(),
+            'cancelled': product_orders_qs.filter(status='Cancelled').count(),
+        }
+
+        # Comprehensive system counts
         stats = {
             "packages": HolidayPackage.objects.count(),
             "enquiries": Enquiry.objects.count(),
             "holidayEnquiries": HolidayEnquiry.objects.count(),
             "umrahEnquiries": UmrahEnquiry.objects.count(),
             "itineraryMasters": ItineraryMaster.objects.count(),
+            "sightseeingMasters": SightseeingMaster.objects.count(),
+            "accommodations": Accommodation.objects.count(),
             "visas": Visa.objects.count(),
-            "visaApplications": VisaApplication.objects.count(),
+            "visaApplications": visa_apps_qs.count(),
             "cantonEnquiries": CantonEnquiry.objects.count(),
-            "cabBookings": CabBooking.objects.count(),
+            "cabBookings": cab_bookings_qs.count(),
+            "packageBookings": package_bookings_qs.count(),
             "cabEnquiries": Enquiry.objects.filter(enquiry_type='Cab').count(),
             "cruiseEnquiries": Enquiry.objects.filter(enquiry_type='Cruise').count(),
             "hotelEnquiries": Enquiry.objects.filter(enquiry_type='Hotel').count(),
-            "productOrders": GoimomiProductOrder.objects.count(),
+            "productOrders": product_orders_qs.count(),
             "goimomiProducts": GoimomiProduct.objects.count(),
+            "vehicles": VehicleMaster.objects.count(),
+            "drivers": DriverMaster.objects.count(),
+            "rateCards": VehicleRateCard.objects.count(),
+            "cities": City.objects.count(),
+            "countries": Country.objects.count(),
+            "airports": Airport.objects.count(),
+            "pickupPoints": PickupPointMaster.objects.count(),
+            "cruiseTerminals": CruiseTerminal.objects.count(),
+            "users": User.objects.count(),
+            "suppliers": Supplier.objects.count(),
+            "logisticsProviders": LogisticsProvider.objects.count(),
+            "catalogues": CatalogueMaster.objects.count(),
+            "cabRevenue": cab_revenue,
+            "productRevenue": product_revenue,
+            "packageRevenue": package_revenue,
+            "totalRevenue": total_revenue,
+            "cabStatusCounts": cab_status_counts,
+            "packageStatusCounts": package_status_counts,
+            "productStatusCounts": product_status_counts,
         }
 
-        # 2. Recent Enquiries (Limited to 10 latest across types to avoid heavy load)
+        # 2. Rich Recent Submissions & Activity Log
         recent = []
 
-        # General/Other Enquiries (Enquiry model handles Cab, Cruise, Hotel, Business)
-        for e in Enquiry.objects.all().order_by('-created_at')[:8]:
-            purpose = e.purpose
-            if e.enquiry_type == 'Cab':
-                purpose = f"Cab: {e.vehicle or 'N/A'} - {e.from_city or 'N/A'} to {e.to_city or 'N/A'}"
-            elif e.enquiry_type == 'Cruise':
-                purpose = f"Cruise: {e.destination or 'N/A'} at {e.from_city or 'N/A'}"
-            
+        # Cab Bookings
+        for e in cab_bookings_qs.order_by('-created_at')[:8]:
+            title_name = f"{e.title or ''} {e.first_name} {e.last_name}".strip()
             recent.append({
-                "id": e.id, "type": e.enquiry_type or "General", "name": e.name, 
-                "email": e.email, "phone": e.phone, "created_at": e.created_at, "purpose": purpose or "No details provided"
+                "id": e.id,
+                "type": "Cab Booking",
+                "category_key": "cab",
+                "name": title_name or f"Guest #{e.id}",
+                "email": e.email or "—",
+                "phone": e.phone or "—",
+                "created_at": e.created_at,
+                "status": e.status,
+                "booking_id": e.booking_id or f"GO-TRN-{str(e.pk).zfill(4)}",
+                "amount": float(e.price or 0),
+                "purpose": f"{e.from_city} → {e.to_city} ({e.vehicle_name})",
+                "details": {
+                    "vehicle": e.vehicle_name,
+                    "from_city": e.from_city,
+                    "to_city": e.to_city,
+                    "pickup_date": str(e.pickup_date),
+                    "guests": e.guests,
+                    "driver": e.driver or "Unassigned",
+                    "transfer_type": e.transfer_type,
+                }
             })
-        
+
+        # Package Bookings
+        for e in package_bookings_qs.order_by('-created_at')[:5]:
+            recent.append({
+                "id": e.id,
+                "type": "Package Booking",
+                "category_key": "package",
+                "name": e.full_name or f"Traveler #{e.id}",
+                "email": e.email or "—",
+                "phone": e.phone or "—",
+                "created_at": e.created_at,
+                "status": e.status,
+                "booking_id": e.booking_id or f"GO-PKG-{str(e.pk).zfill(4)}",
+                "amount": float(e.total_price or 0),
+                "purpose": f"Package: {e.package_title}",
+                "details": {
+                    "package_title": e.package_title,
+                    "travel_date": str(e.travel_date),
+                    "adults": e.adults,
+                    "children": e.children,
+                    "payment_status": e.payment_status,
+                }
+            })
+
+        # Product Orders
+        for e in product_orders_qs.order_by('-created_at')[:6]:
+            prod_name = e.product.title if e.product else "Cart Items"
+            recent.append({
+                "id": e.id,
+                "type": "Product Order",
+                "category_key": "product",
+                "name": e.name or f"Customer #{e.id}",
+                "email": e.email or "—",
+                "phone": e.phone or "—",
+                "created_at": e.created_at,
+                "status": e.status,
+                "booking_id": e.order_id or f"GO-ORD-{str(e.pk).zfill(4)}",
+                "amount": float(e.total_amount or 0),
+                "purpose": f"Order: {prod_name} (x{e.quantity})",
+                "details": {
+                    "product": prod_name,
+                    "quantity": e.quantity,
+                    "city": e.city or "",
+                    "state": e.state or "",
+                    "address": e.address or "",
+                }
+            })
+
+        # Visa Applications
+        for e in visa_apps_qs.order_by('-created_at')[:6]:
+            app = e.applicants.first()
+            name = f"{app.first_name} {app.last_name}".strip() if app else "Applicant"
+            phone = app.phone if app and app.phone else "—"
+            email = app.email if hasattr(app, 'email') and app.email else "—"
+            v_country = e.visa.country if e.visa else "N/A"
+            v_title = e.visa.title if e.visa else "Visa Application"
+            recent.append({
+                "id": e.id,
+                "type": "Visa Application",
+                "category_key": "visa",
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "created_at": e.created_at,
+                "status": "Received",
+                "booking_id": f"GO-VSA-{str(e.id).zfill(4)}",
+                "amount": 0,
+                "purpose": f"Visa for {v_country} ({v_title})",
+                "details": {
+                    "country": v_country,
+                    "visa_title": v_title,
+                    "applicants_count": e.applicants.count(),
+                }
+            })
+
         # Holiday Enquiries
         for e in HolidayEnquiry.objects.all().order_by('-created_at')[:5]:
+            dest_list = []
+            if isinstance(e.cities, list):
+                for c in e.cities:
+                    if isinstance(c, dict):
+                        dest_list.append(str(c.get('city') or c.get('name') or c))
+                    elif isinstance(c, str):
+                        dest_list.append(c)
+            dest = ", ".join(dest_list) if dest_list else (e.start_city or "Custom Tour")
             recent.append({
-                "id": e.id, "type": "Holiday", "name": e.full_name, "email": e.email, "phone": e.phone,
-                "created_at": e.created_at, "purpose": f"Package: {e.package_type or 'N/A'}"
+                "id": e.id,
+                "type": "Holiday",
+                "category_key": "holiday",
+                "name": e.full_name or "Holiday Guest",
+                "email": e.email or "—",
+                "phone": e.phone or "—",
+                "created_at": e.created_at,
+                "status": "Enquiry",
+                "booking_id": f"ENQ-HOL-{str(e.id).zfill(4)}",
+                "amount": 0,
+                "purpose": f"Package: {e.package_type or 'Custom Tour'} ({dest})",
+                "details": {
+                    "package_type": e.package_type or "Custom",
+                    "start_city": e.start_city or "N/A",
+                    "holiday_type": getattr(e, 'holiday_type', 'N/A'),
+                    "travel_date": str(e.travel_date) if e.travel_date else "Flexible",
+                }
             })
 
         # Umrah Enquiries
         for e in UmrahEnquiry.objects.all().order_by('-created_at')[:5]:
             recent.append({
-                "id": e.id, "type": "Umrah", "name": e.full_name, "email": e.email, "phone": e.phone, 
-                "created_at": e.created_at, "purpose": "Umrah Journey"
-            })
-
-        # Visa Applications
-        for e in VisaApplication.objects.select_related('visa').prefetch_related('applicants').all().order_by('-created_at')[:5]:
-            # Get primary applicant details
-            app = e.applicants.first()
-            name = f"{app.first_name} {app.last_name}" if app else "No Applicant"
-            phone = app.phone if app else "—"
-            recent.append({
-                "id": e.id, "type": "Visa", "name": name, "email": "—", "phone": phone,
-                "created_at": e.created_at, "purpose": f"Visa for {e.visa.country or 'N/A'}"
+                "id": e.id,
+                "type": "Umrah",
+                "category_key": "umrah",
+                "name": e.full_name or "Umrah Pilgrim",
+                "email": e.email or "—",
+                "phone": e.phone or "—",
+                "created_at": e.created_at,
+                "status": "Enquiry",
+                "booking_id": f"ENQ-UMR-{str(e.id).zfill(4)}",
+                "amount": 0,
+                "purpose": "Umrah Pilgrimage Consultation",
+                "details": {
+                    "package_type": e.package_type or "Umrah",
+                    "start_city": e.start_city or "N/A",
+                    "travel_date": str(e.travel_date) if e.travel_date else "Flexible",
+                }
             })
 
         # Canton Enquiries
-        for e in CantonEnquiry.objects.all().order_by('-created_at')[:5]:
+        for e in CantonEnquiry.objects.all().order_by('-created_at')[:4]:
             recent.append({
-                "id": e.id, "type": "Canton", "name": e.full_name, "email": "—", "phone": e.whatsapp_number,
-                "created_at": e.created_at, "purpose": f"Phase: {e.selected_phase} ({e.business_name or 'N/A'})"
+                "id": e.id,
+                "type": "Canton",
+                "category_key": "canton",
+                "name": e.full_name or "Business Delegate",
+                "email": "—",
+                "phone": e.whatsapp_number or "—",
+                "created_at": e.created_at,
+                "status": "Enquiry",
+                "booking_id": f"ENQ-CAN-{str(e.id).zfill(4)}",
+                "amount": 0,
+                "purpose": f"Phase: {e.selected_phase} ({e.business_name or 'Company'})",
+                "details": {
+                    "phase": e.selected_phase,
+                    "business": e.business_name or "N/A",
+                }
             })
 
-        # Cab Bookings
-        for e in CabBooking.objects.all().order_by('-created_at')[:5]:
+        # General/Other Enquiries (Cab, Cruise, Hotel, Business)
+        for e in Enquiry.objects.all().order_by('-created_at')[:6]:
+            purpose = e.purpose
+            if e.enquiry_type == 'Cab':
+                purpose = f"Cab: {e.vehicle or 'N/A'} - {e.from_city or 'N/A'} to {e.to_city or 'N/A'}"
+            elif e.enquiry_type == 'Cruise':
+                purpose = f"Cruise: {e.destination or 'N/A'} at {e.from_city or 'N/A'}"
+            elif e.enquiry_type == 'Hotel':
+                purpose = f"Hotel Stay: {e.destination or 'N/A'}"
+
             recent.append({
-                "id": e.id, "type": "Cab Booking", "name": f"{e.first_name} {e.last_name}", "email": e.email or "—",
-                "phone": e.phone, "created_at": e.created_at, "purpose": f"{e.from_city} to {e.to_city} ({e.vehicle_name})"
+                "id": e.id,
+                "type": e.enquiry_type or "General",
+                "category_key": "general",
+                "name": e.name or "Customer",
+                "email": e.email or "—",
+                "phone": e.phone or "—",
+                "created_at": e.created_at,
+                "status": "Enquiry",
+                "booking_id": f"ENQ-GEN-{str(e.id).zfill(4)}",
+                "amount": 0,
+                "purpose": purpose or "General Customer Enquiry",
+                "details": {
+                    "enquiry_type": e.enquiry_type or "General",
+                    "destination": e.destination or "N/A",
+                }
             })
 
-        # Sort combined list and take top 10
-        # Convert all to list then sort securely
+        # Sort all recent items by created_at descending
         recent.sort(key=lambda x: x['created_at'], reverse=True)
-        recent = recent[:10]
+        recent = recent[:25]
 
         return Response({
             "stats": stats,
