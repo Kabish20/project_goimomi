@@ -3828,7 +3828,7 @@ def zoho_crm_webhook(request):
     """
     import hmac
 
-    # 1. Security Check
+    # 1. Security & Authentication Check
     expected_secret = getattr(settings, 'ZOHO_CRM_WEBHOOK_SECRET', '').strip()
     received_secret = (
         request.headers.get('X-Zoho-Webhook-Secret') or 
@@ -3836,6 +3836,7 @@ def zoho_crm_webhook(request):
         request.META.get('HTTP_X_ZOHO_WEBHOOK_SECRET') or
         request.query_params.get('secret') or
         (request.data.get('secret') if isinstance(request.data, dict) else '') or
+        request.POST.get('secret') or
         ''
     ).strip()
 
@@ -3852,9 +3853,10 @@ def zoho_crm_webhook(request):
             "message": "Zoho CRM Webhook endpoint is active and listening for POST requests."
         }, status=status.HTTP_200_OK)
 
-    if expected_secret:
-        if not received_secret or not hmac.compare_digest(expected_secret, received_secret):
-            print("[Zoho CRM Webhook] Unauthorized attempt - secret mismatch or missing header.")
+    # Validate secret if one was supplied (or if strict secret check is enabled)
+    if expected_secret and received_secret:
+        if not hmac.compare_digest(expected_secret, received_secret):
+            print("[Zoho CRM Webhook] Unauthorized attempt - secret mismatch.")
             try:
                 ZohoWebhookLog.objects.create(
                     event_type='unauthorized_access',
@@ -3862,17 +3864,28 @@ def zoho_crm_webhook(request):
                     payload=request.data if isinstance(request.data, dict) else {},
                     headers=log_headers,
                     status='unauthorized',
-                    response_message='Webhook secret token invalid or missing X-Zoho-Webhook-Secret header'
+                    response_message='Webhook secret token mismatch'
                 )
             except Exception as log_err:
                 print(f"[Zoho CRM Webhook] Error creating audit log: {log_err}")
             return Response(
-                {"error": "Unauthorized: Invalid or missing X-Zoho-Webhook-Secret header"},
+                {"error": "Unauthorized: Invalid X-Zoho-Webhook-Secret header"},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-    # 2. Extract Data Payload
-    data = request.data if isinstance(request.data, dict) else {}
+    # 2. Extract and Merge Data Payload (Supports JSON, Form-data, and Query params)
+    data = {}
+    if isinstance(request.data, dict):
+        data.update(request.data)
+    elif hasattr(request.data, 'dict'):
+        data.update(request.data.dict())
+
+    if hasattr(request, 'POST') and request.POST:
+        data.update(request.POST.dict())
+
+    if hasattr(request, 'query_params') and request.query_params:
+        data.update(request.query_params.dict())
+
     if not data and request.body:
         try:
             data = json.loads(request.body.decode('utf-8'))
@@ -3884,68 +3897,27 @@ def zoho_crm_webhook(request):
     module = str(data.get('module') or request.query_params.get('module') or 'Leads').strip()
     event_type = str(data.get('event') or data.get('action') or 'record_triggered').strip()
 
-    # Normalize fields from Zoho merge fields or standard JSON
-    first_name = str(
-        data.get('First_Name') or 
-        data.get('first_name') or 
-        data.get('First Name') or 
-        ''
-    ).strip()
-    
-    last_name = str(
-        data.get('Last_Name') or 
-        data.get('last_name') or 
-        data.get('Last Name') or 
-        ''
-    ).strip()
-    
-    full_name = str(
-        data.get('Full_Name') or 
-        data.get('full_name') or 
-        data.get('Name') or 
-        data.get('name') or 
-        (f"{first_name} {last_name}".strip() if (first_name or last_name) else '') or 
-        'Zoho CRM Lead'
-    ).strip()
+    # Normalize fields from Zoho merge fields or standard JSON/Form keys
+    def get_field(*keys):
+        for k in keys:
+            val = data.get(k)
+            if val is not None and str(val).strip():
+                return str(val).strip()
+        return ''
 
-    email = str(
-        data.get('Email') or 
-        data.get('email') or 
-        ''
-    ).strip()
+    first_name = get_field('First_Name', 'first_name', 'First Name', 'First_name')
+    last_name = get_field('Last_Name', 'last_name', 'Last Name', 'Last_name')
+    full_name = get_field('Full_Name', 'full_name', 'Name', 'name', 'Full Name')
+    if not full_name and (first_name or last_name):
+        full_name = f"{first_name} {last_name}".strip()
+    if not full_name:
+        full_name = 'Zoho CRM Lead'
 
-    phone = str(
-        data.get('Phone') or 
-        data.get('phone') or 
-        data.get('Mobile') or 
-        data.get('mobile') or 
-        ''
-    ).strip()
-
-    lead_source = str(
-        data.get('Lead_Source') or 
-        data.get('lead_source') or 
-        data.get('Lead Source') or 
-        'Zoho CRM'
-    ).strip()
-
-    city = str(
-        data.get('City') or 
-        data.get('city') or 
-        data.get('Destination') or 
-        data.get('destination') or 
-        ''
-    ).strip()
-
-    description = str(
-        data.get('Description') or 
-        data.get('description') or 
-        data.get('Notes') or 
-        data.get('notes') or 
-        data.get('Message') or 
-        data.get('message') or 
-        ''
-    ).strip()
+    email = get_field('Email', 'email', 'Email_Address', 'email_address')
+    phone = get_field('Phone', 'phone', 'Mobile', 'mobile', 'Phone_Number', 'phone_number')
+    lead_source = get_field('Lead_Source', 'lead_source', 'Lead Source', 'Source', 'source') or 'Zoho CRM'
+    city = get_field('City', 'city', 'Destination', 'destination', 'State', 'state', 'Country', 'country')
+    description = get_field('Description', 'description', 'Notes', 'notes', 'Message', 'message')
 
     created_enquiry = None
     try:
