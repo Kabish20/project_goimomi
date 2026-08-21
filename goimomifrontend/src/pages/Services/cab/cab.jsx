@@ -76,6 +76,7 @@ const Cab = () => {
 
   // Form State
   const [bookingFormData, setBookingFormData] = useState({
+    gender: "Male",
     title: "Mr.",
     firstName: "",
     lastName: "",
@@ -97,6 +98,27 @@ const Cab = () => {
   });
 
   const guestPopoverRef = useRef(null);
+
+  const handleGenderChange = (e) => {
+    const newGender = e.target.value;
+    setBookingFormData(prev => ({
+      ...prev,
+      gender: newGender,
+      title: newGender === "Female"
+        ? (["Ms.", "Mrs.", "Miss"].includes(prev.title) ? prev.title : "Ms.")
+        : (["Mr.", "Master"].includes(prev.title) ? prev.title : "Mr.")
+    }));
+  };
+
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    const inferredGender = ["Ms.", "Mrs.", "Miss"].includes(newTitle) ? "Female" : "Male";
+    setBookingFormData(prev => ({
+      ...prev,
+      title: newTitle,
+      gender: inferredGender
+    }));
+  };
 
   const handleSendOtp = async () => {
     if (!bookingFormData.email) {
@@ -205,6 +227,7 @@ const Cab = () => {
         pickup_point: item.pickupPoint || "",
         drop_point: item.dropPoint || "",
         guests: searchParams.guests,
+        gender: bookingFormData.gender || (["Ms.", "Mrs.", "Miss"].includes(bookingFormData.title) ? "Female" : "Male"),
         title: bookingFormData.title,
         first_name: bookingFormData.firstName,
         last_name: bookingFormData.lastName,
@@ -966,20 +989,40 @@ const Cab = () => {
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
                 <h3 className="text-base font-black text-gray-900 tracking-tight">Primary Guest Details</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Gender</label>
+                    <select
+                      value={bookingFormData.gender || "Male"}
+                      onChange={handleGenderChange}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10 cursor-pointer"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
                   <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Title</label>
                     <select
                       value={bookingFormData.title}
-                      onChange={(e) => setBookingFormData(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
+                      onChange={handleTitleChange}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10 cursor-pointer"
                     >
-                      <option value="Mr.">Mr.</option>
-                      <option value="Ms.">Ms.</option>
-                      <option value="Mrs.">Mrs.</option>
+                      {bookingFormData.gender === "Female" ? (
+                        <>
+                          <option value="Ms.">Ms.</option>
+                          <option value="Mrs.">Mrs.</option>
+                          <option value="Miss">Miss</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="Mr.">Mr.</option>
+                          <option value="Master">Master</option>
+                        </>
+                      )}
                     </select>
                   </div>
-                  <div className="md:col-span-5 space-y-1">
+                  <div className="md:col-span-4 space-y-1">
                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">First Name</label>
                     <input
                       type="text"
@@ -989,7 +1032,7 @@ const Cab = () => {
                       className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2.5 text-[11px] font-black text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#14532d]/10"
                     />
                   </div>
-                  <div className="md:col-span-5 space-y-1">
+                  <div className="md:col-span-4 space-y-1">
                     <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">Last Name</label>
                     <input
                       type="text"

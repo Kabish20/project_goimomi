@@ -194,14 +194,14 @@ class CabAdditionalDocumentInline(admin.TabularInline):
 
 @admin.register(CabBooking)
 class CabBookingAdmin(admin.ModelAdmin):
-    list_display = ("id", "first_name", "last_name", "from_city", "to_city", "pickup_date", "status", "created_at")
-    list_filter = ("status", "transfer_type", "pickup_date")
+    list_display = ("id", "title", "first_name", "last_name", "gender", "from_city", "to_city", "pickup_date", "status", "created_at")
+    list_filter = ("status", "gender", "transfer_type", "pickup_date")
     search_fields = ("first_name", "last_name", "phone", "email", "from_city", "to_city", "airport_name")
     inlines = [CabAdditionalDocumentInline]
     readonly_fields = ("created_at",)
     fieldsets = (
         ('Customer Details', {
-            'fields': (('title', 'first_name', 'last_name'), ('phone', 'email'))
+            'fields': (('gender', 'title', 'first_name', 'last_name'), ('phone', 'email'))
         }),
         ('Travel Information', {
             'fields': (('transfer_type', 'pickup_date', 'guests'), ('from_city', 'to_city'), 'luggage_count')

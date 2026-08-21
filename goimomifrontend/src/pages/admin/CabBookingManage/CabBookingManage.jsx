@@ -226,7 +226,27 @@ const CabBookingManage = () => {
 
     const handleEditChange = (e) => {
         const { name, value } = e.target;
-        setEditingBooking(prev => ({ ...prev, [name]: value }));
+        if (name === "gender") {
+            setEditingBooking(prev => {
+                const currentTitle = prev?.title || "";
+                let newTitle = currentTitle;
+                if (value === "Female") {
+                    if (!["Ms.", "Mrs.", "Miss"].includes(currentTitle)) {
+                        newTitle = "Ms.";
+                    }
+                } else {
+                    if (!["Mr.", "Master"].includes(currentTitle)) {
+                        newTitle = "Mr.";
+                    }
+                }
+                return { ...prev, gender: value, title: newTitle };
+            });
+        } else if (name === "title") {
+            const inferredGender = ["Ms.", "Mrs.", "Miss"].includes(value) ? "Female" : "Male";
+            setEditingBooking(prev => ({ ...prev, title: value, gender: inferredGender }));
+        } else {
+            setEditingBooking(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleStatusUpdate = async (bookingId, newStatus) => {
@@ -599,18 +619,39 @@ const CabBookingManage = () => {
 
                                     {editSections.guest ? (
                                         <div className="animate-in fade-in duration-200">
-                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                                <div>
+                                            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                                                <div className="md:col-span-2">
+                                                    <label className="text-[9px] font-bold text-gray-500 uppercase mb-0.5 block tracking-tight">Gender</label>
+                                                    <select
+                                                        name="gender"
+                                                        value={editingBooking.gender || (['Ms.', 'Mrs.', 'Miss'].includes(editingBooking.title) ? 'Female' : 'Male')}
+                                                        onChange={handleEditChange}
+                                                        className="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none cursor-pointer font-medium"
+                                                    >
+                                                        <option value="Male">Male</option>
+                                                        <option value="Female">Female</option>
+                                                    </select>
+                                                </div>
+                                                <div className="md:col-span-1">
                                                     <label className="text-[9px] font-bold text-gray-500 uppercase mb-0.5 block tracking-tight">Title</label>
                                                     <select
                                                         name="title"
-                                                        value={editingBooking.title || ""}
+                                                        value={editingBooking.title || (editingBooking.gender === 'Female' ? 'Ms.' : 'Mr.')}
                                                         onChange={handleEditChange}
-                                                        className="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none"
+                                                        className="w-full px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-[#14532d]/20 focus:outline-none cursor-pointer font-medium"
                                                     >
-                                                        <option value="Mr.">Mr.</option>
-                                                        <option value="Ms.">Ms.</option>
-                                                        <option value="Mrs.">Mrs.</option>
+                                                        {(editingBooking.gender === 'Female' || ['Ms.', 'Mrs.', 'Miss'].includes(editingBooking.title)) ? (
+                                                            <>
+                                                                <option value="Ms.">Ms.</option>
+                                                                <option value="Mrs.">Mrs.</option>
+                                                                <option value="Miss">Miss</option>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <option value="Mr.">Mr.</option>
+                                                                <option value="Master">Master</option>
+                                                            </>
+                                                        )}
                                                     </select>
                                                 </div>
                                                 <div className="md:col-span-3 grid grid-cols-2 gap-3">
@@ -660,17 +701,21 @@ const CabBookingManage = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-1">
+                                        <div className="grid grid-cols-3 gap-x-4 gap-y-2 p-1">
                                             <div>
                                                 <p className="text-[8px] font-bold text-gray-400 uppercase">Guest Name</p>
                                                 <p className="text-xs font-bold text-gray-700">{editingBooking.title} {editingBooking.first_name} {editingBooking.last_name}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[8px] font-bold text-gray-400 uppercase">Gender</p>
+                                                <p className="text-xs font-bold text-gray-700">{editingBooking.gender || (['Ms.', 'Mrs.', 'Miss'].includes(editingBooking.title) ? 'Female' : 'Male')}</p>
                                             </div>
                                             <div>
                                                 <p className="text-[8px] font-bold text-gray-400 uppercase">Contact</p>
                                                 <p className="text-xs font-bold text-gray-700">{editingBooking.phone}</p>
                                             </div>
                                             {editingBooking.email && (
-                                                <div className="col-span-2">
+                                                <div className="col-span-3">
                                                     <p className="text-[8px] font-bold text-gray-400 uppercase">Email</p>
                                                     <p className="text-xs font-bold text-gray-700">{editingBooking.email}</p>
                                                 </div>

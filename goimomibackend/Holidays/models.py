@@ -742,7 +742,14 @@ class CabBooking(models.Model):
     to_city = models.CharField(max_length=255)
     pickup_date = models.DateField()
     guests = models.PositiveIntegerField()
-    title = models.CharField(max_length=10)
+    gender = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')],
+        default='Male'
+    )
+    title = models.CharField(max_length=10, blank=True, null=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=25)
@@ -781,6 +788,19 @@ class CabBooking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        # Auto-sync gender if only title is provided
+        if not self.gender and self.title:
+            if self.title in ['Ms.', 'Mrs.', 'Miss']:
+                self.gender = 'Female'
+            elif self.title in ['Mr.', 'Master']:
+                self.gender = 'Male'
+        # Auto-sync title if only gender is provided
+        if not self.title and self.gender:
+            if self.gender == 'Female':
+                self.title = 'Ms.'
+            else:
+                self.title = 'Mr.'
+
         is_new = self.pk is None
         super().save(*args, **kwargs)
         if is_new and not self.booking_id:
