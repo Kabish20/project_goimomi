@@ -1,24 +1,29 @@
-import React, { useRef, useEffect } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import React, { useRef, useEffect, useState } from 'react'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import logo from '../assets/goimomilogo.png'
 import AdminLogin from '../pages/General/AdminLogin/AdminLogin.jsx'
 
 const Navbar = () => {
-  const [mobileOpen, setMobileOpen] = React.useState(false)
-  const [desktopHoliday, setDesktopHoliday] = React.useState(false)
-  const [mobileHoliday, setMobileHoliday] = React.useState(false)
-  const [desktopUmrah, setDesktopUmrah] = React.useState(false)
-  const [mobileUmrah, setMobileUmrah] = React.useState(false)
-  const [desktopBusiness, setDesktopBusiness] = React.useState(false)
-  const [mobileBusiness, setMobileBusiness] = React.useState(false)
-  const [desktopShop, setDesktopShop] = React.useState(false)
-  const [mobileShop, setMobileShop] = React.useState(false)
-  const [isAdminLoginOpen, setIsAdminLoginOpen] = React.useState(false)
-  const navigate = useNavigate();
-  const holidayRef = useRef(null);
-  const umrahRef = useRef(null);
-  const businessRef = useRef(null);
-  const shopRef = useRef(null);
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [desktopHoliday, setDesktopHoliday] = useState(false)
+  const [mobileHoliday, setMobileHoliday] = useState(false)
+  const [desktopUmrah, setDesktopUmrah] = useState(false)
+  const [mobileUmrah, setMobileUmrah] = useState(false)
+  const [desktopBusiness, setDesktopBusiness] = useState(false)
+  const [mobileBusiness, setMobileBusiness] = useState(false)
+  const [desktopShop, setDesktopShop] = useState(false)
+  const [mobileShop, setMobileShop] = useState(false)
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false)
+  const [headerHeight, setHeaderHeight] = useState(86)
+
+  const headerRef = useRef(null)
+  const holidayRef = useRef(null)
+  const umrahRef = useRef(null)
+  const businessRef = useRef(null)
+  const shopRef = useRef(null)
+
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const closeMobileMenu = () => {
     setMobileOpen(false);
@@ -28,29 +33,39 @@ const Navbar = () => {
     setMobileShop(false);
   };
 
-  const handleOpenCartClick = (e) => {
-    if (e) e.preventDefault();
+  // Close mobile menu on route change
+  useEffect(() => {
     closeMobileMenu();
-    navigate("/shop?cart=open");
-    window.dispatchEvent(new Event("open-goimomi-cart"));
-  };
+  }, [location.pathname, location.search]);
+
+  // Measure dynamic header height accurately
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight);
+      }
+      if (window.innerWidth >= 1024) {
+        setMobileOpen(false);
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => window.removeEventListener('resize', updateHeaderHeight);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Toggle Holiday Dropdown
       if (holidayRef.current && !holidayRef.current.contains(event.target)) {
         setDesktopHoliday(false);
       }
-      // Toggle Umrah Dropdown
       if (umrahRef.current && !umrahRef.current.contains(event.target)) {
         setDesktopUmrah(false);
       }
-      // Toggle Business Dropdown
       if (businessRef.current && !businessRef.current.contains(event.target)) {
         setDesktopBusiness(false);
       }
-      // Toggle Shop Dropdown
       if (shopRef.current && !shopRef.current.contains(event.target)) {
         setDesktopShop(false);
       }
@@ -62,15 +77,29 @@ const Navbar = () => {
     };
   }, []);
 
-  // Lock body scroll when mobile menu or admin login is open
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Lock body & document scroll when mobile menu or admin login is open
   useEffect(() => {
     if (mobileOpen || isAdminLoginOpen) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [mobileOpen, isAdminLoginOpen]);
 
@@ -78,7 +107,7 @@ const Navbar = () => {
     "flex flex-col items-center justify-center text-xs hover:text-goimomi-primary active:scale-90 transition-transform duration-200 focus:outline-none";
 
   return (
-    <header className="w-full sticky top-0 z-[100]">
+    <header ref={headerRef} className="w-full sticky top-0 z-[100] bg-white">
       {/* Top bar */}
       <div className="bg-goimomi-primary text-white text-xs hidden md:block">
         <div className="max-w-10xl mx-auto flex items-center justify-between px-4 py-1.5">
@@ -111,7 +140,8 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="border-b bg-white/95 backdrop-blur-md sticky top-0">
+      {/* Main navigation bar */}
+      <div className="border-b bg-white/95 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between px-4 py-2.5">
 
           {/* Logo */}
@@ -159,8 +189,7 @@ const Navbar = () => {
                 }}
               >
                 <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-9 h-9 mb-1 object-contain" />
-                <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5"
-                >
+                <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5">
                   Business Travel
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -174,8 +203,7 @@ const Navbar = () => {
               </button>
 
               {desktopBusiness && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown"
-                >
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown">
                   <NavLink
                     to="/businesshome"
                     onClick={() => setDesktopBusiness(false)}
@@ -270,13 +298,11 @@ const Navbar = () => {
                 }}
               >
                 <img src="https://cdn-icons-png.flaticon.com/128/9369/9369093.png" alt="Holidays" className="w-9 h-9 mb-1 object-contain" />
-
                 <span className="font-bold text-[11px] uppercase tracking-wide flex items-center gap-0.5">
                   Holidays
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className={`h-3 w-3 transition-transform duration-300 ${desktopHoliday ? "rotate-180" : "rotate-0"
-                      }`}
+                    className={`h-3 w-3 transition-transform duration-300 ${desktopHoliday ? "rotate-180" : "rotate-0"}`}
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -289,8 +315,6 @@ const Navbar = () => {
                 </span>
               </button>
 
-
-              {/* Dropdown */}
               {desktopHoliday && (
                 <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown">
                   <NavLink
@@ -331,9 +355,6 @@ const Navbar = () => {
                 </div>
               )}
             </div>
-
-
-
 
             {/* Cabs */}
             <NavLink to="/cab" className={({ isActive }) =>
@@ -378,13 +399,14 @@ const Navbar = () => {
               </NavLink>
             </div>
 
-
           </nav>
-
 
           {/* Mobile menu button */}
           <button
-            className="lg:hidden p-2 rounded-md border border-slate-200"
+            type="button"
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileOpen}
+            className="lg:hidden p-2 rounded-lg border border-slate-200 hover:bg-slate-50 active:scale-95 transition-all text-slate-700 focus:outline-none focus:ring-2 focus:ring-goimomi-primary/20"
             onClick={() => mobileOpen ? closeMobileMenu() : setMobileOpen(true)}
           >
             <span className="sr-only">Toggle menu</span>
@@ -403,279 +425,292 @@ const Navbar = () => {
             </svg>
           </button>
         </div>
-        {/* Mobile Menu */}
-        {mobileOpen && (
-          <>
-            <div 
-              className="fixed inset-0 top-[75px] md:top-[110px] bg-black/50 backdrop-blur-xs z-30 lg:hidden animate-fadeIn"
+      </div>
+
+      {/* Mobile Menu Backdrop Overlay - Placed outside backdrop-blur container for proper fixed viewport coverage */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden animate-fadeIn"
+          style={{ top: `${headerHeight}px` }}
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Mobile Menu Drawer Container */}
+      {mobileOpen && (
+        <div 
+          className="fixed left-0 right-0 bottom-0 z-[100] lg:hidden bg-white shadow-2xl overflow-y-auto custom-scrollbar border-t border-slate-100 flex flex-col justify-between animate-fadeIn"
+          style={{ 
+            top: `${headerHeight}px`,
+            height: `calc(100dvh - ${headerHeight}px)`,
+            maxHeight: `calc(100dvh - ${headerHeight}px)`
+          }}
+        >
+          <div className="px-5 py-4 space-y-3 text-base font-medium pb-16 flex-1">
+
+            <a
+              href="https://booking.goimomi.com/"
+              rel="noopener noreferrer"
+              className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
               onClick={closeMobileMenu}
-            />
-            <div className="fixed left-0 right-0 top-[75px] md:top-[110px] bottom-0 z-40 lg:hidden bg-white shadow-2xl overflow-y-auto custom-scrollbar border-t border-slate-100">
-              <div className="px-5 py-4 space-y-3 text-base font-medium pb-20">
+            >
+              <img src="https://cdn-icons-png.flaticon.com/128/1350/1350120.png" alt="Flight" className="w-6 h-6 object-contain" />
+              Flight
+            </a>
 
-                <a
-                  href="https://booking.goimomi.com/"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-                  onClick={closeMobileMenu}
-                >
-                  <img src="https://cdn-icons-png.flaticon.com/128/1350/1350120.png" alt="Flight" className="w-6 h-6 object-contain" />
-                  Flight
-                </a>
+            <a
+              href="https://booking.goimomi.com/hotel"
+              rel="noopener noreferrer"
+              className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
+              onClick={closeMobileMenu}
+            >
+              <img src="https://cdn-icons-png.flaticon.com/128/3168/3168622.png" alt="Hotels" className="w-6 h-6 object-contain" />
+              Hotels
+            </a>
 
-                <a
-                  href="https://booking.goimomi.com/hotel"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-                  onClick={closeMobileMenu}
-                >
-                  <img src="https://cdn-icons-png.flaticon.com/128/3168/3168622.png" alt="Hotels" className="w-6 h-6 object-contain" />
-                  Hotels
-                </a>
+            <NavLink to="/visa" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
+              <img src="https://cdn-icons-png.flaticon.com/128/15544/15544932.png" alt="Visa" className="w-6 h-6 object-contain" />
+              Visa
+            </NavLink>
 
-                <NavLink to="/visa" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
-                  <img src="https://cdn-icons-png.flaticon.com/128/15544/15544932.png" alt="Visa" className="w-6 h-6 object-contain" />
-                  Visa
-                </NavLink>
-
-                <div>
-                  <button
-                    onClick={() => {
-                      setMobileBusiness(!mobileBusiness);
-                      setMobileUmrah(false);
-                      setMobileHoliday(false);
-                    }}
-                    className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition text-left"
-                  >
-                    <span className="flex items-center gap-3">
-                      <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-6 h-6 object-contain" />
-                      Business Travel
-                    </span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-4 w-4 transition-transform duration-300 ${mobileBusiness ? "rotate-180" : "rotate-0"}`}
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  {mobileBusiness && (
-                    <div className="pl-6 space-y-2 animate-fadeIn">
-                      <NavLink to="/businesshome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={closeMobileMenu}>
-                        Business Travel Home
-                      </NavLink>
-                      <NavLink to="/holidays?category=Business Travel" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
-                        Business Travel
-                      </NavLink>
-                      <NavLink to="/canton" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
-                        Canton Fair
-                      </NavLink>
-                      <NavLink to="/megashowbangkok" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
-                        Mega Show Bangkok
-                      </NavLink>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <button
-                    onClick={() => {
-                      setMobileUmrah(!mobileUmrah);
-                      setMobileHoliday(false);
-                      setMobileBusiness(false);
-                    }}
-                    className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition"
-                  >
-                    <span className="flex items-center gap-3">
-                      <img src="https://cdn-icons-png.flaticon.com/128/5203/5203166.png" alt="Umrah / Hajj" className="w-6 h-6 object-contain" />
-                      Umrah / Hajj
-                    </span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-4 w-4 transition-transform duration-300 ${mobileUmrah ? "rotate-180" : "rotate-0"}`}
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  {mobileUmrah && (
-                    <div className="pl-6 space-y-2 animate-fadeIn">
-                      <NavLink to="/holidayhome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={closeMobileMenu}>
-                        Umrah Packages Home
-                      </NavLink>
-                      <NavLink to="/holidays?category=Umrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
-                        Umrah
-                      </NavLink>
-                      <NavLink to="/customizedumrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
-                        Customized Umrah
-                      </NavLink>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <button
-                    onClick={() => {
-                      setMobileHoliday(!mobileHoliday);
-                      setMobileUmrah(false);
-                      setMobileBusiness(false);
-                    }}
-                    className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition"
-                  >
-                    <span className="flex items-center gap-2">
-                      <img src="https://cdn-icons-png.flaticon.com/128/9369/9369093.png" alt="Holidays" className="w-6 h-6 object-contain" />
-                      Holidays
-                    </span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className={`h-4 w-4 transition-transform duration-300 ${mobileHoliday ? "rotate-180" : "rotate-0"}`}
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  {mobileHoliday && (
-                    <div className="pl-6 space-y-2 animate-fadeIn">
-
-                    <NavLink
-                      to="/holidayhome"
-                      className="flex items-center gap-3 py-1 pl-2 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b"
-                      onClick={closeMobileMenu}
-                    >
-                      Holiday Packages Home
-                    </NavLink>
-                    <NavLink
-                      to="/holidays?category=Domestic"
-                      className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={closeMobileMenu}
-                    >
-                      Domestic
-                    </NavLink>
-                    <NavLink
-                      to="/holidays?category=International"
-                      className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={closeMobileMenu}
-                    >
-                      International
-                    </NavLink>
-                    <NavLink
-                      to="/customizedHolidays"
-                      className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={closeMobileMenu}
-                    >
-                      Customized Holidays
-                    </NavLink>
-                    <NavLink
-                      to="/Europeantours"
-                      className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
-                      onClick={closeMobileMenu}
-                    >
-                      European Tour
-                    </NavLink>
-                  </div>
-                )}
-              </div>
-
-
-              <NavLink to="/cab" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
-                <img src="https://cdn-icons-png.flaticon.com/128/4874/4874225.png" alt="Cabs" className="w-6 h-6 object-contain" />
-                Cabs
-              </NavLink>
-
-              <NavLink to="/cruise" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
-                <img src="https://cdn-icons-png.flaticon.com/128/4320/4320227.png" alt="Cruise" className="w-6 h-6 object-contain" />
-                Cruise Bookings
-              </NavLink>
-
-              <NavLink
-                to="/shop"
-                id="mobile-nav-shop-link"
-                className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-                onClick={closeMobileMenu}
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileBusiness(!mobileBusiness);
+                  setMobileUmrah(false);
+                  setMobileHoliday(false);
+                }}
+                className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition text-left"
               >
-                <div className="relative">
-                  <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
-                  <span className="absolute -top-1 -right-1 bg-[#16a34a] text-white text-[7px] font-black px-1 rounded-full uppercase leading-tight">
-                    New
-                  </span>
+                <span className="flex items-center gap-3">
+                  <img src="https://cdn-icons-png.flaticon.com/128/9638/9638464.png" alt="Business Travel" className="w-6 h-6 object-contain" />
+                  Business Travel
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-4 w-4 transition-transform duration-300 ${mobileBusiness ? "rotate-180" : "rotate-0"}`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
+                </svg>
+              </button>
+              {mobileBusiness && (
+                <div className="pl-6 space-y-2 animate-fadeIn">
+                  <NavLink to="/businesshome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={closeMobileMenu}>
+                    Business Travel Home
+                  </NavLink>
+                  <NavLink to="/holidays?category=Business Travel" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
+                    Business Travel
+                  </NavLink>
+                  <NavLink to="/canton" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
+                    Canton Fair
+                  </NavLink>
+                  <NavLink to="/megashowbangkok" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
+                    Mega Show Bangkok
+                  </NavLink>
                 </div>
-                <span>Shop</span>
-              </NavLink>
+              )}
+            </div>
 
-
-              <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
-                <img src="https://cdn-icons-png.flaticon.com/128/471/471664.png" alt="About" className="w-6 h-6 object-contain opacity-70" />
-                About Us
-              </NavLink>
-
-              <NavLink to="/contactus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
-                <img src="https://cdn-icons-png.flaticon.com/128/1034/1034153.png" alt="Contact" className="w-6 h-6 object-contain opacity-70" />
-                Contact Us
-              </NavLink>
-
-              {/* Mobile Support & Logins Block (Visible only on mobile/tablet) */}
-              <div className="pt-4 border-t border-gray-100 space-y-4 text-left">
-                {/* Contact info cards */}
-                <div className="bg-slate-50 rounded-2xl p-4 space-y-2.5 border border-slate-100">
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-black text-[#14532d]/80 block">24/7 Travel Desk</span>
-                  <div className="flex flex-col gap-2 text-sm text-slate-600">
-                    <a href="tel:+918110082222" className="flex items-center gap-2 hover:text-[#14532d] transition-colors">
-                      <span className="text-base shrink-0">📞</span>
-                      <span className="font-bold">+91 81100 82222</span>
-                    </a>
-                    <a href="mailto:hello@goimomi.com" className="flex items-center gap-2 hover:text-[#14532d] transition-colors">
-                      <span className="text-base shrink-0">✉️</span>
-                      <span className="font-bold">hello@goimomi.com</span>
-                    </a>
-                  </div>
+            <div className="space-y-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileUmrah(!mobileUmrah);
+                  setMobileHoliday(false);
+                  setMobileBusiness(false);
+                }}
+                className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <img src="https://cdn-icons-png.flaticon.com/128/5203/5203166.png" alt="Umrah / Hajj" className="w-6 h-6 object-contain" />
+                  Umrah / Hajj
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-4 w-4 transition-transform duration-300 ${mobileUmrah ? "rotate-180" : "rotate-0"}`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
+                </svg>
+              </button>
+              {mobileUmrah && (
+                <div className="pl-6 space-y-2 animate-fadeIn">
+                  <NavLink to="/holidayhome" className="block py-1 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b" onClick={closeMobileMenu}>
+                    Umrah Packages Home
+                  </NavLink>
+                  <NavLink to="/holidays?category=Umrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
+                    Umrah
+                  </NavLink>
+                  <NavLink to="/customizedumrah" className="block py-1 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
+                    Customized Umrah
+                  </NavLink>
                 </div>
+              )}
+            </div>
 
-                {/* Login buttons */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <a
-                    href="https://b2b.goimomi.com/"
-                    className="flex-1 text-center bg-slate-100 text-[#14532d] rounded-xl py-2.5 font-bold hover:bg-slate-200 transition-all text-xs uppercase tracking-wide border border-slate-200"
-                    rel="noopener noreferrer"
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileHoliday(!mobileHoliday);
+                  setMobileUmrah(false);
+                  setMobileBusiness(false);
+                }}
+                className="w-full flex items-center justify-between py-2 hover:text-[#14532d] transition text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <img src="https://cdn-icons-png.flaticon.com/128/9369/9369093.png" alt="Holidays" className="w-6 h-6 object-contain" />
+                  Holidays
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-4 w-4 transition-transform duration-300 ${mobileHoliday ? "rotate-180" : "rotate-0"}`}
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.205l3.71-3.974a.75.75 0 1 1 1.08 1.04l-4.24 4.54a.75.75 0 0 1-1.08 0l-4.24-4.54a.75.75 0 0 1 .02-1.06z" clipRule="evenodd" />
+                </svg>
+              </button>
+              {mobileHoliday && (
+                <div className="pl-6 space-y-2 animate-fadeIn">
+                  <NavLink
+                    to="/holidayhome"
+                    className="flex items-center gap-3 py-1 pl-2 text-sm font-black text-[#14532d] hover:text-[#14532d] transition uppercase tracking-widest border-b"
                     onClick={closeMobileMenu}
                   >
-                    Agent Login
-                  </a>
-                  <button
-                    onClick={() => {
-                      closeMobileMenu();
-                      setIsAdminLoginOpen(true);
-                    }}
-                    className="flex-1 text-center bg-[#14532d] text-white rounded-xl py-2.5 font-bold hover:bg-[#1a6338] transition-all text-xs uppercase tracking-wide shadow-sm"
+                    Holiday Packages Home
+                  </NavLink>
+                  <NavLink
+                    to="/holidays?category=Domestic"
+                    className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
+                    onClick={closeMobileMenu}
                   >
-                    Admin Login
-                  </button>
+                    Domestic
+                  </NavLink>
+                  <NavLink
+                    to="/holidays?category=International"
+                    className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
+                    onClick={closeMobileMenu}
+                  >
+                    International
+                  </NavLink>
+                  <NavLink
+                    to="/customizedHolidays"
+                    className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
+                    onClick={closeMobileMenu}
+                  >
+                    Customized Holidays
+                  </NavLink>
+                  <NavLink
+                    to="/Europeantours"
+                    className="flex items-center gap-3 py-1 pl-2 text-sm hover:text-[#14532d] transition"
+                    onClick={closeMobileMenu}
+                  >
+                    European Tour
+                  </NavLink>
+                </div>
+              )}
+            </div>
+
+            <NavLink to="/cab" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
+              <img src="https://cdn-icons-png.flaticon.com/128/4874/4874225.png" alt="Cabs" className="w-6 h-6 object-contain" />
+              Cabs
+            </NavLink>
+
+            <NavLink to="/cruise" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
+              <img src="https://cdn-icons-png.flaticon.com/128/4320/4320227.png" alt="Cruise" className="w-6 h-6 object-contain" />
+              Cruise Bookings
+            </NavLink>
+
+            <NavLink
+              to="/shop"
+              id="mobile-nav-shop-link"
+              className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
+              onClick={closeMobileMenu}
+            >
+              <div className="relative">
+                <img src="https://cdn-icons-png.flaticon.com/128/1170/1170576.png" alt="Shop" className="w-6 h-6 object-contain" />
+                <span className="absolute -top-1 -right-1 bg-[#16a34a] text-white text-[7px] font-black px-1 rounded-full uppercase leading-tight">
+                  New
+                </span>
+              </div>
+              <span>Shop</span>
+            </NavLink>
+
+            <NavLink to="/aboutus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
+              <img src="https://cdn-icons-png.flaticon.com/128/471/471664.png" alt="About" className="w-6 h-6 object-contain opacity-70" />
+              About Us
+            </NavLink>
+
+            <NavLink to="/contactus" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
+              <img src="https://cdn-icons-png.flaticon.com/128/1034/1034153.png" alt="Contact" className="w-6 h-6 object-contain opacity-70" />
+              Contact Us
+            </NavLink>
+
+            {/* Mobile Support & Logins Block */}
+            <div className="pt-4 border-t border-gray-100 space-y-4 text-left">
+              {/* Contact info cards */}
+              <div className="bg-slate-50 rounded-2xl p-4 space-y-2.5 border border-slate-100">
+                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-[#14532d]/80 block">24/7 Travel Desk</span>
+                <div className="flex flex-col gap-2 text-sm text-slate-600">
+                  <a href="tel:+918110082222" className="flex items-center gap-2 hover:text-[#14532d] transition-colors">
+                    <span className="text-base shrink-0">📞</span>
+                    <span className="font-bold">+91 81100 82222</span>
+                  </a>
+                  <a href="mailto:hello@goimomi.com" className="flex items-center gap-2 hover:text-[#14532d] transition-colors">
+                    <span className="text-base shrink-0">✉️</span>
+                    <span className="font-bold">hello@goimomi.com</span>
+                  </a>
                 </div>
               </div>
 
-              {/* Social Links for "Instagram Part" */}
-
-              <div className="pt-6 border-t border-gray-100 flex flex-col items-center gap-4">
-                <span className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400">Follow Our Journey</span>
-                <div className="flex items-center gap-6">
-                  <a href="https://www.instagram.com/goimomi_holidays/" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-2xl shadow-lg shadow-pink-500/20 active:scale-90 transition-transform">
-                    <img src="https://cdn-icons-png.flaticon.com/128/2111/2111463.png" className="w-6 h-6 invert brightness-100" alt="Instagram" />
-                  </a>
-                  <a href="https://www.facebook.com/goimomi" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#1877F2] rounded-2xl shadow-lg shadow-blue-500/20 active:scale-90 transition-transform">
-                    <img src="https://cdn-icons-png.flaticon.com/128/733/733547.png" className="w-6 h-6 invert brightness-100" alt="Facebook" />
-                  </a>
-                  <a href="https://wa.me/918110082222" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#25D366] rounded-2xl shadow-lg shadow-green-500/20 active:scale-90 transition-transform">
-                    <img src="https://cdn-icons-png.flaticon.com/128/733/733585.png" className="w-6 h-6 invert brightness-100" alt="WhatsApp" />
-                  </a>
-                </div>
+              {/* Login buttons */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <a
+                  href="https://b2b.goimomi.com/"
+                  className="flex-1 text-center bg-slate-100 text-[#14532d] rounded-xl py-2.5 font-bold hover:bg-slate-200 transition-all text-xs uppercase tracking-wide border border-slate-200"
+                  rel="noopener noreferrer"
+                  onClick={closeMobileMenu}
+                >
+                  Agent Login
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMobileMenu();
+                    setIsAdminLoginOpen(true);
+                  }}
+                  className="flex-1 text-center bg-[#14532d] text-white rounded-xl py-2.5 font-bold hover:bg-[#1a6338] transition-all text-xs uppercase tracking-wide shadow-sm"
+                >
+                  Admin Login
+                </button>
               </div>
             </div>
+
+            {/* Social Links */}
+            <div className="pt-6 border-t border-gray-100 flex flex-col items-center gap-4">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400">Follow Our Journey</span>
+              <div className="flex items-center gap-6">
+                <a href="https://www.instagram.com/goimomi_holidays/" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 rounded-2xl shadow-lg shadow-pink-500/20 active:scale-90 transition-transform">
+                  <img src="https://cdn-icons-png.flaticon.com/128/2111/2111463.png" className="w-6 h-6 invert brightness-100" alt="Instagram" />
+                </a>
+                <a href="https://www.facebook.com/goimomi" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#1877F2] rounded-2xl shadow-lg shadow-blue-500/20 active:scale-90 transition-transform">
+                  <img src="https://cdn-icons-png.flaticon.com/128/733/733547.png" className="w-6 h-6 invert brightness-100" alt="Facebook" />
+                </a>
+                <a href="https://wa.me/918110082222" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-[#25D366] rounded-2xl shadow-lg shadow-green-500/20 active:scale-90 transition-transform">
+                  <img src="https://cdn-icons-png.flaticon.com/128/733/733585.png" className="w-6 h-6 invert brightness-100" alt="WhatsApp" />
+                </a>
+              </div>
+            </div>
+
           </div>
-        </>
-        )}
-      </div>
+        </div>
+      )}
+
       <AdminLogin
         isOpen={isAdminLoginOpen}
         onClose={() => setIsAdminLoginOpen(false)}
