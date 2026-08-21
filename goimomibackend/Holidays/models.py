@@ -1049,3 +1049,35 @@ class SubCatalogue(models.Model):
         return f"{self.catalogue.name} -> {self.name}"
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Zoho CRM Webhook Logs
+# ─────────────────────────────────────────────────────────────────────────────
+
+class ZohoWebhookLog(models.Model):
+    event_type = models.CharField(max_length=100, default='crm_webhook')
+    module = models.CharField(max_length=100, blank=True, null=True, help_text="Zoho Module e.g. Leads, Contacts, Deals")
+    payload = models.JSONField(default=dict, blank=True, help_text="Raw payload received from Zoho CRM")
+    headers = models.JSONField(default=dict, blank=True, help_text="HTTP request headers")
+    status = models.CharField(
+        max_length=50,
+        choices=[
+            ('received', 'Received'),
+            ('success', 'Success'),
+            ('error', 'Error'),
+            ('unauthorized', 'Unauthorized')
+        ],
+        default='received'
+    )
+    response_message = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Zoho Webhook Log"
+        verbose_name_plural = "Zoho Webhook Logs"
+
+    def __str__(self):
+        return f"Zoho Webhook [{self.module or 'CRM'}] - {self.status} ({self.created_at.strftime('%Y-%m-%d %H:%M') if self.created_at else ''})"
+
+
+

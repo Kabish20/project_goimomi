@@ -321,3 +321,12 @@ class SubCatalogueAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code', 'catalogue__name')
 
 
+@admin.register(ZohoWebhookLog)
+class ZohoWebhookLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'module', 'event_type', 'status', 'created_at')
+    list_filter = ('status', 'module', 'created_at')
+    search_fields = ('module', 'event_type', 'response_message')
+    readonly_fields = ('created_at',)
+
+
+

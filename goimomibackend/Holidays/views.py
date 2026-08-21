@@ -18,7 +18,7 @@ from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import authentication_classes, permission_classes, action
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, action
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -183,7 +183,7 @@ from .models import (
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
     CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
     GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking,
-    CatalogueMaster, SubCatalogue
+    CatalogueMaster, SubCatalogue, ZohoWebhookLog
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -3811,6 +3811,197 @@ class SubCatalogueViewSet(ModelViewSet):
         if catalogue_id:
             queryset = queryset.filter(catalogue_id=catalogue_id)
         return queryset
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Zoho CRM Inbound Webhook Endpoint
+# ─────────────────────────────────────────────────────────────────────────────
+
+@api_view(['POST', 'GET'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def zoho_crm_webhook(request):
+    """
+    Receives incoming webhook events from Zoho CRM (Leads, Contacts, Deals).
+    Authenticates via X-Zoho-Webhook-Secret header or ?secret= query param.
+    Extracts customer lead data and syncs with Enquiry model while logging to ZohoWebhookLog.
+    """
+    import hmac
+
+    # 1. Security Check
+    expected_secret = getattr(settings, 'ZOHO_CRM_WEBHOOK_SECRET', '').strip()
+    received_secret = (
+        request.headers.get('X-Zoho-Webhook-Secret') or 
+        request.headers.get('X-ZOHO-WEBHOOK-SECRET') or 
+        request.META.get('HTTP_X_ZOHO_WEBHOOK_SECRET') or
+        request.query_params.get('secret') or
+        (request.data.get('secret') if isinstance(request.data, dict) else '') or
+        ''
+    ).strip()
+
+    # Extract loggable headers for audit trail
+    log_headers = {
+        k: v for k, v in request.headers.items()
+        if k.lower() in ('x-zoho-webhook-secret', 'content-type', 'user-agent', 'x-forwarded-for', 'host')
+    }
+
+    # Handle health-check GET probe
+    if request.method == 'GET':
+        return Response({
+            "status": "ready",
+            "message": "Zoho CRM Webhook endpoint is active and listening for POST requests."
+        }, status=status.HTTP_200_OK)
+
+    if expected_secret:
+        if not received_secret or not hmac.compare_digest(expected_secret, received_secret):
+            print("[Zoho CRM Webhook] Unauthorized attempt - secret mismatch or missing header.")
+            try:
+                ZohoWebhookLog.objects.create(
+                    event_type='unauthorized_access',
+                    module=request.data.get('module') if isinstance(request.data, dict) else 'CRM',
+                    payload=request.data if isinstance(request.data, dict) else {},
+                    headers=log_headers,
+                    status='unauthorized',
+                    response_message='Webhook secret token invalid or missing X-Zoho-Webhook-Secret header'
+                )
+            except Exception as log_err:
+                print(f"[Zoho CRM Webhook] Error creating audit log: {log_err}")
+            return Response(
+                {"error": "Unauthorized: Invalid or missing X-Zoho-Webhook-Secret header"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+    # 2. Extract Data Payload
+    data = request.data if isinstance(request.data, dict) else {}
+    if not data and request.body:
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            data = {}
+
+    print(f"[Zoho CRM Webhook] Inbound Payload: {data}")
+
+    module = str(data.get('module') or request.query_params.get('module') or 'Leads').strip()
+    event_type = str(data.get('event') or data.get('action') or 'record_triggered').strip()
+
+    # Normalize fields from Zoho merge fields or standard JSON
+    first_name = str(
+        data.get('First_Name') or 
+        data.get('first_name') or 
+        data.get('First Name') or 
+        ''
+    ).strip()
+    
+    last_name = str(
+        data.get('Last_Name') or 
+        data.get('last_name') or 
+        data.get('Last Name') or 
+        ''
+    ).strip()
+    
+    full_name = str(
+        data.get('Full_Name') or 
+        data.get('full_name') or 
+        data.get('Name') or 
+        data.get('name') or 
+        (f"{first_name} {last_name}".strip() if (first_name or last_name) else '') or 
+        'Zoho CRM Lead'
+    ).strip()
+
+    email = str(
+        data.get('Email') or 
+        data.get('email') or 
+        ''
+    ).strip()
+
+    phone = str(
+        data.get('Phone') or 
+        data.get('phone') or 
+        data.get('Mobile') or 
+        data.get('mobile') or 
+        ''
+    ).strip()
+
+    lead_source = str(
+        data.get('Lead_Source') or 
+        data.get('lead_source') or 
+        data.get('Lead Source') or 
+        'Zoho CRM'
+    ).strip()
+
+    city = str(
+        data.get('City') or 
+        data.get('city') or 
+        data.get('Destination') or 
+        data.get('destination') or 
+        ''
+    ).strip()
+
+    description = str(
+        data.get('Description') or 
+        data.get('description') or 
+        data.get('Notes') or 
+        data.get('notes') or 
+        data.get('Message') or 
+        data.get('message') or 
+        ''
+    ).strip()
+
+    created_enquiry = None
+    try:
+        if full_name or email or phone:
+            purpose_parts = [f"Source: {lead_source}"]
+            if description:
+                purpose_parts.append(f"Notes: {description}")
+            if city:
+                purpose_parts.append(f"Location: {city}")
+            purpose_text = " | ".join(purpose_parts)
+
+            created_enquiry = Enquiry.objects.create(
+                name=full_name,
+                email=email or None,
+                phone=phone or "N/A",
+                destination=city or "Zoho CRM Lead",
+                purpose=purpose_text,
+                enquiry_type="General"
+            )
+            print(f"[Zoho CRM Webhook] Successfully recorded Enquiry #{created_enquiry.id} for {full_name}")
+
+        log_entry = ZohoWebhookLog.objects.create(
+            event_type=event_type,
+            module=module,
+            payload=data,
+            headers=log_headers,
+            status='success',
+            response_message=f"Successfully processed and recorded Enquiry #{created_enquiry.id if created_enquiry else 'N/A'}"
+        )
+
+        return Response({
+            "status": "success",
+            "message": "Zoho CRM webhook received and processed successfully",
+            "enquiry_id": created_enquiry.id if created_enquiry else None,
+            "log_id": log_entry.id
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print(f"[Zoho CRM Webhook] Error processing payload: {e}")
+        try:
+            ZohoWebhookLog.objects.create(
+                event_type=event_type,
+                module=module,
+                payload=data,
+                headers=log_headers,
+                status='error',
+                response_message=f"Processing exception: {str(e)}"
+            )
+        except Exception:
+            pass
+
+        return Response({
+            "status": "error",
+            "message": f"Failed to process webhook data: {str(e)}"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

@@ -45,7 +45,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -60,7 +59,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'Holidays', 
-
 ]
 
 MIDDLEWARE = [
@@ -98,7 +96,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -110,7 +107,6 @@ DATABASES = {
         'CONN_MAX_AGE': 600,
     }
 }
-
 
 
 # Password validation
@@ -186,7 +182,6 @@ REST_FRAMEWORK = {
 if DEBUG:
     REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append('rest_framework.renderers.BrowsableAPIRenderer')
 
-
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Goimomi Holidays API',
     'DESCRIPTION': 'Complete RESTful API for Goimomi Holidays platform',
@@ -210,6 +205,7 @@ COMPANY_EMAIL = config("COMPANY_EMAIL")
 ZOHO_CRM_REFRESH_TOKEN = config("ZOHO_CRM_REFRESH_TOKEN", default="")
 ZOHO_CRM_CLIENT_ID = config("ZOHO_CRM_CLIENT_ID", default="")
 ZOHO_CRM_CLIENT_SECRET = config("ZOHO_CRM_CLIENT_SECRET", default="")
+ZOHO_CRM_WEBHOOK_SECRET = config("ZOHO_CRM_WEBHOOK_SECRET", default="goimomi-zoho-webhook-secret-2026")
 FRONTEND_URL = config("FRONTEND_URL", default="https://goimomi.com")
 
 # Twilio Configuration
@@ -227,10 +223,6 @@ ZOHO_PAYMENTS_REDIRECT_URI = config("ZOHO_PAYMENTS_REDIRECT_URI", default="https
 ZOHO_PAYMENTS_WEBHOOK_ID = config("ZOHO_PAYMENTS_WEBHOOK_ID", default="")
 ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY = config("ZOHO_PAYMENTS_WEBHOOK_SIGNING_KEY", default="")
 ZOHO_PAYMENTS_SIGNING_KEY = config("ZOHO_PAYMENTS_SIGNING_KEY", default="")
-
-
-
-
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),

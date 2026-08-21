@@ -133,6 +133,12 @@ urlpatterns = [
     path('destinationhierarchy/', views.DestinationHierarchyAPI.as_view(), name='destinationhierarchy'),
     path('destination-hierarchy/', views.DestinationHierarchyAPI.as_view(), name='destination-hierarchy'),
 
+    path('zoho/crm-webhook/', views.zoho_crm_webhook, name='zoho-crm-webhook'),
+    path('zoho/webhook/', views.zoho_crm_webhook, name='zoho-webhook'),
+    path('zoho-crm-webhook/', views.zoho_crm_webhook, name='zoho-crm-webhook-alt'),
+    path('zoho-webhook/', views.zoho_crm_webhook, name='zoho-webhook-alt'),
+
     path('share/<path:path>/', views.DynamicSEOView.as_view(), name='dynamic-seo-share'),
 ]
+
 
