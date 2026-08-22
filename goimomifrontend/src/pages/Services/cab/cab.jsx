@@ -279,7 +279,8 @@ const Cab = () => {
 
     } catch (err) {
       console.error("Booking error:", err);
-      setBookingStatus({ loading: false, success: false, error: "Failed to confirm booking. Please try again." });
+      const serverMsg = err.response?.data?.error || err.response?.data?.detail || "Failed to confirm booking. Please try again.";
+      setBookingStatus({ loading: false, success: false, error: serverMsg });
     }
   };
 

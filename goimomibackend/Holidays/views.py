@@ -215,13 +215,12 @@ class CantonEnquiryAPI(ModelViewSet):
             from .utils import create_zoho_crm_lead
             import threading
             lead_data = {
-                'name': enquiry.name,
-                'email': enquiry.email or '',
-                'phone': enquiry.phone or '',
-                'city': enquiry.city or '',
-                'description': f"Canton Fair Enquiry\nCompany: {enquiry.company}\nCity: {enquiry.city}\nPhase: {enquiry.phase}\nNotes: {enquiry.notes}",
+                'name': getattr(enquiry, 'full_name', '') or getattr(enquiry, 'name', '') or 'Canton Lead',
+                'email': getattr(enquiry, 'email', '') or '',
+                'phone': getattr(enquiry, 'whatsapp_number', '') or getattr(enquiry, 'phone', '') or '',
+                'description': f"Canton Fair Enquiry\nCompany: {getattr(enquiry, 'business_name', '')}\nPhase: {getattr(enquiry, 'selected_phase', '')}\nPayment Status: {getattr(enquiry, 'payment_status', 'Pending')}",
                 'lead_source': 'Website Canton Fair Enquiry',
-                'company': enquiry.company or 'Individual'
+                'company': getattr(enquiry, 'business_name', '') or 'Individual'
             }
             threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
         except Exception as e:
@@ -639,11 +638,11 @@ class HolidayEnquiryAPI(ModelViewSet):
 
             import threading
             lead_data = {
-                'name': enquiry.name,
-                'email': enquiry.email or '',
-                'phone': enquiry.phone or '',
-                'city': enquiry.destination or '',
-                'description': f"Holiday Package Enquiry\nDestination: {enquiry.destination}\nTravel Date: {enquiry.travel_date}\nTravelers: {enquiry.travelers}\nNotes: {enquiry.notes}",
+                'name': getattr(enquiry, 'full_name', '') or getattr(enquiry, 'name', '') or 'Holiday Lead',
+                'email': getattr(enquiry, 'email', '') or '',
+                'phone': getattr(enquiry, 'phone', '') or '',
+                'city': getattr(enquiry, 'start_city', '') or getattr(enquiry, 'destination', '') or '',
+                'description': f"Holiday Package Enquiry\nPackage: {getattr(enquiry, 'package_type', '') or getattr(enquiry, 'holiday_type', '')}\nStart City: {getattr(enquiry, 'start_city', '')}\nTravel Date: {getattr(enquiry, 'travel_date', '')}\nRooms: {getattr(enquiry, 'rooms', '')}\nAdults: {getattr(enquiry, 'adults', 0)}, Children: {getattr(enquiry, 'children', 0)}\nMessage: {getattr(enquiry, 'message', '') or ''}",
                 'lead_source': 'Website Holiday Enquiry',
                 'company': 'Individual'
             }
@@ -666,10 +665,11 @@ class UmrahEnquiryAPI(ModelViewSet):
 
             import threading
             lead_data = {
-                'name': enquiry.name,
-                'email': enquiry.email or '',
-                'phone': enquiry.phone or '',
-                'description': f"Umrah Package Enquiry\nPackage: {enquiry.package}\nTravel Date: {enquiry.travel_date}\nTravelers: {enquiry.travelers}\nNotes: {enquiry.notes}",
+                'name': getattr(enquiry, 'full_name', '') or getattr(enquiry, 'name', '') or 'Umrah Lead',
+                'email': getattr(enquiry, 'email', '') or '',
+                'phone': getattr(enquiry, 'phone', '') or '',
+                'city': getattr(enquiry, 'start_city', '') or '',
+                'description': f"Umrah Package Enquiry\nPackage: {getattr(enquiry, 'package_type', '')}\nStart City: {getattr(enquiry, 'start_city', '')}\nTravel Date: {getattr(enquiry, 'travel_date', '')}\nRooms: {getattr(enquiry, 'rooms', '')}\nAdults: {getattr(enquiry, 'adults', 0)}, Children: {getattr(enquiry, 'children', 0)}, Infants: {getattr(enquiry, 'infants', 0)}\nMessage: {getattr(enquiry, 'message', '') or ''}",
                 'lead_source': 'Website Umrah Enquiry',
                 'company': 'Individual'
             }
@@ -693,11 +693,11 @@ class EnquiryAPI(ModelViewSet):
 
             import threading
             lead_data = {
-                'name': enquiry.name,
-                'email': enquiry.email or '',
-                'phone': enquiry.phone or '',
-                'city': enquiry.destination or '',
-                'description': f"Website Enquiry\nType: {enquiry_type}\nDestination: {enquiry.destination}\nPurpose: {enquiry.purpose}",
+                'name': getattr(enquiry, 'name', '') or getattr(enquiry, 'full_name', '') or 'Enquiry Lead',
+                'email': getattr(enquiry, 'email', '') or '',
+                'phone': getattr(enquiry, 'phone', '') or '',
+                'city': getattr(enquiry, 'destination', '') or '',
+                'description': f"Website Enquiry\nType: {enquiry_type}\nDestination: {getattr(enquiry, 'destination', '')}\nPurpose: {getattr(enquiry, 'purpose', '')}",
                 'lead_source': f"Website {enquiry_type} Enquiry",
                 'company': 'Individual'
             }
@@ -1756,13 +1756,13 @@ class CabBookingViewSet(ModelViewSet):
         if not is_staff_user:
             email = str(request.data.get('email') or '').strip().lower()
             try:
-                otp_obj = OTPVerification.objects.get(email=email)
+                otp_obj = OTPVerification.objects.filter(email__iexact=email).order_by('-created_at').first()
                 from datetime import timedelta
-                if not otp_obj.is_verified or (timezone.now() - otp_obj.created_at > timedelta(minutes=30)):
-                    return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
+                if not otp_obj or not otp_obj.is_verified or (timezone.now() - otp_obj.created_at > timedelta(minutes=30)):
+                    return Response({'error': 'Email verification is required before submitting a booking. Please verify your email with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
                 verified_otp = otp_obj
-            except OTPVerification.DoesNotExist:
-                return Response({'error': 'Email verification is required before submitting a booking.'}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception:
+                return Response({'error': 'Email verification is required before submitting a booking. Please verify your email with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data.copy()
         if not is_staff_user:
@@ -1798,8 +1798,6 @@ class CabBookingViewSet(ModelViewSet):
             status=status.HTTP_201_CREATED,
             headers=self.get_success_headers(serializer.data),
         )
-        if verified_otp:
-            verified_otp.delete()
 
         # After successful creation, generate Zoho payment session and return it directly
         if response.status_code == 201:
@@ -1813,12 +1811,13 @@ class CabBookingViewSet(ModelViewSet):
                     try:
                         from Holidays.utils import create_zoho_crm_lead
                         import threading
+                        cust_name = f"{booking_obj.first_name or ''} {booking_obj.last_name or ''}".strip() or 'Cab Customer'
                         lead_data = {
-                            'name': booking_obj.customer_name,
+                            'name': cust_name,
                             'email': booking_obj.email or '',
-                            'phone': booking_obj.phone,
-                            'city': booking_obj.from_city,
-                            'description': f"Cab Booking: {booking_obj.from_city} to {booking_obj.to_city}\nVehicle: {booking_obj.vehicle_name}\nPickup Date: {booking_obj.pickup_date}\nPrice: ₹{booking_obj.price}\nBooking ID: {booking_obj.booking_id}",
+                            'phone': booking_obj.phone or '',
+                            'city': booking_obj.from_city or '',
+                            'description': f"Cab Booking: {booking_obj.from_city} to {booking_obj.to_city}\nVehicle: {booking_obj.vehicle_name}\nPickup Date: {booking_obj.pickup_date}\nPrice: ₹{booking_obj.price}\nBooking ID: {booking_obj.booking_id}\nPickup Details: {booking_obj.pickup_location_details or ''}\nSpecial Requirements: {booking_obj.special_requirements or ''}",
                             'lead_source': 'Website Cab Booking',
                             'company': 'Individual'
                         }
