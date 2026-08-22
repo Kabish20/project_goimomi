@@ -221,6 +221,7 @@ const Cab = () => {
       const item = cart[0];
       const payload = {
         vehicle_id: item.id,
+        price: item.price,
         from_city: item.fromCity || searchParams.fromName,
         to_city: item.toCity || searchParams.toName,
         pickup_date: item.pickupDate || searchParams.pickupDate,
