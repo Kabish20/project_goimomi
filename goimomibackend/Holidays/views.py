@@ -96,62 +96,79 @@ def _cab_value_matches(rate_value, requested_value):
 
 
 def quote_cab_fare(vehicle_id, from_city, to_city, pickup_date, pickup_point='', drop_point=''):
-    """Resolve the authoritative fare for a public cab booking from active rate cards."""
+    """Resolve the authoritative fare for a public cab booking from active rate cards with fallback handling."""
     try:
         vehicle = VehicleMaster.objects.select_related('brand').get(pk=int(vehicle_id))
-        travel_date = timezone.datetime.strptime(str(pickup_date), '%Y-%m-%d').date()
     except (VehicleMaster.DoesNotExist, TypeError, ValueError):
         return None, None
 
-    from_city = _normalise_cab_city(from_city)
-    to_city = _normalise_cab_city(to_city)
-    if not from_city or not to_city:
-        return None, None
+    try:
+        travel_date = timezone.datetime.strptime(str(pickup_date), '%Y-%m-%d').date()
+    except (TypeError, ValueError):
+        travel_date = None
+
+    norm_from_city = _normalise_cab_city(from_city)
+    norm_to_city = _normalise_cab_city(to_city)
 
     vehicle_names = {str(vehicle.name or '').strip().lower()}
     if vehicle.brand_id:
         vehicle_names.add(f"{vehicle.brand.name} {vehicle.name}".strip().lower())
 
-    fares = []
-    rate_cards = VehicleRateCard.objects.filter(
-        validity_start__lte=travel_date,
-        validity_end__gte=travel_date,
-    )
-    for rate_card in rate_cards:
-        routes = rate_card.routes
-        columns = rate_card.column_vehicles
-        if isinstance(routes, str):
-            try:
-                routes = json.loads(routes)
-            except (TypeError, ValueError):
-                routes = []
-        if isinstance(columns, str):
-            try:
-                columns = json.loads(columns)
-            except (TypeError, ValueError):
-                columns = []
-
-        for route in routes or []:
-            if not isinstance(route, dict):
-                continue
-            if not _cab_value_matches(_normalise_cab_city(route.get('start_city')), from_city):
-                continue
-            if not _cab_value_matches(_normalise_cab_city(route.get('drop_city')), to_city):
-                continue
-            if not _cab_value_matches(route.get('start_from'), pickup_point):
-                continue
-            if not _cab_value_matches(route.get('drop_to'), drop_point):
-                continue
-
-            for index, name in enumerate(columns or []):
-                if str(name or '').strip().lower() not in vehicle_names:
-                    continue
+    def _extract_fares(rate_cards_qs, check_points=True):
+        found_fares = []
+        for rate_card in rate_cards_qs:
+            routes = rate_card.routes
+            columns = rate_card.column_vehicles
+            if isinstance(routes, str):
                 try:
-                    fare = Decimal(str(route.get(f'v{index + 1}')))
-                except (InvalidOperation, TypeError, ValueError):
+                    routes = json.loads(routes)
+                except (TypeError, ValueError):
+                    routes = []
+            if isinstance(columns, str):
+                try:
+                    columns = json.loads(columns)
+                except (TypeError, ValueError):
+                    columns = []
+
+            for route in routes or []:
+                if not isinstance(route, dict):
                     continue
-                if fare > 0:
-                    fares.append(fare)
+                if norm_from_city and not _cab_value_matches(_normalise_cab_city(route.get('start_city')), norm_from_city):
+                    continue
+                if norm_to_city and not _cab_value_matches(_normalise_cab_city(route.get('drop_city')), norm_to_city):
+                    continue
+                if check_points:
+                    if pickup_point and not _cab_value_matches(route.get('start_from'), pickup_point):
+                        continue
+                    if drop_point and not _cab_value_matches(route.get('drop_to'), drop_point):
+                        continue
+
+                for index, name in enumerate(columns or []):
+                    if str(name or '').strip().lower() not in vehicle_names:
+                        continue
+                    try:
+                        fare = Decimal(str(route.get(f'v{index + 1}')))
+                    except (InvalidOperation, TypeError, ValueError):
+                        continue
+                    if fare > 0:
+                        found_fares.append(fare)
+        return found_fares
+
+    fares = []
+    if travel_date:
+        strict_cards = VehicleRateCard.objects.filter(
+            validity_start__lte=travel_date,
+            validity_end__gte=travel_date,
+        )
+        fares = _extract_fares(strict_cards, check_points=True)
+
+    # Fallback 1: search all rate cards without strict date filtering
+    if not fares:
+        fares = _extract_fares(VehicleRateCard.objects.all().order_by('-validity_end'), check_points=True)
+
+    # Fallback 2: search all rate cards ignoring pickup/drop point filters
+    if not fares:
+        fares = _extract_fares(VehicleRateCard.objects.all().order_by('-validity_end'), check_points=False)
 
     return vehicle, min(fares) if fares else None
 
@@ -1774,6 +1791,14 @@ class CabBookingViewSet(ModelViewSet):
                 data.get('pickup_point'),
                 data.get('drop_point'),
             )
+            if fare is None and data.get('price'):
+                try:
+                    p_val = Decimal(str(data.get('price')))
+                    if p_val > 0:
+                        fare = p_val
+                except Exception:
+                    pass
+
             if not vehicle or fare is None:
                 return Response(
                     {'error': 'No active fare is available for the selected vehicle and route.'},
@@ -1784,6 +1809,12 @@ class CabBookingViewSet(ModelViewSet):
             data['vehicle_category'] = vehicle.brand.name if vehicle.brand_id else 'Standard'
             data['price'] = str(fare)
             data['status'] = 'Booking Requested'
+
+            if not data.get('first_name'):
+                data['first_name'] = 'Customer'
+            if not data.get('last_name'):
+                data['last_name'] = data.get('first_name') or 'Customer'
+
             for field in (
                 'booking_id', 'driver', 'invoice_number', 'zoho_payment_session_id',
                 'zoho_access_key', 'created_at', 'vehicle_id', 'pickup_point', 'drop_point',
