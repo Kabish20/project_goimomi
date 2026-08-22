@@ -1768,6 +1768,7 @@ class CabBookingViewSet(ModelViewSet):
         return Response({'error': 'Invalid or expired OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
+        print(f"[CabBooking Create] Received request.data: {request.data}")
         is_staff_user = bool(request.user and request.user.is_authenticated and request.user.is_staff)
         verified_otp = None
         if not is_staff_user:
@@ -1775,10 +1776,12 @@ class CabBookingViewSet(ModelViewSet):
             try:
                 otp_obj = OTPVerification.objects.filter(email__iexact=email).order_by('-created_at').first()
                 from datetime import timedelta
-                if not otp_obj or not otp_obj.is_verified or (timezone.now() - otp_obj.created_at > timedelta(minutes=30)):
+                if not otp_obj or not otp_obj.is_verified or (timezone.now() - otp_obj.created_at > timedelta(minutes=60)):
+                    print(f"[CabBooking Error] OTP check failed for email '{email}'. otp_obj: {otp_obj}, verified: {getattr(otp_obj, 'is_verified', None)}")
                     return Response({'error': 'Email verification is required before submitting a booking. Please verify your email with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
                 verified_otp = otp_obj
-            except Exception:
+            except Exception as otp_err:
+                print(f"[CabBooking Error] OTP check exception: {otp_err}")
                 return Response({'error': 'Email verification is required before submitting a booking. Please verify your email with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data.copy()
@@ -1800,6 +1803,7 @@ class CabBookingViewSet(ModelViewSet):
                     pass
 
             if not vehicle or fare is None:
+                print(f"[CabBooking Error] Fare quote failed for vehicle_id={data.get('vehicle_id')}, from={data.get('from_city')}, to={data.get('to_city')}, price={data.get('price')}")
                 return Response(
                     {'error': 'No active fare is available for the selected vehicle and route.'},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -1822,7 +1826,9 @@ class CabBookingViewSet(ModelViewSet):
                 data.pop(field, None)
 
         serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            print(f"[CabBooking Serializer Error] {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer)
         response = Response(
             serializer.data,
