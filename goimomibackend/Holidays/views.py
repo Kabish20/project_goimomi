@@ -3437,6 +3437,28 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         except Exception as eq_err:
             print(f"Error creating general enquiry backup: {eq_err}")
 
+        # Automatically sync lead to Zoho CRM Leads
+        try:
+            from Holidays.utils import create_zoho_crm_lead
+            import threading
+
+            lead_description = f"Product: {prod_info}\nQuantity: {order.quantity}\nTotal Amount: ₹{total_amount}\nOrder ID: {order.order_id}\nAddress: {address}"
+            lead_data = {
+                'name': name,
+                'email': email or '',
+                'phone': phone,
+                'street': f"{address_line1 or ''}, {address_line2 or ''}".strip(' ,') or address,
+                'city': city or '',
+                'state': state or '',
+                'zip_code': pincode or '',
+                'description': lead_description,
+                'lead_source': 'Goimomi Product Checkout',
+                'company': 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+        except Exception as crm_err:
+            print(f"Error initiating Zoho CRM Lead sync for product order: {crm_err}")
+
         # Generate Zoho Payments session
         try:
             from Holidays.services.zoho_payment import ZohoPaymentService

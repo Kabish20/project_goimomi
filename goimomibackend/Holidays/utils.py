@@ -749,12 +749,114 @@ def upsert_zoho_crm_contact(customer_data: dict) -> dict:
         }
         
         url = "https://www.zohoapis.in/crm/v6/Contacts/upsert"
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
         return response.json()
     except Exception as e:
         print(f"Error upserting Zoho CRM contact: {e}")
         return {}
+
+
+def create_zoho_crm_lead(lead_data: dict) -> dict:
+    """
+    Creates a new Lead in Zoho CRM using WebToLead gateway and Zoho CRM API.
+    Supports both WebToLead Form endpoint and REST API upsert.
+    """
+    import requests
+
+    full_name = str(lead_data.get('name') or '').strip()
+    first_name = str(lead_data.get('first_name') or '').strip()
+    last_name = str(lead_data.get('last_name') or '').strip()
+
+    if full_name and not (first_name and last_name):
+        if ' ' in full_name:
+            first_name, last_name = full_name.split(' ', 1)
+        else:
+            first_name = ''
+            last_name = full_name
+
+    if not last_name:
+        last_name = first_name or 'Customer'
+
+    email = str(lead_data.get('email') or '').strip()
+    phone = str(lead_data.get('phone') or lead_data.get('mobile') or '').strip()
+    street = str(lead_data.get('street') or lead_data.get('address') or '').strip()
+    city = str(lead_data.get('city') or '').strip()
+    state = str(lead_data.get('state') or '').strip()
+    zip_code = str(lead_data.get('zip_code') or lead_data.get('pincode') or '').strip()
+    description = str(lead_data.get('description') or '').strip()
+    lead_source = str(lead_data.get('lead_source') or 'Goimomi Product Checkout').strip()
+    company = str(lead_data.get('company') or 'Individual').strip()
+
+    result = {'success': False}
+
+    # 1. Primary: Direct submission via Zoho CRM WebToLead gateway
+    try:
+        web_to_lead_payload = {
+            'xnQsjsdp': 'f98456093f3d9fa012da9b1f392957a6f9a73df303a1745e5005096696b06141',
+            'xmIwtLD': 'ca4c8c8f45e08494ccd44bede0849324b1a1f04a724600548b754da18ce709e1f7ad4e6116a66e64846484a5dfaa8824',
+            'actionType': 'TGVhZHM=',
+            'First Name': first_name,
+            'Last Name': last_name,
+            'Email': email,
+            'Mobile': phone,
+            'Phone': phone,
+            'Street': street,
+            'City': city,
+            'State': state,
+            'Zip Code': zip_code,
+            'Description': description,
+            'Lead Source': lead_source,
+            'Company': company,
+        }
+        res = requests.post('https://crm.zoho.in/crm/WebToLeadForm', data=web_to_lead_payload, timeout=12)
+        if res.status_code == 200:
+            result['web_to_lead'] = 'success'
+            result['success'] = True
+            print(f"[Zoho CRM] Successfully submitted lead for {first_name} {last_name} ({email}) via WebToLead.")
+        else:
+            print(f"[Zoho CRM] WebToLead returned status {res.status_code} for {email}.")
+    except Exception as wtl_err:
+        print(f"[Zoho CRM] Error submitting lead via WebToLead: {wtl_err}")
+
+    # 2. Secondary: Try Zoho CRM v6 REST API upsert if token is available
+    try:
+        access_token = get_zoho_crm_access_token()
+        if access_token:
+            headers = {
+                'Authorization': f'Zoho-oauthtoken {access_token}',
+                'Content-Type': 'application/json'
+            }
+            api_payload = {
+                "data": [
+                    {
+                        "First_Name": first_name,
+                        "Last_Name": last_name,
+                        "Email": email,
+                        "Phone": phone,
+                        "Mobile": phone,
+                        "Street": street,
+                        "City": city,
+                        "State": state,
+                        "Zip_Code": zip_code,
+                        "Description": description,
+                        "Lead_Source": lead_source,
+                        "Lead_Status": "Not Contacted",
+                        "Company": company,
+                    }
+                ],
+                "duplicate_check_fields": ["Email"] if email else []
+            }
+            api_res = requests.post("https://www.zohoapis.in/crm/v6/Leads/upsert", json=api_payload, headers=headers, timeout=10)
+            if api_res.status_code in (200, 201):
+                result['rest_api'] = api_res.json()
+                result['success'] = True
+                print(f"[Zoho CRM] REST API upsert lead successful for {email}.")
+    except Exception as api_err:
+        # Expected if OAuth token requires admin refresh
+        pass
+
+    return result
 
 
 def _twilio_whatsapp_address(phone_number):

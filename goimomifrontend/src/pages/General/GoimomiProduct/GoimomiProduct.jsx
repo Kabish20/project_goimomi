@@ -214,6 +214,16 @@ const BuyNowModal = ({ product, onClose }) => {
 
     setLoading(true);
     try {
+      try {
+        if (window.$zoho?.salesiq?.visitor) {
+          window.$zoho.salesiq.visitor.name(form.name);
+          window.$zoho.salesiq.visitor.email(form.email.trim());
+          if (form.phone) window.$zoho.salesiq.visitor.contactnumber(form.phone);
+        }
+      } catch {
+        // SalesIQ tracking is optional
+      }
+
       const fullAddress = [form.address_line1, form.address_line2, form.city, form.state, form.pincode ? `PIN: ${form.pincode}` : ""]
         .map(s => (s || "").trim())
         .filter(Boolean)
