@@ -764,7 +764,7 @@ def create_zoho_crm_lead(lead_data: dict) -> dict:
     """
     import requests
 
-    full_name = str(lead_data.get('name') or '').strip()
+    full_name = str(lead_data.get('name') or lead_data.get('full_name') or lead_data.get('customer_name') or '').strip()
     first_name = str(lead_data.get('first_name') or '').strip()
     last_name = str(lead_data.get('last_name') or '').strip()
 
@@ -781,11 +781,11 @@ def create_zoho_crm_lead(lead_data: dict) -> dict:
     email = str(lead_data.get('email') or '').strip()
     phone = str(lead_data.get('phone') or lead_data.get('mobile') or '').strip()
     street = str(lead_data.get('street') or lead_data.get('address') or '').strip()
-    city = str(lead_data.get('city') or '').strip()
+    city = str(lead_data.get('city') or lead_data.get('destination') or '').strip()
     state = str(lead_data.get('state') or '').strip()
     zip_code = str(lead_data.get('zip_code') or lead_data.get('pincode') or '').strip()
     description = str(lead_data.get('description') or '').strip()
-    lead_source = str(lead_data.get('lead_source') or 'Goimomi Product Checkout').strip()
+    lead_source = str(lead_data.get('lead_source') or 'Website Enquiry').strip()
     company = str(lead_data.get('company') or 'Individual').strip()
 
     result = {'success': False}

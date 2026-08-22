@@ -209,6 +209,24 @@ class CantonEnquiryAPI(ModelViewSet):
     serializer_class = CantonEnquirySerializer
     pagination_class = None
 
+    def perform_create(self, serializer):
+        enquiry = serializer.save()
+        try:
+            from .utils import create_zoho_crm_lead
+            import threading
+            lead_data = {
+                'name': enquiry.name,
+                'email': enquiry.email or '',
+                'phone': enquiry.phone or '',
+                'city': enquiry.city or '',
+                'description': f"Canton Fair Enquiry\nCompany: {enquiry.company}\nCity: {enquiry.city}\nPhase: {enquiry.phase}\nNotes: {enquiry.notes}",
+                'lead_source': 'Website Canton Fair Enquiry',
+                'company': enquiry.company or 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+        except Exception as e:
+            print(f"Error syncing CantonEnquiry to Zoho CRM: {e}")
+
 class AirportViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = AirportSerializer
@@ -616,10 +634,22 @@ class HolidayEnquiryAPI(ModelViewSet):
     def perform_create(self, serializer):
         enquiry = serializer.save()
         try:
-            from .utils import send_enquiry_email
+            from .utils import send_enquiry_email, create_zoho_crm_lead
             send_enquiry_email(enquiry, "Holiday Package")
+
+            import threading
+            lead_data = {
+                'name': enquiry.name,
+                'email': enquiry.email or '',
+                'phone': enquiry.phone or '',
+                'city': enquiry.destination or '',
+                'description': f"Holiday Package Enquiry\nDestination: {enquiry.destination}\nTravel Date: {enquiry.travel_date}\nTravelers: {enquiry.travelers}\nNotes: {enquiry.notes}",
+                'lead_source': 'Website Holiday Enquiry',
+                'company': 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
         except Exception as e:
-            print(f"Error calling send_enquiry_email: {e}")
+            print(f"Error handling HolidayEnquiry perform_create: {e}")
 
 
 class UmrahEnquiryAPI(ModelViewSet):
@@ -631,10 +661,21 @@ class UmrahEnquiryAPI(ModelViewSet):
     def perform_create(self, serializer):
         enquiry = serializer.save()
         try:
-            from .utils import send_enquiry_email
+            from .utils import send_enquiry_email, create_zoho_crm_lead
             send_enquiry_email(enquiry, "Umrah")
+
+            import threading
+            lead_data = {
+                'name': enquiry.name,
+                'email': enquiry.email or '',
+                'phone': enquiry.phone or '',
+                'description': f"Umrah Package Enquiry\nPackage: {enquiry.package}\nTravel Date: {enquiry.travel_date}\nTravelers: {enquiry.travelers}\nNotes: {enquiry.notes}",
+                'lead_source': 'Website Umrah Enquiry',
+                'company': 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
         except Exception as e:
-            print(f"Error calling send_enquiry_email: {e}")
+            print(f"Error handling UmrahEnquiry perform_create: {e}")
 
 
 class EnquiryAPI(ModelViewSet):
@@ -646,11 +687,23 @@ class EnquiryAPI(ModelViewSet):
     def perform_create(self, serializer):
         enquiry = serializer.save()
         try:
-            from .utils import send_enquiry_email
+            from .utils import send_enquiry_email, create_zoho_crm_lead
             enquiry_type = getattr(enquiry, 'enquiry_type', 'General')
             send_enquiry_email(enquiry, enquiry_type)
+
+            import threading
+            lead_data = {
+                'name': enquiry.name,
+                'email': enquiry.email or '',
+                'phone': enquiry.phone or '',
+                'city': enquiry.destination or '',
+                'description': f"Website Enquiry\nType: {enquiry_type}\nDestination: {enquiry.destination}\nPurpose: {enquiry.purpose}",
+                'lead_source': f"Website {enquiry_type} Enquiry",
+                'company': 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
         except Exception as e:
-            print(f"Error calling send_enquiry_email: {e}")
+            print(f"Error handling Enquiry perform_create: {e}")
 
 
 class HolidayPackageViewSet(ModelViewSet):
@@ -848,6 +901,25 @@ class VisaApplicationViewSet(ModelViewSet):
                     )
 
         resp_data = serializer.data
+
+        # Sync Lead to Zoho CRM
+        try:
+            from Holidays.utils import create_zoho_crm_lead
+            import threading
+            first_applicant = applicants_list[0] if applicants_list else {}
+            applicant_name = f"{application.given_name} {application.surname}".strip() or f"{first_applicant.get('first_name', '')} {first_applicant.get('last_name', '')}".strip() or 'Visa Applicant'
+            applicant_phone = application.phone or first_applicant.get('phone', '')
+            lead_data = {
+                'name': applicant_name,
+                'email': application.email,
+                'phone': applicant_phone,
+                'description': f"Visa Application: {visa.country.name} - {visa.visa_type}\nApplicants: {len(applicants_list)}\nTotal Price: ₹{application.total_price}\nApplication ID: {application.application_id}",
+                'lead_source': 'Website Visa Application',
+                'company': 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+        except Exception as crm_err:
+            print(f"Error syncing lead to Zoho CRM for Visa Application: {crm_err}")
 
         # Generate Zoho Payments session for the Visa Application
         try:
@@ -1077,6 +1149,22 @@ class PackageBookingViewSet(ModelViewSet):
         )
 
         resp_data = PackageBookingSerializer(booking).data
+
+        # Sync Lead to Zoho CRM
+        try:
+            from Holidays.utils import create_zoho_crm_lead
+            import threading
+            lead_data = {
+                'name': full_name,
+                'email': email,
+                'phone': phone,
+                'description': f"Package Booking: {pkg_obj.title}\nTravel Date: {travel_date}\nAdults: {adults}, Children: {children}\nTotal: ₹{total_price}\nBooking ID: {booking.booking_id}",
+                'lead_source': 'Website Package Booking',
+                'company': 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+        except Exception as crm_err:
+            print(f"Error syncing lead to Zoho CRM for Package Booking: {crm_err}")
 
         # Create Zoho Payments session
         try:
@@ -1720,6 +1808,23 @@ class CabBookingViewSet(ModelViewSet):
                 booking_pk = response.data.get('id')
                 if booking_id and booking_pk:
                     booking_obj = CabBooking.objects.get(pk=booking_pk)
+                    
+                    # Sync Lead to Zoho CRM
+                    try:
+                        from Holidays.utils import create_zoho_crm_lead
+                        import threading
+                        lead_data = {
+                            'name': booking_obj.customer_name,
+                            'email': booking_obj.email or '',
+                            'phone': booking_obj.phone,
+                            'city': booking_obj.from_city,
+                            'description': f"Cab Booking: {booking_obj.from_city} to {booking_obj.to_city}\nVehicle: {booking_obj.vehicle_name}\nPickup Date: {booking_obj.pickup_date}\nPrice: ₹{booking_obj.price}\nBooking ID: {booking_obj.booking_id}",
+                            'lead_source': 'Website Cab Booking',
+                            'company': 'Individual'
+                        }
+                        threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+                    except Exception as crm_err:
+                        print(f"Error syncing lead to Zoho CRM for Cab Booking: {crm_err}")
                     
                     from Holidays.services.zoho_payment import ZohoPaymentService
                     from django.shortcuts import reverse
