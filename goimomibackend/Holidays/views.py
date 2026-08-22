@@ -954,6 +954,9 @@ class VisaApplicationViewSet(ModelViewSet):
             else:
                 backend_verify_url = f"{backend_verify_url}?application_id={application.id}"
 
+            if backend_verify_url.startswith('http://'):
+                backend_verify_url = backend_verify_url.replace('http://', 'https://', 1)
+
             frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
             frontend_failure_url = f"{frontend_url}/payment-failed?visa_app_id={application.id}"
 
@@ -1198,6 +1201,9 @@ class PackageBookingViewSet(ModelViewSet):
                 backend_verify_url = f"{backend_verify_url}&booking_id={booking.booking_id}"
             else:
                 backend_verify_url = f"{backend_verify_url}?booking_id={booking.booking_id}"
+
+            if backend_verify_url.startswith('http://'):
+                backend_verify_url = backend_verify_url.replace('http://', 'https://', 1)
 
             frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
             frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking.booking_id}"
@@ -1878,6 +1884,9 @@ class CabBookingViewSet(ModelViewSet):
                     else:
                         backend_verify_url = f"{backend_verify_url}?booking_id={booking_obj.booking_id}"
 
+                    if backend_verify_url.startswith('http://'):
+                        backend_verify_url = backend_verify_url.replace('http://', 'https://', 1)
+
                     # Failure URL redirects to the dedicated frontend /payment-failed page
                     frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
                     frontend_failure_url = f"{frontend_url}/payment-failed?booking_id={booking_obj.booking_id}"
@@ -1982,6 +1991,9 @@ class CabBookingViewSet(ModelViewSet):
                 backend_verify_url = f"{backend_verify_url}&booking_id={booking.booking_id}"
             else:
                 backend_verify_url = f"{backend_verify_url}?booking_id={booking.booking_id}"
+
+            if backend_verify_url.startswith('http://'):
+                backend_verify_url = backend_verify_url.replace('http://', 'https://', 1)
 
             # Failure URL (on frontend payment failed page)
             frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goimomi.com').rstrip('/')
