@@ -563,10 +563,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
-        user = User.objects.create_user(**validated_data)
-        if password:
-            user.set_password(password)
-            user.save()
+        if 'is_staff' not in validated_data:
+            validated_data['is_staff'] = True
+        user = User.objects.create_user(password=password, **validated_data)
         return user
 
     def update(self, instance, validated_data):

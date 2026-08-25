@@ -30,9 +30,14 @@ const AdminLogin = ({ isOpen, onClose }) => {
             });
 
             if (response.data.access) {
+                const user = jwtDecode(response.data.access);
+                if (!user.is_staff && !user.is_superuser) {
+                    setError("Access Denied: Your account does not have staff permissions to access the admin portal. Please contact an administrator.");
+                    setIsLoading(false);
+                    return;
+                }
                 localStorage.setItem("accessToken", response.data.access);
                 localStorage.setItem("refreshToken", response.data.refresh);
-                const user = jwtDecode(response.data.access);
                 localStorage.setItem("adminUser", JSON.stringify(user));
 
                 if (onClose) onClose();

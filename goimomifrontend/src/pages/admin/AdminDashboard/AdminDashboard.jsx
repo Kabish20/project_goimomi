@@ -236,7 +236,9 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
       if (err.response && err.response.status === 401) {
-        setError("Authentication failed. Please log in again.");
+        setError("Authentication session expired. Please log in again.");
+      } else if (err.response && err.response.status === 403) {
+        setError("403_FORBIDDEN");
       } else {
         setError(`Failed to load dashboard data: ${err.message}.`);
       }
@@ -428,15 +430,40 @@ const AdminDashboard = () => {
               <p className="mt-4 text-sm text-gray-700 font-black uppercase tracking-wider">Loading Executive Data Streams…</p>
             </div>
           ) : error ? (
-            <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-3xl text-center space-y-3">
-              <AlertCircle size={32} className="mx-auto text-red-500" />
-              <p className="font-bold text-sm">{error}</p>
-              <button
-                onClick={fetchDashboardData}
-                className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
-              >
-                Retry Connection
-              </button>
+            <div className="bg-red-50 border border-red-200 text-red-800 p-6 md:p-8 rounded-3xl text-center space-y-4 shadow-sm max-w-xl mx-auto my-8">
+              <AlertCircle size={40} className="mx-auto text-red-500" />
+              {error === "403_FORBIDDEN" ? (
+                <div className="space-y-2">
+                  <h3 className="text-base font-black text-red-900">Access Denied (403 Forbidden)</h3>
+                  <p className="text-xs text-red-700 leading-relaxed">
+                    The currently logged-in account does not have <strong>Staff / Administrator</strong> permissions enabled in the database.
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Please log in with an administrator account or ask a superuser to enable <strong>Staff status</strong> for this user in User Management.
+                  </p>
+                </div>
+              ) : (
+                <p className="font-bold text-sm">{error}</p>
+              )}
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={fetchDashboardData}
+                  className="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Retry Connection
+                </button>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("refreshToken");
+                    localStorage.removeItem("adminUser");
+                    navigate("/admin-login");
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Switch Account
+                </button>
+              </div>
             </div>
           ) : (
             <>

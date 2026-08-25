@@ -10,10 +10,10 @@ const ProtectedRoute = () => {
         try {
             const decoded = jwtDecode(token);
             const currentTime = Date.now() / 1000;
-            if (decoded.exp > currentTime) {
+            if (decoded.exp > currentTime && (decoded.is_staff || decoded.is_superuser)) {
                 isAuthenticated = true;
             } else {
-                // Token expired
+                // Token expired or lacks staff permissions
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
                 localStorage.removeItem("adminUser");
