@@ -2069,95 +2069,43 @@ const Cab = () => {
 };
 
 
-const PaymentSuccessModal = ({ bookingId, documentToken, onClose }) => {
-  const documentQuery = documentToken
-    ? `booking_id=${encodeURIComponent(bookingId)}&token=${encodeURIComponent(documentToken)}`
-    : null;
-
-  useEffect(() => {
-    if (bookingId && documentQuery) {
-      // Small timeout to allow the browser to parse/render before triggering downloads
-      const timer = setTimeout(() => {
-        // Automatically trigger voucher PDF download
-        const voucherLink = document.createElement('a');
-        voucherLink.href = `/api/cab-bookings/download-voucher-public/?${documentQuery}`;
-        voucherLink.target = '_blank';
-        voucherLink.download = `Voucher_${bookingId}.pdf`;
-        document.body.appendChild(voucherLink);
-        voucherLink.click();
-        document.body.removeChild(voucherLink);
-
-        // Automatically trigger invoice PDF download
-        const invoiceLink = document.createElement('a');
-        invoiceLink.href = `/api/cab-bookings/download-invoice-public/?${documentQuery}`;
-        invoiceLink.target = '_blank';
-        invoiceLink.download = `Invoice_${bookingId}.pdf`;
-        document.body.appendChild(invoiceLink);
-        invoiceLink.click();
-        document.body.removeChild(invoiceLink);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [bookingId, documentQuery]);
-
+const PaymentSuccessModal = ({ bookingId, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl p-6 md:p-8 text-center border border-slate-100 relative overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="bg-white max-w-sm w-full rounded-2xl shadow-2xl p-5 md:p-6 text-center border border-slate-100 relative overflow-hidden animate-in zoom-in-95 duration-300">
         {/* Decorative background gradient line */}
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-500"></div>
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 via-green-600 to-teal-500"></div>
         
-        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle size={48} className="text-emerald-600 animate-bounce" />
+        <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-xs">
+          <CheckCircle size={28} className="text-emerald-600" />
         </div>
         
-        <h2 className="text-2xl font-black text-slate-900 mb-1 uppercase tracking-tight">
+        <h2 className="text-lg font-black text-slate-900 mb-0.5 uppercase tracking-tight">
           Payment Successful
         </h2>
-        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-4">
+        <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mb-3">
           Thank you for choosing Goimomi
         </p>
 
         {bookingId && (
-          <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-3 mb-4">
+          <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl py-2 px-3 mb-3">
             <span className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider block mb-0.5">
               Booking ID
             </span>
-            <span className="text-lg font-black text-emerald-950 tracking-wide font-mono">
+            <span className="text-sm font-black text-emerald-950 tracking-wide font-mono">
               {bookingId}
             </span>
           </div>
         )}
 
-        <p className="text-slate-600 mb-5 text-xs leading-relaxed font-medium">
+        <p className="text-slate-600 mb-4 text-xs leading-relaxed font-medium">
           Thank you for booking with <span className="text-[#14532d] font-bold">Goimomi Holidays</span>. 
-          Your payment has been received and your booking is confirmed. 
-          We have automatically started downloading your voucher and invoice.
+          Your payment has been received and your booking is confirmed.
         </p>
-
-        {bookingId && documentQuery && (
-          <div className="flex flex-col gap-2 mb-6">
-            <a
-              href={`/api/cab-bookings/download-voucher-public/?${documentQuery}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3 bg-[#14532d] hover:bg-[#0f3d21] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-            >
-              📄 Download Booking Voucher (PDF)
-            </a>
-            <a
-              href={`/api/cab-bookings/download-invoice-public/?${documentQuery}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3 bg-white border border-[#14532d] text-[#14532d] hover:bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-            >
-              💰 Download Payment Invoice (PDF)
-            </a>
-          </div>
-        )}
 
         <button
           onClick={onClose}
-          className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all"
+          className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:shadow-lg hover:shadow-emerald-500/20 active:scale-95 transition-all"
         >
           Back to Cab Booking
         </button>
