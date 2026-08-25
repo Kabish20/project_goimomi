@@ -522,6 +522,13 @@
   color: #94a3b8;
   text-decoration: line-through;
 }
+.gp-card-tax-note {
+  font-size: 11px;
+  color: var(--gp-muted);
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.2;
+}
 
 /* Card footer buttons */
 .gp-card-footer {
@@ -702,6 +709,11 @@
 }
 .gp-modal-product-info h4 { font-size: 13px; font-weight: 700; margin: 0 0 2px; }
 .gp-modal-product-info p  { font-size: 12px; color: var(--gp-muted); margin: 0; }
+.gp-modal-tax-note {
+  font-size: 11px;
+  color: var(--gp-muted);
+  margin: 3px 0 0;
+}
 .gp-modal-submit {
   width: 100%;
   padding: 10px;
@@ -1024,6 +1036,12 @@
   font-size: 1.15rem;
   font-weight: 800;
   color: var(--gp-primary);
+}
+.gp-cart-delivery-note {
+  font-size: 11px;
+  color: var(--gp-muted);
+  margin: -6px 0 12px;
+  text-align: right;
 }
 .gp-cart-checkout-btn {
   width: 100%;

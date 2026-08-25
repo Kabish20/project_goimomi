@@ -306,6 +306,7 @@ const BuyNowModal = ({ product, onClose }) => {
                   <p style={{ borderTop: "1px solid #bbf7d0", paddingTop: 4, fontWeight: "bold", fontSize: 13, margin: 0 }}>
                     Total: {formatCurrency(product.price)}
                   </p>
+                  <p className="gp-modal-tax-note">+ Delivery Charges Extra</p>
                 </>
               ) : (
                 <>
@@ -318,6 +319,7 @@ const BuyNowModal = ({ product, onClose }) => {
                       </span>
                     )}
                   </p>
+                  <p className="gp-modal-tax-note">+ Delivery Charges Extra</p>
                 </>
               )}
             </div>
@@ -887,6 +889,7 @@ const ProductCard = ({ product, onAddToCart, onBuyNow, isInCart, onViewDetails }
             <span className="gp-mrp">{formatCurrency(product.mrp)}</span>
           )}
         </div>
+        <p className="gp-card-tax-note">+ Delivery Charges Extra</p>
       </div>
 
       {/* Buttons */}
@@ -994,6 +997,7 @@ const CartDrawer = ({ isOpen, onClose, cartItems, onUpdateQty, onRemove, onCheck
               <span>Total Amount:</span>
               <span className="gp-cart-total-price">{formatCurrency(totalAmount)}</span>
             </div>
+            <p className="gp-cart-delivery-note">+ Delivery Charges Extra</p>
             <button
               className="gp-cart-checkout-btn"
               onClick={onCheckout}
