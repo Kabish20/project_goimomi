@@ -8,8 +8,8 @@ def create_zip(filename, mapping):
                 print(f"Skipping non-existent directory: {local_dir}")
                 continue
             for root, dirs, files in os.walk(local_dir):
-                # Exclude node_modules, venv, and dist
-                for exc in ['node_modules', 'venv', 'dist', '__pycache__', '.git', 'media']:
+                # Exclude node_modules, venv, dist, and images
+                for exc in ['node_modules', 'venv', 'dist', '__pycache__', '.git', 'media', 'images']:
                     if exc in dirs:
                         dirs.remove(exc)
                 
