@@ -140,6 +140,14 @@ const TermsConditions = () => {
             for damages beyond our control.
           </p>
 
+          {/* PRODUCT SHIPPING & TRANSIT */}
+          <h2 className="text-2xl font-semibold text-[#0b1a3d]">
+            Product shipping & courier dispatch policy
+          </h2>
+          <p>
+            Where it is established that the product was in good condition and properly packed at the time of dispatch, the company will not be responsible for damage caused after handover to the courier, subject to applicable law.
+          </p>
+
           {/* TRAVEL INSURANCE */}
           <h2 className="text-2xl font-semibold text-[#0b1a3d]">
             Travel insurance

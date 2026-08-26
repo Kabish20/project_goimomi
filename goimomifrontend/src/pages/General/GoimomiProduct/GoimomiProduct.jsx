@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ShoppingCart, Zap, Package, Search, X, CheckCircle, ShoppingBag, Star, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { ShoppingCart, Zap, Package, Search, X, CheckCircle, ShoppingBag, Star, ChevronLeft, ChevronRight, Trash2, Truck, ShieldAlert, Info } from "lucide-react";
 import api from "../../../api.js";
 import "./GoimomiProduct.css";
 
@@ -563,6 +563,17 @@ const BuyNowModal = ({ product, onClose }) => {
                 </div>
               </div>
               
+              {/* Dispatch & Transit Policy Disclaimer */}
+              <div className="gp-modal-policy-notice">
+                <div className="gp-modal-policy-header">
+                  <ShieldAlert size={14} className="gp-modal-policy-icon" />
+                  <span className="gp-modal-policy-title">Dispatch & Courier Transit Policy</span>
+                </div>
+                <p className="gp-modal-policy-text">
+                  Where it is established that the product was in good condition and properly packed at the time of dispatch, the company will not be responsible for damage caused after handover to the courier, subject to applicable law.
+                </p>
+              </div>
+
               <button type="submit" className="gp-modal-submit" disabled={loading}>
                 {loading ? (
                   <div className="gp-modal-submit-loading">
@@ -704,6 +715,17 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
           <div className="gp-details-desc-box">
             <h4>Product Description</h4>
             <p>{product.description}</p>
+          </div>
+
+          {/* Dispatch & Courier Transit Policy */}
+          <div className="gp-details-policy-box">
+            <div className="gp-details-policy-header">
+              <Truck size={15} className="gp-details-policy-icon" />
+              <span className="gp-details-policy-title">Dispatch & Courier Policy</span>
+            </div>
+            <p className="gp-details-policy-text">
+              Where it is established that the product was in good condition and properly packed at the time of dispatch, the company will not be responsible for damage caused after handover to the courier, subject to applicable law.
+            </p>
           </div>
 
           {/* Purchase Options */}
@@ -890,6 +912,10 @@ const ProductCard = ({ product, onAddToCart, onBuyNow, isInCart, onViewDetails }
           )}
         </div>
         <p className="gp-card-tax-note">+ Delivery Charges Extra</p>
+        <div className="gp-card-dispatch-note" title="Where it is established that the product was in good condition and properly packed at the time of dispatch, the company will not be responsible for damage caused after handover to the courier, subject to applicable law.">
+          <Truck size={11} className="gp-card-dispatch-icon" />
+          <span>Dispatch Policy: Courier transit terms apply post-dispatch.</span>
+        </div>
       </div>
 
       {/* Buttons */}
@@ -998,6 +1024,12 @@ const CartDrawer = ({ isOpen, onClose, cartItems, onUpdateQty, onRemove, onCheck
               <span className="gp-cart-total-price">{formatCurrency(totalAmount)}</span>
             </div>
             <p className="gp-cart-delivery-note">+ Delivery Charges Extra</p>
+            <div className="gp-cart-policy-notice">
+              <Info size={13} className="gp-cart-policy-icon" />
+              <p className="gp-cart-policy-text">
+                <strong>Dispatch Terms:</strong> Where it is established that the product was in good condition and properly packed at the time of dispatch, the company will not be responsible for damage caused after handover to the courier, subject to applicable law.
+              </p>
+            </div>
             <button
               className="gp-cart-checkout-btn"
               onClick={onCheckout}
