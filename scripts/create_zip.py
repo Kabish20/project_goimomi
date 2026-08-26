@@ -29,12 +29,12 @@ if __name__ == "__main__":
     # Map local backend
     backend_local = os.path.join(base_dir, 'goimomibackend') if os.path.exists(os.path.join(base_dir, 'goimomibackend')) else os.path.join(base_dir, 'goimomi-holidays-backend')
     if os.path.exists(backend_local):
-        mapping[backend_local] = ['goimomi-holidays-backend', 'goimomibackend']
+        mapping[backend_local] = ['goimomi-holidays-backend']
         
     # Map local frontend
     frontend_local = os.path.join(base_dir, 'goimomifrontend') if os.path.exists(os.path.join(base_dir, 'goimomifrontend')) else os.path.join(base_dir, 'goimomi-holidays-frontend')
     if os.path.exists(frontend_local):
-        mapping[frontend_local] = ['goimomi-holidays-frontend', 'goimomifrontend']
+        mapping[frontend_local] = ['goimomi-holidays-frontend']
 
     zip_output = os.path.join(base_dir, 'update_package.zip')
     create_zip(zip_output, mapping)
