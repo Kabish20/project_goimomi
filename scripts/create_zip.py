@@ -8,12 +8,14 @@ def create_zip(filename, mapping):
                 print(f"Skipping non-existent directory: {local_dir}")
                 continue
             for root, dirs, files in os.walk(local_dir):
-                # Exclude node_modules, venv, dist, and images
-                for exc in ['node_modules', 'venv', 'dist', '__pycache__', '.git', 'media', 'images']:
+                # Exclude node_modules, venv, dist, media, and visa_cards
+                for exc in ['node_modules', 'venv', 'dist', '__pycache__', '.git', 'media', 'visa_cards']:
                     if exc in dirs:
                         dirs.remove(exc)
                 
                 for file in files:
+                    if file.lower().endswith(('.pdf', '.mp4', '.zip', '.tar', '.gz')):
+                        continue
                     file_path = os.path.join(root, file)
                     rel_path = os.path.relpath(file_path, local_dir).replace('\\', '/')
                     for prefix in zip_prefixes:
