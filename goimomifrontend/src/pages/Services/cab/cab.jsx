@@ -7,10 +7,16 @@ import SearchableSelect from "../../../components/admin/SearchableSelect/Searcha
 import CabCruiseForm from "../../../components/CabCruiseForm";
 import CabTermsModal from "../../../components/CabTermsModal";
 import CabPrivacyModal from "../../../components/CabPrivacyModal";
-import cabSearchBg from "@/assets/Hero/cab_search_bg_v4.jpg";
+import cabHero1 from "../../../assets/Hero/CabHeader/cab-hero-01.png";
+import cabHero2 from "../../../assets/Hero/CabHeader/cab-hero-02.png";
+import cabHero3 from "../../../assets/Hero/CabHeader/cab-hero-03.png";
+import cabHero4 from "../../../assets/Hero/CabHeader/cab-hero-04.png";
+import cabHero5 from "../../../assets/Hero/CabHeader/cab-hero-05.png";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import usePageSEO from "../../../hooks/usePageSEO";
+
+const cabHeroImages = [cabHero1, cabHero2, cabHero3, cabHero4, cabHero5];
 
 const Cab = () => {
   usePageSEO(
@@ -20,6 +26,14 @@ const Cab = () => {
     "Premium cab service, airport transfers, intercity taxi, Goimomi Holidays, Jeddah airport transfer, Makkah taxi service, Madinah cab booking, professional travel transfers, luxury car rental with driver"
   );
   const navigate = useNavigate();
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setHeroImageIndex((current) => (current + 1) % cabHeroImages.length);
+    }, 5500);
+    return () => window.clearInterval(timer);
+  }, []);
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
   const [showSuccessModal, setShowSuccessModal] = useState(
     urlSearchParams.get("payment_success") === "true" || urlSearchParams.get("status") === "success"
@@ -512,12 +526,19 @@ const Cab = () => {
       {!isSearched ? (
         <div
           className="relative flex flex-col items-center justify-center px-4 overflow-hidden pt-10 pb-36"
-          style={{
-            backgroundImage: `url(${cabSearchBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
         >
+          <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+            {cabHeroImages.map((image, index) => (
+              <img
+                key={image}
+                src={image}
+                alt=""
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
+                  index === heroImageIndex ? "opacity-100 scale-105" : "opacity-0 scale-100"
+                }`}
+              />
+            ))}
+          </div>
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900/85 via-slate-900/75 to-slate-900/90" />
           <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.4) 1px,transparent 1px)", backgroundSize: "50px 50px" }} />

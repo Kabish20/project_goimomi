@@ -9,12 +9,28 @@ import api from "../../../api";
 import ZohoCruiseForm from "../../../components/ZohoCruiseForm";
 import usePageSEO from "../../../hooks/usePageSEO";
 import cruiseHeroImg from "../../../assets/cruise_hero.jpg";
+import cruiseHero1 from "../../../assets/Hero/CruiseHeader/cruise-hero-01.png";
+import cruiseHero2 from "../../../assets/Hero/CruiseHeader/cruise-hero-02.png";
+import cruiseHero3 from "../../../assets/Hero/CruiseHeader/cruise-hero-03.png";
+import cruiseHero4 from "../../../assets/Hero/CruiseHeader/cruise-hero-04.png";
+import cruiseHero5 from "../../../assets/Hero/CruiseHeader/cruise-hero-05.png";
 import { simpleCache } from "../../../utils/cache";
+
+const cruiseHeroImages = [cruiseHero1, cruiseHero2, cruiseHero3, cruiseHero4, cruiseHero5];
 
 const Cruise = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCruise, setSelectedCruise] = useState("");
   const [openFaq, setOpenFaq] = useState(null);
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setHeroImageIndex((current) => (current + 1) % cruiseHeroImages.length);
+    }, 5500);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   usePageSEO(
     "Luxury Cruise Holidays | Plan Your Voyage | Goimomi Holidays",
@@ -205,10 +221,18 @@ const Cruise = () => {
 
       {/* ─── HERO SECTION ─────────────────────────────────────────────────── */}
       <div className="relative min-h-[88vh] flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center scale-105 transition-transform duration-[25000ms] hover:scale-110"
-          style={{ backgroundImage: `url(${cruiseHeroImg})` }}
-        />
+        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+          {cruiseHeroImages.map((image, index) => (
+            <img
+              key={image}
+              src={image}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover transition-all duration-1000 ease-in-out ${
+                index === heroImageIndex ? "opacity-100 scale-105" : "opacity-0 scale-100"
+              }`}
+            />
+          ))}
+        </div>
         {/* Multi-layer overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/75 via-slate-900/60 to-slate-900/90" />
         <div

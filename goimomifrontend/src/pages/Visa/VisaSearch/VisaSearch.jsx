@@ -8,7 +8,11 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../../api";
-import visaBg from "../../../assets/Hero/visa_bg.jpg";
+import visaHero1 from "../../../assets/Hero/VisaHeader/visa-hero-01.png";
+import visaHero2 from "../../../assets/Hero/VisaHeader/visa-hero-02.png";
+import visaHero3 from "../../../assets/Hero/VisaHeader/visa-hero-03.png";
+import visaHero4 from "../../../assets/Hero/VisaHeader/visa-hero-04.png";
+import visaHero5 from "../../../assets/Hero/VisaHeader/visa-hero-05.png";
 import CountryVisaCard from "../../../components/CountryVisaCard";
 import {
   all196Countries,
@@ -33,8 +37,18 @@ const visaDestinationKeys = new Set(
 const isVisaDestination = (name) =>
   visaDestinationKeys.has(getVisaDestinationKey(name));
 
+const visaHeroImages = [visaHero1, visaHero2, visaHero3, visaHero4, visaHero5];
+
 const VisaSearch = () => {
   const navigate = useNavigate();
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setHeroImageIndex((current) => (current + 1) % visaHeroImages.length);
+    }, 5500);
+    return () => window.clearInterval(timer);
+  }, []);
   usePageSEO(
     "Online Visa Services | Fast & Reliable Processing | Goimomi Holidays",
     "Apply for international visas online with Goimomi Holidays. Get expert assistance and fast, hassle-free visa processing for over 100+ countries.",
@@ -391,12 +405,19 @@ const VisaSearch = () => {
     <div className="min-h-screen bg-slate-50">
       <div
         className="relative w-full pt-16 md:pt-24 pb-32 md:pb-36 bg-slate-900 overflow-hidden"
-        style={{
-          backgroundImage: `url(${visaBg})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
       >
+        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+          {visaHeroImages.map((image, index) => (
+            <img
+              key={image}
+              src={image}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out ${
+                index === heroImageIndex ? "opacity-100 scale-105" : "opacity-0 scale-100"
+              }`}
+            />
+          ))}
+        </div>
         {/* Overlay layers */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/70 to-slate-900/90" />
         <div

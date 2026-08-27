@@ -15,19 +15,90 @@ import "swiper/css/pagination";
 import { motion, AnimatePresence } from "framer-motion";
 import { simpleCache } from "../../../utils/cache";
 
-import biz1 from "../../../assets/Business/biz1.jpeg";
-import biz2 from "../../../assets/Business/biz2.jpeg";
-import biz3 from "../../../assets/Business/biz3.jpeg";
-import biz4 from "../../../assets/Business/biz4.jpeg";
-import biz5 from "../../../assets/Business/biz5.jpeg";
+import homeBusiness1 from "../../../assets/Home/BusinessHeader/home-business-01.png";
+import homeBusiness2 from "../../../assets/Home/BusinessHeader/home-business-02.png";
+import homeBusiness3 from "../../../assets/Home/BusinessHeader/home-business-03.png";
+import homeBusiness4 from "../../../assets/Home/BusinessHeader/home-business-04.png";
+import homeBusiness5 from "../../../assets/Home/BusinessHeader/home-business-05.png";
+import homeBusiness6 from "../../../assets/Home/BusinessHeader/home-business-06.png";
+import homeBusiness7 from "../../../assets/Home/BusinessHeader/home-business-07.png";
+import homeBusiness8 from "../../../assets/Home/BusinessHeader/home-business-08.png";
+import homeBusiness9 from "../../../assets/Home/BusinessHeader/home-business-09.png";
+import homeBusiness10 from "../../../assets/Home/BusinessHeader/home-business-10.png";
 
-const businessImages = [biz1, biz2, biz3, biz4, biz5];
+const businessImages = [
+  homeBusiness1, homeBusiness2, homeBusiness3, homeBusiness4, homeBusiness5,
+  homeBusiness6, homeBusiness7, homeBusiness8, homeBusiness9, homeBusiness10,
+];
 
 import leisure1 from "../../../assets/Hero/leisure1.jpeg";
 import leisure2 from "../../../assets/Hero/leisure2.jpeg";
 import leisure3 from "../../../assets/Hero/leisure3.jpeg";
 import leisure4 from "../../../assets/Hero/leisure4.jpeg";
 import leisure5 from "../../../assets/Hero/leisure5.jpeg";
+import homeLeisure1 from "../../../assets/Home/LeisureHeader/home-leisure-01.png";
+import homeLeisure2 from "../../../assets/Home/LeisureHeader/home-leisure-02.png";
+import homeLeisure3 from "../../../assets/Home/LeisureHeader/home-leisure-03.png";
+import homeLeisure4 from "../../../assets/Home/LeisureHeader/home-leisure-04.png";
+import homeLeisure5 from "../../../assets/Home/LeisureHeader/home-leisure-05.png";
+import homeLeisure6 from "../../../assets/Home/LeisureHeader/home-leisure-06.png";
+import homeLeisure7 from "../../../assets/Home/LeisureHeader/home-leisure-07.png";
+import homeLeisure8 from "../../../assets/Home/LeisureHeader/home-leisure-08.png";
+import homeLeisure9 from "../../../assets/Home/LeisureHeader/home-leisure-09.png";
+import homeLeisure10 from "../../../assets/Home/LeisureHeader/home-leisure-10.png";
+import destinationBangkok from "../../../assets/Home/Destinations/destination-bangkok.png";
+import destinationKerala from "../../../assets/Home/Destinations/destination-kerala.png";
+import destinationBali from "../../../assets/Home/Destinations/destination-bali.png";
+import destinationUae from "../../../assets/Home/Destinations/destination-uae.png";
+import destinationSingapore from "../../../assets/Home/Destinations/destination-singapore.png";
+import destinationParis from "../../../assets/Home/Destinations/destination-paris.png";
+import destinationBangkok2 from "../../../assets/Home/Destinations/destination-bangkok-02.png";
+import destinationBangkok3 from "../../../assets/Home/Destinations/destination-bangkok-03.png";
+import destinationKerala2 from "../../../assets/Home/Destinations/destination-kerala-02.png";
+import destinationKerala3 from "../../../assets/Home/Destinations/destination-kerala-03.png";
+import destinationBali2 from "../../../assets/Home/Destinations/destination-bali-02.png";
+import destinationBali3 from "../../../assets/Home/Destinations/destination-bali-03.png";
+import destinationUae2 from "../../../assets/Home/Destinations/destination-uae-02.png";
+import destinationUae3 from "../../../assets/Home/Destinations/destination-uae-03.png";
+import destinationSingapore2 from "../../../assets/Home/Destinations/destination-singapore-02.png";
+import destinationSingapore3 from "../../../assets/Home/Destinations/destination-singapore-03.png";
+import destinationParis2 from "../../../assets/Home/Destinations/destination-paris-02.png";
+import destinationParis3 from "../../../assets/Home/Destinations/destination-paris-03.png";
+import offerDubai2 from "../../../assets/Home/SpecialOffers/offer-dubai-02.png";
+import offerDubai3 from "../../../assets/Home/SpecialOffers/offer-dubai-03.png";
+import offerKerala2 from "../../../assets/Home/SpecialOffers/offer-kerala-02.png";
+import offerKerala3 from "../../../assets/Home/SpecialOffers/offer-kerala-03.png";
+import offerEurope2 from "../../../assets/Home/SpecialOffers/offer-europe-02.png";
+import offerEurope3 from "../../../assets/Home/SpecialOffers/offer-europe-03.png";
+import offerThailand2 from "../../../assets/Home/SpecialOffers/offer-thailand-02.png";
+import offerThailand3 from "../../../assets/Home/SpecialOffers/offer-thailand-03.png";
+import offerSwitzerland2 from "../../../assets/Home/SpecialOffers/offer-switzerland-02.png";
+import offerSwitzerland3 from "../../../assets/Home/SpecialOffers/offer-switzerland-03.png";
+import offerMaldives2 from "../../../assets/Home/SpecialOffers/offer-maldives-02.png";
+import offerMaldives3 from "../../../assets/Home/SpecialOffers/offer-maldives-03.png";
+import visaAzerbaijan2 from "../../../assets/Home/VisaDestinations/visa-azerbaijan-02.png";
+import visaAzerbaijan3 from "../../../assets/Home/VisaDestinations/visa-azerbaijan-03.png";
+import visaSaudi2 from "../../../assets/Home/VisaDestinations/visa-saudi-02.png";
+import visaSaudi3 from "../../../assets/Home/VisaDestinations/visa-saudi-03.png";
+import visaSingapore2 from "../../../assets/Home/VisaDestinations/visa-singapore-02.png";
+import visaSingapore3 from "../../../assets/Home/VisaDestinations/visa-singapore-03.png";
+import visaThailand2 from "../../../assets/Home/VisaDestinations/visa-thailand-02.png";
+import visaThailand3 from "../../../assets/Home/VisaDestinations/visa-thailand-03.png";
+import visaUae2 from "../../../assets/Home/VisaDestinations/visa-uae-02.png";
+import visaUae3 from "../../../assets/Home/VisaDestinations/visa-uae-03.png";
+import visaVietnam2 from "../../../assets/Home/VisaDestinations/visa-vietnam-02.png";
+import visaVietnam3 from "../../../assets/Home/VisaDestinations/visa-vietnam-03.png";
+import serviceBusinessBg from "../../../assets/Home/ServiceBackgrounds/service-business.png";
+import serviceLeisureBg from "../../../assets/Home/ServiceBackgrounds/service-leisure.png";
+import serviceVisaBg from "../../../assets/Home/ServiceBackgrounds/service-visa.png";
+import serviceFlightsBg from "../../../assets/Home/ServiceBackgrounds/service-flights.png";
+import serviceUmrahBg from "../../../assets/Home/ServiceBackgrounds/service-umrah.png";
+import serviceCabsBg from "../../../assets/Home/ServiceBackgrounds/service-cabs.png";
+
+const leisureImages = [
+  homeLeisure1, homeLeisure2, homeLeisure3, homeLeisure4, homeLeisure5,
+  homeLeisure6, homeLeisure7, homeLeisure8, homeLeisure9, homeLeisure10,
+];
 
 // POPULAR DESTINATIONS
 import maldives from "../../../assets/PopularDestinations/maldives.png";
@@ -91,6 +162,182 @@ import JordanDeal from "../../../assets/Visa Deals/Jordan.png";
 import IndonesiaDeal from "../../../assets/Visa Deals/Indonesia.png";
 import TurkeyDeal from "../../../assets/Visa Deals/Turkey.png";
 
+const visaImageSets = {
+  azerbaijan: [azerbaijanVisa, visaAzerbaijan2, visaAzerbaijan3],
+  saudi: [saudiVisa, visaSaudi2, visaSaudi3],
+  singapore: [singaporeVisa, visaSingapore2, visaSingapore3],
+  thailand: [thailandOffer, visaThailand2, visaThailand3],
+  uae: [dubaiVisa, visaUae2, visaUae3],
+  vietnam: [vietnamVisa, visaVietnam2, visaVietnam3],
+};
+
+const getVisaImageSet = (country, primary, fallback) => {
+  const key = Object.keys(visaImageSets).find((name) => country.includes(name));
+  return key ? visaImageSets[key] : [primary, fallback].filter(Boolean);
+};
+
+
+// Animated Destination Card with 3 Smooth Moving / Crossfading Images
+const AnimatedDestinationCard = ({ item, index, onNavigate }) => {
+  const [currentImgIdx, setCurrentImgIdx] = useState(0);
+
+  useEffect(() => {
+    // Stagger slide transition per card for organic visual movement
+    const staggerDelay = (index % 3) * 700;
+    let intervalId;
+
+    const timer = setTimeout(() => {
+      intervalId = setInterval(() => {
+        setCurrentImgIdx((prev) => (prev + 1) % item.images.length);
+      }, 3600);
+    }, staggerDelay);
+
+    return () => {
+      clearTimeout(timer);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [index, item.images.length]);
+
+  return (
+    <div
+      className="relative h-[310px] rounded-2xl overflow-hidden group border border-white/10 shadow-2xl fade-up cursor-pointer bg-slate-950"
+      style={{ animationDelay: `${index * 0.05}s` }}
+      onClick={() => onNavigate(item)}
+    >
+      {/* 3 Moving / Animated Images Layer */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {item.images.map((imgSrc, imgIdx) => {
+          const isActive = imgIdx === currentImgIdx;
+          return (
+            <div
+              key={imgIdx}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+              }`}
+            >
+              <img
+                src={imgSrc}
+                alt={`${item.title} - ${imgIdx + 1}`}
+                className={`h-full w-full object-cover transition-transform duration-[3800ms] ease-out will-change-transform ${
+                  isActive
+                    ? imgIdx % 2 === 0
+                      ? "scale-115 translate-x-2 translate-y-1"
+                      : "scale-115 -translate-x-2 -translate-y-1"
+                    : "scale-100 translate-x-0 translate-y-0"
+                }`}
+                loading="lazy"
+                onError={(e) => {
+                  if (item.images[0] && e.currentTarget.src !== item.images[0]) {
+                    e.currentTarget.src = item.images[0];
+                  }
+                }}
+              />
+            </div>
+          );
+        })}
+        {/* Cinematic Gradient Overlay */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/30 to-black/40 group-hover:from-black/95 transition-all duration-500" />
+      </div>
+
+      {/* 3-Image Slide Progress Indicators */}
+      <div className="absolute top-3.5 left-4 z-30 flex items-center gap-1.5">
+        {item.images.map((_, idx) => (
+          <div
+            key={idx}
+            className={`h-1 rounded-full transition-all duration-500 ${
+              idx === currentImgIdx
+                ? "w-6 bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"
+                : "w-1.5 bg-white/40"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Unique Vertical Accent */}
+      <div className="absolute top-4 left-0 w-1.5 h-10 bg-[#14532d] z-20 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.7)]" />
+
+      {/* Top Country Badge */}
+      <div className="absolute top-3 right-3 z-30">
+        <div className="bg-black/50 backdrop-blur-xl border border-white/20 px-3 py-1 rounded-xl shadow-lg">
+          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">
+            {item.country}
+          </span>
+        </div>
+      </div>
+
+      {/* Floating Content Card */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
+        <div className="relative p-4 rounded-2xl border border-white/15 bg-black/60 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-4px] group-hover:bg-black/80 shadow-2xl">
+          {/* Glowing Accent Line */}
+          <div className="absolute -top-[1px] left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+          <div className="flex justify-between items-center mb-1.5">
+            <div>
+              <p className="text-[8px] uppercase tracking-widest text-green-400 font-black mb-0.5">
+                {item.region}
+              </p>
+              <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none italic">
+                {item.title}
+              </h3>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/15 group-hover:bg-[#14532d] transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(20,83,45,0.6)]">
+              <Zap className="w-3.5 h-3.5 text-white" />
+            </div>
+          </div>
+
+          <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
+            <div className="overflow-hidden">
+              <p className="text-white/70 text-[10px] my-2 leading-tight line-clamp-1 font-medium">
+                Experience the magic of {item.title}.
+              </p>
+              <button className="w-full py-2.5 bg-white hover:bg-[#14532d] text-slate-950 hover:text-white font-black uppercase text-[10px] tracking-[0.15em] rounded-xl transition-all shadow-xl cursor-pointer">
+                Explore Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AnimatedOfferImages = ({ images, title, fallbackImage }) => {
+  const [currentImgIdx, setCurrentImgIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImgIdx((prev) => (prev + 1) % images.length);
+    }, 3600);
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden">
+      {images.map((imgSrc, imgIdx) => (
+        <div
+          key={imgIdx}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+            imgIdx === currentImgIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+          }`}
+        >
+          <img
+            src={imgSrc}
+            alt={`${title} offer view ${imgIdx + 1}`}
+            onError={(event) => {
+              if (fallbackImage && event.currentTarget.src !== fallbackImage) {
+                event.currentTarget.src = fallbackImage;
+              }
+            }}
+            className={`h-full w-full object-cover transition-transform duration-[3800ms] ease-out ${
+              imgIdx === currentImgIdx ? "scale-110" : "scale-100"
+            }`}
+          />
+        </div>
+      ))}
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black/90 transition-all duration-500" />
+    </div>
+  );
+};
 
 
 const Home = () => {
@@ -153,7 +400,7 @@ const Home = () => {
                   <SwiperSlide key={i}>
                     <div
                       className="w-full h-full bg-cover bg-center shadow-inner transition-all duration-1000"
-                      style={{ backgroundImage: `url(${img})` }}
+                      style={{ backgroundImage: `url(${img})`, backgroundPosition: "center right" }}
                     />
                   </SwiperSlide>
                 ))}
@@ -203,11 +450,11 @@ const Home = () => {
                 loop={true}
                 className="w-full h-full"
               >
-                {[leisure1, leisure2, leisure3, leisure4, leisure5].map((img, i) => (
+                {leisureImages.map((img, i) => (
                   <SwiperSlide key={i}>
                     <div
                       className="w-full h-full bg-cover bg-center transition-all duration-1000"
-                      style={{ backgroundImage: `url(${img})` }}
+                      style={{ backgroundImage: `url(${img})`, backgroundPosition: "center left" }}
                     />
                   </SwiperSlide>
                 ))}
@@ -309,6 +556,7 @@ const Home = () => {
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/businesshome')}
             >
+              <div className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: `url(${serviceBusinessBg})` }} />
               <div className="absolute top-4 right-4 bg-orange-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Trending</div>
               <div className="mb-4 w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                 <Briefcase className="w-5 h-5 text-orange-600 group-hover:text-white transition-colors" />
@@ -337,6 +585,7 @@ const Home = () => {
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/holidayhome')}
             >
+              <div className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: `url(${serviceLeisureBg})` }} />
               <div className="absolute top-4 right-4 bg-emerald-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Popular</div>
               <div className="mb-4 w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                 <Globe className="w-5 h-5 text-emerald-600 group-hover:text-white transition-colors" />
@@ -365,6 +614,7 @@ const Home = () => {
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/visa')}
             >
+              <div className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: `url(${serviceVisaBg})` }} />
               <div className="absolute top-4 right-4 bg-blue-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Fast-Track</div>
               <div className="mb-4 w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                 <FileText className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" />
@@ -393,6 +643,7 @@ const Home = () => {
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => window.open('https://booking.goimomi.com/', '_blank')}
             >
+              <div className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: `url(${serviceFlightsBg})` }} />
               <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Best Rates</div>
               <div className="mb-4 w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                 <Plane className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
@@ -421,6 +672,7 @@ const Home = () => {
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/holidays?category=Umrah')}
             >
+              <div className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: `url(${serviceUmrahBg})` }} />
               <div className="absolute top-4 right-4 bg-amber-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Spiritual</div>
               <div className="mb-4 w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                 <Users className="w-5 h-5 text-amber-600 group-hover:text-white transition-colors" />
@@ -449,6 +701,7 @@ const Home = () => {
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/cab')}
             >
+              <div className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: `url(${serviceCabsBg})` }} />
               <div className="absolute top-4 right-4 bg-rose-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Reliable</div>
               <div className="mb-4 w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                 <Car className="w-5 h-5 text-rose-600 group-hover:text-white transition-colors" />
@@ -485,74 +738,81 @@ const Home = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 max-w-7xl mx-auto px-4">
           {[
-            { img: thailandOffer, title: "Bangkok", region: "SOUTH EAST ASIA", country: "Thailand", category: "International" },
-            { img: keralaOffer, title: "Kerala", region: "SOUTH ASIA", country: "India", category: "Domestic" },
-            { img: bali, title: "Bali", region: "SOUTH EAST ASIA", country: "Indonesia", category: "International" },
-            { img: dubaiOffer, title: "UAE", region: "MIDDLE EAST", country: "UAE", category: "International" },
-            { img: singapore, title: "Singapore", region: "SOUTH EAST ASIA", country: "Singapore", category: "International" },
-            { img: paris, title: "Paris", region: "EUROPE", country: "France", category: "International" }
+            {
+              images: [
+                destinationBangkok,
+                destinationBangkok2,
+                destinationBangkok3
+              ],
+              title: "Bangkok",
+              region: "SOUTH EAST ASIA",
+              country: "Thailand",
+              category: "International"
+            },
+            {
+              images: [
+                destinationKerala,
+                destinationKerala2,
+                destinationKerala3
+              ],
+              title: "Kerala",
+              region: "SOUTH ASIA",
+              country: "India",
+              category: "Domestic"
+            },
+            {
+              images: [
+                destinationBali,
+                destinationBali2,
+                destinationBali3
+              ],
+              title: "Bali",
+              region: "SOUTH EAST ASIA",
+              country: "Indonesia",
+              category: "International"
+            },
+            {
+              images: [
+                destinationUae,
+                destinationUae2,
+                destinationUae3
+              ],
+              title: "UAE",
+              region: "MIDDLE EAST",
+              country: "UAE",
+              category: "International"
+            },
+            {
+              images: [
+                destinationSingapore,
+                destinationSingapore2,
+                destinationSingapore3
+              ],
+              title: "Singapore",
+              region: "SOUTH EAST ASIA",
+              country: "Singapore",
+              category: "International"
+            },
+            {
+              images: [
+                destinationParis,
+                destinationParis2,
+                destinationParis3
+              ],
+              title: "Paris",
+              region: "EUROPE",
+              country: "France",
+              category: "International"
+            }
           ].map((item, i) => (
-            <div
+            <AnimatedDestinationCard
               key={i}
-              className="relative h-[300px] rounded-2xl overflow-hidden group border border-white/5 shadow-2xl fade-up cursor-pointer bg-slate-900"
-              style={{ animationDelay: `${i * 0.05}s` }}
-              onClick={() => navigate(`/holidays?category=${item.category}`, { state: { filter: item.title } })}
-            >
-              {/* Background Image with Neutral Overlay */}
-              <div className="absolute inset-0 z-0">
-                <img
-                  src={item.img}
-                  className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
-                  alt={item.title}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black transition-all duration-500" />
-              </div>
-
-              {/* Unique Vertical Accent */}
-              <div className="absolute top-4 left-0 w-1.5 h-10 bg-[#14532d] z-10 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.5)]" />
-
-              {/* Top Badge */}
-              <div className="absolute top-4 right-4 z-20">
-                <div className="bg-black/40 backdrop-blur-xl border border-white/10 px-3 py-1 rounded-lg">
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">
-                    {item.country}
-                  </span>
-                </div>
-              </div>
-
-              {/* Floating Content Card */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                <div className="relative p-4 rounded-xl border border-white/10 bg-black/40 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-5px] group-hover:bg-black/60 shadow-2xl">
-                  {/* Glowing Accent */}
-                  <div className="absolute -top-[1px] left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <p className="text-[7px] uppercase tracking-widest text-green-400 font-bold mb-0.5">{item.region}</p>
-                      <h3 className="text-lg font-black text-white uppercase tracking-tighter leading-none italic">
-                        {item.title}
-                      </h3>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-[#14532d] transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(20,83,45,0.4)]">
-                      <Zap className="w-3.5 h-3.5 text-white" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
-                    <div className="overflow-hidden">
-                      <p className="text-white/50 text-[9px] mb-3 leading-tight line-clamp-1">
-                        Experience the magic of {item.title}.
-                      </p>
-                      <button
-                        className="w-full py-2 bg-white text-black font-black uppercase text-[9px] tracking-[0.1em] rounded-lg hover:bg-[#14532d] hover:text-white transition-all shadow-xl"
-                      >
-                        Explore Now
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              item={item}
+              index={i}
+              onNavigate={(dest) =>
+                navigate(`/holidays?category=${dest.category}`, { state: { filter: dest.title } })
+              }
+            />
           ))}
         </div>
       </section>
@@ -572,12 +832,12 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
             {[
-              { img: dubaiOffer, discount: "15% OFF", title: "Dubai Dream Getaway", category: "LUXURY TOUR" },
-              { img: keralaOffer, discount: "10% OFF", title: "Kerala Backwaters Bliss", category: "WELLNESS" },
-              { img: europeOffer, discount: "20% OFF", title: "Europe Grand Tour", category: "SIGHTSEEING" },
-              { img: thailandOffer, discount: "25% OFF", title: "Thailand Island Paradise", category: "ADVENTURE" },
-              { img: switzerlandOffer, discount: "18% OFF", title: "Swiss Alps Wonderland", category: "NATURE" },
-              { img: maldivesOffer, discount: "30% OFF", title: "Maldives Luxury Escape", category: "HONEYMOON" }
+              { images: [dubaiOffer, offerDubai2, offerDubai3], discount: "15% OFF", title: "Dubai Dream Getaway", category: "LUXURY TOUR" },
+              { images: [keralaOffer, offerKerala2, offerKerala3], discount: "10% OFF", title: "Kerala Backwaters Bliss", category: "WELLNESS" },
+              { images: [europeOffer, offerEurope2, offerEurope3], discount: "20% OFF", title: "Europe Grand Tour", category: "SIGHTSEEING" },
+              { images: [thailandOffer, offerThailand2, offerThailand3], discount: "25% OFF", title: "Thailand Island Paradise", category: "ADVENTURE" },
+              { images: [switzerlandOffer, offerSwitzerland2, offerSwitzerland3], discount: "18% OFF", title: "Swiss Alps Wonderland", category: "NATURE" },
+              { images: [maldivesOffer, offerMaldives2, offerMaldives3], discount: "30% OFF", title: "Maldives Luxury Escape", category: "HONEYMOON" }
             ].map((offer, i) => (
               <div
                 key={i}
@@ -585,14 +845,7 @@ const Home = () => {
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 {/* Background Image with Neutral Overlay */}
-                <div className="absolute inset-0 z-0">
-                  <img
-                    src={offer.img}
-                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
-                    alt={offer.title}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black/90 transition-all duration-500" />
-                </div>
+              <AnimatedOfferImages images={offer.images} title={offer.title} />
 
                 {/* Theme Accent Line */}
                 <div className="absolute top-6 left-0 w-1.5 h-12 bg-[#14532d] z-10 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.6)]" />
@@ -682,6 +935,7 @@ const Home = () => {
                   return {
                     id: v.id,
                     img: getImageUrl(v.card_image) || fallbackImg,
+                    images: getVisaImageSet(countryLower, getImageUrl(v.card_image) || fallbackImg, fallbackImg),
                     title: v.title,
                     price: `₹${Number(v.selling_price || 0).toLocaleString('en-IN')}`,
                     country: v.country,
@@ -691,12 +945,12 @@ const Home = () => {
                   };
                 })
               : [
-                  { img: dubaiVisa, title: "Dubai Visa", price: "₹8,500", country: "United Arab Emirates", category: "PRIORITY" },
-                  { img: saudiVisa, title: "Saudi Arabia Visa", price: "₹6,500", country: "Saudi Arabia", category: "FAST-TRACK" },
-                  { img: azerbaijanVisa, title: "Azerbaijan Visa", price: "₹4,500", country: "Azerbaijan", category: "E-VISA" },
-                  { img: thailandOffer, title: "Thailand Visa", price: "₹3,200", country: "Thailand", category: "E-VISA" },
-                  { img: singaporeVisa, title: "Singapore Visa", price: "₹2,800", country: "Singapore", category: "E-VISA" },
-                  { img: vietnamVisa, title: "Vietnam Visa", price: "₹3,500", country: "Vietnam", category: "E-VISA" }
+                  { images: visaImageSets.uae, img: dubaiVisa, title: "Dubai Visa", price: "₹8,500", country: "United Arab Emirates", category: "PRIORITY" },
+                  { images: visaImageSets.saudi, img: saudiVisa, title: "Saudi Arabia Visa", price: "₹6,500", country: "Saudi Arabia", category: "FAST-TRACK" },
+                  { images: visaImageSets.azerbaijan, img: azerbaijanVisa, title: "Azerbaijan Visa", price: "₹4,500", country: "Azerbaijan", category: "E-VISA" },
+                  { images: visaImageSets.thailand, img: thailandOffer, title: "Thailand Visa", price: "₹3,200", country: "Thailand", category: "E-VISA" },
+                  { images: visaImageSets.singapore, img: singaporeVisa, title: "Singapore Visa", price: "₹2,800", country: "Singapore", category: "E-VISA" },
+                  { images: visaImageSets.vietnam, img: vietnamVisa, title: "Vietnam Visa", price: "₹3,500", country: "Vietnam", category: "E-VISA" }
                 ]
             ).map((item, i) => (
               <div
@@ -706,15 +960,7 @@ const Home = () => {
                 onClick={() => navigate(item.isLive ? `/visa/apply/${item.id}` : '/visa')}
               >
                 {/* Background Image with Neutral Overlay */}
-                <div className="absolute inset-0 z-0">
-                  <img
-                    src={item.img}
-                    className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-100"
-                    alt={item.title}
-                    onError={(e) => { e.target.src = item.fallbackImg || singaporeVisa; }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/20 group-hover:from-black transition-all duration-500" />
-                </div>
+                <AnimatedOfferImages images={item.images || [item.img]} title={item.title} fallbackImage={item.fallbackImg} />
 
                 {/* Theme Accent Line */}
                 <div className="absolute top-6 left-0 w-1.5 h-12 bg-[#14532d] z-10 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.6)]" />
