@@ -34,12 +34,18 @@ import leisure2 from "../../../assets/Hero/leisure2.jpeg";
 import leisure3 from "../../../assets/Hero/leisure3.jpeg";
 import leisure4 from "../../../assets/Hero/leisure4.jpeg";
 import leisure5 from "../../../assets/Hero/leisure5.jpeg";
-import holidayHero from "../../../assets/Hero/holiday_home_hero.jpeg";
+import leisureHeader1 from "../../../assets/Hero/LeisureHeader/leisure-header-01.png";
+import leisureHeader2 from "../../../assets/Hero/LeisureHeader/leisure-header-02.png";
+import leisureHeader3 from "../../../assets/Hero/LeisureHeader/leisure-header-03.png";
+import leisureHeader4 from "../../../assets/Hero/LeisureHeader/leisure-header-04.png";
+import leisureHeader5 from "../../../assets/Hero/LeisureHeader/leisure-header-05.png";
 import blueseaImg from "../../../assets/Hero/bluesea.png";
 import sunsetImg from "../../../assets/Hero/sunset.png";
 import umrahImg from "../../../assets/umrah.png";
 import umrahImg2 from "../../../assets/umrah2.png";
 import cusHolidays from "../../../assets/cusholidays.png";
+
+const leisureHeroImages = [leisureHeader1, leisureHeader2, leisureHeader3, leisureHeader4, leisureHeader5];
 
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
@@ -75,6 +81,14 @@ const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
 // ─── Component ────────────────────────────────────────────────────────────────
 const HolidayHome = () => {
   const navigate = useNavigate();
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setHeroIndex((current) => (current + 1) % 5);
+    }, 6500);
+    return () => window.clearInterval(timer);
+  }, []);
   usePageSEO(
     "Plan Your Perfect Holiday – Goimomi Holidays",
     "Explore our curated collection of domestic and international holiday packages. From exotic European tours to sacred Umrah journeys, Goimomi Holidays offers customized travel experiences for every traveler.",
@@ -269,9 +283,9 @@ const HolidayHome = () => {
       <section className="relative w-full h-[520px] md:h-[620px] overflow-hidden bg-black group">
         <div className="absolute inset-0">
           <img
-            src={holidayHero}
+            src={leisureHeroImages[heroIndex]}
             alt="Holiday Travel Hero"
-            className="w-full h-full object-cover transition-transform duration-[8000ms] scale-110 group-hover:scale-100 opacity-75"
+            className="w-full h-full object-cover transition-opacity duration-700 scale-110 group-hover:scale-100 opacity-75"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
@@ -352,6 +366,19 @@ const HolidayHome = () => {
         {/* Scroll indicator */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce hidden md:block">
           <div className="w-[1px] h-12 bg-gradient-to-b from-white/10 via-white to-transparent" />
+        </div>
+
+        <div className="absolute bottom-6 left-6 md:left-20 z-20 flex items-center gap-2" aria-label="Leisure hero images">
+          {leisureHeroImages.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              aria-label={`Show leisure hero image ${index + 1}`}
+              aria-current={heroIndex === index ? "true" : undefined}
+              onClick={() => setHeroIndex(index)}
+              className={`h-1.5 rounded-full transition-all ${heroIndex === index ? "w-9 bg-emerald-400" : "w-2 bg-white/50 hover:bg-white"}`}
+            />
+          ))}
         </div>
       </section>
 

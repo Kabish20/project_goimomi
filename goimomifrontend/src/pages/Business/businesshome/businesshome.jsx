@@ -28,9 +28,16 @@ import usePageSEO from "../../../hooks/usePageSEO";
 
 // Assets
 import bizHero from "../../../assets/Business/biz1.jpeg";
+import businessHeader1 from "../../../assets/Business/Header/business-header-01.png";
+import businessHeader2 from "../../../assets/Business/Header/business-header-02.png";
+import businessHeader3 from "../../../assets/Business/Header/business-header-03.png";
+import businessHeader4 from "../../../assets/Business/Header/business-header-04.png";
+import businessHeader5 from "../../../assets/Business/Header/business-header-05.png";
 import bizCardImg from "../../../assets/Business/biz3.jpeg";
 import cantonCardImg from "../../../assets/images/canton-hero.png";
 import megaheaderImg from "../../../assets/megaheader.png";
+
+const businessHeroImages = [businessHeader1, businessHeader2, businessHeader3, businessHeader4, businessHeader5];
 
 // ─── Animated Counter ────────────────────────────────────────────────────────
 const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
@@ -66,6 +73,14 @@ const AnimatedCounter = ({ target, suffix = "", duration = 2000 }) => {
 // ─── Component ────────────────────────────────────────────────────────────────
 const BusinessHome = () => {
   const navigate = useNavigate();
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setHeroIndex((current) => (current + 1) % 5);
+    }, 6500);
+    return () => window.clearInterval(timer);
+  }, []);
   usePageSEO(
     "Elevate Your Business Travel – Goimomi Business",
     "Empower your enterprise with Goimomi Business Solutions. From tailored corporate travel and logistics to global sourcing trips and Canton Fair registration, we provide strategic mobility solutions for the modern Indian business.",
@@ -225,9 +240,9 @@ const BusinessHome = () => {
       <section className="relative w-full h-[520px] md:h-[620px] overflow-hidden bg-slate-900 group">
         <div className="absolute inset-0">
           <img
-            src={bizHero}
+            src={businessHeroImages[heroIndex]}
             alt="Corporate Travel Hero"
-            className="w-full h-full object-cover transition-transform duration-[8000ms] scale-110 group-hover:scale-100 opacity-50"
+            className="w-full h-full object-cover transition-opacity duration-700 scale-110 group-hover:scale-100 opacity-50"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/70 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
@@ -317,6 +332,19 @@ const BusinessHome = () => {
                 <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">{m.label}</p>
               </div>
             </React.Fragment>
+          ))}
+        </div>
+
+        <div className="absolute bottom-6 left-6 md:left-20 z-20 flex items-center gap-2" aria-label="Business hero images">
+          {businessHeroImages.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              aria-label={`Show business hero image ${index + 1}`}
+              aria-current={heroIndex === index ? "true" : undefined}
+              onClick={() => setHeroIndex(index)}
+              className={`h-1.5 rounded-full transition-all ${heroIndex === index ? "w-9 bg-emerald-400" : "w-2 bg-white/50 hover:bg-white"}`}
+            />
           ))}
         </div>
       </section>
