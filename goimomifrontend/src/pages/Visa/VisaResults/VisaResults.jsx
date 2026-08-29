@@ -122,11 +122,14 @@ const VisaResults = () => {
             // Ensure response.data is an array before filtering
             const rawData = Array.isArray(response.data) ? response.data : [];
 
-            // Strict matching to prevent cross-contamination (e.g. USA search showing UAE results)
+            // Strict matching to prevent cross-contamination while supporting country aliases
+            const normalise = (name = "") => {
+                const clean = name.trim().toLowerCase();
+                return visaDestinationCountryAliases[clean] || clean;
+            };
             const strictFilteredVisas = rawData.filter(v => {
-                const match = v && v.country && country &&
-                    v.country.trim().toLowerCase() === country.trim().toLowerCase();
-                return match;
+                if (!v || !v.country || !country) return false;
+                return normalise(v.country) === normalise(country);
             });
 
             setVisas(strictFilteredVisas);
@@ -139,13 +142,15 @@ const VisaResults = () => {
     };
 
     const handleSearchRefresh = () => {
-        if (!goingTo) {
+        const destination = goingTo || goingToSearch;
+        if (!destination) {
             alert("Please select a destination country");
             return;
         }
+        const citizen = citizenOf || citizenSearch || "India";
         const params = new URLSearchParams({
-            citizenOf,
-            goingTo,
+            citizenOf: citizen,
+            goingTo: destination,
             departureDate,
             returnDate
         });

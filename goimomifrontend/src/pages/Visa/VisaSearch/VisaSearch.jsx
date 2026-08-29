@@ -204,23 +204,30 @@ const VisaSearch = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredCitizenCountries = (countries || []).filter((c) =>
-    c?.name?.toLowerCase().includes(citizenSearch.toLowerCase())
+  const allAvailableCountries = useMemo(() => {
+    if (countries && countries.length > 0) return countries;
+    return all196Countries.map((c, idx) => ({ id: idx + 1, name: c.name }));
+  }, [countries]);
+
+  const filteredCitizenCountries = (allAvailableCountries || []).filter((c) =>
+    c?.name?.toLowerCase().includes((citizenSearch || "").toLowerCase())
   );
-  const filteredGoingToCountries = (countries || []).filter((c) =>
+  const filteredGoingToCountries = (allAvailableCountries || []).filter((c) =>
     c?.name &&
     isVisaDestination(c.name) &&
-    c.name.toLowerCase().includes(goingToSearch.toLowerCase())
+    c.name.toLowerCase().includes((goingToSearch || "").toLowerCase())
   );
 
   const handleSearch = () => {
-    if (!goingTo) {
+    const destination = goingTo || goingToSearch;
+    if (!destination) {
       alert("Please select a destination country");
       return;
     }
+    const citizen = citizenOf || citizenSearch || "India";
     const params = new URLSearchParams({
-      citizenOf,
-      goingTo,
+      citizenOf: citizen,
+      goingTo: destination,
       departureDate: travelDate || "",
       returnDate: returnDate || "",
     });
@@ -490,6 +497,7 @@ const VisaSearch = () => {
                       type="text"
                       value={citizenSearch}
                       onChange={(e) => { setCitizenSearch(e.target.value); setShowCitizenDropdown(true); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
                       className="w-full outline-none text-gray-900 font-medium placeholder:text-gray-400 cursor-pointer"
                       placeholder="Select country"
                       onClick={(e) => e.stopPropagation()}
@@ -538,6 +546,7 @@ const VisaSearch = () => {
                       type="text"
                       value={goingToSearch}
                       onChange={(e) => { setGoingToSearch(e.target.value); setShowGoingToDropdown(true); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
                       className="w-full outline-none text-gray-900 font-medium placeholder:text-gray-400 cursor-pointer"
                       placeholder="Select destination"
                       onClick={(e) => e.stopPropagation()}

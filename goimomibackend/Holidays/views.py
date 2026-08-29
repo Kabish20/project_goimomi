@@ -3298,50 +3298,6 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             'order': serialized_order
         })
 
-    def partial_update(self, request, *args, **kwargs):
-        order = self.get_object()
-        prev_status = getattr(order, 'status', '')
-        raw_trigger = request.data.get('trigger_shipped_email', '')
-        if isinstance(raw_trigger, (list, tuple)):
-            raw_trigger = raw_trigger[0] if raw_trigger else ''
-        trigger_flag = str(raw_trigger).lower() in ('true', '1')
-
-        response = super().partial_update(request, *args, **kwargs)
-        order.refresh_from_db()
-
-        new_status = str(order.status or '').strip().lower()
-        is_shipped_event = (new_status == 'shipped') or trigger_flag
-
-        if is_shipped_event:
-            try:
-                self._deduct_stock_and_notify(order)
-            except Exception as s_err:
-                print(f"Notice during stock deduction check: {s_err}")
-
-            try:
-                from Holidays.utils import send_product_shipped_email
-                sent = send_product_shipped_email(order)
-                print(f"Product Shipped email triggered for Order {order.order_id} (Provider: {order.logistics_provider}, Ref: {order.tracking_number}) to {order.email}, Result: {sent}")
-            except Exception as ship_err:
-                print(f"Error sending shipping email on status change: {ship_err}")
-        elif prev_status != order.status:
-            try:
-                if new_status == 'delivered':
-                    from Holidays.utils import send_product_delivered_email
-                    sent = send_product_delivered_email(order)
-                    print(f"Product Delivered email triggered for Order {order.order_id} to {order.email}, Result: {sent}")
-                elif new_status == 'cancelled':
-                    from Holidays.utils import send_product_cancelled_email
-                    sent = send_product_cancelled_email(order)
-                    print(f"Product Cancelled email triggered for Order {order.order_id} to {order.email}, Result: {sent}")
-                else:
-                    from Holidays.utils import send_product_order_email
-                    sent = send_product_order_email(order)
-                    print(f"Product status update email ({order.status}) triggered for Order {order.order_id} to {order.email}, Result: {sent}")
-            except Exception as status_err:
-                print(f"Error sending status update email: {status_err}")
-
-        return response
 
 
     def create(self, request, *args, **kwargs):
@@ -3905,7 +3861,10 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         except InsufficientProductStock as stock_error:
             return Response({'error': str(stock_error)}, status=status.HTTP_400_BAD_REQUEST)
 
-        trigger_shipped_email = str(request.data.get('trigger_shipped_email', '')).lower() in ('true', '1')
+        raw_trigger = request.data.get('trigger_shipped_email', '')
+        if isinstance(raw_trigger, (list, tuple)):
+            raw_trigger = raw_trigger[0] if raw_trigger else ''
+        trigger_shipped_email = str(raw_trigger).lower() in ('true', '1')
 
         if (status_changed and new_status_normalized == 'shipped') or trigger_shipped_email:
             try:
@@ -3915,18 +3874,26 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             except Exception as celery_error:
                 try:
                     from Holidays.utils import send_product_shipped_email
-
                     send_product_shipped_email(order)
                     print(f"Product shipping email sent directly for Order {order.order_id}; Celery was unavailable: {celery_error}")
                 except Exception as ship_error:
                     print(f"Error sending shipping email on status change: {ship_error}")
-        elif status_changed and new_status_normalized in {'confirmed', 'delivered', 'completed'}:
+        elif status_changed:
             try:
-                from Holidays.utils import send_product_order_email
-                send_product_order_email(order)
-                print(f"Product order email triggered for Order {order.order_id} (Status: {order.status}) to {order.email}")
+                if new_status_normalized == 'delivered':
+                    from Holidays.utils import send_product_delivered_email
+                    sent = send_product_delivered_email(order)
+                    print(f"Product Delivered email triggered for Order {order.order_id} to {order.email}, Result: {sent}")
+                elif new_status_normalized == 'cancelled':
+                    from Holidays.utils import send_product_cancelled_email
+                    sent = send_product_cancelled_email(order)
+                    print(f"Product Cancelled email triggered for Order {order.order_id} to {order.email}, Result: {sent}")
+                elif new_status_normalized in {'confirmed', 'completed'}:
+                    from Holidays.utils import send_product_order_email
+                    send_product_order_email(order)
+                    print(f"Product order email triggered for Order {order.order_id} (Status: {order.status}) to {order.email}")
             except Exception as mail_error:
-                print(f"Error sending product order email on partial_update: {mail_error}")
+                print(f"Error sending product status email on partial_update: {mail_error}")
 
         return response
 
