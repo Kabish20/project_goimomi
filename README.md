@@ -52,9 +52,16 @@ goimomi-workspace/
 ├── goimomifrontend/                  # React + Vite Frontend
 │   ├── src/
 │   │   ├── assets/                   # Images, icons, and graphic assets
-│   │   ├── components/               # UI Components & modals
+│   │   │   └── visa-deals/           # Visa deals promotional banners
+│   │   ├── components/               # UI Components
+│   │   │   ├── common/               # Shared components (Modals, Scroll, ErrorBoundary)
+│   │   │   ├── layout/               # Global layout (Navbar, Footer)
+│   │   │   ├── forms/                # Form & enquiry components
+│   │   │   ├── holidays/             # Holiday package cards & modals
+│   │   │   └── admin/                # Admin dashboard components
 │   │   ├── pages/                    # Page components (Visa, Umrah, Holidays, etc.)
 │   │   ├── utils/                    # Utility functions, parsers & helpers
+│   │   ├── hooks/                    # Custom React hooks (SEO, etc.)
 │   │   ├── App.jsx                   # Main React routing component
 │   │   └── main.jsx                  # React entry point
 │   ├── public/                       # Static public assets
@@ -67,6 +74,7 @@ goimomi-workspace/
 │   │   ├── management/commands/      # Custom Django management commands
 │   │   ├── migrations/               # Database migrations
 │   │   ├── services/                 # Payment & API integration services
+│   │   ├── static/                   # Static assets (logos, payment QR)
 │   │   └── templates/                # Email & PDF voucher HTML templates
 │   ├── scripts/                      # Backend utility & seed scripts
 │   │   ├── seed_logistics.py         # Seed courier logistics providers
@@ -75,8 +83,10 @@ goimomi-workspace/
 │   │   └── generate_refresh_token.py # Generate Zoho API refresh tokens
 │   ├── manage.py                     # Django CLI utility
 │   ├── requirements.txt              # Python dependencies
-│   └── .env                          # Backend environment variables
+│   ├── README.md                     # Backend setup documentation
+│   └── .env.example                  # Backend environment template
 │
+├── .env.example                      # Root environment template
 ├── start_dev.bat                     # Convenience launcher wrapper (Windows)
 ├── start_dev.sh                      # Convenience launcher wrapper (Linux/macOS)
 ├── package.json                      # Workspace root NPM configuration

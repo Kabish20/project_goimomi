@@ -2,11 +2,11 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { lazyRetry } from './utils/lazyRetry'
 
-import Navbar from './components/Navbar.jsx'
-import Footer from './components/Footer.jsx'
-import ScrollToTop from './components/ScrollToTop.jsx'
-import ComingSoon from './components/ComingSoon.jsx'
-import EnquiryForm from './components/EnquiryForm.jsx'
+import Navbar from './components/layout/Navbar.jsx'
+import Footer from './components/layout/Footer.jsx'
+import ScrollToTop from './components/common/ScrollToTop.jsx'
+import ComingSoon from './components/common/ComingSoon.jsx'
+import EnquiryForm from './components/forms/EnquiryForm.jsx'
 
 // Lazy Load Pages
 const Home = lazyRetry(() => import('./pages/General/Home/Home.jsx'));
@@ -113,7 +113,7 @@ const CatalogueMasterManage = lazyRetry(() => import("./pages/admin/CatalogueMas
 import AdminLogin from "./pages/General/AdminLogin/AdminLogin.jsx";
 import ProtectedRoute from "./components/admin/ProtectedRoute/ProtectedRoute";
 
-import ErrorBoundary from './components/ErrorBoundary.jsx'
+import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
 // Loading component
 const PageLoader = () => (

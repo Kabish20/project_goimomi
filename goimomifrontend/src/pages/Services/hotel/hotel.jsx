@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import CabCruiseForm from "../../../components/CabCruiseForm";
+import CabCruiseForm from "../../../components/forms/CabCruiseForm";
 import usePageSEO from "../../../hooks/usePageSEO";
 
 const Hotel = () => {

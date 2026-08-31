@@ -1,5 +1,5 @@
 import React from "react";
-import QuickEnquiryForm from "./QuickEnquiryForm.jsx";
+import QuickEnquiryForm from "../forms/QuickEnquiryForm.jsx";
 const FormModal = ({ isOpen, onClose, packageType, packageData }) => {
   if (!isOpen) return null;
 

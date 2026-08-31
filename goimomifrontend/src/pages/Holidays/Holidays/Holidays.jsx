@@ -5,8 +5,8 @@ import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircl
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
 import jsPDF from "jspdf";
-import ZohoTripForm from "../../../components/ZohoTripForm";
-import DownloadPDFModal from "../../../components/DownloadPDFModal";
+import ZohoTripForm from "../../../components/forms/ZohoTripForm";
+import DownloadPDFModal from "../../../components/holidays/DownloadPDFModal";
 import goimomilogo from "../../../assets/goimomilogo.png";
 import pdfImg1 from "../../../assets/pdf/BALI - awesome waterfalls near UBUD.jpeg";
 import pdfImg2 from "../../../assets/pdf/Egypt.jpeg";

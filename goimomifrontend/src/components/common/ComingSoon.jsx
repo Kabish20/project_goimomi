@@ -1,6 +1,6 @@
 import React from "react";
 import { FaCalendarAlt, FaEnvelope } from "react-icons/fa";
-import usePageSEO from "../hooks/usePageSEO";
+import usePageSEO from "../../hooks/usePageSEO";
 
 const ComingSoon = ({ title, description }) => {
   usePageSEO(

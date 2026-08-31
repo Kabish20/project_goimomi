@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import api from "../api";
+import api from "../../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import SuccessModal from "../components/SuccessModal";
+import SuccessModal from "../common/SuccessModal";
 
 const CabCruiseForm = ({ isOpen, onClose, type, initialDescription = "", initialData = {} }) => {
     const [name, setName] = useState("");

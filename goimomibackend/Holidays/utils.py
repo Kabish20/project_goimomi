@@ -1045,7 +1045,7 @@ def generate_booking_invoice_pdf(booking):
     except Exception as e:
         print(f"Error generating dynamic payment QR code: {e}")
         # Fallback to static QR
-        payment_qr_path = os.path.join(os.path.dirname(__file__), "payment_qr.png")
+        payment_qr_path = os.path.join(os.path.dirname(__file__), "static", "Holidays", "images", "payment_qr.png")
         payment_qr_data_uri = get_image_as_base64_uri(payment_qr_path)
     
     

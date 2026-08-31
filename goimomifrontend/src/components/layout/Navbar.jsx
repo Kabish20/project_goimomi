@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import logo from '../assets/goimomilogo.png'
-import AdminLogin from '../pages/General/AdminLogin/AdminLogin.jsx'
+import logo from '../../assets/goimomilogo.png'
+import AdminLogin from '../../pages/General/AdminLogin/AdminLogin.jsx'
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false)

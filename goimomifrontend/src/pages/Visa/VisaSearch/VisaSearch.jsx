@@ -13,7 +13,7 @@ import visaHero2 from "../../../assets/Hero/VisaHeader/visa-hero-02.png";
 import visaHero3 from "../../../assets/Hero/VisaHeader/visa-hero-03.png";
 import visaHero4 from "../../../assets/Hero/VisaHeader/visa-hero-04.png";
 import visaHero5 from "../../../assets/Hero/VisaHeader/visa-hero-05.png";
-import CountryVisaCard from "../../../components/CountryVisaCard";
+import CountryVisaCard from "../../../components/holidays/CountryVisaCard";
 import {
   all196Countries,
   visaDestinationCountryAliases,

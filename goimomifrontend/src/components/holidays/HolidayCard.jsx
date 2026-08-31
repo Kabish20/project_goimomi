@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Share2, Mail, Eye, MessageCircle, FileDown, ArrowRight, Hotel, Utensils, Zap } from "lucide-react";
-import { getImageUrl } from "../utils/imageUtils";
+import { getImageUrl } from "../../utils/imageUtils";
 
 const HolidayCard = React.memo(({ pkg, navigate, generateShareText, setEmailModalPkg, downloadPackagePDF, setViewDetailsPkg }) => {
   const [activeTab, setActiveTab] = useState("Hotels");

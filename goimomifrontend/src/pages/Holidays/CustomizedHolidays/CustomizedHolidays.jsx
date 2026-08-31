@@ -9,7 +9,7 @@ import {
   ArrowRight, CheckCircle2, PhoneCall, ChevronDown, TrendingUp,
   MapPin, Heart, Briefcase,
 } from "lucide-react";
-import ZohoCustomizedForm from "../../../components/ZohoCustomizedForm.jsx";
+import ZohoCustomizedForm from "../../../components/forms/ZohoCustomizedForm.jsx";
 import { useNavigate } from "react-router-dom";
 import usePageSEO from "../../../hooks/usePageSEO";
 

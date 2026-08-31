@@ -4,9 +4,9 @@ import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, Mes
 import { motion } from "framer-motion";
 import api from "../../../api";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
-import CabCruiseForm from "../../../components/CabCruiseForm";
-import CabTermsModal from "../../../components/CabTermsModal";
-import CabPrivacyModal from "../../../components/CabPrivacyModal";
+import CabCruiseForm from "../../../components/forms/CabCruiseForm";
+import CabTermsModal from "../../../components/forms/CabTermsModal";
+import CabPrivacyModal from "../../../components/forms/CabPrivacyModal";
 import cabHero1 from "../../../assets/Hero/CabHeader/cab-hero-01.png";
 import cabHero2 from "../../../assets/Hero/CabHeader/cab-hero-02.png";
 import cabHero3 from "../../../assets/Hero/CabHeader/cab-hero-03.png";

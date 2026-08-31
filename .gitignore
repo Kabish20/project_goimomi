@@ -1,28 +1,63 @@
-# General
+# =============================================================================
+# Goimomi Workspace — Root .gitignore
+# =============================================================================
+
+# ---- OS Generated ----
 .DS_Store
 Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+
+# ---- IDE / Editor ----
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ---- General ----
 *.log
 *.tmp
 *.bak
+
+# ---- Archives (deployment artifacts) ----
 *.tar.gz
 *.zip
 *.rar
 *.7z
 
-# Python
+# ---- Python ----
 __pycache__/
 *.py[cod]
 *$py.class
-goimomibackend/.env
-goimomibackend/mig_out.txt
+*.pyc
+*.pyo
 goimomibackend/db.sqlite3
+goimomibackend/db.sqlite3-journal
+goimomibackend/mig_out.txt
 
-# Node
+# ---- Node.js ----
 node_modules/
 goimomifrontend/dist/
-goimomifrontend/.env
+goimomifrontend/dist-ssr/
 
-# Local development
+# ---- Environment files (contain secrets) ----
 .env
 .env.local
 .env.*.local
+goimomibackend/.env
+goimomifrontend/.env
+
+# ---- Secrets / Credentials ----
+self_client.json
+*.pem
+*.key
+
+# ---- Media uploads (user-generated content) ----
+goimomibackend/media/
+
+# ---- Non-code assets ----
+*.pdf
+
+# ---- Agents / AI ----
+.agents/

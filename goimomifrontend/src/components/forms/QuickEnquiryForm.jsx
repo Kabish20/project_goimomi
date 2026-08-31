@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Phone, Mail, Users, MessageSquare, Send, Sparkles, ChevronDown, Minus, Plus, Calendar } from 'lucide-react';
-import api from '../api';
-import SuccessModal from './SuccessModal';
-import CountryCodePicker from './admin/CountryCodePicker/CountryCodePicker';
+import api from '../../api';
+import SuccessModal from '../common/SuccessModal';
+import CountryCodePicker from '../admin/CountryCodePicker/CountryCodePicker';
 
 const QuickEnquiryForm = ({ packageTitle, packageData, onClose, isModal }) => {
   const [formData, setFormData] = useState({

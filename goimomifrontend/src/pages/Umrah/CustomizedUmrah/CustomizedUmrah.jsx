@@ -9,7 +9,7 @@ import {
   CheckCircle2, Award, BadgeCheck, Headphones, ShieldCheck,
   ArrowRight, ChevronDown, Globe, Star, Sparkles, BookOpen,
 } from "lucide-react";
-import ZohoCustomizedForm from "../../../components/ZohoCustomizedForm.jsx";
+import ZohoCustomizedForm from "../../../components/forms/ZohoCustomizedForm.jsx";
 import usePageSEO from "../../../hooks/usePageSEO";
 import umrahImage from "../../../assets/umrah.png";
 import umrah2Image from "../../../assets/umrah2.png";

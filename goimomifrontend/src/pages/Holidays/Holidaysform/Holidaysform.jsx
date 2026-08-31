@@ -3,7 +3,7 @@ import usePageSEO from "../../../hooks/usePageSEO";
 import api from "../../../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import SuccessModal from "../../../components/SuccessModal";
+import SuccessModal from "../../../components/common/SuccessModal";
 
 const HOLIDAY_TYPES = [
   "Beach", "Nightlife", "Family", "Honeymoon", "Hill Station", "Adventure",

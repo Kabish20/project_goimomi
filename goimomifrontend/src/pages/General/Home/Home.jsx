@@ -128,6 +128,7 @@ import gallery8 from "../../../assets/TravelGallery/client8.jpeg";
 import gallery9 from "../../../assets/TravelGallery/client9.jpeg";
 import gallery10 from "../../../assets/TravelGallery/client10.webp";
 import gallery11 from "../../../assets/TravelGallery/client11.webp";
+
 import gallery12 from "../../../assets/TravelGallery/client12.webp";
 import gallery13 from "../../../assets/TravelGallery/client13.jpeg";
 import gallery14 from "../../../assets/TravelGallery/client14.jpeg";
@@ -140,27 +141,27 @@ import azerbaijanVisa from "../../../assets/Visa/azerbaijan.png";
 import vietnamVisa from "../../../assets/Visa/vietnam.png";
 
 // VISA DEALS 
-import uzbekistanVisa from "../../../assets/Visa Deals/Uzbekistan.png";
-import turkey from "../../../assets/Visa Deals/Turkey.png";
-import oman from "../../../assets/Visa Deals/Oman.png";
-import moroccoVisa from "../../../assets/Visa Deals/Morocco.png";
-import Laos from "../../../assets/Visa Deals/Laos.png";
-import Kyrgystan from "../../../assets/Visa Deals/Kyrgystan.png";
-import Kenya from "../../../assets/Visa Deals/Kenya.png";
-import Jordan from "../../../assets/Visa Deals/Jordan.png";
-import Indonesia from "../../../assets/Visa Deals/Indonesia.png";
-import Ethiopia from "../../../assets/Visa Deals/Ethiopia.png";
-import Dubai from "../../../assets/Visa Deals/Dubai.png";
-import cambodia from "../../../assets/Visa Deals/cambodia.png";
-import Bhutan from "../../../assets/Visa Deals/Bhutan.png";
-import Bahrain from "../../../assets/Visa Deals/Bahrain.png";
-import Azerbaijan from "../../../assets/Visa Deals/Azerbaijan.png";
-import Antigua from "../../../assets/Visa Deals/Antigua & Barbuda.png";
-import BahrainDeal from "../../../assets/Visa Deals/Bahrain.png";
-import KenyaDeal from "../../../assets/Visa Deals/Kenya.png";
-import JordanDeal from "../../../assets/Visa Deals/Jordan.png";
-import IndonesiaDeal from "../../../assets/Visa Deals/Indonesia.png";
-import TurkeyDeal from "../../../assets/Visa Deals/Turkey.png";
+import uzbekistanVisa from "../../../assets/visa-deals/Uzbekistan.png";
+import turkey from "../../../assets/visa-deals/Turkey.png";
+import oman from "../../../assets/visa-deals/Oman.png";
+import moroccoVisa from "../../../assets/visa-deals/Morocco.png";
+import Laos from "../../../assets/visa-deals/Laos.png";
+import Kyrgystan from "../../../assets/visa-deals/Kyrgystan.png";
+import Kenya from "../../../assets/visa-deals/Kenya.png";
+import Jordan from "../../../assets/visa-deals/Jordan.png";
+import Indonesia from "../../../assets/visa-deals/Indonesia.png";
+import Ethiopia from "../../../assets/visa-deals/Ethiopia.png";
+import Dubai from "../../../assets/visa-deals/Dubai.png";
+import cambodia from "../../../assets/visa-deals/cambodia.png";
+import Bhutan from "../../../assets/visa-deals/Bhutan.png";
+import Bahrain from "../../../assets/visa-deals/Bahrain.png";
+import Azerbaijan from "../../../assets/visa-deals/Azerbaijan.png";
+import Antigua from "../../../assets/visa-deals/antigua-barbuda.png";
+import BahrainDeal from "../../../assets/visa-deals/Bahrain.png";
+import KenyaDeal from "../../../assets/visa-deals/Kenya.png";
+import JordanDeal from "../../../assets/visa-deals/Jordan.png";
+import IndonesiaDeal from "../../../assets/visa-deals/Indonesia.png";
+import TurkeyDeal from "../../../assets/visa-deals/Turkey.png";
 
 const visaImageSets = {
   azerbaijan: [azerbaijanVisa, visaAzerbaijan2, visaAzerbaijan3],

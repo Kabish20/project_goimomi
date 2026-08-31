@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import api from "../api";
+import api from "../../api";
 import { FaTimes, FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import SuccessModal from "./SuccessModal";
+import SuccessModal from "../common/SuccessModal";
 
 const PackageEnquiryModal = ({ isOpen, onClose, packageData }) => {
     const getTomorrowDate = () => {

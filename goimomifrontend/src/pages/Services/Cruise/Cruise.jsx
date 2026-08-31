@@ -6,7 +6,7 @@ import {
   Globe, Anchor, Compass, Sunrise, Utensils, Music,
 } from "lucide-react";
 import api from "../../../api";
-import ZohoCruiseForm from "../../../components/ZohoCruiseForm";
+import ZohoCruiseForm from "../../../components/forms/ZohoCruiseForm";
 import usePageSEO from "../../../hooks/usePageSEO";
 import cruiseHeroImg from "../../../assets/cruise_hero.jpg";
 import cruiseHero1 from "../../../assets/Hero/CruiseHeader/cruise-hero-01.png";
