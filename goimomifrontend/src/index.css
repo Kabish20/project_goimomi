@@ -2,27 +2,50 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* Global custom styles (similar to your HTML files) */
+/* Global custom styles & Smooth Performance Defaults */
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
 body {
   background-color: white;
   color: #1e293b;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   line-height: 1.625;
+  overflow-x: hidden;
 }
 
 .heading-font {
   font-family: Georgia, serif;
 }
 
-/* Custom shadows etc (optional) */
+/* GPU Hardware Acceleration for Buttery Smooth Motion */
+.gpu-accel {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+/* Custom shadows */
 .card-shadow {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -2px rgba(0, 0, 0, 0.03);
 }
 
+/* Smooth Interactive Elements */
+a, button, input, select, textarea {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 200ms;
+}
 
+/* Optimized Image Rendering */
+img {
+  content-visibility: auto;
+}
 
 /* Fade Up Animation */
 .fade-up {
@@ -38,15 +61,15 @@ body {
   transform: translateY(0);
 }
 
-/* Zoom Hover Effect */
+/* Smooth Zoom Hover Effect */
 .zoom-hover {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
 .zoom-hover:hover {
-  transform: scale(1.05);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
 }
 
 /* Custom Scrollbar */
@@ -86,6 +109,7 @@ aside .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   display: inline-block;
   white-space: nowrap;
   animation: marquee 15s linear infinite;
+  will-change: transform;
 }
 
 @keyframes pulse-slow {
