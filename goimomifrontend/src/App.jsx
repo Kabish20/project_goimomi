@@ -21,11 +21,11 @@ const Holidays = lazyRetry(() => import('./pages/Holidays/Holidays/Holidays.jsx'
 const PlanTrip = lazyRetry(() => import('./pages/Holidays/Holidaysform/Holidaysform.jsx'));
 const Cab = lazyRetry(() => import('./pages/Services/cab/cab.jsx'));
 const Cruise = lazyRetry(() => import('./pages/Services/Cruise/Cruise.jsx'));
+const Hotel = lazyRetry(() => import('./pages/Services/hotel/hotel.jsx'));
 const VisaSearch = lazyRetry(() => import('./pages/Visa/VisaSearch/VisaSearch.jsx'));
 const VisaResults = lazyRetry(() => import('./pages/Visa/VisaResults/VisaResults.jsx'));
 const VisaApplication = lazyRetry(() => import('./pages/Visa/VisaApplication/VisaApplication.jsx'));
 const Europeantours = lazyRetry(() => import('./pages/Holidays/Europeantours/Europeantours.jsx'));
-const Hotel = lazyRetry(() => import('./pages/Services/hotel/hotel.jsx'));
 const PrivacyPolicy = lazyRetry(() => import('./pages/Policies/PrivacyPolicy/PrivacyPolicy.jsx'));
 const TermsConditions = lazyRetry(() => import('./pages/Policies/TermsConditions/TermsConditions.jsx'));
 const CancellationPolicy = lazyRetry(() => import('./pages/Policies/CancellationPolicy/CancellationPolicy.jsx'));
@@ -254,7 +254,7 @@ const App = () => {
             <Route path="/cab" element={<Cab />} />
             <Route path="/cruise" element={<Cruise />} />
 
-            <Route path="/hotel" element={<Hotel />} />
+            <Route path="/hotel" element={<Hotel isDisabled={true} />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-and-conditions" element={<TermsConditions />} />
             <Route path="/cancellation-policy" element={<CancellationPolicy />} />

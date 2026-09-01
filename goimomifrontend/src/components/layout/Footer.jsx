@@ -70,8 +70,16 @@ const Footer = () => {
         <div>
           <h3 className="text-[13px] font-black uppercase tracking-widest text-[#e9b343] mb-4">Quick Links</h3>
           <ul className="space-y-1.5 text-white/70 text-[13px] font-medium">
-            <li><a href="https://booking.goimomi.com/" className="hover:text-white transition-colors">Flights</a></li>
-            <li><a href="https://booking.goimomi.com/hotel" className="hover:text-white transition-colors">Hotels</a></li>
+            <li>
+              <span aria-disabled="true" title="Flights booking is temporarily unavailable" className="inline-flex cursor-not-allowed items-center gap-2 text-white/40">
+                Flights <span className="text-[9px] uppercase tracking-wider text-[#e9b343]/70">Paused</span>
+              </span>
+            </li>
+            <li>
+              <span aria-disabled="true" title="Hotel booking is temporarily unavailable" className="inline-flex cursor-not-allowed items-center gap-2 text-white/40">
+                Hotels <span className="text-[9px] uppercase tracking-wider text-[#e9b343]/70">Paused</span>
+              </span>
+            </li>
             <li><Link to="/visa" className="hover:text-white transition-colors">Visa</Link></li>
             <li><Link to="/holidays" state={{ category: "Domestic" }} className="hover:text-white transition-colors">Domestic</Link></li>
             <li><Link to="/holidays" state={{ category: "International" }} className="hover:text-white transition-colors">International</Link></li>
@@ -89,8 +97,16 @@ const Footer = () => {
         <div>
           <h3 className="text-[13px] font-black uppercase tracking-widest text-[#e9b343] mb-4">Our Services</h3>
           <ul className="space-y-1.5 text-white/70 text-[13px] font-medium">
-            <li><a href="https://booking.goimomi.com/hotel" className="hover:text-white transition-colors">Hotel Booking</a></li>
-            <li><a href="https://booking.goimomi.com/" className="hover:text-white transition-colors">Flights Booking</a></li>
+            <li>
+              <span aria-disabled="true" title="Hotel booking is temporarily unavailable" className="inline-flex cursor-not-allowed items-center gap-2 text-white/40">
+                Hotel Booking <span className="text-[9px] uppercase tracking-wider text-[#e9b343]/70">Paused</span>
+              </span>
+            </li>
+            <li>
+              <span aria-disabled="true" title="Flights booking is temporarily unavailable" className="inline-flex cursor-not-allowed items-center gap-2 text-white/40">
+                Flights Booking <span className="text-[9px] uppercase tracking-wider text-[#e9b343]/70">Paused</span>
+              </span>
+            </li>
             <li><Link to="/cab" className="hover:text-white transition-colors">Cab Booking</Link></li>
             <li><Link to="/cruise" className="hover:text-white transition-colors">Cruise Bookings</Link></li>
             <li><Link to="/visa" className="hover:text-white transition-colors">Visa Services</Link></li>

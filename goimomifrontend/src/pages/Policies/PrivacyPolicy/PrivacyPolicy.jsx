@@ -1,167 +1,184 @@
 import React from "react";
+import { Globe2, LockKeyhole, ShieldCheck } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
+import PolicyPageLayout, { PolicyCallout, PolicyContact, PolicyList, PolicySection } from "../PolicyPageLayout";
+
+const navigation = [
+  { id: "overview", label: "Overview" },
+  { id: "who-this-covers", label: "Who this covers" },
+  { id: "information", label: "Information we collect" },
+  { id: "use", label: "How we use information" },
+  { id: "sharing", label: "When we share information" },
+  { id: "international", label: "International processing" },
+  { id: "cookies", label: "Cookies and analytics" },
+  { id: "rights", label: "Security, retention, and rights" },
+  { id: "children", label: "Children and documents" },
+  { id: "contact", label: "Contact us" },
+];
 
 const PrivacyPolicy = () => {
   usePageSEO(
-    "Privacy Policy | Data Security & Commitment | Goimomi Holidays",
-    "Goimomi Holidays values your privacy. Learn how we collect, protect, and use your personal data to provide exceptional travel services.",
-    null,
-    "privacy policy, data protection, travel agency privacy, secure booking"
+    "Privacy Policy | Goimomi Holidays",
+    "Learn how Goimomi Holidays collects, uses, shares, and protects personal information across our travel services and website.",
+    undefined,
+    "Goimomi Holidays privacy policy, travel data protection, booking privacy, cookies"
   );
+
   return (
-    <div className="w-full bg-gray-50 py-16 flex justify-center">
-      <div className="bg-white shadow-xl rounded-2xl p-10 md:p-16 max-w-4xl w-full">
-
-        {/* Header */}
-        <h1 className="text-4xl font-bold text-center text-[#0b1a3d]">
-          Privacy Policy
-        </h1>
-        <p className="text-center text-gray-500 mt-2">
-          Last Updated: November 2025
+    <PolicyPageLayout
+      icon={ShieldCheck}
+      title="Privacy Policy"
+      summary="We use your information to make travel planning smoother, bookings more reliable, and support more personal - while keeping your choices clear and your data handled responsibly."
+      navigation={navigation}
+    >
+      <PolicySection id="overview" number="01" title="Our commitment to your privacy">
+        <p>
+          This Privacy Policy explains how Goimomi Holidays collects, uses, stores, and shares information when you visit our website, contact us, request a quote, make a booking, or use one of our travel services. It applies to our holiday packages, flights, hotels, cabs, cruises, visa assistance, business travel, and related services.
         </p>
+        <p>
+          By using our website or giving us your information, you acknowledge this policy. Where a service provider has its own privacy notice, that provider may also process your information under its terms.
+        </p>
+        <PolicyCallout title="In short">
+          We do not sell or rent your personal information. We share only the information needed to arrange your requested service, operate our business, meet legal obligations, or protect our customers and systems.
+        </PolicyCallout>
+      </PolicySection>
 
-        {/* Navigation Links */}
-        <div className="mt-10 text-gray-700">
-          <p className="font-semibold">On this page:</p>
-          <div className="flex flex-wrap gap-6 text-blue-700 mt-3 font-medium">
-            <a href="#commitment" className="hover:underline">Our Commitment</a>
-            <a href="#security" className="hover:underline">Security</a>
-            <a href="#info" className="hover:underline">Information We Collect</a>
-            <a href="#cookies" className="hover:underline">Cookie Policy</a>
-            <a href="#manage" className="hover:underline">Managing Cookies</a>
+      <PolicySection id="who-this-covers" number="02" title="Who this policy covers">
+        <p>
+          This policy applies to visitors, customers, travellers, agents, business partners, and anyone who communicates with Goimomi Holidays through our website, forms, phone, email, WhatsApp, social channels, booking systems, or in-person service channels.
+        </p>
+        <p>
+          It covers information collected directly by Goimomi Holidays and information we receive from a person making a booking for you or from a supplier helping us deliver your requested service. It does not replace a supplier's own privacy notice, which may apply when that supplier processes your information independently.
+        </p>
+      </PolicySection>
+
+      <PolicySection id="information" number="03" title="Information we collect">
+        <p>Depending on the service you request, we may collect the following categories of information:</p>
+        <PolicyList items={[
+          "Contact details, such as your name, email address, telephone number, billing address, and preferred communication method.",
+          "Traveller and booking details, including passenger names, dates of travel, destinations, preferences, accommodation details, and emergency contact information.",
+          "Documents needed for a requested service, such as passport or visa information. Please share only documents requested by our team through an appropriate channel.",
+          "Payment and transaction information, including payment status, invoice details, and limited payment references. Full card details are handled by our payment partners and are not stored by us unless expressly stated.",
+          "Communications, including enquiries, feedback, support requests, call notes, and messages sent through our forms, email, phone, WhatsApp, or other channels.",
+          "Technical information, such as IP address, browser, device type, operating system, pages visited, and approximate usage information collected through logs and similar technologies.",
+        ]} />
+        <p>
+          We may receive limited information from airlines, hotels, transport operators, visa partners, payment processors, or other suppliers when it is needed to fulfil your booking or respond to your request.
+        </p>
+        <p>
+          We do not ask for special-category information unless it is necessary for the service you request, such as an accessibility or dietary requirement. Please do not send health, identity, passport, or financial information through an unrequested or suspicious link.
+        </p>
+      </PolicySection>
+
+      <PolicySection id="use" number="04" title="How we use your information">
+        <p>We use information only for legitimate business and service purposes, including to:</p>
+        <PolicyList items={[
+          "Respond to enquiries, prepare quotations, and provide travel advice or customer support.",
+          "Create, confirm, administer, and service bookings, payments, invoices, itineraries, and travel documents.",
+          "Coordinate with airlines, hotels, transport operators, cruise lines, visa authorities, insurers, and other providers selected for your trip.",
+          "Send booking updates, service messages, safety notices, and other communications necessary to manage your travel.",
+          "Improve our website, products, service quality, fraud prevention, security, and internal operations.",
+          "Send offers or travel updates where permitted and where you have not opted out of marketing communications.",
+          "Comply with applicable law, respond to lawful requests, resolve disputes, and enforce our agreements.",
+        ]} />
+        <p>
+          Depending on the situation and applicable law, our reasons for processing information may include fulfilling a contract or booking, taking steps at your request before a contract, obtaining your consent, complying with a legal obligation, or pursuing legitimate business interests such as security, service improvement, and fraud prevention.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <LockKeyhole className="mb-3 text-[#14532d]" size={20} />
+            <h3 className="font-black text-slate-900">Service first</h3>
+            <p className="mt-2 text-sm leading-7 text-slate-600">We collect what is relevant to the request you make, from a quote to a confirmed itinerary.</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <Globe2 className="mb-3 text-[#14532d]" size={20} />
+            <h3 className="font-black text-slate-900">Travel requires coordination</h3>
+            <p className="mt-2 text-sm leading-7 text-slate-600">International travel may require information to be shared with providers in the destination country.</p>
           </div>
         </div>
+      </PolicySection>
 
-        {/* Section 1 */}
-        <section id="commitment" className="mt-12">
-          <h2 className="text-3xl font-semibold text-[#0b1a3d]">
-            Our Commitment to Privacy
-          </h2>
+      <PolicySection id="sharing" number="05" title="When we share information">
+        <p>We may share relevant information with trusted parties when necessary to deliver a service or operate Goimomi Holidays, including:</p>
+        <PolicyList items={[
+          "Travel suppliers and service operators, such as airlines, hotels, transport providers, cruise lines, tour operators, and visa partners.",
+          "Payment gateways, banks, fraud-prevention providers, technology vendors, and customer-support tools.",
+          "CRM, enquiry-management, communication, hosting, analytics, and document-processing providers that help us operate the website and respond to you.",
+          "Professional advisers, auditors, insurers, or business partners who are subject to appropriate confidentiality obligations.",
+          "Government authorities, border agencies, courts, or law-enforcement bodies where disclosure is required or permitted by law.",
+        ]} />
+        <p>
+          We require service providers to use information only for the agreed purpose or as otherwise permitted by law. We do not authorise third parties to use your information for their own unrelated marketing without an appropriate legal basis or your consent where required.
+        </p>
+      </PolicySection>
 
-          <p className="text-gray-700 mt-4 leading-7">
-            We respect and are committed to protecting your privacy. 
-            We will not publish, sell, or rent your personal data to third parties without your explicit consent. 
-            The practices described in this policy apply to data collected by Goimomi Holidays across our domain and subdomains.
-            <br /><br />
-            By using our site, you agree to the terms of this policy. If you disagree, please discontinue use of the website. 
-            This policy forms part of our User Agreement and is effective upon your first use of the site.
-          </p>
+      <PolicySection id="international" number="06" title="International processing and travel suppliers">
+        <p>
+          Travel is cross-border by nature. If you request an international flight, hotel, cruise, transfer, package, visa service, or business trip, relevant information may need to be sent to providers or authorities in India or in a destination, transit, or service country.
+        </p>
+        <p>
+          Different countries may have different data-protection standards. We share only information reasonably required for the requested service and expect our direct service providers to protect it according to their contractual, professional, or legal duties.
+        </p>
+        <PolicyCallout title="Your choice">
+          If you do not provide information required by a supplier or authority, we may be unable to issue a ticket, confirm accommodation, process a visa request, or provide another requested service.
+        </PolicyCallout>
+      </PolicySection>
 
-          {/* Yellow Box */}
-          <div className="mt-8 bg-yellow-100 border-l-4 border-yellow-400 p-5 italic text-gray-700">
-            This policy does not cover third-party sites that we link to.  
-            Please review their privacy policies before providing personal information to them.
-          </div>
-        </section>
+      <PolicySection id="cookies" number="07" title="Cookies and analytics">
+        <p>
+          Cookies are small files stored on your device that help a website remember preferences, maintain sessions, understand usage, and improve performance. We may use essential cookies for core features and, where enabled, analytics or preference cookies to understand how visitors use our website.
+        </p>
+        <p>
+          You can control or delete cookies through your browser settings. Disabling essential cookies may affect site functionality. If third-party analytics or advertising tools are enabled on a specific service, those providers may process information under their own notices.
+        </p>
+        <PolicyCallout title="Your browser controls" tone="gold">
+          Most browsers let you review, block, or delete cookies from their Privacy or Security settings. Your choices may need to be repeated on another device or browser.
+        </PolicyCallout>
+        <p>
+          We may also use pixels, tags, or similar technologies in emails or pages to understand whether a message was opened or a link was used. Where marketing consent or an opt-out is required, we will respect your preference.
+        </p>
+      </PolicySection>
 
-        {/* Section 2 */}
-        <section id="security" className="mt-16">
-          <h2 className="text-3xl font-semibold text-[#0b1a3d]">
-            Privacy Guarantee & Data Security
-          </h2>
+      <PolicySection id="rights" number="08" title="Security, retention, and your rights">
+        <p>Subject to applicable law and reasonable verification, you may contact us to:</p>
+        <PolicyList items={[
+          "Request access to personal information we hold about you.",
+          "Ask us to correct information that is inaccurate or incomplete.",
+          "Ask us to delete information when it is no longer needed, unless we must retain it for a legal or legitimate business reason.",
+          "Withdraw consent or opt out of promotional communications. Service and booking messages may still be sent when necessary.",
+          "Ask questions about how your information is used or raise a privacy concern.",
+        ]} />
+        <p>
+          We use reasonable administrative, technical, and organisational safeguards designed to protect information from unauthorised access, loss, misuse, or alteration. No website, transmission, or storage system can be guaranteed completely secure, so please use care when sending documents and keep your account and device secure.
+        </p>
+        <p>
+          We retain information for as long as needed to provide services, maintain business and tax records, resolve disputes, prevent fraud, and meet legal obligations. Retention periods depend on the type of information and the service involved.
+        </p>
+        <p>
+          When information is no longer required, we may securely delete it, anonymise it, or restrict access to it. We may keep a limited record of an opt-out or deletion request so that we can respect your choice and demonstrate compliance.
+        </p>
+      </PolicySection>
 
-          <p className="text-gray-700 mt-4 leading-7">
-            We do not sell or rent personal information to third parties for marketing without explicit consent.
-            <br /><br />
-            From time to time we may publish aggregated, non-identifiable statistics about site usage 
-            (for example, total visitors or most popular packages).
-            <br /><br />
-            Access to personal information is restricted to employees and contractors who need it to perform their duties.
-            Violations of our privacy policy may result in disciplinary action, up to termination and potential legal action.
-          </p>
-        </section>
+      <PolicySection id="children" number="09" title="Children, travellers, and travel documents">
+        <p>
+          Our website and booking services are intended to be used by adults or by minors under the supervision of a parent or legal guardian. We may process information about a child when it is supplied by an authorised adult for a family booking, ticket, visa, hotel, or other travel service.
+        </p>
+        <p>
+          Passport, visa, identity, and other travel documents are used only for the service or compliance purpose for which they were requested. We may redact, restrict, return, or securely dispose of copies when they are no longer needed, subject to legal and supplier requirements.
+        </p>
+      </PolicySection>
 
-        {/* Section 3 */}
-        <section id="info" className="mt-16">
-          <h2 className="text-3xl font-semibold text-[#0b1a3d]">
-            Information We Collect
-          </h2>
-
-          <p className="text-gray-700 mt-4 leading-7">
-            The personal information we collect is used primarily to process orders and to deliver and improve our services.
-            This policy applies to data you provide through any of our channels and media unless stated otherwise.
-          </p>
-
-          <h3 className="text-xl font-semibold mt-8 text-[#0b1a3d]">Security Measures</h3>
-          <p className="text-gray-700 mt-3">
-            We use appropriate physical, electronic, and managerial procedures to safeguard the information we collect online.
-            These measures are continuously reviewed and updated as industry standards evolve.
-          </p>
-
-          <h3 className="text-xl font-semibold mt-8 text-[#0b1a3d]">Use of IP Address</h3>
-          <p className="text-gray-700 mt-3">
-            We use IP addresses to facilitate server diagnostics, administer the website, and collect aggregate demographic information. 
-            You acknowledge providing such data voluntarily while using our services.
-          </p>
-        </section>
-
-        {/* Section 4 */}
-        <section id="cookies" className="mt-16">
-          <h2 className="text-3xl font-semibold text-[#0b1a3d]">
-            Cookie Policy
-          </h2>
-
-          <p className="text-gray-700 mt-4 leading-7">
-            We are committed to transparency about how we use cookies on our website. 
-            Cookies help deliver a more efficient and personalized browsing experience.
-          </p>
-
-          <h3 className="text-xl font-semibold mt-8 text-[#0b1a3d]">What is a Cookie?</h3>
-          <p className="text-gray-700 mt-3 leading-7">
-            A cookie is a small text file stored on your device by the browser. Cookies can remember preferences, 
-            session state, and other useful information to enhance your experience.
-          </p>
-
-          <ul className="list-disc pl-6 mt-4 text-gray-700 leading-7">
-            <li><strong>Session Cookies:</strong> temporary cookies erased when you close your browser.</li>
-            <li><strong>Persistent Cookies:</strong> stored for a set time to help us analyze usage patterns and improve our services.</li>
-          </ul>
-
-          <h3 className="text-xl font-semibold mt-8 text-[#0b1a3d]">Cookie Categories</h3>
-
-          <div className="mt-4 space-y-4 text-gray-700 leading-7">
-            <p><strong>Essential</strong><br/>Required for core website functions including session management and cart operation.</p>
-
-            <p><strong>Functional</strong><br/>Enhances user preferences and improves usability.</p>
-
-            <p><strong>Analytics</strong><br/>
-              Used to measure performance and gather anonymized data (e.g., Google Analytics). 
-              See Google’s privacy info: 
-              <a href="https://policies.google.com/privacy/partners" target="_blank" className="text-blue-700 underline">
-                google.com/policies/privacy/partners
-              </a>
-            </p>
-
-            <p><strong>Advertising</strong><br/>Used to deliver relevant ads. Only reputable third-party partners are used.</p>
-          </div>
-        </section>
-
-        {/* Section 5 */}
-        <section id="manage" className="mt-16">
-          <h2 className="text-3xl font-semibold text-[#0b1a3d]">
-            Managing Cookies
-          </h2>
-
-          <p className="text-gray-700 mt-4 leading-7">
-            To manage or delete cookies, please change settings in your browser. Most browsers allow blocking or deleting cookies via  
-            <strong> Settings → Privacy & Security</strong>.  
-            You may also use browser extensions to control cookies more granularly.
-            <br /><br />
-            For privacy-related questions or personal data deletion requests, contact us at:  
-            <span className="text-blue-700 font-semibold"> privacy@goimomi.example</span>
-          </p>
-        </section>
-
-        {/* Footer */}
-        <div className="text-center text-gray-600 text-sm mt-20 border-t pt-6">
-          © 2025 Goimomi Holidays. All rights reserved.
-        </div>
-      </div>
-    </div>
+      <PolicySection id="contact" number="10" title="Contact us about privacy">
+        <p>
+          If you have a privacy question, want to exercise a data right, or believe your information has been handled incorrectly, please contact Goimomi Holidays. We may ask for details to verify your identity and locate the relevant booking or enquiry.
+        </p>
+        <PolicyContact subject="Privacy request - Goimomi Holidays" />
+        <p className="text-sm text-slate-500">
+          Goimomi Holidays may update this policy when our services, technology, or legal obligations change. The latest version will always be posted on this page, with the updated date shown above. If you are unhappy with our response, you may also have the right to contact the relevant privacy or consumer authority in your location.
+        </p>
+      </PolicySection>
+    </PolicyPageLayout>
   );
 };
 
 export default PrivacyPolicy;
-
-
-

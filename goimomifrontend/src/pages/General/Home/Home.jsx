@@ -638,32 +638,31 @@ const Home = () => {
               </div>
             </motion.div>
 
-            {/* Flight Ticket Block */}
+            {/* Flight Ticket Block - temporarily disabled */}
             <motion.div
-              whileHover={{ y: -8 }}
-              className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
-              onClick={() => window.open('https://booking.goimomi.com/', '_blank')}
+              aria-disabled="true"
+              title="Flight booking is temporarily unavailable"
+              className="bg-white/70 p-5 group rounded-3xl border border-slate-200 shadow-xl relative overflow-hidden cursor-not-allowed opacity-60 grayscale"
             >
-              <div className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" style={{ backgroundImage: `url(${serviceFlightsBg})` }} />
-              <div className="absolute top-4 right-4 bg-indigo-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Best Rates</div>
-              <div className="mb-4 w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                <Plane className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
+              <div className="absolute inset-0 bg-cover bg-center opacity-10 pointer-events-none" style={{ backgroundImage: `url(${serviceFlightsBg})` }} />
+              <div className="absolute top-4 right-4 bg-slate-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest z-20">Temporarily Paused</div>
+              <div className="mb-4 w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                <Plane className="w-5 h-5 text-indigo-600" />
               </div>
-              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5 group-hover:text-white">Flight Tickets</h4>
-              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed group-hover:text-white/80">
+              <h4 className="text-lg font-black text-slate-900 uppercase italic tracking-tighter mb-1.5">Flight Tickets</h4>
+              <p className="text-slate-500 mb-4 text-[12px] leading-relaxed">
                 Seamless flight booking with exclusive corporate fares, multi-city itineraries, and 24/7 priority rebooking support.
               </p>
               <ul className="space-y-1 mb-5">
-                {["Exclusive airline deals","Instant ticketing & GST","24/7 change assistance"].map(pt => (
-                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600 group-hover:text-white/80">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600 group-hover:text-emerald-300 shrink-0" />
+                {["Exclusive airline deals", "Instant ticketing & GST", "24/7 change assistance"].map(pt => (
+                  <li key={pt} className="flex items-center gap-2 text-[10px] font-semibold text-slate-600">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
                     {pt}
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center gap-2 text-slate-900 font-black uppercase tracking-widest text-[8px] group-hover:text-white">
-                <span>BOOK FLIGHTS</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <div className="flex items-center gap-2 text-slate-500 font-black uppercase tracking-widest text-[8px]">
+                <span>BOOKING TEMPORARILY PAUSED</span>
               </div>
             </motion.div>
 

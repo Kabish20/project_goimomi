@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CabCruiseForm from "../../../components/forms/CabCruiseForm";
 import usePageSEO from "../../../hooks/usePageSEO";
 
-const Hotel = () => {
+const Hotel = ({ isDisabled = false }) => {
   usePageSEO(
     "Premium Hotel Bookings | Best Luxury Stays | Goimomi Holidays",
     "Discover handpicked, luxury accommodations worldwide at competitive rates. From boutique hotels to international resorts, enjoy a seamless booking experience and 24/7 concierge support.",
@@ -43,14 +43,23 @@ const Hotel = () => {
             Enjoy exclusive deals and dedicated support for your perfect stay.
           </p>
           <button
-            onClick={() => setIsFormOpen(true)}
-            className="bg-[#14532d] hover:bg-[#0f4a24] text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl transition-all transform hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto"
+            type="button"
+            disabled={isDisabled}
+            aria-disabled={isDisabled}
+            title={isDisabled ? "Hotel booking is temporarily unavailable" : "Book your stay"}
+            onClick={() => !isDisabled && setIsFormOpen(true)}
+            className={`bg-[#14532d] text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl transition-all flex items-center gap-3 mx-auto ${isDisabled ? "cursor-not-allowed opacity-60 grayscale" : "hover:bg-[#0f4a24] hover:scale-105 active:scale-95"}`}
           >
-            <span>Book Your Stay Now</span>
+            <span>{isDisabled ? "Hotel Bookings Paused" : "Book Your Stay Now"}</span>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
           </button>
+          {isDisabled && (
+            <p className="mt-4 text-sm font-semibold text-white/80">
+              Hotel bookings are temporarily paused. Please contact our travel desk for other available services.
+            </p>
+          )}
         </div>
       </div>
 
@@ -84,7 +93,7 @@ const Hotel = () => {
       </div>
 
       <CabCruiseForm
-        isOpen={isFormOpen}
+        isOpen={isFormOpen && !isDisabled}
         onClose={() => setIsFormOpen(false)}
         type="Hotel"
       />

@@ -149,27 +149,31 @@ const Navbar = () => {
             <img src={logo} alt="Goimomi Holidays" className="h-[65px] w-auto" />
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-7 text-slate-700">
-            {/* Flights */}
-            <a
-              href="https://booking.goimomi.com/"
-              rel="noopener noreferrer"
-              className={animatedButton}
+            {/* Desktop Nav */}
+            <nav className="hidden lg:flex items-center gap-7 text-slate-700">
+            {/* Flights - temporarily disabled */}
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              title="Flights booking is temporarily unavailable"
+              className={`${animatedButton} cursor-not-allowed opacity-50 grayscale`}
             >
               <img src="https://cdn-icons-png.flaticon.com/128/1350/1350120.png" alt="Flights" className="w-9 h-9 mb-1 object-contain" />
               <span className="font-bold text-[11px] uppercase tracking-wide">Flights</span>
-            </a>
+            </button>
 
-            {/* Hotels */}
-            <a
-              href="https://booking.goimomi.com/hotel"
-              rel="noopener noreferrer"
-              className={animatedButton}
+            {/* Hotels - temporarily disabled */}
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              title="Hotel booking is temporarily unavailable"
+              className={`${animatedButton} cursor-not-allowed opacity-50 grayscale`}
             >
               <img src="https://cdn-icons-png.flaticon.com/128/3168/3168622.png" alt="Hotels" className="w-9 h-9 mb-1 object-contain" />
               <span className="font-bold text-[11px] uppercase tracking-wide">Hotels</span>
-            </a>
+            </button>
 
             {/* Visa */}
             <NavLink to="/visa" className={animatedButton}>
@@ -448,25 +452,27 @@ const Navbar = () => {
         >
           <div className="px-5 py-4 space-y-3 text-base font-medium pb-16 flex-1">
 
-            <a
-              href="https://booking.goimomi.com/"
-              rel="noopener noreferrer"
-              className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-              onClick={closeMobileMenu}
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              title="Flights booking is temporarily unavailable"
+              className="flex items-center justify-start gap-3 py-2 text-slate-400 cursor-not-allowed w-full text-left opacity-60 grayscale"
             >
               <img src="https://cdn-icons-png.flaticon.com/128/1350/1350120.png" alt="Flight" className="w-6 h-6 object-contain" />
               Flight
-            </a>
+            </button>
 
-            <a
-              href="https://booking.goimomi.com/hotel"
-              rel="noopener noreferrer"
-              className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full"
-              onClick={closeMobileMenu}
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              title="Hotel booking is temporarily unavailable"
+              className="flex items-center justify-start gap-3 py-2 text-slate-400 cursor-not-allowed w-full text-left opacity-60 grayscale"
             >
               <img src="https://cdn-icons-png.flaticon.com/128/3168/3168622.png" alt="Hotels" className="w-6 h-6 object-contain" />
               Hotels
-            </a>
+            </button>
 
             <NavLink to="/visa" className="flex items-center justify-start gap-3 py-2 hover:text-[#14532d] transition w-full" onClick={closeMobileMenu}>
               <img src="https://cdn-icons-png.flaticon.com/128/15544/15544932.png" alt="Visa" className="w-6 h-6 object-contain" />
