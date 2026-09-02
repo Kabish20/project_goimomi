@@ -6,10 +6,14 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     if (hash) {
-      const element = document.querySelector(hash);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-        return;
+      try {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+      } catch (e) {
+        // Safe catch for invalid hash selectors
       }
     }
     // Instant reset to top on page navigation for zero flicker

@@ -175,42 +175,58 @@ const App = () => {
     const observer = new IntersectionObserver(handleIntersect, observerOptions);
 
     const setupElement = (el) => {
-      if (el && el.classList && !el.classList.contains('visible')) {
-        const delay = el.style.animationDelay || el.style.transitionDelay;
-        if (delay) {
-          el.style.setProperty('--delay', delay);
+      try {
+        if (el && el.classList && typeof el.classList.contains === 'function' && !el.classList.contains('visible')) {
+          const delay = el.style?.animationDelay || el.style?.transitionDelay;
+          if (delay) {
+            el.style.setProperty('--delay', delay);
+          }
+          observer.observe(el);
         }
-        observer.observe(el);
+      } catch (e) {
+        // Safe catch
       }
     };
 
     const observeSubtree = (container) => {
-      if (!container || container.nodeType !== Node.ELEMENT_NODE) return;
-      if (container.classList.contains('fade-up')) {
-        setupElement(container);
+      try {
+        if (!container || container.nodeType !== 1) return;
+        if (container.classList && typeof container.classList.contains === 'function' && container.classList.contains('fade-up')) {
+          setupElement(container);
+        }
+        if (container.querySelectorAll) {
+          const elements = container.querySelectorAll('.fade-up:not(.visible)');
+          elements.forEach(setupElement);
+        }
+      } catch (e) {
+        // Safe catch
       }
-      const elements = container.querySelectorAll('.fade-up:not(.visible)');
-      elements.forEach(setupElement);
     };
 
     // Initial run on mount
-    observeSubtree(document.body);
+    if (document && document.body) {
+      observeSubtree(document.body);
+    }
 
     // Dynamic subtree monitoring (highly optimized - runs querySelector only on new nodes)
     const mutationObserver = new MutationObserver((mutations) => {
       mutations.forEach(mutation => {
         if (mutation.addedNodes) {
           mutation.addedNodes.forEach(node => {
-            observeSubtree(node);
+            if (node.nodeType === 1) {
+              observeSubtree(node);
+            }
           });
         }
       });
     });
 
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    if (document && document.body) {
+      mutationObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
 
     return () => {
       observer.disconnect();

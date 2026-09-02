@@ -11,11 +11,13 @@ import { User, Lock, ArrowRight, Eye, EyeOff, ArrowLeft } from "lucide-react";
  * Supports both standalone full-page view (/admin, /admin-login) and modal overlay.
  */
 const AdminLogin = ({ isOpen, onClose }) => {
+  const isModal = typeof isOpen === "boolean";
+
   usePageSEO(
-    "Admin Portal Login | Goimomi Holidays",
-    "Secure executive access for Goimomi Holidays administrative management system.",
+    isModal ? null : "Admin Portal Login | Goimomi Holidays",
+    isModal ? null : "Secure executive access for Goimomi Holidays administrative management system.",
     null,
-    "admin login, travel portal management, Goimomi dashboard, executive access"
+    isModal ? null : "admin login, travel portal management, Goimomi dashboard, executive access"
   );
 
   const [username, setUsername] = useState("");
@@ -25,10 +27,13 @@ const AdminLogin = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const isModal = typeof isOpen === "boolean";
-
-  // Check if already authenticated on mount
+  // Check if already authenticated on mount (only for standalone page or when modal is opened)
   useEffect(() => {
+    // If it's a closed modal on a public page, NEVER auto-redirect to admin dashboard!
+    if (isModal && !isOpen) {
+      return;
+    }
+
     const token = localStorage.getItem("accessToken");
     if (token) {
       try {
@@ -42,7 +47,7 @@ const AdminLogin = ({ isOpen, onClose }) => {
         // Token invalid, stay on login
       }
     }
-  }, [navigate, onClose]);
+  }, [navigate, onClose, isModal, isOpen]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

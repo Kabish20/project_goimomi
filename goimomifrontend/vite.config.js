@@ -33,7 +33,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    chunkSizeWarningLimit: 1200,
+    chunkSizeWarningLimit: 1600,
     minify: 'esbuild',
     target: 'es2020',
     cssCodeSplit: true,
@@ -42,28 +42,12 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react';
-            }
-            if (id.includes('lucide-react') || id.includes('react-icons')) {
-              return 'vendor-icons';
-            }
-            if (id.includes('framer-motion') || id.includes('swiper')) {
-              return 'vendor-ui';
-            }
             if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('canvg')) {
               return 'vendor-pdf';
             }
-            if (id.includes('axios')) {
-              return 'vendor-network';
-            }
-            return 'vendor-common';
           }
         },
       },
     },
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'axios', 'framer-motion'],
   },
 });
