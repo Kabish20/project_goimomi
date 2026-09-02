@@ -86,12 +86,12 @@ const memberTypes = [
 const journey = [
   {
     number: "01",
-    title: "Connect",
+    title: "Travel",
     description: "Meet people who share your roots, ambition and appetite for new possibilities.",
   },
   {
     number: "02",
-    title: "Share",
+    title: "Connect",
     description: "Exchange knowledge, business stories and the practical lessons behind your journey.",
   },
   {
@@ -314,7 +314,7 @@ const ChithiraiGlobal = () => {
             </div>
 
             <div className="mt-14 grid max-w-lg grid-cols-2 gap-5 border-t border-white/20 pt-6 sm:grid-cols-4">
-              {["Connect", "Share", "Collaborate", "Grow"].map((item) => (
+              {["Travel", "Connect", "Collaborate", "Grow"].map((item) => (
                 <div key={item}>
                   <p className="text-sm font-black uppercase tracking-wider text-white">{item}</p>
                   <p className="mt-1 text-[10px] uppercase tracking-widest text-emerald-200">Together</p>
