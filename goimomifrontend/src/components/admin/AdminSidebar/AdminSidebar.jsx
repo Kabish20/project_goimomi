@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  PlusCircle,
-  Pencil,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
@@ -9,20 +7,16 @@ import {
   Globe,
   MessageSquare,
   Package,
-  MapPin,
   FileText,
   Truck,
   LayoutDashboard,
-  Flag,
-  Sun,
   Calendar,
   Car,
   ClipboardList,
-  ShoppingBag,
-  Layers
+  ShoppingBag
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const menu = [
   {
@@ -105,7 +99,6 @@ const menu = [
   },
 ];
 
-
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const [openDropdowns, setOpenDropdowns] = useState({});
@@ -167,7 +160,6 @@ const AdminSidebar = () => {
   const handleAddProduct    = () => navigate("/admin/products/add");
   const handleChangeProduct = () => navigate("/admin/products");
 
-
   // Management Country Handlers
   const handleManagementCountry = () => navigate("/admin/management-country");
   const handleManagementNationality = () => navigate("/admin/management-country/nationalities");
@@ -205,7 +197,6 @@ const AdminSidebar = () => {
       case "Catalogue Master":
       case "CatalogueMaster": return () => navigate("/admin/cataloguemaster?action=add");
       default: return undefined;
-
     }
   };
 
@@ -249,8 +240,6 @@ const AdminSidebar = () => {
       case "CatalogueMaster": return () => navigate("/admin/cataloguemaster");
       case "Logistics Master": return () => navigate("/admin/logisticsmaster");
       default: return undefined;
-
-
     }
   };
 
@@ -262,7 +251,7 @@ const AdminSidebar = () => {
     const handler = getChangeHandler(item);
     if (handler) {
       handler();
-      setIsMobileOpen(false); // Close on mobile after navigation
+      setIsMobileOpen(false);
     }
   };
 
@@ -348,15 +337,22 @@ const AdminSidebar = () => {
         {/* Header */}
         <div className={`p-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"} border-b border-white/10`}>
           {!isCollapsed && (
-            <h2
-              className="text-sm font-bold tracking-widest text-gray-200 cursor-pointer hover:text-white transition-colors uppercase"
-              onClick={() => navigate("/")}
+            <Link
+              to="/"
+              className="text-sm font-bold tracking-widest text-gray-200 hover:text-white transition-all uppercase flex items-center gap-1.5 cursor-pointer group"
+              title="Go to Home Page"
             >
-              GOIMOMI <span className="opacity-80 font-medium">ADMIN</span>
-            </h2>
+              <span className="group-hover:text-white">GOIMOMI</span> <span className="opacity-80 font-medium group-hover:opacity-100">ADMIN</span>
+            </Link>
           )}
           {isCollapsed && (
-            <div onClick={() => navigate("/")} className="cursor-pointer bg-[#1f7a45] w-7 h-7 rounded flex items-center justify-center font-bold text-xs">G</div>
+            <Link
+              to="/"
+              className="cursor-pointer bg-[#1f7a45] hover:bg-[#289656] text-white w-7 h-7 rounded flex items-center justify-center font-bold text-xs transition-colors"
+              title="Go to Home Page"
+            >
+              G
+            </Link>
           )}
         </div>
 
@@ -371,11 +367,6 @@ const AdminSidebar = () => {
         <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
           {menu.map((section, idx) => (
             <div key={idx} className="mt-4 mb-1">
-              {/* {!isCollapsed && (
-                <h3 className="px-4 py-1.5 text-sm font-medium text-gray-200 uppercase tracking-widest opacity-60">
-                  {section.title}
-                </h3>
-              )} */}
               {isCollapsed && <div className="h-[1px] bg-white/5 mx-4 my-2" />}
 
               <ul className="mt-2">
@@ -402,5 +393,3 @@ const AdminSidebar = () => {
 };
 
 export default AdminSidebar;
-
-

@@ -1,0 +1,24 @@
+[Unit]
+Description=Goimomi Django REST API (Gunicorn WSGI)
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/goimomi/goimomibackend
+Environment="PATH=/home/ubuntu/goimomi/goimomibackend/venv/bin:/usr/local/bin:/usr/bin"
+EnvironmentFile=/home/ubuntu/goimomi/goimomibackend/.env
+ExecStart=/home/ubuntu/goimomi/goimomibackend/venv/bin/gunicorn \
+          --workers 3 \
+          --bind 127.0.0.1:8000 \
+          --timeout 120 \
+          --access-logfile /var/log/gunicorn/goimomi_access.log \
+          --error-logfile /var/log/gunicorn/goimomi_error.log \
+          backend.wsgi:application
+
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

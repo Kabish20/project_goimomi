@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink, Key, LogOut, Menu } from "lucide-react";
 
 const AdminTopbar = () => {
@@ -54,14 +54,14 @@ const AdminTopbar = () => {
         </div>
 
         <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
-          <button
-            onClick={() => navigate("/")}
+          <Link
+            to="/"
             className="flex items-center gap-1.5 text-[11px] md:text-sm font-medium text-gray-200 transition-colors opacity-80 hover:opacity-100 uppercase tracking-tight group p-1.5 md:p-0"
             title="View Site"
           >
             <ExternalLink size={14} className="md:w-[12px] md:h-[12px]" />
             <span className="hidden md:inline">View Site</span>
-          </button>
+          </Link>
 
           <button
             onClick={handleLogout}

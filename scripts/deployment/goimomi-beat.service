@@ -1,0 +1,22 @@
+[Unit]
+Description=Goimomi Celery Beat Scheduler Service
+After=network.target postgresql.service redis.service goimomi-celery.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/goimomi/goimomibackend
+Environment="PATH=/home/ubuntu/goimomi/goimomibackend/venv/bin:/usr/local/bin:/usr/bin"
+EnvironmentFile=/home/ubuntu/goimomi/goimomibackend/.env
+ExecStart=/home/ubuntu/goimomi/goimomibackend/venv/bin/celery \
+          -A backend beat \
+          -l info \
+          --pidfile=/tmp/celerybeat-goimomi.pid \
+          --logfile=/var/log/celery/goimomi_beat.log
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
