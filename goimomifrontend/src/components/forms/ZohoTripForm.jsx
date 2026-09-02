@@ -181,6 +181,8 @@ const ZohoTripForm = ({ isOpen, onClose, initialData = {} }) => {
             <input type='text' style={{ display: 'none' }} id='ldeskuid' name='ldeskuid' readOnly />
             <input type='text' style={{ display: 'none' }} id='LDTuvid' name='LDTuvid' readOnly />
             <input type='text' style={{ display: 'none' }} name='aG9uZXlwb3Q' value='' readOnly />
+            <input type='text' style={{ display: 'none' }} name='Lead Source' value='WebSite Visit' readOnly />
+            <input type='text' style={{ display: 'none' }} name='Lead_Source' value='WebSite Visit' readOnly />
 
             {/* Row 1: Full Name & Mobile in 2 columns */}
             <div className="grid grid-cols-2 gap-2.5 my-1.5">
