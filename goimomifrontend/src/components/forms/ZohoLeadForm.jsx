@@ -142,44 +142,45 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
         onClick={onClose}
       />
       
       {/* Modal Card */}
-      <div className="relative w-full max-w-[420px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-[440px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10 text-gray-400 hover:text-gray-900"
+          className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-full transition-colors z-10 text-gray-400 hover:text-gray-900 cursor-pointer"
+          aria-label="Close"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
 
-        <div id='crmWebToEntityForm' className='zcwf_lblTopBottom crmWebToEntityForm' style={{ backgroundColor: 'white', color: 'black', width: '100%', padding: '25px', boxSizing: 'border-box', textAlign: 'left' }}>
+        <div id='crmWebToEntityForm' className='zcwf_lblTopBottom crmWebToEntityForm' style={{ backgroundColor: 'white', color: 'black', width: '100%', padding: '16px 18px', boxSizing: 'border-box', textAlign: 'left' }}>
           <style dangerouslySetInnerHTML={{ __html: `
             #crmWebToEntityForm.zcwf_lblTopBottom * { box-sizing: border-box; direction: ltr; }
-            .zcwf_lblTopBottom .zcwf_title { word-wrap: break-word; padding: 0px 6px 10px; font-weight: bold; font-family: Arial; font-size: 16px; color: #14532d; }
-            .zcwf_lblTopBottom .zcwf_row { margin: 15px 0px; }
-            .zcwf_lblTopBottom .zcwf_col_lab { font-size: 12px; font-family: Arial; padding: 0px 6px 4px; font-weight: bold; }
-            .zcwf_lblTopBottom .zcwf_col_fld { padding: 0px 6px; position: relative; }
+            .zcwf_lblTopBottom .zcwf_title { word-wrap: break-word; padding: 0px 20px 8px 0px; font-weight: 800; font-family: inherit; font-size: 13.5px; color: #14532d; line-height: 1.3; }
+            .zcwf_lblTopBottom .zcwf_row { margin: 6px 0px; }
+            .zcwf_lblTopBottom .zcwf_col_lab { font-size: 10px; font-family: inherit; padding: 0px 2px 3px; font-weight: 800; text-transform: uppercase; color: #374151; letter-spacing: 0.03em; }
+            .zcwf_lblTopBottom .zcwf_col_fld { padding: 0px; position: relative; }
             .zcwf_lblTopBottom .zcwf_col_fld input[type=text], .zcwf_lblTopBottom .zcwf_col_fld textarea { 
-              width: 100%; border: 1px solid #c0c6cc !important; border-radius: 4px; padding: 10px; font-family: Arial; font-size: 13px; outline: none; transition: border-color 0.2s;
+              width: 100%; border: 1px solid #d1d5db !important; border-radius: 8px; padding: 6.5px 9px; font-family: inherit; font-size: 12px; outline: none; transition: all 0.2s; background: #f9fafb;
             }
-            .zcwf_lblTopBottom .zcwf_col_fld input[type=text]:focus, .zcwf_lblTopBottom .zcwf_col_fld textarea:focus { border-color: #0279FF !important; }
-            .zcwf_lblTopBottom .zcwf_col_help { float: left; margin-top: 5px; margin-left: 2px; }
-            .zcwf_lblTopBottom .zcwf_help_icon { cursor: pointer; width: 16px; height: 16px; display: inline-block; background: #fff; border: 1px solid #c0c6cc; color: #c1c1c1; text-align: center; font-size: 11px; line-height: 16px; font-weight: bold; border-radius: 50%; }
+            .zcwf_lblTopBottom .zcwf_col_fld input[type=text]:focus, .zcwf_lblTopBottom .zcwf_col_fld textarea:focus { 
+              border-color: #16a34a !important; background: #ffffff; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+            }
             .zcwf_lblTopBottom .formsubmit.zcwf_button { 
-              color: white !important; background: linear-gradient(0deg, #0279FF 0%, #00A3F3 100%); border: none; padding: 10px 24px; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: 14px;
+              color: white !important; background: #16a34a; border: none; padding: 7px 18px; cursor: pointer; font-weight: 700; border-radius: 8px; font-size: 12px; transition: background 0.2s;
             }
-            .zcwf_lblTopBottom .zcwf_button { font-size: 13px; color: #313949; border: 1px solid #c0c6cc; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 8px; background: #fff; }
-            .zcwf_lblTopBottom .zcwf_tooltip_over { position: absolute; left: 25px; top: 0; display: none; z-index: 100; }
-            .zcwf_lblTopBottom .zcwf_tooltip_ctn { background: #dedede; padding: 3px 6px; border-radius: 4px; word-break: break-word; min-width: 100px; max-width: 150px; color: #313949; font-size: 11px; }
+            .zcwf_lblTopBottom .formsubmit.zcwf_button:hover { background: #15803d; }
+            .zcwf_lblTopBottom .zcwf_button { font-size: 12px; font-weight: 600; color: #4b5563; border: 1px solid #d1d5db; padding: 7px 14px; border-radius: 8px; cursor: pointer; margin-right: 6px; background: #fff; transition: all 0.2s; }
+            .zcwf_lblTopBottom .zcwf_button:hover { background: #f3f4f6; }
           `}} />
 
-          <div className='zcwf_title'>Welcome to Goimomi Holidays- Briefly share details with us.</div>
+          <div className='zcwf_title'>Welcome to Goimomi Holidays — Briefly share details with us.</div>
           
           <form 
             ref={formRef}
@@ -200,57 +201,52 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
             <input type='text' style={{ display: 'none' }} id='LDTuvid' name='LDTuvid' readOnly />
             <input type='text' style={{ display: 'none' }} name='aG9uZXlwb3Q' value='' readOnly />
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='First_Name'>FIRST NAME <span style={{ color: 'red' }}>*</span></label></div>
-              <div className='zcwf_col_fld'>
-                <input type='text' id='First_Name' name='First Name' maxLength='40' placeholder="Enter first name" />
+            {/* Row 1: First Name & Last Name in 2 columns */}
+            <div className="grid grid-cols-2 gap-2.5 my-1.5">
+              <div className='zcwf_row' style={{ margin: 0 }}>
+                <div className='zcwf_col_lab'><label htmlFor='First_Name'>FIRST NAME <span style={{ color: 'red' }}>*</span></label></div>
+                <div className='zcwf_col_fld'>
+                  <input type='text' id='First_Name' name='First Name' maxLength='40' placeholder="First name" />
+                </div>
               </div>
-            </div>
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='Last_Name'>LAST NAME <span style={{ color: 'red' }}>*</span></label></div>
-              <div className='zcwf_col_fld'>
-                <input type='text' id='Last_Name' name='Last Name' maxLength='80' placeholder="Enter last name" />
-              </div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='Email'>EMAIL ADDRESS <span style={{ color: 'red' }}>*</span></label></div>
-              <div className='zcwf_col_fld'>
-                <input type='text' ftype='email' id='Email' name='Email' maxLength='100' placeholder="e.g. john@example.com" />
-              </div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='Mobile'>PHONE NUMBER <span style={{ color: 'red' }}>*</span></label></div>
-              <div className='zcwf_col_fld'>
-                <input type='text' id='Mobile' name='Mobile' maxLength='30' placeholder="e.g. +91 9876543210" />
-                <div className='zcwf_col_help'>
-                  <span 
-                    className="zcwf_help_icon" 
-                    onClick={(e) => tooltipShow(e.target)}
-                    title="Country Code Hint"
-                  >?</span>
-                  <div className='zcwf_tooltip_over'>
-                    <span className='zcwf_tooltip_ctn'>+91</span>
-                  </div>
+              <div className='zcwf_row' style={{ margin: 0 }}>
+                <div className='zcwf_col_lab'><label htmlFor='Last_Name'>LAST NAME <span style={{ color: 'red' }}>*</span></label></div>
+                <div className='zcwf_col_fld'>
+                  <input type='text' id='Last_Name' name='Last Name' maxLength='80' placeholder="Last name" />
                 </div>
               </div>
             </div>
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='Description'>MESSAGE</label></div>
-              <div className='zcwf_col_fld'>
-                <textarea id='Description' name='Description' rows="3" placeholder="How can we help?"></textarea>
+            {/* Row 2: Email Address & Phone Number in 2 columns */}
+            <div className="grid grid-cols-2 gap-2.5 my-1.5">
+              <div className='zcwf_row' style={{ margin: 0 }}>
+                <div className='zcwf_col_lab'><label htmlFor='Email'>EMAIL ADDRESS <span style={{ color: 'red' }}>*</span></label></div>
+                <div className='zcwf_col_fld'>
+                  <input type='text' ftype='email' id='Email' name='Email' maxLength='100' placeholder="name@email.com" />
+                </div>
+              </div>
+
+              <div className='zcwf_row' style={{ margin: 0 }}>
+                <div className='zcwf_col_lab'><label htmlFor='Mobile'>PHONE NUMBER <span style={{ color: 'red' }}>*</span></label></div>
+                <div className='zcwf_col_fld'>
+                  <input type='text' id='Mobile' name='Mobile' maxLength='30' placeholder="+91 9876543210" />
+                </div>
               </div>
             </div>
 
-            <div className='zcwf_row' style={{ marginTop: '25px' }}>
-              <div className='zcwf_col_lab'></div>
+            {/* Row 3: Compact Message Field */}
+            <div className='zcwf_row' style={{ margin: '6px 0 10px 0' }}>
+              <div className='zcwf_col_lab'><label htmlFor='Description'>MESSAGE</label></div>
               <div className='zcwf_col_fld'>
-                <input type='submit' id='formsubmit' className='formsubmit zcwf_button' value='Submit' />
-                <input type='reset' className='zcwf_button' value='Reset' />
+                <textarea id='Description' name='Description' rows="2" placeholder="How can we help you?" style={{ height: '48px', resize: 'none' }}></textarea>
               </div>
+            </div>
+
+            {/* Submit & Reset Buttons */}
+            <div className="flex items-center gap-2 pt-1">
+              <input type='submit' id='formsubmit' className='formsubmit zcwf_button' value='Submit' />
+              <input type='reset' className='zcwf_button' value='Reset' />
             </div>
           </form>
         </div>

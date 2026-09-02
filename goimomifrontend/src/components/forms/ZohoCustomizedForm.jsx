@@ -3,9 +3,9 @@ import { X } from "lucide-react";
 
 /**
  * ZohoCustomizedForm Component
- * Updated with the latest Zoho CRM Web-To-Lead snippet for customized holiday enquiries.
+ * Minimized compact modal for Customized Holiday Plan enquiries synced with Zoho CRM Web-To-Lead.
  */
-const ZohoCustomizedForm = ({ isOpen, onClose, initialData = {} }) => {
+const ZohoCustomizedForm = ({ isOpen, onClose }) => {
   const formRef = useRef(null);
 
   useEffect(() => {
@@ -121,46 +121,43 @@ const ZohoCustomizedForm = ({ isOpen, onClose, initialData = {} }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+        className="absolute inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
         onClick={onClose}
       />
       
       {/* Modal Card */}
-      <div className="relative w-full max-w-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-[560px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10 text-gray-400 hover:text-gray-900"
+          className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-full transition-colors z-10 text-gray-400 hover:text-gray-900 cursor-pointer"
+          aria-label="Close"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
 
-        <div id='crmWebToEntityForm' className='zcwf_lblLeft crmWebToEntityForm' style={{ backgroundColor: 'white', color: 'black', width: '100%', padding: '25px', boxSizing: 'border-box', textAlign: 'left', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div id='crmWebToEntityForm' className='crmWebToEntityForm' style={{ backgroundColor: 'white', color: 'black', width: '100%', padding: '16px 20px', boxSizing: 'border-box', textAlign: 'left', maxHeight: '92vh', overflowY: 'auto' }}>
           <style dangerouslySetInnerHTML={{ __html: `
-            #crmWebToEntityForm.zcwf_lblLeft * { box-sizing: border-box; direction: ltr; }
-            .zcwf_lblLeft .zcwf_title { word-wrap: break-word; padding: 0px 6px 15px; font-weight: bold; font-family: Arial; font-size: 20px; color: #14532d; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
-            .zcwf_lblLeft .zcwf_row { margin: 12px 0px; display: flex; align-items: flex-start; }
-            .zcwf_lblLeft .zcwf_col_lab { width: 35%; font-size: 12px; font-family: Arial; padding: 10px 6px 0px; font-weight: bold; color: #4b5563; }
-            .zcwf_lblLeft .zcwf_col_fld { width: 65%; padding: 0px 6px; position: relative; }
-            .zcwf_lblLeft .zcwf_col_fld input[type=text], .zcwf_lblLeft .zcwf_col_fld select, .zcwf_lblLeft .zcwf_col_fld textarea { 
-              width: 100%; border: 1px solid #c0c6cc !important; border-radius: 8px; padding: 10px; font-family: Arial; font-size: 13px; outline: none; transition: all 0.2s; background: #f9fafb;
+            #crmWebToEntityForm * { box-sizing: border-box; direction: ltr; }
+            .plan-title { word-wrap: break-word; padding: 0px 20px 8px 0px; font-weight: 800; font-family: inherit; font-size: 14.5px; color: #14532d; line-height: 1.3; border-bottom: 1px solid #f0fdf4; margin-bottom: 8px; }
+            .plan-label { font-size: 9.5px; font-family: inherit; padding: 0px 2px 2px; font-weight: 800; text-transform: uppercase; color: #374151; letter-spacing: 0.03em; display: block; }
+            .plan-input, .plan-select, .plan-textarea { 
+              width: 100%; border: 1px solid #d1d5db !important; border-radius: 7px; padding: 5.5px 8px; font-family: inherit; font-size: 11.5px; outline: none; transition: all 0.2s; background: #f9fafb;
             }
-            .zcwf_lblLeft .zcwf_col_fld input:focus, .zcwf_lblLeft .zcwf_col_fld select:focus, .zcwf_lblLeft .zcwf_col_fld textarea:focus { border-color: #10b981 !important; background: #fff; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.05); }
-            .zcwf_lblLeft .formsubmit.zcwf_button { 
-              color: white !important; background: linear-gradient(0deg, #14532d 0%, #10b981 100%); border: none; padding: 12px 30px; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 14px; transition: transform 0.2s;
+            .plan-input:focus, .plan-select:focus, .plan-textarea:focus { 
+              border-color: #10b981 !important; background: #ffffff; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
             }
-            .zcwf_lblLeft .formsubmit.zcwf_button:hover { transform: translateY(-1px); }
-            .zcwf_lblLeft .zcwf_button { font-size: 13px; color: #313949; border: 1px solid #c0c6cc; padding: 12px 25px; border-radius: 8px; cursor: pointer; margin-right: 10px; background: #fff; }
-            @media all and (max-width: 600px) {
-              .zcwf_lblLeft .zcwf_row { flex-direction: column; }
-              .zcwf_lblLeft .zcwf_col_lab { width: 100%; padding-bottom: 5px; }
-              .zcwf_lblLeft .zcwf_col_fld { width: 100%; }
+            .plan-submit { 
+              color: white !important; background: linear-gradient(135deg, #14532d 0%, #10b981 100%); border: none; padding: 7px 18px; cursor: pointer; font-weight: 700; border-radius: 7px; font-size: 12px; transition: transform 0.15s, opacity 0.15s;
             }
+            .plan-submit:hover { opacity: 0.95; transform: translateY(-1px); }
+            .plan-reset { font-size: 12px; font-weight: 600; color: #4b5563; border: 1px solid #d1d5db; padding: 7px 14px; border-radius: 7px; cursor: pointer; background: #fff; transition: all 0.2s; }
+            .plan-reset:hover { background: #f3f4f6; }
           `}} />
 
-          <div className='zcwf_title'>Customized Holiday Plan</div>
+          <div className='plan-title'>Customized Holiday Plan</div>
           
           <form 
             ref={formRef}
@@ -181,71 +178,70 @@ const ZohoCustomizedForm = ({ isOpen, onClose, initialData = {} }) => {
             <input type='text' style={{ display: 'none' }} id='LDTuvid' name='LDTuvid' readOnly />
             <input type='text' style={{ display: 'none' }} name='aG9uZXlwb3Q' value='' readOnly />
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='Last_Name'>Full Name <span style={{ color: 'red' }}>*</span></label></div>
-              <div className='zcwf_col_fld'><input type='text' id='Last_Name' name='Last Name' maxLength='80' placeholder="Enter full name" /></div>
+            {/* Row 1: Full Name & Mobile in 2 columns */}
+            <div className="grid grid-cols-2 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='Last_Name'>Full Name <span style={{ color: 'red' }}>*</span></label>
+                <input className="plan-input" type='text' id='Last_Name' name='Last Name' maxLength='80' placeholder="Enter full name" />
+              </div>
+              <div>
+                <label className="plan-label" htmlFor='Mobile'>Mobile <span style={{ color: 'red' }}>*</span></label>
+                <input className="plan-input" type='text' id='Mobile' name='Mobile' maxLength='30' placeholder="+91" />
+              </div>
             </div>
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='Mobile'>Mobile <span style={{ color: 'red' }}>*</span></label></div>
-              <div className='zcwf_col_fld'><input type='text' id='Mobile' name='Mobile' maxLength='30' placeholder="+91" /></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF19'>Destination</label></div>
-              <div className='zcwf_col_fld'>
-                <select id='LEADCF19' name='LEADCF19'>
+            {/* Row 2: Destination & Nights in 2 columns */}
+            <div className="grid grid-cols-2 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='LEADCF19'>Destination</label>
+                <select className="plan-select" id='LEADCF19' name='LEADCF19'>
                   <option value='-None-'>-None-</option>
                   <option value='Domestic'>Domestic</option>
                   <option value='International'>International</option>
                 </select>
               </div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF21'>Nights</label></div>
-              <div className='zcwf_col_fld'>
-                <select id='LEADCF21' name='LEADCF21'>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF21'>Nights</label>
+                <select className="plan-select" id='LEADCF21' name='LEADCF21'>
                   <option value='-None-'>-None-</option>
                   {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n===1?'Night':'Nights'}</option>)}
                 </select>
               </div>
             </div>
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF13'>Starting City</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF13' name='LEADCF13' maxLength='255' placeholder="City of departure" /></div>
+            {/* Row 3: Starting City & Travel Date in 2 columns */}
+            <div className="grid grid-cols-2 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='LEADCF13'>Starting City</label>
+                <input className="plan-input" type='text' id='LEADCF13' name='LEADCF13' maxLength='255' placeholder="City of departure" />
+              </div>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF119'>Travel Date</label>
+                <input className="plan-input" type='text' id='LEADCF119' name='LEADCF119' placeholder='DD-MM-YYYY' onFocus={(e) => { e.target.type = 'date' }} onBlur={(e) => { if(!e.target.value) e.target.type = 'text' }} />
+              </div>
             </div>
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF12'>Nationality</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF12' name='LEADCF12' maxLength='255' defaultValue="Indian" /></div>
+            {/* Row 4: Rooms, Adult Travelers, Child Travelers in 3 columns */}
+            <div className="grid grid-cols-3 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='LEADCF52'>Rooms</label>
+                <input className="plan-input" type='text' id='LEADCF52' name='LEADCF52' maxLength='9' placeholder="No. of rooms" />
+              </div>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF55'>Adults</label>
+                <input className="plan-input" type='text' id='LEADCF55' name='LEADCF55' maxLength='9' placeholder="No. of adults" />
+              </div>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF54'>Children</label>
+                <input className="plan-input" type='text' id='LEADCF54' name='LEADCF54' maxLength='9' placeholder="No. of children" />
+              </div>
             </div>
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF119'>Travel Date</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF119' name='LEADCF119' placeholder='DD-MM-YYYY' onFocus={(e) => { e.target.type = 'date' }} onBlur={(e) => { if(!e.target.value) e.target.type = 'text' }} /></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF52'>Rooms</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF52' name='LEADCF52' maxLength='9' placeholder="No. of rooms" /></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF55'>Adult Travelers</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF55' name='LEADCF55' maxLength='9' placeholder="No. of adults" /></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF54'>Child Travelers</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF54' name='LEADCF54' maxLength='9' placeholder="No. of children" /></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF17'>Hotel Star Rating</label></div>
-              <div className='zcwf_col_fld'>
-                <select id='LEADCF17' name='LEADCF17'>
+            {/* Row 5: Hotel Star Rating & Meal Plan in 2 columns */}
+            <div className="grid grid-cols-2 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='LEADCF17'>Hotel Star Rating</label>
+                <select className="plan-select" id='LEADCF17' name='LEADCF17'>
                   <option value='-None-'>-None-</option>
                   <option value='3 Star'>3 Star</option>
                   <option value='4 Star'>4 Star</option>
@@ -253,30 +249,9 @@ const ZohoCustomizedForm = ({ isOpen, onClose, initialData = {} }) => {
                   <option value='Luxury'>Luxury</option>
                 </select>
               </div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF18'>Holiday Type</label></div>
-              <div className='zcwf_col_fld'>
-                <select id='LEADCF18' name='LEADCF18'>
-                  <option value='-None-'>-None-</option>
-                  <option value='Family'>Family</option>
-                  <option value='Honeymoon'>Honeymoon</option>
-                  <option value='Adventure'>Adventure</option>
-                  <option value='Religious'>Religious</option>
-                </select>
-              </div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF15'>Room Type</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF15' name='LEADCF15' maxLength='255' placeholder="e.g. Deluxe, Suite" /></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF20'>Meal Plan</label></div>
-              <div className='zcwf_col_fld'>
-                <select id='LEADCF20' name='LEADCF20'>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF20'>Meal Plan</label>
+                <select className="plan-select" id='LEADCF20' name='LEADCF20'>
                   <option value='Select Meal Plan'>Select Meal Plan</option>
                   <option value='Breakfast Only (CP)'>Breakfast Only (CP)</option>
                   <option value='Breakfast + Dinner (MAP)'>Breakfast + Dinner (MAP)</option>
@@ -286,32 +261,57 @@ const ZohoCustomizedForm = ({ isOpen, onClose, initialData = {} }) => {
               </div>
             </div>
 
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF16'>Transfer Details</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF16' name='LEADCF16' maxLength='255' placeholder="Private, Shared, etc." /></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF14'>Special Requests</label></div>
-              <div className='zcwf_col_fld'><textarea id='LEADCF14' name='LEADCF14' rows="3" placeholder="Any other inclusions or specific requirements?"></textarea></div>
-            </div>
-
-            <div className='zcwf_row'>
-              <div className='zcwf_col_lab'><label htmlFor='LEADCF66'>Budget Per Person</label></div>
-              <div className='zcwf_col_fld'><input type='text' id='LEADCF66' name='LEADCF66' maxLength='16' placeholder="Estimated budget" /></div>
-            </div>
-
-            <div className='zcwf_row' style={{ marginTop: '20px' }}>
-              <div className='zcwf_col_lab'></div>
-              <div className='zcwf_col_fld'>
-                <input type='submit' id='formsubmit' className='formsubmit zcwf_button' value='Submit Request' />
-                <input type='reset' className='zcwf_button' value='Reset' />
+            {/* Row 6: Holiday Type & Room Type in 2 columns */}
+            <div className="grid grid-cols-2 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='LEADCF18'>Holiday Type</label>
+                <select className="plan-select" id='LEADCF18' name='LEADCF18'>
+                  <option value='-None-'>-None-</option>
+                  <option value='Family'>Family</option>
+                  <option value='Honeymoon'>Honeymoon</option>
+                  <option value='Adventure'>Adventure</option>
+                  <option value='Religious'>Religious</option>
+                </select>
               </div>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF15'>Room Type</label>
+                <input className="plan-input" type='text' id='LEADCF15' name='LEADCF15' maxLength='255' placeholder="e.g. Deluxe, Suite" />
+              </div>
+            </div>
+
+            {/* Row 7: Nationality & Budget Per Person in 2 columns */}
+            <div className="grid grid-cols-2 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='LEADCF12'>Nationality</label>
+                <input className="plan-input" type='text' id='LEADCF12' name='LEADCF12' maxLength='255' defaultValue="Indian" />
+              </div>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF66'>Budget / Person</label>
+                <input className="plan-input" type='text' id='LEADCF66' name='LEADCF66' maxLength='16' placeholder="Estimated budget" />
+              </div>
+            </div>
+
+            {/* Row 8: Transfer Details & Special Requests in 2 columns */}
+            <div className="grid grid-cols-2 gap-2 my-1">
+              <div>
+                <label className="plan-label" htmlFor='LEADCF16'>Transfer Details</label>
+                <input className="plan-input" type='text' id='LEADCF16' name='LEADCF16' maxLength='255' placeholder="Private, Shared, etc." />
+              </div>
+              <div>
+                <label className="plan-label" htmlFor='LEADCF14'>Special Requests</label>
+                <textarea className="plan-textarea" id='LEADCF14' name='LEADCF14' rows="1" placeholder="Inclusions / requirements" style={{ height: '28px', resize: 'none' }}></textarea>
+              </div>
+            </div>
+
+            {/* Submit & Reset Buttons */}
+            <div className="flex items-center gap-2 pt-2">
+              <input type='submit' id='formsubmit' className='formsubmit plan-submit' value='Submit Request' />
+              <input type='reset' className='plan-reset' value='Reset' />
             </div>
           </form>
         </div>
         
-        <p className="pb-4 text-center text-[8px] text-gray-300 font-bold uppercase tracking-[0.2em]">
+        <p className="pb-3 text-center text-[8px] text-gray-400 font-bold uppercase tracking-[0.15em]">
             Secure CRM Integration • Privacy Protected
         </p>
       </div>
