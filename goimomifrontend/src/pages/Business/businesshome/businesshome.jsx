@@ -36,6 +36,7 @@ import businessHeader5 from "../../../assets/Business/Header/business-header-05.
 import bizCardImg from "../../../assets/Business/biz3.jpeg";
 import cantonCardImg from "../../../assets/images/canton-hero.png";
 import megaheaderImg from "../../../assets/megaheader.png";
+import chithiraiGlobalCardImg from "../../../assets/Chithirai/chithirai-global-card.png";
 
 const businessHeroImages = [businessHeader1, businessHeader2, businessHeader3, businessHeader4, businessHeader5];
 
@@ -136,6 +137,18 @@ const BusinessHome = () => {
       icon: <Globe className="w-6 h-6" />,
       tag: "Upcoming Event",
       highlights: ["Expo Registration", "4-Star Hotel Stay", "Airport Transfers", "Networking Dinner"],
+    },
+    {
+      id: "chithirai-global",
+      title: "Chithirai Global",
+      subtitle: "Tamil Business Community",
+      description:
+        "Build trusted connections with Tamil entrepreneurs, professionals and business leaders through community, collaboration and global business journeys.",
+      image: chithiraiGlobalCardImg,
+      path: "/chithirai-global",
+      icon: <Users className="w-6 h-6" />,
+      tag: "New Community",
+      highlights: ["Global Networking", "Trusted Introductions", "Business Journeys", "Travel Partner Support"],
     },
   ];
 
@@ -389,7 +402,7 @@ const BusinessHome = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-10">
           {businessCategories.map((cat, idx) => (
             <motion.div
               key={cat.id}

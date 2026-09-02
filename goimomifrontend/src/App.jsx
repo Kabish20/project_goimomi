@@ -32,6 +32,9 @@ const CancellationPolicy = lazyRetry(() => import('./pages/Policies/Cancellation
 const HolidayDetails = lazyRetry(() => import("./pages/Holidays/HolidayDetails/HolidayDetails.jsx"));
 const Canton = lazyRetry(() => import("./pages/Business/Canton/Canton.jsx"));
 const MegaShowBangkok = lazyRetry(() => import("./pages/Business/MegaShowBangkok/MegaShowBangkok.jsx"));
+const ChithiraiGlobal = lazyRetry(() => import("./pages/Business/Chithirai Global.jsx"));
+const SriLankaJourney = lazyRetry(() => import("./pages/Business/Sri Lanka.jsx"));
+const YelagiriJourney = lazyRetry(() => import("./pages/Business/Yelagiri.jsx"));
 const HolidayHome = lazyRetry(() => import("./pages/Holidays/holidayhome/holidayhome.jsx"));
 const PackageEnquiryPage = lazyRetry(() => import("./pages/Holidays/PackageEnquiryPage/PackageEnquiryPage.jsx"));
 const BusinessHome = lazyRetry(() => import("./pages/Business/businesshome/businesshome.jsx"));
@@ -64,6 +67,7 @@ const AdminVisaEdit = lazyRetry(() => import("./pages/admin/AdminVisaEdit/AdminV
 const VisaApplicationManage = lazyRetry(() => import("./pages/admin/VisaApplicationManage/VisaApplicationManage.jsx"));
 const VisaApplicationEdit = lazyRetry(() => import("./pages/admin/VisaApplicationEdit/VisaApplicationEdit.jsx"));
 const CantonEnquiryManage = lazyRetry(() => import("./pages/admin/CantonEnquiryManage/CantonEnquiryManage.jsx"));
+const BusinessJourneyRegistrationManage = lazyRetry(() => import("./pages/admin/BusinessJourneyRegistrationManage/BusinessJourneyRegistrationManage.jsx"));
 const CabEnquiryManage = lazyRetry(() => import("./pages/admin/CabEnquiryManage/CabEnquiryManage.jsx"));
 const CabBookingManage = lazyRetry(() => import("./pages/admin/CabBookingManage/CabBookingManage.jsx"));
 const CruiseEnquiryManage = lazyRetry(() => import("./pages/admin/CruiseEnquiryManage/CruiseEnquiryManage.jsx"));
@@ -226,6 +230,9 @@ const App = () => {
             <Routes>
               <Route path="/canton" element={<Canton />} />
               <Route path="/megashowbangkok" element={<MegaShowBangkok />} />
+              <Route path="/chithirai-global" element={<ChithiraiGlobal />} />
+              <Route path="/chithirai-global/sri-lanka" element={<SriLankaJourney />} />
+              <Route path="/chithirai-global/yelagiri" element={<YelagiriJourney />} />
               <Route path="/" element={<Home />} />
             <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
             <Route path="/aboutus" element={<About />} />
@@ -237,6 +244,7 @@ const App = () => {
             <Route path="/payment/checkout" element={<PaymentCheckout />} />
             <Route path="/holidayhome" element={<HolidayHome />} />
             <Route path="/businesshome" element={<BusinessHome />} />
+            <Route path="/blog" element={<Blog />} />
             <Route path="/holidays" element={<Holidays />} />
 
             <Route path="/customizedHolidays" element={<CustomizedHolidays />} />
@@ -301,13 +309,14 @@ const App = () => {
               <Route path="/admin/sightseeing-masters" element={<SightseeingMasterManage />} />
               <Route path="/admin/sightseeing-masters/add" element={<SightseeingMasterAdd />} />
               <Route path="/admin/sightseeing-masters/edit/:id" element={<SightseeingMasterEdit />} />
-              <Route path="/admin/sightseeingmasters" element={<SightseeingMasterManage />} />
+                            <Route path="/admin/sightseeingmasters" element={<SightseeingMasterManage />} />
               <Route path="/admin/sightseeingmasters/add" element={<SightseeingMasterAdd />} />
               <Route path="/admin/sightseeingmasters/edit/:id" element={<SightseeingMasterEdit />} />
 
               <Route path="/admin/users" element={<UsersList />} />
               <Route path="/admin/users/add" element={<UserAdd />} />
               <Route path="/admin/users/edit/:id" element={<UserEdit />} />
+
               <Route path="/admin/visas" element={<AdminVisaManage />} />
               <Route path="/admin/visas/add" element={<AdminVisaAdd />} />
               <Route path="/admin/visas/edit/:id" element={<AdminVisaEdit />} />
@@ -324,6 +333,13 @@ const App = () => {
 
               <Route path="/admin/canton-enquiries" element={<CantonEnquiryManage />} />
               <Route path="/admin/cantonenquiries" element={<CantonEnquiryManage />} />
+
+              <Route path="/admin/business-journey-registrations" element={<BusinessJourneyRegistrationManage />} />
+              <Route path="/admin/businessjourneyregistrations" element={<BusinessJourneyRegistrationManage />} />
+              <Route path="/admin/chithirai-registrations" element={<BusinessJourneyRegistrationManage />} />
+              <Route path="/admin/chithirairegistrations" element={<BusinessJourneyRegistrationManage />} />
+              <Route path="/admin/chithirai-enquiries" element={<BusinessJourneyRegistrationManage />} />
+              <Route path="/admin/chithiraienquiries" element={<BusinessJourneyRegistrationManage />} />
 
               <Route path="/admin/cruise-enquiries" element={<CruiseEnquiryManage />} />
               <Route path="/admin/cruiseenquiries" element={<CruiseEnquiryManage />} />

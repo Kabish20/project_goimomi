@@ -21,6 +21,13 @@ router.register("enquiry-form", views.EnquiryAPI, basename="enquiry-form")
 router.register("cantonenquiries", views.CantonEnquiryAPI, basename="cantonenquiries")
 router.register("canton-enquiries", views.CantonEnquiryAPI, basename="canton-enquiry")
 
+router.register("business-journey-registrations", views.BusinessJourneyRegistrationViewSet, basename="business-journey-registrations")
+router.register("businessjourneyregistrations", views.BusinessJourneyRegistrationViewSet, basename="businessjourneyregistrations")
+router.register("chithirai-registrations", views.BusinessJourneyRegistrationViewSet, basename="chithirai-registrations")
+router.register("chithirairegistrations", views.BusinessJourneyRegistrationViewSet, basename="chithirairegistrations")
+router.register("chithirai-enquiries", views.BusinessJourneyRegistrationViewSet, basename="chithirai-enquiries")
+router.register("chithiraienquiries", views.BusinessJourneyRegistrationViewSet, basename="chithiraienquiries")
+
 router.register("cruiseterminals", views.CruiseTerminalViewSet, basename="cruiseterminals")
 router.register("cruise-terminals", views.CruiseTerminalViewSet, basename="cruise-terminal")
 

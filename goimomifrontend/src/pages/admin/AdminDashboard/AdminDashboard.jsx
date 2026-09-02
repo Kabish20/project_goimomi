@@ -375,39 +375,39 @@ const AdminDashboard = () => {
           {/* ═══════════════════════════════════════════════════════════
               SECTION 1: EXECUTIVE COMMAND HEADER & REALTIME TOOLBAR
           ═══════════════════════════════════════════════════════════ */}
-          <div className="bg-gradient-to-r from-[#0d2f1f] via-[#14532d] to-[#1b6b3c] rounded-3xl shadow-lg p-5 md:p-6 text-white relative overflow-hidden">
+          <div className="bg-gradient-to-r from-[#0d2f1f] via-[#14532d] to-[#1b6b3c] rounded-2xl shadow-md px-4 py-3 md:px-5 md:py-3.5 text-white relative overflow-hidden">
             {/* Ambient background decoration */}
-            <div className="absolute right-0 top-0 w-96 h-full opacity-10 pointer-events-none bg-radial from-white to-transparent" />
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-emerald-400/10 blur-2xl pointer-events-none" />
+            <div className="absolute right-0 top-0 w-80 h-full opacity-10 pointer-events-none bg-radial from-white to-transparent" />
+            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-emerald-400/10 blur-xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/15 text-[10px] font-black uppercase tracking-widest text-emerald-300 backdrop-blur-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-full border border-white/15 text-[9px] font-black uppercase tracking-wider text-emerald-300 backdrop-blur-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Live Operational Hub • Enterprise Sync
                 </div>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
-                  <Activity className="w-7 h-7 text-emerald-400" />
+                <h1 className="text-lg md:text-xl font-black tracking-tight text-white flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-emerald-400" />
                   Goimomi Executive Dashboard
                 </h1>
-                <p className="text-xs md:text-sm text-emerald-100/80 font-medium max-w-2xl">
+                <p className="text-[11px] md:text-xs text-emerald-100/80 font-medium max-w-xl line-clamp-1">
                   Unified command center for customer inquiries, cab bookings, visa processing, product sales, and holiday logistics.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="text-right hidden xl:block pr-3 border-r border-white/20">
-                  <p className="text-[10px] uppercase font-bold text-emerald-300/80 tracking-wider">Last Refreshed</p>
-                  <p className="text-xs font-black text-white">{lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-right hidden xl:block pr-2.5 border-r border-white/20">
+                  <p className="text-[9px] uppercase font-bold text-emerald-300/80 tracking-wider">Last Refreshed</p>
+                  <p className="text-[11px] font-black text-white">{lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={fetchDashboardData}
                   disabled={loading}
-                  className="bg-white/15 hover:bg-white/25 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm border border-white/20 flex items-center gap-2 backdrop-blur-xs cursor-pointer"
+                  className="bg-white/15 hover:bg-white/25 active:scale-95 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all shadow-xs border border-white/20 flex items-center gap-1.5 backdrop-blur-xs cursor-pointer"
                 >
-                  <RefreshCw size={14} className={loading ? "animate-spin text-emerald-300" : "text-emerald-300"} />
+                  <RefreshCw size={12} className={loading ? "animate-spin text-emerald-300" : "text-emerald-300"} />
                   {loading ? "Refreshing…" : "Sync Live Data"}
                 </button>
 
@@ -415,10 +415,10 @@ const AdminDashboard = () => {
                   href="/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all shadow-xs active:scale-95 flex items-center gap-1 cursor-pointer"
                 >
                   <span>Live Site</span>
-                  <ExternalLink size={13} />
+                  <ExternalLink size={11} />
                 </a>
               </div>
             </div>
@@ -468,7 +468,67 @@ const AdminDashboard = () => {
           ) : (
             <>
               {/* ═══════════════════════════════════════════════════════════
-                  SECTION 2: 4 TOP TIER HERO KPI METRIC CARDS
+                  SECTION 2: QUICK ACTION OPERATIONAL LAUNCHPAD
+              ═══════════════════════════════════════════════════════════ */}
+              <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-4 md:p-5 space-y-3">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                  <Sparkles size={15} className="text-emerald-700" />
+                  Quick Operational Launchpad
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
+                  <button
+                    onClick={() => navigate("/admin/packages/add")}
+                    className="p-3 bg-emerald-50/50 hover:bg-emerald-100/60 border border-emerald-200/70 rounded-xl text-left font-bold text-emerald-950 flex flex-col justify-between gap-2.5 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-emerald-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Create Package</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/visas/add")}
+                    className="p-3 bg-rose-50/50 hover:bg-rose-100/60 border border-rose-200/70 rounded-xl text-left font-bold text-rose-950 flex flex-col justify-between gap-2.5 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-rose-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Visa Type</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/itinerary-masters/add")}
+                    className="p-3 bg-purple-50/50 hover:bg-purple-100/60 border border-purple-200/70 rounded-xl text-left font-bold text-purple-950 flex flex-col justify-between gap-2.5 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-purple-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Itinerary</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/vehicle-rate-cards/add")}
+                    className="p-3 bg-amber-50/50 hover:bg-amber-100/60 border border-amber-200/70 rounded-xl text-left font-bold text-amber-950 flex flex-col justify-between gap-2.5 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-amber-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Rate Card</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/products/add")}
+                    className="p-3 bg-teal-50/50 hover:bg-teal-100/60 border border-teal-200/70 rounded-xl text-left font-bold text-teal-950 flex flex-col justify-between gap-2.5 transition group cursor-pointer"
+                  >
+                    <Plus size={16} className="text-teal-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">Add Product</span>
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/admin/users")}
+                    className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left font-bold text-slate-900 flex flex-col justify-between gap-2.5 transition group cursor-pointer"
+                  >
+                    <UserCheck size={16} className="text-slate-700 group-hover:scale-110 transition-transform" />
+                    <span className="font-black">System Users</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ═══════════════════════════════════════════════════════════
+                  SECTION 3: 4 TOP TIER HERO KPI METRIC CARDS
               ═══════════════════════════════════════════════════════════ */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
@@ -978,66 +1038,6 @@ const AdminDashboard = () => {
                     <p className="font-bold text-xs uppercase tracking-wider">No customer submissions match your filter</p>
                   </div>
                 )}
-              </div>
-
-              {/* ═══════════════════════════════════════════════════════════
-                  SECTION 6: QUICK ACTION OPERATIONAL LAUNCHPAD
-              ═══════════════════════════════════════════════════════════ */}
-              <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 p-5 md:p-6 space-y-3.5">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <Sparkles size={16} className="text-emerald-700" />
-                  Quick Operational Launchpad
-                </h3>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-                  <button
-                    onClick={() => navigate("/admin/packages/add")}
-                    className="p-3 bg-emerald-50/50 hover:bg-emerald-100/60 border border-emerald-200/70 rounded-2xl text-left font-bold text-emerald-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
-                  >
-                    <Plus size={16} className="text-emerald-700 group-hover:scale-110 transition-transform" />
-                    <span className="font-black">Create Package</span>
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/admin/visas/add")}
-                    className="p-3 bg-rose-50/50 hover:bg-rose-100/60 border border-rose-200/70 rounded-2xl text-left font-bold text-rose-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
-                  >
-                    <Plus size={16} className="text-rose-700 group-hover:scale-110 transition-transform" />
-                    <span className="font-black">Add Visa Type</span>
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/admin/itinerary-masters/add")}
-                    className="p-3 bg-purple-50/50 hover:bg-purple-100/60 border border-purple-200/70 rounded-2xl text-left font-bold text-purple-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
-                  >
-                    <Plus size={16} className="text-purple-700 group-hover:scale-110 transition-transform" />
-                    <span className="font-black">Add Itinerary</span>
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/admin/vehicle-rate-cards/add")}
-                    className="p-3 bg-amber-50/50 hover:bg-amber-100/60 border border-amber-200/70 rounded-2xl text-left font-bold text-amber-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
-                  >
-                    <Plus size={16} className="text-amber-700 group-hover:scale-110 transition-transform" />
-                    <span className="font-black">Add Rate Card</span>
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/admin/products/add")}
-                    className="p-3 bg-teal-50/50 hover:bg-teal-100/60 border border-teal-200/70 rounded-2xl text-left font-bold text-teal-950 flex flex-col justify-between gap-3 transition group cursor-pointer"
-                  >
-                    <Plus size={16} className="text-teal-700 group-hover:scale-110 transition-transform" />
-                    <span className="font-black">Add Product</span>
-                  </button>
-
-                  <button
-                    onClick={() => navigate("/admin/users")}
-                    className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl text-left font-bold text-slate-900 flex flex-col justify-between gap-3 transition group cursor-pointer"
-                  >
-                    <UserCheck size={16} className="text-slate-700 group-hover:scale-110 transition-transform" />
-                    <span className="font-black">System Users</span>
-                  </button>
-                </div>
               </div>
 
             </>

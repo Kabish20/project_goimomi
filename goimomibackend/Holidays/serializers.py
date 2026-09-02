@@ -18,10 +18,15 @@ from .models import (
     Accommodation, AccommodationImage, Airline, HolidayVehicle,
     SightseeingMaster, SightseeingImage, MealMaster, VehicleBrand,
     RoomType, VehicleMaster, DriverMaster, VehicleRateCard,
-    PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal,
+    PickupPointMaster, CabBooking, CabAdditionalDocument, CantonEnquiry, BusinessJourneyRegistration, City, Region, Nationality, Country, Airport, CruiseTerminal,
     GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking,
     CatalogueMaster, SubCatalogue
 )
+
+class BusinessJourneyRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessJourneyRegistration
+        fields = "__all__"
 
 class CantonEnquirySerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,6 +74,17 @@ class CitySerializer(serializers.ModelSerializer):
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        username = attrs.get(self.username_field, '').strip()
+        if username:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user_obj = User.objects.filter(username__iexact=username).first()
+            if user_obj:
+                attrs[self.username_field] = user_obj.get_username()
+
+        return super().validate(attrs)
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)

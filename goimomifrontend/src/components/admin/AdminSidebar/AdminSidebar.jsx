@@ -55,6 +55,7 @@ const menu = [
           { name: "Holiday Enquiries" },
           { name: "Umrah Enquiries" },
           { name: "Canton Enquiries" },
+          { name: "Chithirai Enquiries", key: "Chithirai Enquiries" },
         ]
       },
       {
@@ -217,6 +218,10 @@ const AdminSidebar = () => {
       case "Holiday Enquiries": return handleChangeHolidayEnquiry;
       case "Umrah Enquiries": return handleChangeUmrahEnquiry;
       case "Canton Enquiries": return () => navigate("/admin/canton-enquiries");
+      case "Chithirai Enquiries":
+      case "Chithirai Registrations":
+      case "Business Journey Registrations":
+      case "Business Registrations": return () => navigate("/admin/chithirai-enquiries");
       case "Itinerary Masters": return handleChangeItineraryMaster;
       case "Sightseeing Masters": return handleChangeSightseeingMaster;
       case "Cab Enquiries": return handleChangeCabEnquiry;

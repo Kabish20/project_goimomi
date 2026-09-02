@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { Hotel, MapPin, Ship, Sun, Moon, MessageSquare } from "lucide-react";
+import { Hotel, MapPin, Ship, Sun, Moon, MessageSquare, Briefcase, Building2 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -12,7 +12,9 @@ const EnquiryManage = () => {
     holiday: 0,
     umrah: 0,
     cab: 0,
-    cruise: 0
+    cruise: 0,
+    canton: 0,
+    business: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -27,15 +29,19 @@ const EnquiryManage = () => {
   const fetchCounts = async () => {
     try {
       setLoading(true);
-      const [generalRes, holidayRes, umrahRes] = await Promise.all([
+      const [generalRes, holidayRes, umrahRes, cantonRes, businessRes] = await Promise.all([
         api.get(`${API_BASE_URL}/enquiry-form/`),
         api.get(`${API_BASE_URL}/holiday-form/`),
-        api.get(`${API_BASE_URL}/umrah-form/`)
+        api.get(`${API_BASE_URL}/umrah-form/`),
+        api.get(`${API_BASE_URL}/canton-enquiries/`).catch(() => ({ data: [] })),
+        api.get(`${API_BASE_URL}/business-journey-registrations/`).catch(() => ({ data: [] }))
       ]);
 
       const generalData = Array.isArray(generalRes.data) ? generalRes.data : (generalRes.data?.results || []);
       const holidayData = Array.isArray(holidayRes.data) ? holidayRes.data : (holidayRes.data?.results || []);
       const umrahData = Array.isArray(umrahRes.data) ? umrahRes.data : (umrahRes.data?.results || []);
+      const cantonData = Array.isArray(cantonRes.data) ? cantonRes.data : (cantonRes.data?.results || []);
+      const businessData = Array.isArray(businessRes.data) ? businessRes.data : (businessRes.data?.results || []);
 
       setCounts({
         general: generalData.filter(e => !e.enquiry_type || e.enquiry_type === 'General').length,
@@ -43,7 +49,9 @@ const EnquiryManage = () => {
         cab: generalData.filter(e => e.enquiry_type === 'Cab').length,
         cruise: generalData.filter(e => e.enquiry_type === 'Cruise').length,
         holiday: holidayData.length,
-        umrah: umrahData.length
+        umrah: umrahData.length,
+        canton: cantonData.length,
+        business: businessData.length
       });
       setError("");
     } catch (err) {
@@ -55,6 +63,22 @@ const EnquiryManage = () => {
   };
 
   const statCards = [
+    {
+      title: "Chithirai Enquiries",
+      count: counts.business,
+      icon: <Briefcase size={24} />,
+      color: "text-emerald-700",
+      bgColor: "bg-emerald-50",
+      path: "/admin/chithirai-enquiries"
+    },
+    {
+      title: "Canton Enquiries",
+      count: counts.canton,
+      icon: <Building2 size={24} />,
+      color: "text-amber-700",
+      bgColor: "bg-amber-50",
+      path: "/admin/canton-enquiries"
+    },
     {
       title: "Hotel Enquiries",
       count: counts.hotel,
@@ -139,7 +163,7 @@ const EnquiryManage = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {statCards.map((card, idx) => (
                 <div
                   key={idx}
@@ -152,13 +176,13 @@ const EnquiryManage = () => {
 
                   <div className="space-y-1">
                     <h3 className="text-[9px] font-black text-gray-400 group-hover:text-gray-900 transition-colors uppercase tracking-[0.2em]">
-                      {card.title.split(' ')[0]}
+                      {card.title}
                     </h3>
                     <div className="flex items-baseline gap-1">
                       <span className={`text-2xl font-black tracking-tighter ${card.color} leading-none`}>
                         {card.count}
                       </span>
-                      <span className="text-gray-300 font-bold uppercase text-[7px] tracking-tighter">NEW</span>
+                      <span className="text-gray-300 font-bold uppercase text-[7px] tracking-tighter">TOTAL</span>
                     </div>
                   </div>
 
@@ -177,6 +201,3 @@ const EnquiryManage = () => {
 };
 
 export default EnquiryManage;
-
-
-

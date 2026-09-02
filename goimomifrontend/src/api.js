@@ -8,13 +8,30 @@ api.interceptors.request.use(
     (config) => {
         // Skip Authorization header for public endpoints or when skipAuth is set
         const publicEndpoints = [
+            '/api/token/',
+            '/api/token/refresh/',
             '/api/cities/',
             '/api/pickup-point-masters/',
             '/api/airports/',
             '/api/payment-webhook/',
             '/api/payment-success/',
-            '/api/payment-failed/'
+            '/api/payment-failed/',
+            '/api/business-journey-registrations/',
+            '/api/businessjourneyregistrations/',
+            '/api/chithirai-registrations/',
+            '/api/chithirairegistrations/',
+            '/api/chithirai-enquiries/',
+            '/api/chithiraienquiries/',
+            '/api/canton-enquiries/',
+            '/api/cantonenquiries/',
+            '/api/enquiry-form/',
+            '/api/enquiryform/',
+            '/api/holiday-form/',
+            '/api/holidayform/',
+            '/api/umrah-form/',
+            '/api/umrahform/'
         ];
+
         const isPublic = publicEndpoints.some(url => config.url && config.url.includes(url)) || config.skipAuth;
 
         if (!isPublic) {
@@ -35,8 +52,8 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        // Prevent infinite loops if refresh endpoint itself fails
-        if (!originalRequest || originalRequest.url?.includes('/api/token/refresh/')) {
+        // Prevent infinite loops if refresh or token endpoint itself fails
+        if (!originalRequest || originalRequest.url?.includes('/api/token/refresh/') || originalRequest.url?.includes('/api/token/')) {
             return Promise.reject(error);
         }
 

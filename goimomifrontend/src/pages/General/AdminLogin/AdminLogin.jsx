@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import usePageSEO from "../../../hooks/usePageSEO";
 import api from "../../../api";
 import { jwtDecode } from "jwt-decode";
-import { User, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { User, Lock, ArrowRight } from "lucide-react";
 
 const AdminLogin = ({ isOpen, onClose }) => {
     usePageSEO(
@@ -23,13 +23,22 @@ const AdminLogin = ({ isOpen, onClose }) => {
         setError("");
         setIsLoading(true);
 
-        try {
-            const response = await api.post("/api/token/", {
-                username,
-                password,
-            });
+        // Clear any old/expired auth tokens first
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("adminUser");
 
-            if (response.data.access) {
+        try {
+            const response = await api.post(
+                "/api/token/",
+                {
+                    username: username.trim(),
+                    password: password,
+                },
+                { skipAuth: true }
+            );
+
+            if (response.data && response.data.access) {
                 const user = jwtDecode(response.data.access);
                 if (!user.is_staff && !user.is_superuser) {
                     setError("Access Denied: Your account does not have staff permissions to access the admin portal. Please contact an administrator.");
@@ -44,10 +53,11 @@ const AdminLogin = ({ isOpen, onClose }) => {
                 navigate("/admin/dashboard");
             }
         } catch (err) {
+            console.error("Login request error:", err);
             if (err.response && err.response.data) {
-                setError(err.response.data.detail || err.response.data.error || "Login failed.");
+                setError(err.response.data.detail || err.response.data.error || err.response.data.non_field_errors?.[0] || "Invalid username or password.");
             } else {
-                setError("Login failed. Please try again.");
+                setError("Login failed. Please check your credentials and try again.");
             }
         } finally {
             setIsLoading(false);
@@ -157,6 +167,3 @@ const AdminLogin = ({ isOpen, onClose }) => {
 };
 
 export default AdminLogin;
-
-
-

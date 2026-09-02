@@ -198,7 +198,7 @@ from .models import (
     SightseeingImage, MealMaster, VehicleBrand, Accommodation,
     AccommodationImage, RoomType, VehicleMaster, DriverMaster,
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
-    CancellationPolicy, CantonEnquiry, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
+    CancellationPolicy, CantonEnquiry, BusinessJourneyRegistration, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
     GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking,
     CatalogueMaster, SubCatalogue, ZohoWebhookLog
 )
@@ -214,11 +214,34 @@ from .serializers import (
     RoomTypeSerializer, VehicleMasterSerializer, DriverMasterSerializer,
     VehicleRateCardSerializer, PickupPointMasterSerializer,
     CabBookingSerializer, CabAdditionalDocumentSerializer,
-    CancellationPolicySerializer, CantonEnquirySerializer, CitySerializer,
+    CancellationPolicySerializer, CantonEnquirySerializer, BusinessJourneyRegistrationSerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
     GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer, LogisticsProviderSerializer, PackageBookingSerializer,
     CatalogueMasterSerializer, SubCatalogueSerializer
 )
+
+class BusinessJourneyRegistrationViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrWriteOnly]
+    queryset = BusinessJourneyRegistration.objects.all().order_by('-created_at')
+    serializer_class = BusinessJourneyRegistrationSerializer
+    pagination_class = None
+
+    def perform_create(self, serializer):
+        registration = serializer.save()
+        try:
+            from .utils import create_zoho_crm_lead
+            import threading
+            lead_data = {
+                'name': getattr(registration, 'full_name', '') or 'Business Registration',
+                'email': getattr(registration, 'email', '') or '',
+                'phone': getattr(registration, 'phone', '') or getattr(registration, 'whatsapp_number', '') or '',
+                'description': f"Journey: {getattr(registration, 'journey', '')}\nCompany: {getattr(registration, 'company_name', '')}\nWhatsApp: {getattr(registration, 'whatsapp_number', '')}\nPurpose: {getattr(registration, 'contacting_for', '')}\nMessage: {getattr(registration, 'message', '')}",
+                'lead_source': f"Website - {getattr(registration, 'journey', 'Business')} Registration",
+                'company': getattr(registration, 'company_name', '') or 'Individual'
+            }
+            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+        except Exception as e:
+            print(f"Error syncing BusinessJourneyRegistration to Zoho CRM: {e}")
 
 class CantonEnquiryAPI(ModelViewSet):
     permission_classes = [IsAuthenticatedOrWriteOnly]

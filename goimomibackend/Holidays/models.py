@@ -836,6 +836,34 @@ class CantonEnquiry(models.Model):
     def __str__(self):
         return f"{self.full_name} - {self.selected_phase}"
 
+class BusinessJourneyRegistration(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Contacted', 'Contacted'),
+        ('Confirmed', 'Confirmed'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
+    full_name = models.CharField(max_length=150)
+    company_name = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=30)
+    email = models.EmailField(blank=True, null=True)
+    whatsapp_number = models.CharField(max_length=30, blank=True, null=True)
+    journey = models.CharField(max_length=150, default="Chithirai Global", blank=True, null=True)
+    contacting_for = models.CharField(max_length=255, default="Chithirai Global Journey Registration", blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Business Journey Registration"
+        verbose_name_plural = "Business Journey Registrations"
+
+    def __str__(self):
+        return f"{self.full_name} - {self.company_name or 'No Company'} ({self.journey})"
+
 class OTPVerification(models.Model):
     email = models.EmailField(unique=True)
     otp = models.CharField(max_length=6)
