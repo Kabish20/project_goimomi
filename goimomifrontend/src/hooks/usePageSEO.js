@@ -1,7 +1,25 @@
 import { useEffect } from 'react';
 
-const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-preview.png', keywords = '', ogType = 'website') => {
+const DEFAULT_SHARE_IMAGE = 'https://goimomi.com/logo.png';
+const NO_INDEX_PATHS = [
+  /^\/admin(?:\/|$)/i,
+  /^\/admin-login(?:\/|$)/i,
+  /^\/(?:admin-dashboard|admindashboard|test)(?:\/|$)/i,
+  /^\/(?:payment|payment-failed|payment-checkout)(?:\/|$)/i,
+  /^\/(?:form|enquiry)(?:\/|$)/i,
+  /^\/visa\/(?:results|apply)(?:\/|$)/i,
+  /^\/umrah-package(?:\/|$)/i,
+  /^\/contact\/success(?:\/|$)/i,
+  /^\/goimomi-product(?:\/|$)/i,
+];
+const CANONICAL_PATHS = {
+  '/goimomi-product': '/shop',
+};
+
+const usePageSEO = (title, description, ogImage = DEFAULT_SHARE_IMAGE, keywords = '', ogType = 'website') => {
   useEffect(() => {
+    const shareImage = ogImage ? new URL(ogImage, window.location.origin).href : DEFAULT_SHARE_IMAGE;
+
     // 1. Set document title
     if (title) {
       document.title = title;
@@ -55,9 +73,13 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
 
     setMetaProperty('og:title', title);
     setMetaProperty('og:description', description);
-    setMetaProperty('og:image', ogImage);
+    setMetaProperty('og:image', shareImage);
+    setMetaProperty('og:image:alt', title ? `${title} | Goimomi Holidays` : 'Goimomi Holidays');
     setMetaProperty('og:type', ogType);
-    setMetaProperty('og:url', window.location.href);
+    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+    const canonicalPath = CANONICAL_PATHS[currentPath] || currentPath;
+    const canonicalUrl = `${window.location.origin}${canonicalPath}`;
+    setMetaProperty('og:url', canonicalUrl);
 
     // 5. Set Twitter tags
     const setMetaName = (name, content) => {
@@ -75,8 +97,10 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
 
     setMetaName('twitter:title', title);
     setMetaName('twitter:description', description);
-    setMetaName('twitter:image', ogImage);
+    setMetaName('twitter:image', shareImage);
     setMetaName('twitter:card', 'summary_large_image');
+    setMetaName('twitter:image:alt', title ? `${title} | Goimomi Holidays` : 'Goimomi Holidays');
+    setMetaName('robots', NO_INDEX_PATHS.some((pattern) => pattern.test(window.location.pathname)) ? 'noindex, nofollow' : 'index, follow');
 
     // 6. Set Schema.org itemprop tags (Extra for WhatsApp/Search)
     const setItemProp = (name, content) => {
@@ -93,16 +117,16 @@ const usePageSEO = (title, description, ogImage = 'https://goimomi.com/logo-prev
     };
     setItemProp('name', title);
     setItemProp('description', description);
-    setItemProp('image', ogImage);
+    setItemProp('image', shareImage);
 
     // 7. Set Canonical URL
     let canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
-      canonical.setAttribute('href', window.location.href);
+      canonical.setAttribute('href', canonicalUrl);
     } else {
       canonical = document.createElement('link');
       canonical.setAttribute('rel', 'canonical');
-      canonical.setAttribute('href', window.location.href);
+      canonical.setAttribute('href', canonicalUrl);
       document.head.appendChild(canonical);
     }
 

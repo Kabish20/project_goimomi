@@ -2523,6 +2523,7 @@ class CabSearchAPI(APIView):
 
 import os
 import re
+from html import escape as html_escape
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 
@@ -2535,10 +2536,24 @@ class DynamicSEOView(APIView):
     """
     def get(self, request, path=""):
         # 1. Default fallback values
-        title = "Goimomi Holidays – Customized Holiday Packages & Travel Experiences"
-        description = "Goimomi Holidays offers customized vacation packages, family trips, honeymoon tours, adventure travel, and premium holiday planning tailored to your preferences."
+        title = "Goimomi Holidays | Premium Travel Experiences"
+        description = "Plan holidays with Goimomi Holidays—custom travel packages, family vacations, honeymoon escapes, visa assistance, cruises and business journeys designed around you."
         keywords = "goimomi holidays, travel agency, international tours, domestic holidays, visa services, holiday packages"
-        image = "https://goimomi.com/logo-preview.png"
+        image = "https://goimomi.com/logo.png"
+
+        def frontend_asset_url(stem):
+            assets_path = os.path.join(settings.BASE_DIR, '..', 'goimomifrontend', 'dist', 'assets')
+            if not os.path.isdir(assets_path):
+                assets_path = os.path.join(settings.BASE_DIR, 'dist', 'assets')
+            image_extensions = {'.avif', '.gif', '.jpeg', '.jpg', '.png', '.webp'}
+            try:
+                for filename in os.listdir(assets_path):
+                    if (filename.lower().startswith(stem.lower())
+                            and os.path.splitext(filename)[1].lower() in image_extensions):
+                        return request.build_absolute_uri(f"/assets/{filename}")
+            except OSError:
+                pass
+            return request.build_absolute_uri('/logo.png')
         
         # 2. Dynamic content based on path
         # Holiday Details: /holiday/123
@@ -2555,11 +2570,32 @@ class DynamicSEOView(APIView):
             except:
                 pass
         
+        # Chithirai Global: /chithirai-global
+        elif path.lower() == 'chithirai-global':
+            title = "Chithirai Global | Global Networking for Tamil Businesses"
+            description = "Meet Chithirai Global, a trusted network for Tamil entrepreneurs and professionals, with curated journeys, partnerships and global business opportunities."
+            keywords = "Chithirai Global, Tamil business community, Tamil entrepreneurs, global business networking, business collaboration"
+            image = frontend_asset_url('chithirai-global-hero')
+
+        # Chithirai Global journeys
+        elif path.lower().startswith('chithirai-global/sri-lanka'):
+            title = "Sri Lanka Business Journey | Chithirai Global"
+            description = "Explore Chithirai Global's 22–24 October 2026 Sri Lanka journey from Colombo to Hatton, including networking, meals, hotel stays and scenic tea-country travel."
+            keywords = "Chithirai Global Sri Lanka journey, Colombo Hatton itinerary, Tamil entrepreneur networking, Sri Lanka business trip"
+            image = frontend_asset_url('sri-lanka')
+
+        elif path.lower().startswith('chithirai-global/yelagiri'):
+            title = "Yelagiri Business Retreat | Chithirai Global"
+            description = "Join Chithirai Global in Yelagiri from 18–20 September 2026 for a refreshing business retreat with Tamil entrepreneur networking at AGS Holiday Resorts."
+            keywords = "Chithirai Global Yelagiri journey, AGS Holiday Resorts, Tamil entrepreneur networking, Yelagiri business retreat"
+            image = frontend_asset_url('yelagiri-hero')
+
         # Canton: /canton
         elif 'canton' in path.lower():
             title = "Canton Fair 2026 | Register Now with Goimomi Holidays"
             description = "Join the prestigious Canton Fair 2026 with Goimomi Holidays. Experience the world's largest trade fair with our premium all-inclusive travel packages: luxury 4-star stays, seamless visa assistance, and expert business guidance."
             keywords = "Canton Fair 2026, Canton Fair registration, Canton Fair travel package, Goimomi Holidays, Guangzhou trade fair, Business travel China"
+            image = frontend_asset_url('canton-hero')
             
         # Cabs: /cab
         elif 'cab' in path.lower():
@@ -2673,6 +2709,8 @@ class DynamicSEOView(APIView):
                     title = f"Apply for {v.title} | Goimomi Holidays"
                     description = f"Submit your application for {v.title} for {v.country}. Fast and secure online visa processing."
                     keywords = f"apply for {v.title}, {v.country} visa, online visa form"
+                    if v.card_image:
+                        image = request.build_absolute_uri(v.card_image.url)
                 except:
                     title = "Visa Application | Goimomi Holidays"
                     description = "Complete your international visa application with Goimomi Holidays."
@@ -2703,16 +2741,40 @@ class DynamicSEOView(APIView):
             with open(frontend_dist_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-                # Replace meta tags using regex
-                content = re.sub(r'<title>.*?</title>', f'<title>{title}</title>', content)
-                content = re.sub(r'<meta property="og:title" content=".*?" />', f'<meta property="og:title" content="{title}" />', content)
-                content = re.sub(r'<meta property="og:description" content=".*?" />', f'<meta property="og:description" content="{description}" />', content)
-                content = re.sub(r'<meta property="og:image" content=".*?" />', f'<meta property="og:image" content="{image}" />', content)
-                content = re.sub(r'<meta name="description" content=".*?" />', f'<meta name="description" content="{description}" />', content)
-                content = re.sub(r'<meta name="keywords" content=".*?" />', f'<meta name="keywords" content="{keywords}" />', content)
-                content = re.sub(r'<meta itemprop="name" content=".*?" />', f'<meta itemprop="name" content="{title}" />', content)
-                content = re.sub(r'<meta itemprop="description" content=".*?" />', f'<meta itemprop="description" content="{description}" />', content)
-                content = re.sub(r'<meta itemprop="image" content=".*?" />', f'<meta itemprop="image" content="{image}" />', content)
+                page_url = request.build_absolute_uri(f"/{path.strip('/')}")
+                is_noindex = path.lower().startswith(('visa/apply/', 'admin/'))
+
+                def replace_meta(html, attribute, name, value):
+                    safe_value = html_escape(str(value), quote=True)
+                    pattern = rf'<meta\s+{attribute}="{re.escape(name)}"\s+content="[^"]*"\s*/?>'
+                    replacement = f'<meta {attribute}="{name}" content="{safe_value}" />'
+                    return re.sub(pattern, replacement, html, count=1, flags=re.IGNORECASE)
+
+                # Replace crawler-facing metadata with escaped values.
+                content = re.sub(r'<title>[\s\S]*?</title>', f'<title>{html_escape(title)}</title>', content, count=1, flags=re.IGNORECASE)
+                content = replace_meta(content, 'property', 'og:url', page_url)
+                content = replace_meta(content, 'property', 'og:title', title)
+                content = replace_meta(content, 'property', 'og:description', description)
+                content = replace_meta(content, 'property', 'og:image', image)
+                content = replace_meta(content, 'property', 'og:image:alt', f'{title} | Goimomi Holidays')
+                content = replace_meta(content, 'name', 'description', description)
+                content = replace_meta(content, 'name', 'keywords', keywords)
+                content = replace_meta(content, 'name', 'twitter:url', page_url)
+                content = replace_meta(content, 'name', 'twitter:title', title)
+                content = replace_meta(content, 'name', 'twitter:description', description)
+                content = replace_meta(content, 'name', 'twitter:image', image)
+                content = replace_meta(content, 'name', 'twitter:image:alt', f'{title} | Goimomi Holidays')
+                content = replace_meta(content, 'name', 'robots', 'noindex, nofollow' if is_noindex else 'index, follow')
+                content = replace_meta(content, 'itemprop', 'name', title)
+                content = replace_meta(content, 'itemprop', 'description', description)
+                content = replace_meta(content, 'itemprop', 'image', image)
+                content = re.sub(
+                    r'<link\s+rel="canonical"\s+href="[^"]*"\s*/?>',
+                    f'<link rel="canonical" href="{html_escape(page_url, quote=True)}" />',
+                    content,
+                    count=1,
+                    flags=re.IGNORECASE,
+                )
                 
                 return HttpResponse(content)
         except Exception as e:

@@ -1,7 +1,15 @@
 import React, { useEffect } from 'react';
 import megaheader from '../../../assets/megaheader.png';
+import usePageSEO from '../../../hooks/usePageSEO';
 
 const MegaShowBangkok = () => {
+  usePageSEO(
+    "MEGA SHOW Bangkok 2026 Business Travel Packages | Goimomi Holidays",
+    "Join Goimomi Holidays at MEGA SHOW Bangkok 2026 with curated business travel packages, hotel stays, exhibition support and fixed airport transfers.",
+    megaheader,
+    "MEGA SHOW Bangkok 2026, Bangkok business travel, sourcing exhibition, business travel packages, Goimomi Holidays"
+  );
+
   useEffect(() => {
     try {
       const zf_frame = document.getElementById("ziframe_915123");

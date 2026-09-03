@@ -35,6 +35,8 @@ const MegaShowBangkok = lazyRetry(() => import("./pages/Business/MegaShowBangkok
 const ChithiraiGlobal = lazyRetry(() => import("./pages/Business/Chithirai Global.jsx"));
 const SriLankaJourney = lazyRetry(() => import("./pages/Business/Sri Lanka.jsx"));
 const YelagiriJourney = lazyRetry(() => import("./pages/Business/Yelagiri.jsx"));
+const PondicherryJourney = lazyRetry(() => import("./pages/Business/Pondicherry.jsx"));
+const DubaiJourney = lazyRetry(() => import("./pages/Business/Dubai.jsx"));
 const HolidayHome = lazyRetry(() => import("./pages/Holidays/holidayhome/holidayhome.jsx"));
 const PackageEnquiryPage = lazyRetry(() => import("./pages/Holidays/PackageEnquiryPage/PackageEnquiryPage.jsx"));
 const BusinessHome = lazyRetry(() => import("./pages/Business/businesshome/businesshome.jsx"));
@@ -249,6 +251,8 @@ const App = () => {
               <Route path="/chithirai-global" element={<ChithiraiGlobal />} />
               <Route path="/chithirai-global/sri-lanka" element={<SriLankaJourney />} />
               <Route path="/chithirai-global/yelagiri" element={<YelagiriJourney />} />
+              <Route path="/chithirai-global/pondicherry" element={<PondicherryJourney />} />
+              <Route path="/chithirai-global/dubai" element={<DubaiJourney />} />
               <Route path="/" element={<Home />} />
             <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
             <Route path="/aboutus" element={<About />} />

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ShoppingCart, Zap, Package, Search, X, CheckCircle, ShoppingBag, Star, ChevronLeft, ChevronRight, Trash2, Truck, ShieldAlert, Info } from "lucide-react";
 import api from "../../../api.js";
+import usePageSEO from "../../../hooks/usePageSEO";
 import "./GoimomiProduct.css";
 
 
@@ -1084,6 +1085,19 @@ const GoimomiProduct = () => {
     searchParams.get("payment_success") === "true"
   );
   const successOrderId = searchParams.get("order_id");
+
+  usePageSEO(
+    selectedProductDetails
+      ? `${selectedProductDetails.title} | Goimomi Shop`
+      : "Goimomi Shop | Travel Essentials & Lifestyle Products",
+    selectedProductDetails
+      ? `Shop ${selectedProductDetails.title} from Goimomi. View product details, pricing and secure ordering options.`
+      : "Shop useful travel essentials and lifestyle products from Goimomi. Browse quality items, order securely and enjoy dependable delivery support.",
+    "/shop_banner_bg.png",
+    selectedProductDetails
+      ? `${selectedProductDetails.title}, travel essentials, Goimomi shop, online shopping India`
+      : "Goimomi shop, travel essentials, travel accessories, lifestyle products, online shopping India"
+  );
 
   useEffect(() => {
     const pendingCartOrderId = localStorage.getItem("goimomi_pending_cart_order_id");

@@ -1,0 +1,290 @@
+[
+  {
+    "route": "/",
+    "title": "Goimomi Holidays | Premium Travel Experiences",
+    "description": "Plan holidays with Goimomi Holidays—custom travel packages, family vacations, honeymoon escapes, visa assistance, cruises and business journeys designed around you.",
+    "image": "/logo.png",
+    "keywords": "Goimomi Holidays, holiday packages, customized holidays, travel packages, family trips, honeymoon packages, adventure tours, visa assistance"
+  },
+  {
+    "route": "/aboutus",
+    "title": "About Goimomi Holidays | Your Trusted Travel Partner",
+    "description": "Discover Goimomi Holidays, an Indian travel partner for personalized holidays, business journeys and seamless travel experiences supported by experts.",
+    "image": "aboutus",
+    "keywords": "about Goimomi Holidays, travel agency India, trusted travel partner, personalized holiday planning"
+  },
+  {
+    "route": "/contactus",
+    "title": "Contact Goimomi Holidays | Expert Travel Support",
+    "description": "Speak with Goimomi Holidays about customized holidays, visa assistance, business travel and seamless trip planning. Our travel experts are ready to help.",
+    "image": "/logo.png",
+    "keywords": "contact Goimomi Holidays, travel support India, holiday enquiry, visa consultation, trip planning"
+  },
+  {
+    "route": "/holidayhome",
+    "title": "Plan Your Perfect Holiday | Goimomi Holidays",
+    "description": "Explore curated domestic and international holiday packages, from European escapes and family vacations to Umrah journeys and tailor-made tours.",
+    "image": "leisure-header-01",
+    "keywords": "holiday packages India, international tours, domestic travel, Umrah packages, customized tours"
+  },
+  {
+    "route": "/businesshome",
+    "title": "Goimomi Business | Corporate Travel & Global Mobility",
+    "description": "Corporate travel, sourcing trips, logistics and global business mobility for modern Indian enterprises. Travel with confidence through Goimomi Business.",
+    "image": "biz1",
+    "keywords": "corporate travel India, business travel management, sourcing trips China, corporate logistics, Goimomi Business"
+  },
+  {
+    "route": "/blog",
+    "title": "Goimomi Travel Journal | Guides, Visa Tips & Inspiration",
+    "description": "Explore practical travel guides, visa tips, pilgrimage planning advice, destination inspiration and holiday ideas from Goimomi Holidays.",
+    "image": "blog_hero_banner_v3",
+    "keywords": "travel blog, India travel guide, visa guide, Umrah guide, holiday planning, travel tips"
+  },
+  {
+    "route": "/holidays",
+    "title": "Holiday Packages | Explore the World with Goimomi",
+    "description": "Find inspiring domestic and international holiday packages with Goimomi Holidays, including destination tours, family breaks, honeymoons and custom trips.",
+    "image": "leisure-header-01",
+    "keywords": "holiday packages, tour packages, luxury vacations, family holidays, honeymoon tours, Goimomi Holidays"
+  },
+  {
+    "route": "/customizedHolidays",
+    "title": "Customized Holiday Packages | Goimomi Holidays",
+    "description": "Design your dream vacation with flights, stays and experiences tailored to your destination, travel style, schedule and budget by Goimomi Holidays.",
+    "image": "cusholidays",
+    "keywords": "customized holiday packages, tailor-made travel, personalized vacation planning, family holidays, honeymoon trips"
+  },
+  {
+    "route": "/customizedumrah",
+    "title": "Customized Umrah Packages | Goimomi Holidays",
+    "description": "Plan a meaningful Umrah pilgrimage with comfortable stays, visa assistance, religious guidance and dependable travel arrangements from Goimomi Holidays.",
+    "image": "umrah",
+    "keywords": "customized Umrah packages, Umrah from India, Umrah visa assistance, Makkah Madinah travel"
+  },
+  {
+    "route": "/cab",
+    "title": "Premium Cab & Airport Transfer Services | Goimomi Holidays",
+    "description": "Book dependable airport transfers, intercity travel and premium chauffeur-driven cab services with professional support from Goimomi Holidays.",
+    "image": "cab-hero-01",
+    "keywords": "premium cab service, airport transfers, intercity taxi, chauffeur service, Goimomi Holidays"
+  },
+  {
+    "route": "/cruise",
+    "title": "Luxury Cruise Holidays | Plan Your Voyage | Goimomi Holidays",
+    "description": "Sail in style with Goimomi Holidays cruise packages, including comfortable stays, curated itineraries and memorable voyages for every traveler.",
+    "image": "cruise_hero",
+    "keywords": "luxury cruise holidays, cruise booking India, international cruise packages, Goimomi Holidays"
+  },
+  {
+    "route": "/hotel",
+    "title": "Premium Hotel Bookings | Goimomi Holidays",
+    "description": "Discover handpicked hotels and resorts worldwide at competitive rates, with a smooth booking experience and travel support from Goimomi Holidays.",
+    "image": "/logo.png",
+    "keywords": "hotel booking, luxury hotels, international resort booking, premium accommodation"
+  },
+  {
+    "route": "/visa",
+    "title": "Online Visa Services | Fast & Reliable Processing | Goimomi Holidays",
+    "description": "Apply for international visas with expert guidance, clear document support and dependable processing assistance from Goimomi Holidays.",
+    "image": "visa-hero-01",
+    "keywords": "online visa, visa application, travel visa services, visa processing, international visa assistance"
+  },
+  {
+    "route": "/Europeantours",
+    "title": "European Tour Packages | Explore Europe | Goimomi Holidays",
+    "description": "Experience Europe with thoughtfully planned tours featuring iconic cities, premium stays and expertly designed itineraries for a memorable vacation.",
+    "image": "/logo.png",
+    "keywords": "European tour packages, Europe vacation, Paris Rome tours, Switzerland holiday, multi-country Europe trip"
+  },
+  {
+    "route": "/canton",
+    "title": "140th China Canton Fair 2026 Business Delegation | Goimomi Holidays",
+    "description": "Join Goimomi Holidays for the 140th Canton Fair 2026 with hotel stays, visa support, transfers, networking and factory visits for business buyers.",
+    "image": "canton-hero",
+    "keywords": "Canton Fair 2026, China business delegation, Guangzhou business tour, China trade fair, factory visits China"
+  },
+  {
+    "route": "/megashowbangkok",
+    "title": "MEGA SHOW Bangkok 2026 Business Travel Packages | Goimomi Holidays",
+    "description": "Join Goimomi Holidays at MEGA SHOW Bangkok 2026 with curated business travel packages, hotel stays, exhibition support and fixed airport transfers.",
+    "image": "megaheader",
+    "keywords": "MEGA SHOW Bangkok 2026, Bangkok business travel, sourcing exhibition, business travel packages, Goimomi Holidays"
+  },
+  {
+    "route": "/chithirai-global",
+    "title": "Chithirai Global | Global Networking for Tamil Businesses",
+    "description": "Meet Chithirai Global, a trusted network for Tamil entrepreneurs and professionals, with curated journeys, partnerships and global business opportunities.",
+    "image": "chithirai-global-hero",
+    "keywords": "Chithirai Global, Tamil business community, Tamil entrepreneurs, global business networking, business collaboration"
+  },
+  {
+    "route": "/chithirai-global/sri-lanka",
+    "title": "Sri Lanka Business Journey | Chithirai Global",
+    "description": "Explore Chithirai Global’s 22–24 October 2026 Sri Lanka journey from Colombo to Hatton, including networking, meals, hotel stays and scenic tea-country travel.",
+    "image": "sri-lanka",
+    "keywords": "Chithirai Global Sri Lanka journey, Colombo Hatton itinerary, Tamil entrepreneur networking, Sri Lanka business trip"
+  },
+  {
+    "route": "/chithirai-global/yelagiri",
+    "title": "Yelagiri Business Retreat | Chithirai Global",
+    "description": "Join Chithirai Global in Yelagiri from 18–20 September 2026 for a refreshing business retreat with Tamil entrepreneur networking at AGS Holiday Resorts.",
+    "image": "yelagiri-hero",
+    "keywords": "Chithirai Global Yelagiri journey, AGS Holiday Resorts, Tamil entrepreneur networking, Yelagiri business retreat"
+  },
+  {
+    "route": "/chithirai-global/pondicherry",
+    "title": "ScaleX Pondicherry | Scaling Up Frameworks",
+    "description": "Join ScaleX in Pondicherry from 17–19 December 2026 for three days of scaling frameworks, business reflection, peer learning and meaningful connections.",
+    "image": "pondicherry-bleisure",
+    "keywords": "ScaleX Pondicherry, scaling up frameworks, business growth workshop, Pondicherry business retreat, Chithirai Global"
+  },
+  {
+    "route": "/chithirai-global/dubai",
+    "title": "International Business Mission Dubai 2026 | Global Horizons",
+    "description": "Join the International Business Mission Dubai 2026 from 21–22 November for business matchmaking, presentations, group discussions and awards.",
+    "image": "dubai",
+    "keywords": "Global Horizons Dubai 2026, International Business Mission Dubai, Tamil entrepreneur networking, Dubai business matchmaking, business awards"
+  },
+  {
+    "route": "/privacy-policy",
+    "title": "Privacy Policy | Goimomi Holidays",
+    "description": "Learn how Goimomi Holidays collects, uses, shares and protects personal information across our website and travel services.",
+    "image": "/logo.png",
+    "keywords": "Goimomi Holidays privacy policy, travel data protection, booking privacy"
+  },
+  {
+    "route": "/terms-and-conditions",
+    "title": "Terms & Conditions | Goimomi Holidays",
+    "description": "Read the terms governing Goimomi Holidays website use, travel enquiries, bookings, payments, suppliers and customer responsibilities.",
+    "image": "/logo.png",
+    "keywords": "Goimomi Holidays terms and conditions, travel booking terms, holiday package terms"
+  },
+  {
+    "route": "/cancellation-policy",
+    "title": "Cancellation Policy | Goimomi Holidays",
+    "description": "Understand how Goimomi Holidays handles travel cancellations, amendments, supplier charges, refunds, credits and booking disruptions.",
+    "image": "/logo.png",
+    "keywords": "Goimomi Holidays cancellation policy, travel refunds, booking changes, holiday cancellation"
+  },
+  {
+    "route": "/shop",
+    "title": "Goimomi Shop | Travel Essentials & Lifestyle Products",
+    "description": "Shop useful travel essentials and lifestyle products from Goimomi. Browse quality items, order securely and enjoy dependable delivery support.",
+    "image": "/shop_banner_bg.png",
+    "keywords": "Goimomi shop, travel essentials, travel accessories, lifestyle products, online shopping India"
+  },
+  {
+    "route": "/goimomi-product",
+    "title": "Goimomi Shop | Travel Essentials & Lifestyle Products",
+    "description": "Shop useful travel essentials and lifestyle products from Goimomi. Browse quality items, order securely and enjoy dependable delivery support.",
+    "image": "/shop_banner_bg.png",
+    "keywords": "Goimomi shop, travel essentials, travel accessories, lifestyle products, online shopping India",
+    "indexable": false,
+    "canonical": "/shop"
+  },
+  {
+    "route": "/umrah-package",
+    "title": "Umrah Packages | Coming Soon | Goimomi Holidays",
+    "description": "Goimomi Holidays is preparing thoughtfully planned Umrah packages with comfortable stays, visa assistance and dependable pilgrimage support.",
+    "image": "umrah",
+    "keywords": "Umrah packages India, Umrah travel, pilgrimage packages, Goimomi Holidays",
+    "indexable": false
+  },
+  {
+    "route": "/form",
+    "title": "Plan Your Custom Trip | Goimomi Holidays",
+    "description": "Share your travel preferences with Goimomi Holidays and receive a personalized holiday plan built around your destination, schedule and budget.",
+    "image": "/logo.png",
+    "keywords": "custom trip planner, holiday enquiry, personalized travel plan, Goimomi Holidays",
+    "indexable": false
+  },
+  {
+    "route": "/enquiry",
+    "title": "Holiday Package Enquiry | Goimomi Holidays",
+    "description": "Request a personalized quote for domestic or international holidays from Goimomi Holidays, with expert advice for planning your next journey.",
+    "image": "/logo.png",
+    "keywords": "holiday enquiry, travel quote, package booking, vacation planning, Goimomi Holidays",
+    "indexable": false
+  },
+  {
+    "route": "/visa/results",
+    "title": "Visa Search Results | Goimomi Holidays",
+    "description": "Review visa options, fees, processing times and document requirements for your next international trip with Goimomi Holidays.",
+    "image": "visa-hero-01",
+    "keywords": "visa search, visa fees, visa processing time, international visa requirements",
+    "indexable": false
+  },
+  {
+    "route": "/contact/success",
+    "title": "Enquiry Received | Goimomi Holidays",
+    "description": "Your Goimomi Holidays enquiry has been received. Our travel experts will review your request and contact you shortly.",
+    "image": "/logo.png",
+    "keywords": "Goimomi enquiry received, travel support confirmation",
+    "indexable": false
+  },
+  {
+    "route": "/payment-failed",
+    "title": "Payment Unsuccessful | Goimomi Holidays",
+    "description": "Your Goimomi Holidays payment was not completed. Please try again or contact our support team for help with your booking.",
+    "image": "/logo.png",
+    "keywords": "Goimomi payment failed, booking payment support",
+    "indexable": false
+  },
+  {
+    "route": "/payment/failed",
+    "title": "Payment Unsuccessful | Goimomi Holidays",
+    "description": "Your Goimomi Holidays payment was not completed. Please try again or contact our support team for help with your booking.",
+    "image": "/logo.png",
+    "keywords": "Goimomi payment failed, booking payment support",
+    "indexable": false
+  },
+  {
+    "route": "/payment-checkout",
+    "title": "Secure Booking Payment | Goimomi Holidays",
+    "description": "Continue securely to complete your Goimomi Holidays booking payment and confirm your selected travel service.",
+    "image": "/logo.png",
+    "keywords": "Goimomi secure payment, holiday booking payment, travel checkout",
+    "indexable": false
+  },
+  {
+    "route": "/payment/checkout",
+    "title": "Secure Booking Payment | Goimomi Holidays",
+    "description": "Continue securely to complete your Goimomi Holidays booking payment and confirm your selected travel service.",
+    "image": "/logo.png",
+    "keywords": "Goimomi secure payment, holiday booking payment, travel checkout",
+    "indexable": false
+  },
+  {
+    "route": "/test",
+    "title": "Goimomi Holidays Test Page",
+    "description": "Internal Goimomi Holidays application test page.",
+    "image": "/logo.png",
+    "keywords": "",
+    "indexable": false
+  },
+  {
+    "route": "/admin",
+    "title": "Goimomi Holidays Administration Login",
+    "description": "Secure administrative access for authorized Goimomi Holidays team members.",
+    "image": "/logo.png",
+    "keywords": "",
+    "indexable": false
+  },
+  {
+    "route": "/admin/login",
+    "title": "Goimomi Holidays Administration Login",
+    "description": "Secure administrative access for authorized Goimomi Holidays team members.",
+    "image": "/logo.png",
+    "keywords": "",
+    "indexable": false
+  },
+  {
+    "route": "/admin-login",
+    "title": "Goimomi Holidays Administration Login",
+    "description": "Secure administrative access for authorized Goimomi Holidays team members.",
+    "image": "/logo.png",
+    "keywords": "",
+    "indexable": false
+  }
+]

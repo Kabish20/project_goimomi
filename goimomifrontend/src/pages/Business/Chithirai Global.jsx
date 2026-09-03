@@ -31,9 +31,10 @@ import usePageSEO from "../../hooks/usePageSEO";
 import chithiraiLogo from "../../assets/Chithirai/chithirai-logo-hd.png";
 import goimomiLogo from "../../assets/goimomilogo.png";
 import heroImage from "../../assets/Chithirai/chithirai-global-hero.png";
-import yelagiriImage from "../../assets/Chithirai/Journeys/yelagiri.png";
-import sriLankaImage from "../../assets/Chithirai/Journeys/sri-lanka.png";
+import yelagiriImage from "../../assets/Chithirai/Journeys/yelagiri-bleisure.png";
+import sriLankaImage from "../../assets/Chithirai/Journeys/sri-lanka-bleisure.png";
 import dubaiImage from "../../assets/Chithirai/Journeys/dubai.png";
+import pondicherryImage from "../../assets/Chithirai/Journeys/pondicherry-bleisure.png";
 import collaborationImage from "../../assets/Home/BusinessHeader/home-business-03.png";
 
 const regions = [
@@ -130,8 +131,20 @@ const upcomingJourneys = [
     date: "21–22 November 2026",
     type: "Global business circle",
     image: dubaiImage,
+    path: "/chithirai-global/dubai",
+    registrationName: "International Business Mission Dubai",
     description: "Meet the energy of a global city and open the door to new conversations, partnerships and possibilities.",
     accent: "from-[#201914]/90",
+  },
+  {
+    location: "Pondicherry",
+    date: "17–19 December 2026",
+    type: "Coastal business retreat",
+    image: pondicherryImage,
+    path: "/chithirai-global/pondicherry",
+    registrationName: "ScaleX Pondicherry",
+    description: "Take business conversations to the coast with a relaxed Pondicherry journey filled with seaside moments, shared ideas and new connections.",
+    accent: "from-[#3a2118]/90",
   },
 ];
 
@@ -244,8 +257,8 @@ const ChithiraiGlobal = () => {
   };
 
   usePageSEO(
-    "Chithirai Global | Connecting Tamil Businesses Globally",
-    "Chithirai Global connects Tamil entrepreneurs, professionals and business leaders through trusted networking, collaboration and global business opportunities.",
+    "Chithirai Global | Global Networking for Tamil Businesses",
+    "Meet Chithirai Global, a trusted network for Tamil entrepreneurs and professionals, with curated journeys, partnerships and global business opportunities.",
     heroImage,
     "Chithirai Global, Tamil business community, Tamil entrepreneurs, global business networking, business collaboration, Goimomi Business, chithiraibiz.com"
   );
@@ -358,7 +371,7 @@ const ChithiraiGlobal = () => {
             <p className="max-w-md text-sm leading-7 text-slate-600">Curated community journeys for better conversations, stronger relationships and experiences worth remembering.</p>
           </div>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {upcomingJourneys.map((trip) => (
               <article key={trip.location} className="group overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
                 <div className="relative h-64 overflow-hidden">
@@ -382,7 +395,7 @@ const ChithiraiGlobal = () => {
                       View itinerary <ArrowRight className="h-4 w-4" />
                     </Link>
                   ) : (
-                    <button type="button" onClick={handleOpenRegistration} className="mt-auto inline-flex items-center gap-2 pt-6 text-left text-sm font-black uppercase tracking-wider text-emerald-800 hover:gap-3">
+                    <button type="button" onClick={(event) => handleOpenRegistration(event, trip.registrationName || trip.location)} className="mt-auto inline-flex items-center gap-2 pt-6 text-left text-sm font-black uppercase tracking-wider text-emerald-800 hover:gap-3">
                       Register interest <ArrowRight className="h-4 w-4" />
                     </button>
                   )}
