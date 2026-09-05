@@ -798,10 +798,10 @@ class HolidayPackageViewSet(ModelViewSet):
 
         with_flight = self.request.query_params.get('with_flight', None)
         if with_flight is not None:
-             if with_flight.lower() == 'true':
-                 queryset = queryset.filter(with_flight=True)
-             elif with_flight.lower() == 'false':
-                 queryset = queryset.filter(with_flight=False)
+            if with_flight.lower() == 'true':
+                queryset = queryset.filter(with_flight=True)
+            elif with_flight.lower() == 'false':
+                queryset = queryset.filter(with_flight=False)
                  
         return queryset
         
@@ -2701,11 +2701,11 @@ class DynamicSEOView(APIView):
 
         # Visa Services: /visa
         elif 'visa' in path.lower():
-            if 'apply' in path.lower():
             if 'ratecard' in path.lower() or 'rate-card' in path.lower():
                 title = "B2B Visa Rate Card | Goimomi Holidays"
                 description = "Official Goimomi Holidays B2B Visa Rate Card with live updated partner pricing, processing times, and document requirements for travel agents."
                 keywords = "B2B visa rate card, visa partner pricing, travel agent visa rates, visa processing fees, Goimomi Holidays"
+                image = frontend_asset_url('visa-hero')
             elif 'apply' in path.lower():
                 try:
                     visa_id = path.split('/')[-1]
@@ -2723,10 +2723,12 @@ class DynamicSEOView(APIView):
                 title = "Visa Search Results | Goimomi Holidays"
                 description = "Explore visa options for your next trip. Get details on fees, processing time, and documents required."
                 keywords = "visa search, travel visa search, visa explorer"
+                image = frontend_asset_url('visa-hero')
             else:
                 title = "Online Visa Services | Fast & Reliable Processing | Goimomi Holidays"
                 description = "Apply for international visas online with Goimomi Holidays. Get expert assistance and fast, hassle-free visa processing for over 100+ countries."
                 keywords = "online visa, visa application, travel visa services, fast visa processing, international visa assistance"
+                image = frontend_asset_url('visa-hero')
 
         # Admin Login: /adminLogin
         elif 'adminlogin' in path.lower():
