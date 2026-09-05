@@ -2702,6 +2702,11 @@ class DynamicSEOView(APIView):
         # Visa Services: /visa
         elif 'visa' in path.lower():
             if 'apply' in path.lower():
+            if 'ratecard' in path.lower() or 'rate-card' in path.lower():
+                title = "B2B Visa Rate Card | Goimomi Holidays"
+                description = "Official Goimomi Holidays B2B Visa Rate Card with live updated partner pricing, processing times, and document requirements for travel agents."
+                keywords = "B2B visa rate card, visa partner pricing, travel agent visa rates, visa processing fees, Goimomi Holidays"
+            elif 'apply' in path.lower():
                 try:
                     visa_id = path.split('/')[-1]
                     from .models import Visa
