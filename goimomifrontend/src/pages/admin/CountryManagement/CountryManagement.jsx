@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -16,6 +16,7 @@ const CountryManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
+  const [query, setQuery] = useState({ tab: 'all', search: '' });
   const [pagination, setPagination] = useState({ count: 0, total_pages: 1 });
   const navigate = useNavigate();
 
@@ -23,22 +24,19 @@ const CountryManagement = () => {
     // Reset to page 1 when tab or search changes
     const timer = setTimeout(() => {
       setPage(1);
-      fetchData();
+      setQuery({ tab: activeTab, search: searchTerm });
     }, 300); // 300ms debounce for search
     return () => clearTimeout(timer);
   }, [activeTab, searchTerm]);
 
-  useEffect(() => {
-    fetchData();
-  }, [page]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async (signal) => {
     try {
       setLoading(true);
       const response = await api.get("/api/destination-hierarchy/", {
+        signal,
         params: {
-          tab: activeTab,
-          search: searchTerm,
+          tab: query.tab,
+          search: query.search,
           page: page,
           page_size: 50
         }
@@ -58,12 +56,19 @@ const CountryManagement = () => {
       }
       setError("");
     } catch (err) {
+      if (signal?.aborted) return;
       console.error("Error fetching hierarchy data:", err);
       setError("Failed to load management data. Please try again.");
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
-  };
+  }, [query, page]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
+  }, [fetchData]);
 
   const displayData = data;
 

@@ -694,7 +694,7 @@ class VehicleMaster(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.brand.name} {self.name}"
+        return f"{self.brand.name} {self.name or ''}".strip() if self.brand else (self.name or 'Vehicle')
 
 class DriverMaster(models.Model):
     name = models.CharField(max_length=255)

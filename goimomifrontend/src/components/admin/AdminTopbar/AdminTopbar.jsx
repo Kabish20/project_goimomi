@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink, Key, LogOut, Menu } from "lucide-react";
+import { clearAuthTokens } from '../../../api';
 
 const AdminTopbar = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const AdminTopbar = () => {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("adminUser");
+    clearAuthTokens();
     navigate("/admin-login");
   };
 
@@ -78,5 +79,4 @@ const AdminTopbar = () => {
 
 
 export default AdminTopbar;
-
 

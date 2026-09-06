@@ -8,6 +8,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 # Django Imports
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
+from django.db import transaction
 
 # Local App Imports
 from .models import (
@@ -639,6 +640,15 @@ class VisaApplicantSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class VisaApplicantSubmissionSerializer(VisaApplicantSerializer):
+    class Meta(VisaApplicantSerializer.Meta):
+        read_only_fields = ['application']
+
+
+class VisaDocumentSubmissionSerializer(VisaAdditionalDocumentSerializer):
+    class Meta(VisaAdditionalDocumentSerializer.Meta):
+        read_only_fields = ['applicant']
+
 
 class VisaApplicationSerializer(serializers.ModelSerializer):
     applicants = VisaApplicantSerializer(many=True, read_only=True)
@@ -890,13 +900,30 @@ class SubCatalogueSerializer(serializers.ModelSerializer):
         }
 
 
+class NestedSubCatalogueSerializer(SubCatalogueSerializer):
+    id = serializers.IntegerField(required=False, min_value=1)
+
+    class Meta(SubCatalogueSerializer.Meta):
+        read_only_fields = ['catalogue']
+
+
 class CatalogueMasterSerializer(serializers.ModelSerializer):
-    sub_catalogues = SubCatalogueSerializer(many=True, required=False)
+    sub_catalogues = NestedSubCatalogueSerializer(many=True, required=False)
 
     class Meta:
         model = CatalogueMaster
         fields = "__all__"
 
+    def validate_sub_catalogues(self, items):
+        ids = [item['id'] for item in items if 'id' in item]
+        if len(ids) != len(set(ids)):
+            raise serializers.ValidationError('A sub-catalogue may only be included once.')
+        if ids:
+            if self.instance is None or self.instance.sub_catalogues.filter(pk__in=ids).count() != len(ids):
+                raise serializers.ValidationError('Sub-catalogue IDs must belong to this catalogue.')
+        return items
+
+    @transaction.atomic
     def create(self, validated_data):
         sub_catalogues_data = validated_data.pop('sub_catalogues', [])
         catalogue = CatalogueMaster.objects.create(**validated_data)
@@ -904,6 +931,7 @@ class CatalogueMasterSerializer(serializers.ModelSerializer):
             SubCatalogue.objects.create(catalogue=catalogue, **sub_data)
         return catalogue
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         sub_catalogues_data = validated_data.pop('sub_catalogues', None)
         
@@ -913,7 +941,7 @@ class CatalogueMasterSerializer(serializers.ModelSerializer):
 
         if sub_catalogues_data is not None:
             for sub_data in sub_catalogues_data:
-                sub_id = sub_data.get('id', None)
+                sub_id = sub_data.pop('id', None)
                 if sub_id:
                     sub_obj = SubCatalogue.objects.filter(id=sub_id, catalogue=instance).first()
                     if sub_obj:
@@ -921,7 +949,7 @@ class CatalogueMasterSerializer(serializers.ModelSerializer):
                             setattr(sub_obj, sub_attr, sub_val)
                         sub_obj.save()
                     else:
-                        SubCatalogue.objects.create(catalogue=instance, **sub_data)
+                        raise serializers.ValidationError({'sub_catalogues': 'Sub-catalogue no longer exists.'})
                 else:
                     SubCatalogue.objects.create(catalogue=instance, **sub_data)
 

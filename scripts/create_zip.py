@@ -9,11 +9,16 @@ def create_zip(filename, mapping):
                 continue
             for root, dirs, files in os.walk(local_dir):
                 # Exclude node_modules, venv, dist, media, and cache
-                for exc in ['node_modules', 'venv', 'dist', '__pycache__', '.git', 'media', 'visa_cards', '.vscode']:
+                for exc in ['node_modules', 'venv', '.venv', 'dist', '__pycache__', '.git', 'media', 'visa_cards', '.vscode', '.pytest_cache']:
                     if exc in dirs:
                         dirs.remove(exc)
                 
                 for file in files:
+                    lower_name = file.lower()
+                    if lower_name == '.env' or (lower_name.startswith('.env.') and lower_name != '.env.example'):
+                        continue
+                    if lower_name == 'self_client.json' or lower_name.endswith(('.sqlite3', '.sqlite3-journal', '.pem', '.key', '.log', '.pyc')):
+                        continue
                     if file.lower().endswith(('.pdf', '.mp4', '.zip', '.tar', '.gz')):
                         continue
                     file_path = os.path.join(root, file)

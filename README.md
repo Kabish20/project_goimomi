@@ -30,11 +30,16 @@ npm run dev:frontend    # Start React Vite dev server (port 5174)
 npm run build:frontend  # Build production frontend dist bundle
 npm run check:backend   # Run backend system checks
 npm run test:backend    # Run Django unit tests
+npm run test:frontend   # Run frontend API regression tests
+npm run test:packaging  # Check deployment archive exclusions
 npm run lint:frontend   # Run ESLint frontend checks
 npm run seed:visas      # Seed visa data in backend
 npm run seed:logistics  # Seed courier tracking providers
 npm run zip:package     # Build deployment package archive
 ```
+
+Backend tests use an isolated in-memory SQLite database through `backend.test_settings`.
+See [PROJECT_AUDIT.md](PROJECT_AUDIT.md) for the latest bug fixes, checks, and remaining validation limits.
 
 ---
 

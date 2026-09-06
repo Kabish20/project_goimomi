@@ -26,12 +26,12 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 class IsAuthenticatedOrWriteOnly(BasePermission):
     """
     Allow any user to POST (create) a resource,
-    but require authentication for any other action (read, update, delete).
+    but require staff access for any other action (read, update, delete).
     """
     def has_permission(self, request, view):
-        if request.method == 'POST':
+        if request.method == 'POST' and getattr(view, 'action', None) == 'create':
             return True
-        return request.user and request.user.is_authenticated
+        return bool(request.user and request.user.is_authenticated and request.user.is_staff)
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -96,7 +96,7 @@ def _cab_value_matches(rate_value, requested_value):
 
 
 def quote_cab_fare(vehicle_id, from_city, to_city, pickup_date, pickup_point='', drop_point=''):
-    """Resolve the authoritative fare for a public cab booking from active rate cards with fallback handling."""
+    """Resolve a fare only from rate cards valid for the requested trip."""
     try:
         vehicle = VehicleMaster.objects.select_related('brand').get(pk=int(vehicle_id))
     except (VehicleMaster.DoesNotExist, TypeError, ValueError):
@@ -109,12 +109,14 @@ def quote_cab_fare(vehicle_id, from_city, to_city, pickup_date, pickup_point='',
 
     norm_from_city = _normalise_cab_city(from_city)
     norm_to_city = _normalise_cab_city(to_city)
+    if not travel_date or not norm_from_city or not norm_to_city:
+        return vehicle, None
 
     vehicle_names = {str(vehicle.name or '').strip().lower()}
     if vehicle.brand_id:
         vehicle_names.add(f"{vehicle.brand.name} {vehicle.name}".strip().lower())
 
-    def _extract_fares(rate_cards_qs, check_points=True):
+    def _extract_fares(rate_cards_qs):
         found_fares = []
         for rate_card in rate_cards_qs:
             routes = rate_card.routes
@@ -130,18 +132,22 @@ def quote_cab_fare(vehicle_id, from_city, to_city, pickup_date, pickup_point='',
                 except (TypeError, ValueError):
                     columns = []
 
+            if not isinstance(routes, list) or not isinstance(columns, list):
+                continue
+
             for route in routes or []:
                 if not isinstance(route, dict):
                     continue
-                if norm_from_city and not _cab_value_matches(_normalise_cab_city(route.get('start_city')), norm_from_city):
+                route_from = _normalise_cab_city(route.get('start_city'))
+                route_to = _normalise_cab_city(route.get('drop_city'))
+                if not route_from or not _cab_value_matches(route_from, norm_from_city):
                     continue
-                if norm_to_city and not _cab_value_matches(_normalise_cab_city(route.get('drop_city')), norm_to_city):
+                if not route_to or not _cab_value_matches(route_to, norm_to_city):
                     continue
-                if check_points:
-                    if pickup_point and not _cab_value_matches(route.get('start_from'), pickup_point):
-                        continue
-                    if drop_point and not _cab_value_matches(route.get('drop_to'), drop_point):
-                        continue
+                if pickup_point and not _cab_value_matches(route.get('start_from'), pickup_point):
+                    continue
+                if drop_point and not _cab_value_matches(route.get('drop_to'), drop_point):
+                    continue
 
                 for index, name in enumerate(columns or []):
                     if str(name or '').strip().lower() not in vehicle_names:
@@ -150,7 +156,7 @@ def quote_cab_fare(vehicle_id, from_city, to_city, pickup_date, pickup_point='',
                         fare = Decimal(str(route.get(f'v{index + 1}')))
                     except (InvalidOperation, TypeError, ValueError):
                         continue
-                    if fare > 0:
+                    if fare.is_finite() and fare > 0:
                         found_fares.append(fare)
         return found_fares
 
@@ -160,15 +166,7 @@ def quote_cab_fare(vehicle_id, from_city, to_city, pickup_date, pickup_point='',
             validity_start__lte=travel_date,
             validity_end__gte=travel_date,
         )
-        fares = _extract_fares(strict_cards, check_points=True)
-
-    # Fallback 1: search all rate cards without strict date filtering
-    if not fares:
-        fares = _extract_fares(VehicleRateCard.objects.all().order_by('-validity_end'), check_points=True)
-
-    # Fallback 2: search all rate cards ignoring pickup/drop point filters
-    if not fares:
-        fares = _extract_fares(VehicleRateCard.objects.all().order_by('-validity_end'), check_points=False)
+        fares = _extract_fares(strict_cards)
 
     return vehicle, min(fares) if fares else None
 
@@ -208,6 +206,7 @@ from .serializers import (
     ItineraryMasterSerializer, UserSerializer,
     VisaSerializer, VisaApplicationSerializer,
     VisaApplicantSerializer, VisaAdditionalDocumentSerializer,
+    VisaApplicantSubmissionSerializer, VisaDocumentSubmissionSerializer,
     SupplierSerializer, CruiseCalendarSerializer,
     HotelMasterSerializer, AirlineSerializer, SightseeingMasterSerializer,
     MealMasterSerializer, VehicleBrandSerializer, AccommodationSerializer,
@@ -884,7 +883,7 @@ class VisaApplicationViewSet(ModelViewSet):
         data = request.data.copy()
         applicants_json = data.get('applicants_data')
         try:
-            applicants_list = json.loads(applicants_json) if applicants_json else []
+            applicants_list = json.loads(applicants_json) if isinstance(applicants_json, str) else applicants_json
         except (TypeError, ValueError, json.JSONDecodeError):
             return Response({'error': 'Applicants data must be valid JSON.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -906,39 +905,35 @@ class VisaApplicationViewSet(ModelViewSet):
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-        application = serializer.save()
-        
+        applicant_submissions = []
         for i, applicant_data in enumerate(applicants_list):
-            passport_front = request.FILES.get(f'applicant_{i}_passport_front')
-            photo = request.FILES.get(f'applicant_{i}_photo')
-            
-            applicant = VisaApplicant.objects.create(
-                application=application,
-                first_name=applicant_data.get('first_name', ''),
-                last_name=applicant_data.get('last_name', ''),
-                passport_number=applicant_data.get('passport_number', ''),
-                sex=applicant_data.get('sex', 'Male'),
-                dob=applicant_data.get('dob'),
-                place_of_birth=applicant_data.get('place_of_birth', ''),
-                place_of_issue=applicant_data.get('place_of_issue', ''),
-                marital_status=applicant_data.get('marital_status', 'Single'),
-                date_of_issue=applicant_data.get('date_of_issue'),
-                date_of_expiry=applicant_data.get('date_of_expiry'),
-                phone=applicant_data.get('phone', ''),
-                passport_front=passport_front,
-                photo=photo
-            )
+            applicant_input = applicant_data.copy()
+            applicant_input['passport_front'] = request.FILES.get(f'applicant_{i}_passport_front')
+            applicant_input['photo'] = request.FILES.get(f'applicant_{i}_photo')
+            applicant_serializer = VisaApplicantSubmissionSerializer(data=applicant_input)
+            applicant_serializer.is_valid(raise_exception=True)
 
-            # Handle additional documents
+            documents = []
             additional_docs = applicant_data.get('additional_documents', [])
+            if not isinstance(additional_docs, list) or not all(isinstance(doc, dict) for doc in additional_docs):
+                return Response({'error': 'Additional documents must be a list of objects.'}, status=status.HTTP_400_BAD_REQUEST)
             for j, doc_data in enumerate(additional_docs):
                 doc_file = request.FILES.get(f'applicant_{i}_additional_doc_{j}')
                 if doc_file:
-                    VisaAdditionalDocument.objects.create(
-                        applicant=applicant,
-                        document_name=doc_data.get('name', f'Document {j+1}'),
-                        file=doc_file
-                    )
+                    document_serializer = VisaDocumentSubmissionSerializer(data={
+                        'document_name': doc_data.get('name', f'Document {j+1}'), 'file': doc_file,
+                    })
+                    document_serializer.is_valid(raise_exception=True)
+                    documents.append(document_serializer)
+            applicant_submissions.append((applicant_serializer, documents))
+
+        # Validate every traveller before writing; save the whole application together.
+        with transaction.atomic():
+            application = serializer.save()
+            for applicant_serializer, documents in applicant_submissions:
+                applicant = applicant_serializer.save(application=application)
+                for document_serializer in documents:
+                    document_serializer.save(applicant=applicant)
 
         resp_data = serializer.data
 
@@ -947,13 +942,13 @@ class VisaApplicationViewSet(ModelViewSet):
             from Holidays.utils import create_zoho_crm_lead
             import threading
             first_applicant = applicants_list[0] if applicants_list else {}
-            applicant_name = f"{application.given_name} {application.surname}".strip() or f"{first_applicant.get('first_name', '')} {first_applicant.get('last_name', '')}".strip() or 'Visa Applicant'
-            applicant_phone = application.phone or first_applicant.get('phone', '')
+            applicant_name = f"{first_applicant.get('first_name', '')} {first_applicant.get('last_name', '')}".strip() or 'Visa Applicant'
+            applicant_phone = first_applicant.get('phone', '')
             lead_data = {
                 'name': applicant_name,
-                'email': application.email,
+                'email': str(request.data.get('email') or '').strip(),
                 'phone': applicant_phone,
-                'description': f"Visa Application: {visa.country.name} - {visa.visa_type}\nApplicants: {len(applicants_list)}\nTotal Price: ₹{application.total_price}\nApplication ID: {application.application_id}",
+                'description': f"Visa Application: {visa.country} - {visa.visa_type}\nApplicants: {len(applicants_list)}\nTotal Price: ₹{application.total_price}\nApplication ID: {application.id}",
                 'lead_source': 'Website Visa Application',
                 'company': 'Individual'
             }
@@ -1827,29 +1822,11 @@ class CabBookingViewSet(ModelViewSet):
                 data.get('pickup_point'),
                 data.get('drop_point'),
             )
-            if fare is None and data.get('price'):
-                try:
-                    p_val = Decimal(str(data.get('price')))
-                    if p_val > 0:
-                        fare = p_val
-                except Exception:
-                    pass
-
-            if not vehicle:
-                try:
-                    v_id = int(data.get('vehicle_id')) if data.get('vehicle_id') else 1
-                    vehicle = VehicleMaster.objects.filter(pk=v_id).first() or VehicleMaster.objects.first()
-                except Exception:
-                    vehicle = VehicleMaster.objects.first()
-
-            if fare is None:
-                try:
-                    if data.get('price'):
-                        fare = Decimal(str(data.get('price')))
-                    else:
-                        fare = Decimal('1.00')
-                except Exception:
-                    fare = Decimal('1.00')
+            if not vehicle or fare is None:
+                return Response(
+                    {'error': 'No valid fare is available for this vehicle, route, and date. Please search again.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             if vehicle:
                 data['vehicle_name'] = vehicle.name or 'Standard Vehicle'
@@ -2448,12 +2425,18 @@ class CabSearchAPI(APIView):
                 except Exception:
                     col_vehicles = []
 
-            column_vehicles = [v.strip() if v else "" for v in (col_vehicles or [])]
+            if not isinstance(routes, list) or not isinstance(col_vehicles, list):
+                continue
+            column_vehicles = [str(v).strip() if v else "" for v in col_vehicles]
             
             for route in (routes or []):
+                if not isinstance(route, dict):
+                    continue
                 # Case-insensitive city matching with stripping
-                rc_from = str(route.get('start_city', '')).strip().lower()
-                rc_to = str(route.get('drop_city', '')).strip().lower()
+                rc_from = _normalise_cab_city(route.get('start_city'))
+                rc_to = _normalise_cab_city(route.get('drop_city'))
+                if not rc_from or not rc_to:
+                    continue
 
                 # Robust matching: match if both cities are found (exact or partial)
                 from_matched = (rc_from == from_city) or (rc_from in from_city) or (from_city in rc_from)
@@ -2472,7 +2455,11 @@ class CabSearchAPI(APIView):
                         if not v_name: continue
                         
                         price = route.get(f'v{i+1}')
-                        if price and str(price).strip() != "" and str(price).strip() != "0":
+                        try:
+                            fare = Decimal(str(price))
+                        except (InvalidOperation, TypeError, ValueError):
+                            continue
+                        if fare.is_finite() and fare > 0:
                             # Try exact model match first, then full name match
                             vehicle = VehicleMaster.objects.filter(name__iexact=v_name).first()
                             if not vehicle:
@@ -2799,8 +2786,14 @@ class DestinationHierarchyAPI(APIView):
     def get(self, request):
         tab = request.query_params.get('tab', 'all')
         search = request.query_params.get('search', '')
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 50))
+        try:
+            page = int(request.query_params.get('page', 1))
+            page_size = int(request.query_params.get('page_size', 50))
+        except (TypeError, ValueError):
+            return Response({'error': 'Page and page size must be positive integers.'}, status=status.HTTP_400_BAD_REQUEST)
+        if page < 1 or page_size < 1:
+            return Response({'error': 'Page and page size must be positive integers.'}, status=status.HTTP_400_BAD_REQUEST)
+        page_size = min(page_size, 200)
 
         # 1. Determine base queryset based on tab
         if tab == 'countries':
@@ -2898,7 +2891,7 @@ class DestinationHierarchyAPI(APIView):
             "next_page": page + 1 if end < total_count else None,
             "prev_page": page - 1 if page > 1 else None,
             "results": results,
-            "total_pages": (total_count + page_size - 1) // page_size if page_size > 0 else 1
+            "total_pages": max(1, (total_count + page_size - 1) // page_size)
         })
 
     def _get_country_info(self, country):
@@ -3370,12 +3363,13 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             order.bill_copy = request.FILES['bill_copy']
 
         order.status = 'Shipped'
-        order.save()
-
         try:
-            self._deduct_stock_and_notify(order)
-        except Exception as s_err:
-            print(f"Notice during stock deduction in send_shipping_email_action: {s_err}")
+            with transaction.atomic():
+                if order.product_id or any(item.get('product_id') for item in (order.cart_items or [])):
+                    self._deduct_stock_and_notify(order)
+                order.save()
+        except InsufficientProductStock as stock_error:
+            return Response({'error': str(stock_error)}, status=status.HTTP_400_BAD_REQUEST)
 
         from Holidays.utils import send_product_shipped_email
         sent = send_product_shipped_email(order)
@@ -3393,7 +3387,10 @@ class GoimomiProductOrderViewSet(ModelViewSet):
 
 
     def create(self, request, *args, **kwargs):
-        is_manual = str(request.data.get('is_manual') or '').lower() in ('true', '1', 'yes') or (request.user and request.user.is_authenticated and request.data.get('is_manual') == 'true')
+        is_staff_user = bool(request.user and request.user.is_authenticated and request.user.is_staff)
+        is_manual = str(request.data.get('is_manual') or '').lower() in ('true', '1', 'yes')
+        if is_manual and not is_staff_user:
+            return Response({'error': 'Only staff can create manual orders.'}, status=status.HTTP_403_FORBIDDEN)
         product_id = request.data.get('product')  # None if cart checkout
         cart_items = request.data.get('cart_items')
         has_product_id = product_id not in (None, '')
@@ -3401,6 +3398,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             quantity = int(request.data.get('quantity', 1))
         except (TypeError, ValueError):
             return Response({'error': 'Quantity must be a whole number.'}, status=status.HTTP_400_BAD_REQUEST)
+        if quantity < 1:
+            return Response({'error': 'Quantity must be at least one.'}, status=status.HTTP_400_BAD_REQUEST)
         name = str(request.data.get('name') or '').strip()
         email = str(request.data.get('email') or '').strip()
         phone = str(request.data.get('phone') or '').strip()
@@ -3420,6 +3419,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                 return Response({'error': 'Customer Name, phone number, and delivery address are required for manual order.'}, status=status.HTTP_400_BAD_REQUEST)
             
             status_val = str(request.data.get('status') or 'Confirmed').strip()
+            if status_val not in dict(GoimomiProductOrder._meta.get_field('status').choices):
+                return Response({'error': 'Invalid order status.'}, status=status.HTTP_400_BAD_REQUEST)
             book_invoice_number = str(request.data.get('book_invoice_number') or '').strip()
             logistics_provider = str(request.data.get('logistics_provider') or '').strip()
             tracking_number = str(request.data.get('tracking_number') or '').strip()
@@ -3454,6 +3455,10 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             else:
                 total_amount = order_price * quantity
 
+            if any(not value.is_finite() or value < 0 or value > Decimal('99999999.99')
+                   for value in (order_price, total_amount)):
+                return Response({'error': 'Price and total must be valid non-negative amounts.'}, status=status.HTTP_400_BAD_REQUEST)
+
             cart_items_data = None
             if not product_obj and custom_product_title:
                 cart_items_data = [{
@@ -3462,40 +3467,33 @@ class GoimomiProductOrderViewSet(ModelViewSet):
                     'quantity': quantity
                 }]
 
-            order = GoimomiProductOrder.objects.create(
-                product=product_obj,
-                name=name,
-                email=email or None,
-                phone=phone,
-                quantity=quantity,
-                price=order_price,
-                total_amount=total_amount,
-                address=address,
-                address_line1=address_line1 or None,
-                address_line2=address_line2 or None,
-                city=city or None,
-                state=state or None,
-                pincode=pincode or None,
-                cart_items=cart_items_data,
-                status=status_val,
-                book_invoice_number=book_invoice_number or None,
-                logistics_provider=logistics_provider or None,
-                tracking_number=tracking_number or None,
-                bill_copy=bill_copy_file
-            )
-
-            # Deduct stock if product selected and status is Confirmed or Shipped
-            if product_obj and status_val in ('Confirmed', 'Shipped') and product_obj.quantity >= quantity:
-                try:
-                    product_obj.quantity -= quantity
-                    if product_obj.quantity <= 0:
-                        product_obj.quantity = 0
-                        product_obj.stock_status = 'out_of_stock'
-                    product_obj.save()
-                    order.stock_deducted_at = timezone.now()
-                    order.save(update_fields=['stock_deducted_at'])
-                except Exception as s_err:
-                    print(f"Notice during manual order stock deduction: {s_err}")
+            try:
+                with transaction.atomic():
+                    order = GoimomiProductOrder.objects.create(
+                        product=product_obj,
+                        name=name,
+                        email=email or None,
+                        phone=phone,
+                        quantity=quantity,
+                        price=order_price,
+                        total_amount=total_amount,
+                        address=address,
+                        address_line1=address_line1 or None,
+                        address_line2=address_line2 or None,
+                        city=city or None,
+                        state=state or None,
+                        pincode=pincode or None,
+                        cart_items=cart_items_data,
+                        status=status_val,
+                        book_invoice_number=book_invoice_number or None,
+                        logistics_provider=logistics_provider or None,
+                        tracking_number=tracking_number or None,
+                        bill_copy=bill_copy_file
+                    )
+                    if product_obj and status_val in ('Confirmed', 'Shipped', 'Delivered'):
+                        self._deduct_stock_and_notify(order)
+            except InsufficientProductStock as stock_error:
+                return Response({'error': str(stock_error)}, status=status.HTTP_400_BAD_REQUEST)
 
             # Record in Enquiry table for admin tracking
             try:
@@ -3927,7 +3925,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
             print(f"Webhook Exception: {e}")
             return HttpResponse(str(e), status=400)
 
-    def partial_update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         order = self.get_object()
         inventory_fields = {'product', 'quantity', 'cart_items'}
         if order.stock_deducted_at and inventory_fields.intersection(request.data.keys()):
@@ -3939,7 +3937,7 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         try:
             with transaction.atomic():
                 old_status = order.status
-                response = super().partial_update(request, *args, **kwargs)
+                response = super().update(request, *args, **kwargs)
                 order.refresh_from_db()
 
                 status_changed = old_status != order.status
@@ -4027,6 +4025,9 @@ class CatalogueMasterViewSet(ModelViewSet):
             sub_items = [data]
         else:
             return Response({'error': 'Invalid payload format.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(sub_items, list) or not sub_items or not all(isinstance(item, dict) for item in sub_items):
+            return Response({'error': 'Sub-catalogues must be a non-empty list of objects.'}, status=status.HTTP_400_BAD_REQUEST)
 
         created_subs = []
         errors = []

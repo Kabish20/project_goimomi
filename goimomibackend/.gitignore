@@ -146,13 +146,11 @@ cython_debug/
 .DS_Store
 Thumbs.db
 
-# Migration/Seeding data (Unwanted in git)
+# Local migration/seeding data exports
 *.csv
 *.txt
 *.json
+!requirements.txt
 !manifest.json
 !package.json
 !package-lock.json
-
-# Scripts
-scripts/

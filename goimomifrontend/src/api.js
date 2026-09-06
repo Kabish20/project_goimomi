@@ -4,41 +4,42 @@ const api = axios.create({
     baseURL: ""
 });
 
+const publicForms = new Set([
+    'business-journey-registrations', 'businessjourneyregistrations',
+    'chithirai-registrations', 'chithirairegistrations', 'chithirai-enquiries',
+    'chithiraienquiries', 'canton-enquiries', 'cantonenquiries',
+    'enquiry-form', 'enquiryform', 'holiday-form', 'holidayform', 'umrah-form', 'umrahform',
+]);
+const publicReads = new Set(['cities', 'pickup-point-masters', 'airports']);
+
+const isPublicRequest = (config) => {
+    if (config.skipAuth) return true;
+    const path = (config.url || '').split('?')[0];
+    if (['/api/token/', '/api/token/refresh/', '/api/adminlogin/', '/api/admin-login/'].includes(path)) return true;
+    const match = path.match(/^\/api\/([^/]+)\/(.*)$/);
+    if (!match) return false;
+    const method = (config.method || 'get').toLowerCase();
+    return (method === 'post' && !match[2] && publicForms.has(match[1])) ||
+        (['get', 'head', 'options'].includes(method) && publicReads.has(match[1]));
+};
+
+export const clearAuthTokens = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('adminUser');
+    delete api.defaults.headers.common.Authorization;
+};
+
+let refreshPromise = null;
+
 api.interceptors.request.use(
     (config) => {
-        // Skip Authorization header for public endpoints or when skipAuth is set
-        const publicEndpoints = [
-            '/api/token/',
-            '/api/token/refresh/',
-            '/api/cities/',
-            '/api/pickup-point-masters/',
-            '/api/airports/',
-            '/api/payment-webhook/',
-            '/api/payment-success/',
-            '/api/payment-failed/',
-            '/api/business-journey-registrations/',
-            '/api/businessjourneyregistrations/',
-            '/api/chithirai-registrations/',
-            '/api/chithirairegistrations/',
-            '/api/chithirai-enquiries/',
-            '/api/chithiraienquiries/',
-            '/api/canton-enquiries/',
-            '/api/cantonenquiries/',
-            '/api/enquiry-form/',
-            '/api/enquiryform/',
-            '/api/holiday-form/',
-            '/api/holidayform/',
-            '/api/umrah-form/',
-            '/api/umrahform/'
-        ];
-
-        const isPublic = publicEndpoints.some(url => config.url && config.url.includes(url)) || config.skipAuth;
-
-        if (!isPublic) {
-            const token = localStorage.getItem("accessToken");
-            if (token && token !== "undefined" && token !== "null") {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
+        const token = localStorage.getItem('accessToken');
+        if (!isPublicRequest(config) && token && token !== 'undefined' && token !== 'null') {
+            config.headers.Authorization = `Bearer ${token}`;
+        } else {
+            // Axios merges default headers before interceptors run.
+            delete config.headers.Authorization;
         }
         return config;
     },
@@ -53,34 +54,37 @@ api.interceptors.response.use(
         const originalRequest = error.config;
 
         // Prevent infinite loops if refresh or token endpoint itself fails
-        if (!originalRequest || originalRequest.url?.includes('/api/token/refresh/') || originalRequest.url?.includes('/api/token/')) {
+        if (!originalRequest || isPublicRequest(originalRequest)) {
             return Promise.reject(error);
         }
 
         if (error.response && error.response.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
+            const refreshToken = localStorage.getItem('refreshToken');
             try {
-                const refreshToken = localStorage.getItem("refreshToken");
-                if (refreshToken) {
-                    const response = await axios.post('/api/token/refresh/', {
-                        refresh: refreshToken
-                    });
-
-                    const newAccessToken = response.data.access;
-                    localStorage.setItem("accessToken", newAccessToken);
-
-                    // Update header for future requests
-                    api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-                    // Update header for the original request
-                    originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-
+                if (refreshToken && refreshToken !== 'undefined' && refreshToken !== 'null') {
+                    if (!refreshPromise) {
+                        refreshPromise = axios.post('/api/token/refresh/', { refresh: refreshToken })
+                            .then((response) => {
+                                if (!response.data.access || localStorage.getItem('refreshToken') !== refreshToken) {
+                                    throw new Error('Session changed while refreshing credentials.');
+                                }
+                                localStorage.setItem('accessToken', response.data.access);
+                                return response.data.access;
+                            })
+                            .finally(() => { refreshPromise = null; });
+                    }
+                    const newAccessToken = await refreshPromise;
+                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                     return api(originalRequest);
                 }
+                clearAuthTokens();
             } catch (err) {
+                if (localStorage.getItem('refreshToken') !== refreshToken) {
+                    return Promise.reject(error);
+                }
                 // Refresh token expired or invalid
-                localStorage.removeItem("accessToken");
-                localStorage.removeItem("refreshToken");
-                localStorage.removeItem("adminUser");
+                clearAuthTokens();
                 // Only redirect to admin login if currently on an admin page
                 if (window.location.pathname.startsWith('/admin')) {
                     window.location.href = "/admin-login";

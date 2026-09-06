@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../../../api";
 import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
@@ -70,10 +70,7 @@ const VisaResults = () => {
     const citizenRef = useRef(null);
     const goingToRef = useRef(null);
 
-    useEffect(() => {
-        fetchVisas();
-        fetchCountries();
-    }, [searchParams.get("goingTo")]);
+    useEffect(() => { fetchCountries(); }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -107,8 +104,10 @@ const VisaResults = () => {
         }
     };
 
-    const fetchVisas = async () => {
-        const country = searchParams.get("goingTo");
+    const fetchVisas = useCallback(async (signal) => {
+        const country = goingToParam;
+        setSelectedVisas([]);
+        setVisas([]);
 
         if (!country) {
             setLoading(false);
@@ -117,7 +116,7 @@ const VisaResults = () => {
 
         try {
             setLoading(true);
-            const response = await api.get(`/api/visas/?country=${encodeURIComponent(country)}`);
+            const response = await api.get(`/api/visas/?country=${encodeURIComponent(country)}`, { signal });
 
             // Ensure response.data is an array before filtering
             const rawData = Array.isArray(response.data) ? response.data : [];
@@ -134,12 +133,19 @@ const VisaResults = () => {
 
             setVisas(strictFilteredVisas);
         } catch (error) {
+            if (signal?.aborted) return;
             console.error("Error fetching visas:", error);
             setVisas([]);
         } finally {
-            setLoading(false);
+            if (!signal?.aborted) setLoading(false);
         }
-    };
+    }, [goingToParam]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        fetchVisas(controller.signal);
+        return () => controller.abort();
+    }, [fetchVisas]);
 
     const handleSearchRefresh = () => {
         const destination = goingTo || goingToSearch;
