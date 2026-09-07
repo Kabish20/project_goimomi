@@ -55,6 +55,7 @@ const ProductManage = () => {
   const [bookInvoiceNo, setBookInvoiceNo] = useState("");
   const [logisticsProvider, setLogisticsProvider] = useState("");
   const [trackingNo, setTrackingNo] = useState("");
+  const [orderBillFile, setOrderBillFile] = useState(null);
   const [savingInvoice, setSavingInvoice] = useState(false);
   const [orderInvoiceSaved, setOrderInvoiceSaved] = useState(false);
   const [logisticsProviders, setLogisticsProviders] = useState([]);
@@ -815,12 +816,13 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
     }
   };
 
-  // Handle Order Delete
+  // Handle Order Selection & Details
   const handleSelectOrder = (order) => {
     setSelectedOrder(order);
     setBookInvoiceNo(order.book_invoice_number || "");
     setLogisticsProvider(order.logistics_provider || "");
     setTrackingNo(order.tracking_number || "");
+    setOrderBillFile(null);
     setOrderInvoiceSaved(false);
   };
 
@@ -828,21 +830,34 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
     if (!selectedOrder) return;
     setSavingInvoice(true);
     try {
-      const payload = {
-        book_invoice_number: bookInvoiceNo.trim(),
-        logistics_provider: logisticsProvider.trim(),
-        tracking_number: trackingNo.trim()
-      };
-      await api.patch(`/api/goimomi-product-orders/${selectedOrder.id}/`, payload);
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...payload } : o));
-      setSelectedOrder(prev => ({ ...prev, ...payload }));
+      const formData = new FormData();
+      formData.append("book_invoice_number", bookInvoiceNo.trim());
+      formData.append("logistics_provider", logisticsProvider.trim());
+      formData.append("tracking_number", trackingNo.trim());
+      if (orderBillFile) {
+        formData.append("bill_copy", orderBillFile);
+      }
+
+      const res = await api.patch(
+        `/api/goimomi-product-orders/${selectedOrder.id}/`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" }
+        }
+      );
+
+      const updated = res.data;
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...updated } : o));
+      setSelectedOrder(prev => ({ ...prev, ...updated }));
+      setOrderBillFile(null);
       setOrderInvoiceSaved(true);
       setMessage(`Book Invoice & Shipping details saved for order ${selectedOrder.order_id || selectedOrder.id}!`);
       setTimeout(() => setMessage(""), 3000);
       setTimeout(() => setOrderInvoiceSaved(false), 2500);
     } catch (err) {
       console.error("Error saving invoice details:", err);
-      alert("Failed to save invoice details.");
+      const errMsg = err.response?.data?.error || err.response?.data?.detail || "Failed to save invoice details.";
+      alert(`Save Error: ${errMsg}`);
     } finally {
       setSavingInvoice(false);
     }
@@ -1523,14 +1538,57 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                       </div>
                     </div>
 
+                    {/* Upload Bill / Shipping Receipt Copy */}
+                    <div className="pt-1 border-t border-sky-200/80">
+                      <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                        Upload Bill Copy / Shipping Receipt (PDF, PNG, JPG)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          accept="application/pdf,image/*"
+                          onChange={(e) => setOrderBillFile(e.target.files[0] || null)}
+                          className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sky-100 file:text-sky-800 hover:file:bg-sky-200 cursor-pointer bg-white border border-sky-200 rounded-lg p-1"
+                        />
+                        {orderBillFile && (
+                          <button
+                            type="button"
+                            onClick={() => setOrderBillFile(null)}
+                            className="px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-50 font-semibold rounded-lg border border-red-200 shrink-0"
+                            title="Clear selected file"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                      {orderBillFile && (
+                        <p className="text-[11px] text-sky-700 font-semibold mt-1 flex items-center gap-1">
+                          <FileText size={12} /> Selected file to upload: <span className="font-mono">{orderBillFile.name}</span> ({(orderBillFile.size / 1024).toFixed(1)} KB)
+                        </p>
+                      )}
+                      {!orderBillFile && selectedOrder.bill_copy && (
+                        <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
+                          <CheckCircle size={12} /> Current Bill Uploaded: <a href={getMediaUrl(selectedOrder.bill_copy)} target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-900 font-bold">{selectedOrder.bill_copy.split('/').pop()}</a> (Choose a new file to replace)
+                        </p>
+                      )}
+                    </div>
+
                     <div className="flex justify-end pt-1">
                       <button
                         type="button"
                         onClick={handleSaveInvoiceDetails}
                         disabled={savingInvoice}
-                        className="px-4 py-1.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-lg shadow transition disabled:opacity-50"
+                        className="px-4 py-1.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-lg shadow transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
                       >
-                        {savingInvoice ? "Saving..." : "Save Invoice & Shipping Details"}
+                        {savingInvoice ? (
+                          <>
+                            <RefreshCw size={12} className="animate-spin" /> Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Upload size={13} /> Save Invoice, Bill & Shipping Details
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
