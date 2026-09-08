@@ -26,6 +26,7 @@ const VisaSearch = lazyRetry(() => import('./pages/Visa/VisaSearch/VisaSearch.js
 const VisaResults = lazyRetry(() => import('./pages/Visa/VisaResults/VisaResults.jsx'));
 const VisaApplication = lazyRetry(() => import('./pages/Visa/VisaApplication/VisaApplication.jsx'));
 const VisaRateCardB2B = lazyRetry(() => import('./pages/Visa/VisaRateCardB2B/VisaRateCardB2B.jsx'));
+const UmrahGroupTicketB2B = lazyRetry(() => import('./pages/Umrah/UmrahGroupTicketB2B/UmrahGroupTicketB2B.jsx'));
 const Europeantours = lazyRetry(() => import('./pages/Holidays/Europeantours/Europeantours.jsx'));
 const PrivacyPolicy = lazyRetry(() => import('./pages/Policies/PrivacyPolicy/PrivacyPolicy.jsx'));
 const TermsConditions = lazyRetry(() => import('./pages/Policies/TermsConditions/TermsConditions.jsx'));
@@ -299,6 +300,12 @@ const App = () => {
             <Route path="/visaratecard" element={<Navigate to="/visaratecardb2b" replace />} />
             <Route path="/visa/ratecard" element={<Navigate to="/visaratecardb2b" replace />} />
             <Route path="/visa/b2b" element={<Navigate to="/visaratecardb2b" replace />} />
+            <Route path="/umrahgroupticketb2b" element={<UmrahGroupTicketB2B />} />
+            <Route path="/umrah-group-ticket-b2b" element={<Navigate to="/umrahgroupticketb2b" replace />} />
+            <Route path="/umrahgroupticket" element={<Navigate to="/umrahgroupticketb2b" replace />} />
+            <Route path="/umrah-group-ticket" element={<Navigate to="/umrahgroupticketb2b" replace />} />
+            <Route path="/umrah/groupticket" element={<Navigate to="/umrahgroupticketb2b" replace />} />
+            <Route path="/umrah/b2b" element={<Navigate to="/umrahgroupticketb2b" replace />} />
             <Route path="/Europeantours" element={<Europeantours />} />
             <Route path="/shop" element={<GoimomiProduct />} />
             <Route path="/goimomi-product" element={<GoimomiProduct />} />

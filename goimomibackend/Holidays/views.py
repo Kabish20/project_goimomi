@@ -2686,6 +2686,12 @@ class DynamicSEOView(APIView):
             description = "Thank you for contacting Goimomi Holidays. Your enquiry has been received, and our travel experts will get back to you shortly."
             keywords = "contact success, enquiry submitted, thank you, goimomi holidays"
 
+        # Umrah Group Ticket B2B: /umrahgroupticketb2b
+        elif 'umrahgroupticket' in path.lower() or 'umrah-group-ticket' in path.lower() or ('umrah' in path.lower() and ('groupticket' in path.lower() or 'b2b' in path.lower())):
+            title = "B2B Umrah Group Tickets | Goimomi Holidays"
+            description = "Official Goimomi Holidays B2B Umrah Group Tickets with live seat availability, group flight departures, and partner pricing for travel agents."
+            keywords = "Umrah group ticket, B2B Umrah tickets, Umrah group flight departures, travel agent Umrah rates, Goimomi Holidays"
+
         # Visa Services: /visa
         elif 'visa' in path.lower():
             if 'ratecard' in path.lower() or 'rate-card' in path.lower():
