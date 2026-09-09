@@ -3,7 +3,7 @@ import usePageSEO from '../../../hooks/usePageSEO';
 import { ShieldCheck } from 'lucide-react';
 
 const ZOHO_SHEET_URL =
-  'https://sheet.zohopublic.in/sheet/published/i78zq78905b2eef6a4eb1943c0ac4ad5468fe?mode=embed';
+  'https://sheet.zohopublic.in/sheet/publishedrange/62d39942bdecb0b2b7038a88612b7c9983f26a8af09ea1a09de8af601afc6b95?type=grid&mode=embed';
 
 const UmrahGroupTicketB2B = () => {
   usePageSEO(
@@ -39,14 +39,16 @@ const UmrahGroupTicketB2B = () => {
         </div>
 
         {/* Embedded Zoho Sheet Container */}
-        <div className="w-full">
+        <div className="w-full max-w-[724px] mx-auto">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
-            <div className="w-full h-[760px] sm:h-[840px] bg-slate-100 relative">
+            <div className="w-full overflow-x-auto bg-slate-100">
               <iframe
                 src={ZOHO_SHEET_URL}
                 title="Umrah Group Ticket B2B"
-                className="w-full h-full"
-                style={{ border: '1px solid #00b050' }}
+                width="722"
+                height="661"
+                className="block min-w-[722px]"
+                style={{ border: '1px solid #ccc' }}
                 frameBorder="0"
                 scrolling="no"
                 allow="clipboard-read; clipboard-write"
@@ -72,4 +74,3 @@ const UmrahGroupTicketB2B = () => {
 };
 
 export default UmrahGroupTicketB2B;
-
