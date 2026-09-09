@@ -1,6 +1,11 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import seoPages from '../../scripts/seo-pages.json';
 
-const DEFAULT_SHARE_IMAGE = 'https://goimomi.com/logo.png';
+const DEFAULT_SHARE_IMAGE = 'https://goimomi.com/images/seo/home.png';
+const PAGE_SHARE_IMAGES = Object.fromEntries(
+  seoPages.map((page) => [page.route.toLowerCase(), page.image])
+);
 const NO_INDEX_PATHS = [
   /^\/admin(?:\/|$)/i,
   /^\/admin-login(?:\/|$)/i,
@@ -17,8 +22,14 @@ const CANONICAL_PATHS = {
 };
 
 const usePageSEO = (title, description, ogImage = DEFAULT_SHARE_IMAGE, keywords = '', ogType = 'website') => {
+  const { pathname } = useLocation();
+  const currentPath = pathname.replace(/\/+$/, '') || '/';
+
   useEffect(() => {
-    const shareImage = ogImage ? new URL(ogImage, window.location.origin).href : DEFAULT_SHARE_IMAGE;
+    // Keep static route previews consistent with the crawler-readable pages.
+    // Individual articles continue to use their own cover images.
+    const pageImage = ogType === 'article' ? undefined : PAGE_SHARE_IMAGES[currentPath.toLowerCase()];
+    const shareImage = new URL(pageImage || ogImage || DEFAULT_SHARE_IMAGE, window.location.origin).href;
 
     // 1. Set document title
     if (title) {
@@ -76,7 +87,6 @@ const usePageSEO = (title, description, ogImage = DEFAULT_SHARE_IMAGE, keywords 
     setMetaProperty('og:image', shareImage);
     setMetaProperty('og:image:alt', title ? `${title} | Goimomi Holidays` : 'Goimomi Holidays');
     setMetaProperty('og:type', ogType);
-    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
     const canonicalPath = CANONICAL_PATHS[currentPath] || currentPath;
     const canonicalUrl = `${window.location.origin}${canonicalPath}`;
     setMetaProperty('og:url', canonicalUrl);
@@ -130,7 +140,7 @@ const usePageSEO = (title, description, ogImage = DEFAULT_SHARE_IMAGE, keywords 
       document.head.appendChild(canonical);
     }
 
-  }, [title, description, ogImage, keywords, ogType]);
+  }, [title, description, ogImage, keywords, ogType, currentPath]);
 };
 
 export default usePageSEO;

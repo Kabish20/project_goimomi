@@ -3,7 +3,7 @@ import usePageSEO from '../../../hooks/usePageSEO';
 import { RefreshCw, ExternalLink, ShieldCheck, PhoneCall, Mail, Maximize2, Minimize2 } from 'lucide-react';
 
 const ZOHO_SHEET_URL =
-  'https://sheet.zohopublic.in/sheet/published/umq2mc0806074b948468a987801e80675ad36';
+  'https://sheet.zohopublic.in/sheet/publishedrange/e891f931c63f08cffbe2ada1f0d9509ff7ebd1c4f73242a9a3cc4b682a677a03?type=grid&mode=embed';
 
 const VisaRateCardB2B = () => {
   const [key, setKey] = useState(0);
@@ -22,7 +22,7 @@ const VisaRateCardB2B = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-3 sm:px-6 lg:px-8">
-      <div className="max-w-[1040px] mx-auto space-y-5">
+      <div className="max-w-[1180px] mx-auto space-y-5">
         {/* Header Title & Controls */}
         <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
@@ -74,19 +74,24 @@ const VisaRateCardB2B = () => {
           </div>
         </div>
 
-        {/* Rate Card Container - Centered and width-constrained to clip empty columns */}
+        {/* Keep the published range readable with horizontal scrolling on small screens. */}
         <div
           className={`transition-all duration-300 ${
-            isFullscreen ? 'max-w-none w-full' : 'max-w-[1020px] mx-auto w-full'
+            isFullscreen ? 'max-w-none w-full' : 'max-w-[1142px] mx-auto w-full'
           }`}
         >
           <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
-            <div className="w-full h-[760px] sm:h-[820px] bg-slate-100 relative">
+            <div className="w-full overflow-x-auto bg-slate-100">
               <iframe
                 key={key}
                 src={ZOHO_SHEET_URL}
                 title="B2B Visa Rate Card"
-                className="w-full h-full border-0"
+                width="1140"
+                height="1025"
+                style={{ border: '1px solid #ccc' }}
+                frameBorder="0"
+                scrolling="no"
+                className="block min-w-[1140px]"
                 allow="clipboard-read; clipboard-write"
               />
             </div>

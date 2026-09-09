@@ -1,0 +1,264 @@
+{
+  "mode": "Built-in image_gen",
+  "style": "Use case: photorealistic-natural. Asset type: website SEO social-sharing preview for Goimomi Holidays. Create one finished landscape image, 1200 x 630 pixels (approximately 1.91:1), with an elegant travel editorial photography aesthetic, believable materials and architecture, natural light, balanced composition, clear subject readable as a thumbnail, restrained emerald and warm gold accents where appropriate. Keep the main subject within the central safe area. No text, letters, dates, logos, watermarks, borders, collage panels, website UI or identifiable real clients. This is conceptual promotional artwork, not documentary evidence of a real event.",
+  "images": [
+    {
+      "file": "/images/seo/home.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: website SEO social-sharing preview for Goimomi Holidays. Create one finished landscape image, 1200 x 630 pixels (approximately 1.91:1), with an elegant travel editorial photography aesthetic, believable materials and architecture, natural light, balanced composition, clear subject readable as a thumbnail, restrained emerald and warm gold accents where appropriate. Keep the main subject within the central safe area. No text, letters, dates, logos, watermarks, borders, collage panels, website UI or identifiable real clients. This is conceptual promotional artwork, not documentary evidence of a real event.\nPage: Goimomi Holidays home — premium custom holidays, family vacations, honeymoon escapes, cruises, visa support and business journeys. Scene: a spectacular tropical coastal resort terrace at sunrise, overlooking turquoise water and a lush island headland; an elegant travel suitcase and sun hat rest beside a teak lounge chair in the near foreground, a small sailboat far offshore. A welcoming sense of discovery and a beautifully planned holiday. Wide, premium magazine-cover travel photography with rich natural detail.",
+      "routes": [
+        "/"
+      ],
+      "scene": "A spectacular tropical coastal resort terrace at sunrise overlooking turquoise water and a lush island headland; an elegant travel suitcase and sun hat rest beside a teak lounge chair in the near foreground, a small sailboat far offshore. A welcoming sense of discovery and a beautifully planned holiday."
+    },
+    {
+      "file": "/images/seo/about-goimomi.png",
+      "routes": [
+        "/aboutus"
+      ],
+      "scene": "A small team of Indian travel professionals collaborating around a wooden planning table in an airy contemporary travel studio. A globe, travel magazines and destination photographs communicate expertise and personal service. Warm, approachable, candid atmosphere. No readable documents or identifiable real company office."
+    },
+    {
+      "file": "/images/seo/contact-travel-support.png",
+      "routes": [
+        "/contactus"
+      ],
+      "scene": "A friendly Indian travel consultant wearing a discreet headset in a bright contemporary travel office, with an open notebook, globe and softly blurred destination photographs. Welcoming human support, calm and professional, natural candid portrait. Computer screens remain out of focus and contain no readable text."
+    },
+    {
+      "file": "/images/seo/holiday-inspiration.png",
+      "routes": [
+        "/holidayhome"
+      ],
+      "scene": "A breathtaking alpine lakeside village with a lakeside promenade, colourful flowers, clear turquoise lake and dramatic green mountains under soft morning light. A couple with light travel bags walks into the scene, small in frame. Emphasize the promise of an inspiring, thoughtfully planned holiday."
+    },
+    {
+      "file": "/images/seo/corporate-travel.png",
+      "routes": [
+        "/businesshome"
+      ],
+      "scene": "Two Indian business professionals with cabin luggage walking through a refined international airport concourse, expansive windows revealing a passenger jet and modern city skyline. Confident, natural candid travel photography, understated business attire and elegant architectural lines."
+    },
+    {
+      "file": "/images/seo/travel-journal.png",
+      "routes": [
+        "/blog"
+      ],
+      "scene": "An evocative travel writer still life on a sunlit cafe table: an open blank travel journal, classic camera, folded map with no readable labels and a cup of coffee. In soft background focus is a beautiful Mediterranean coastal town. Tactile paper, warm light and a sense of discovery."
+    },
+    {
+      "file": "/images/seo/holiday-packages.png",
+      "routes": [
+        "/holidays"
+      ],
+      "scene": "A happy Indian family of two adults and two children, naturally walking away along a beautiful tropical beach beside lush palms and a small seaside resort. The people are small within a sweeping coastal landscape. Warm sunset light, authentic holiday atmosphere, clear inviting blue water."
+    },
+    {
+      "file": "/images/seo/customized-holidays.png",
+      "routes": [
+        "/customizedHolidays"
+      ],
+      "scene": "A travel planning table beside an open window overlooking a mountain lake. Two hands arrange unlabelled destination photo prints, a blank itinerary notebook and a small folded map; a compact camera and suitcase nearby. Communicate a personalized itinerary and freedom to choose a dream holiday."
+    },
+    {
+      "file": "/images/seo/customized-umrah.png",
+      "routes": [
+        "/customizedumrah"
+      ],
+      "scene": "A respectful wide elevated architectural view of the Kaaba at Masjid al-Haram in Mecca during peaceful early morning light, with realistic mosque architecture and distant pilgrims in white. Contemplative pilgrimage atmosphere, balanced majestic composition, no close-up faces, no writing or invented religious symbols."
+    },
+    {
+      "file": "/images/seo/airport-cabs.png",
+      "routes": [
+        "/cab"
+      ],
+      "scene": "An immaculate unbranded dark executive sedan waiting outside a modern airport arrivals terminal at dawn, a professional chauffeur standing naturally beside the car and two neatly placed suitcases nearby. Premium reliable transfer service, believable vehicle proportions, no visible registration text or car badges."
+    },
+    {
+      "file": "/images/seo/cruise-holidays.png",
+      "routes": [
+        "/cruise"
+      ],
+      "scene": "A magnificent white cruise ship at sea beside dramatic Mediterranean coastal cliffs and a picturesque sunlit harbour town, photographed from an elevated coastal viewpoint. Deep blue water, elegant ship silhouette and a soft golden horizon. No visible cruise line logos or ship names."
+    },
+    {
+      "file": "/images/seo/hotel-bookings.png",
+      "routes": [
+        "/hotel"
+      ],
+      "scene": "A luxurious yet welcoming resort suite opening onto a private balcony with an infinity pool and lush tropical ocean view. Crisp white linens, warm wood, subtle greenery, sunlight across natural textures. Strong sense of comfort, handpicked stays and effortless relaxation."
+    },
+    {
+      "file": "/images/seo/visa-services.png",
+      "routes": [
+        "/visa"
+      ],
+      "scene": "A carefully composed travel document still life: closed unbranded passport-sized booklets, an unlabelled boarding pass partially tucked beneath them, a pen and neatly arranged document folder, beside an airport window with a softly blurred airplane. Reassuring professional visa assistance; no official seals, personal data or readable text."
+    },
+    {
+      "file": "/images/seo/b2b-visa-partners.png",
+      "routes": [
+        "/visaratecardb2b"
+      ],
+      "scene": "Two travel agency professionals collaborating across a clean desk with neatly grouped closed passport-sized booklets, document folders, a calculator and a laptop with a softly blurred screen. Communicate organized partner visa processing and professional agency service. No readable prices, paperwork, labels or personal details."
+    },
+    {
+      "file": "/images/seo/umrah-group-flights.png",
+      "routes": [
+        "/umrahgroupticketb2b"
+      ],
+      "scene": "A small respectful group of adult Muslim pilgrims with rolling cabin luggage viewed from behind in a bright airport departure concourse, an aircraft visible through wide windows. Men wear modest white pilgrimage garments and women modest neutral attire. Calm coordinated group departure, realistic candid travel composition, no readable signage."
+    },
+    {
+      "file": "/images/seo/european-tours.png",
+      "routes": [
+        "/Europeantours"
+      ],
+      "scene": "A beautiful Parisian riverside scene along the Seine with the Eiffel Tower naturally visible in the distance, elegant stone architecture, a small sightseeing boat and warm late-afternoon light. A memorable European city escape captured as polished travel editorial photography. No composite landmarks from other cities."
+    },
+    {
+      "file": "/images/seo/canton-fair-business.png",
+      "routes": [
+        "/canton"
+      ],
+      "scene": "A conceptual promotional scene of an international sourcing delegation at a vast modern Guangzhou exhibition complex inspired by the Canton Fair: airy glass and steel halls, exhibition booths with unlabelled product displays and a small group of Indian business visitors talking with exhibitors. Professional trade-fair atmosphere, plausible architecture, no event logos, banners, dates or readable signage."
+    },
+    {
+      "file": "/images/seo/mega-show-bangkok.png",
+      "routes": [
+        "/megashowbangkok"
+      ],
+      "scene": "A conceptual promotional scene of a premium gift and lifestyle sourcing exhibition in Bangkok: a bright contemporary trade hall with tasteful unbranded homeware and design-product displays, international buyers in business casual attire, subtle tropical city atmosphere through a glass entrance. No event logo, banners, dates or readable product labels."
+    },
+    {
+      "file": "/images/seo/chithirai-global-network.png",
+      "routes": [
+        "/chithirai-global"
+      ],
+      "scene": "An inclusive group of Tamil Indian entrepreneurs, women and men in professional attire, in an animated networking conversation at an elegant international business gathering. Warm human connections, a globe sculpture subtly visible in a softly lit contemporary venue. Candid, credible and welcoming; conceptual people, no real event branding."
+    },
+    {
+      "file": "/images/seo/sri-lanka-business-journey.png",
+      "routes": [
+        "/chithirai-global/sri-lanka"
+      ],
+      "scene": "A small group of Indian business travellers enjoying a relaxed conversation on a scenic veranda overlooking the lush tea plantations and misty hills of Hatton, Sri Lanka. Rolling green terraces, colonial-inspired veranda details and warm morning light. Combine entrepreneurial connection with tea-country travel without any event signage."
+    },
+    {
+      "file": "/images/seo/yelagiri-business-retreat.png",
+      "routes": [
+        "/chithirai-global/yelagiri"
+      ],
+      "scene": "A peaceful business retreat in the green Yelagiri hills of Tamil Nadu: a small circle of Indian entrepreneurs conversing on a landscaped resort terrace, with rolling rocky hills, native greenery and a tranquil morning sky. Natural and inviting, conceptual resort setting with no logos or claims about a particular property."
+    },
+    {
+      "file": "/images/seo/pondicherry-business-retreat.png",
+      "routes": [
+        "/chithirai-global/pondicherry"
+      ],
+      "scene": "A thoughtful business workshop in a shaded courtyard of a French-colonial-inspired Pondicherry heritage building, mustard-yellow walls, white shutters, bougainvillea and a small group of Indian entrepreneurs around a table with notebooks. Calm coastal light, peer learning and meaningful discussion. No readable charts or signs."
+    },
+    {
+      "file": "/images/seo/dubai-business-mission.png",
+      "routes": [
+        "/chithirai-global/dubai"
+      ],
+      "scene": "Indian and international entrepreneurs in a natural business matchmaking conversation in a refined Dubai conference lounge, panoramic windows revealing the Dubai skyline and Burj Khalifa in the distance. Warm late-afternoon light, understated elegance and professional connection. Conceptual event, no logos, awards text or event dates."
+    },
+    {
+      "file": "/images/seo/privacy-policy.png",
+      "routes": [
+        "/privacy-policy"
+      ],
+      "scene": "A sophisticated conceptual still life about travel data privacy: a closed travel document folder secured with a small polished brass padlock beside a blank notebook and unbranded passport-sized booklet on a rich green desk surface. Soft directional natural light, reassuring order and discretion, no personal data or readable writing."
+    },
+    {
+      "file": "/images/seo/booking-terms.png",
+      "routes": [
+        "/terms-and-conditions"
+      ],
+      "scene": "An elegant travel-booking agreement still life: neatly stacked unlabelled paperwork, a quality pen, closed passport-sized booklet and compact globe on a warm wooden desk, soft window light and restrained greenery. Communicate clear booking responsibilities and transparent arrangements. No readable legal text, signatures, seals or logos."
+    },
+    {
+      "file": "/images/seo/cancellations-refunds.png",
+      "routes": [
+        "/cancellation-policy"
+      ],
+      "scene": "A calm travel-change planning still life: an unmarked desk calendar with no numbers or words, a pen, a closed travel document folder and a small suitcase near a sunlit window, with one blank calendar tile being gently repositioned by a hand. Reassuring sense of flexibility and help with changed plans; no currency amounts or promises."
+    },
+    {
+      "file": "/images/seo/travel-shop.png",
+      "routes": [
+        "/shop",
+        "/goimomi-product"
+      ],
+      "scene": "A beautifully styled travel essentials product flat lay on a warm neutral surface: an unbranded compact carry-on suitcase, packing cubes, neck pillow, reusable bottle, passport cover and universal travel adapter. Premium realistic product photography, precise textures, organized layout, understated green accents, no product logos or readable labels."
+    },
+    {
+      "file": "/images/seo/umrah-packages.png",
+      "routes": [
+        "/umrah-package"
+      ],
+      "scene": "A peaceful pilgrimage-inspired architectural scene of the courtyard of Al-Masjid an-Nabawi in Medina, with its graceful shade umbrellas, warm pale stone and the green dome visible naturally in the distance. Respectful serene dawn atmosphere and a few distant pilgrims. No close-up faces, writing or invented religious ornament."
+    },
+    {
+      "file": "/images/seo/custom-trip-planner.png",
+      "routes": [
+        "/form"
+      ],
+      "scene": "A couple of Indian travellers meeting a travel adviser at a sunny planning desk, considering several scenic destination photograph prints beside a globe and blank itinerary notebook. Natural collaborative gestures, welcoming office, meaningful personalized travel planning. No readable text, computer UI or real company branding."
+    },
+    {
+      "file": "/images/seo/holiday-enquiry.png",
+      "routes": [
+        "/enquiry"
+      ],
+      "scene": "An inviting holiday planning still life with a travel consultant hand presenting scenic vacation photo prints to a traveller across a tidy desk, a blank quote folder, small globe and suitcase softly visible nearby. Warm approachable natural light, focus on helpful advice and choosing a trip. No prices or readable text."
+    },
+    {
+      "file": "/images/seo/visa-options.png",
+      "routes": [
+        "/visa/results"
+      ],
+      "scene": "Several neatly arranged blank colour-coded travel document folders with unbranded passport-sized booklets, a magnifying glass and a pen on a clean light desk, airport architecture softly blurred beyond a window. Clear organised comparison of visa options. No actual visas, readable document details or interface elements."
+    },
+    {
+      "file": "/images/seo/enquiry-received.png",
+      "routes": [
+        "/contact/success"
+      ],
+      "scene": "A warm conceptual travel-support confirmation still life: a cream envelope with a simple green check-shaped wax mark, beside a travel journal, a small globe and a sunlit sprig of greenery. Elegant realistic materials, calm positive reassurance, no writing, logos, website UI or exaggerated icons."
+    },
+    {
+      "file": "/images/seo/payment-support.png",
+      "routes": [
+        "/payment-failed",
+        "/payment/failed"
+      ],
+      "scene": "A reassuring travel-payment assistance scene: an Indian traveller on a support phone call at a tidy desk beside a closed passport-sized booklet and a bank card turned face down so it has no visible details. A laptop is softly out of focus. Calm warm light, practical help, no readable screens or dramatic distress."
+    },
+    {
+      "file": "/images/seo/secure-booking-payment.png",
+      "routes": [
+        "/payment-checkout",
+        "/payment/checkout"
+      ],
+      "scene": "A premium conceptual secure travel payment still life: a simple unbranded card terminal beside a face-down blank bank card, closed travel document folder and a small brass padlock, with a compact suitcase softly blurred in the background. Reassuring restrained green accents and warm natural light, no readable numbers, logos or interface."
+    },
+    {
+      "file": "/images/seo/internal-test.png",
+      "routes": [
+        "/test"
+      ],
+      "scene": "A tidy internal travel-technology workspace with a laptop showing only softly blurred abstract colour blocks, a small globe, notebook and neatly placed headphones. Soft natural light and a calm professional office. Conceptual software testing and travel operations, no readable code, UI labels, logos or personal information."
+    },
+    {
+      "file": "/images/seo/admin-access.png",
+      "routes": [
+        "/admin",
+        "/admin/login",
+        "/admin-login"
+      ],
+      "scene": "A refined conceptual secure travel operations workspace: a closed dark green laptop, small brass padlock, travel document folders and a globe on a clean wooden desk in a softly lit contemporary office. Professional restricted administrative access conveyed through real objects, no readable screens, credentials, text or logos."
+    }
+  ]
+}

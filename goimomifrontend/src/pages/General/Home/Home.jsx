@@ -101,11 +101,7 @@ const leisureImages = [
 ];
 
 // POPULAR DESTINATIONS
-import maldives from "../../../assets/PopularDestinations/maldives.png";
-import dubai from "../../../assets/PopularDestinations/dubaiSafari.png";
-import singapore from "../../../assets/PopularDestinations/singapore.png";
 import paris from "../../../assets/PopularDestinations/paris.png";
-import santorini from "../../../assets/PopularDestinations/santorini.png";
 import bali from "../../../assets/PopularDestinations/bali.png";
 
 // SPECIAL OFFERS

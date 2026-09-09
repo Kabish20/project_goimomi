@@ -74,7 +74,12 @@ const findBuiltImage = (imageStem) => {
 const resolveImage = (image) => {
   if (!image) return `${siteUrl}/logo.png`;
   if (/^https?:\/\//i.test(image)) return image;
-  if (image.startsWith('/')) return `${siteUrl}${image}`;
+  if (image.startsWith('/')) {
+    if (!fs.existsSync(path.join(distDirectory, image.slice(1)))) {
+      throw new Error(`SEO image "${image}" was not found in dist.`);
+    }
+    return `${siteUrl}${image}`;
+  }
 
   const builtImage = findBuiltImage(image);
   if (!builtImage) {

@@ -4,5 +4,6 @@
     "./goimomibackend/Holidays"
   ],
   "python.testing.cwd": "./goimomibackend",
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

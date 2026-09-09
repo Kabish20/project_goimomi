@@ -19,8 +19,6 @@ import cantonFactory from "@/assets/images/canton-factory.png";
 import guangzhouAttractions from "@/assets/images/guangzhou-attractions.png";
 import foshanAttractions from "@/assets/images/foshan-attractions.png";
 import cantonIntroThumb from "@/assets/images/canton_fair_intro_thumb.png";
-import cantonExhibitorThumb from "@/assets/images/canton_fair_exhibitor_thumb.png";
-import cantonBuyerThumb from "@/assets/images/canton_fair_buyer_thumb.png";
 import cantonActivityReview from "@/assets/images/canton-activity-review.png";
 
 /* ─────────────────────────────── Countdown ─────────────────────────────── */
