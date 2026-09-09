@@ -2,6 +2,8 @@
 
 This guide provides the complete manual step-by-step instructions as well as automated 1-click scripts to rehost the entire Goimomi full-stack application on Ubuntu Linux (AWS EC2 `54.81.116.105` / `goimomi.com`).
 
+> **Current production deployment:** Read [LIVE_DEPLOYMENT.md](LIVE_DEPLOYMENT.md) for the release deployed on 9 September 2026, verified service names, backups, and rollback instructions. The bootstrap commands below assume an older layout and must be adapted before use on the current server.
+
 ---
 
 ## 📋 System Architecture

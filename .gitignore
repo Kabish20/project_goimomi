@@ -61,3 +61,5 @@ goimomibackend/media/
 
 # ---- Agents / AI ----
 .agents/
+.rehost/
+goimomi_known_hosts
