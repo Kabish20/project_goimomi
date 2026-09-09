@@ -94,7 +94,31 @@
     "route": "/visaratecardb2b",
     "title": "B2B Visa Rate Card | Goimomi Holidays",
     "description": "Official Goimomi Holidays B2B Visa Rate Card with live updated partner pricing, processing times, and document requirements for travel agents.",
-    "image": "/images/seo/b2b-visa-partners.png",
+    "image": "/images/seo/b2b-visa-partners.jpg",
+    "keywords": "B2B visa rate card, visa partner pricing, travel agent visa rates, visa processing fees, Goimomi Holidays"
+  },
+  {
+    "route": "/visaratecard",
+    "title": "B2B Visa Rate Card | Goimomi Holidays",
+    "description": "Official Goimomi Holidays B2B Visa Rate Card with live updated partner pricing, processing times, and document requirements for travel agents.",
+    "image": "/images/seo/b2b-visa-partners.jpg",
+    "canonical": "/visaratecardb2b",
+    "keywords": "B2B visa rate card, visa partner pricing, travel agent visa rates, visa processing fees, Goimomi Holidays"
+  },
+  {
+    "route": "/visaratecard-b2b",
+    "title": "B2B Visa Rate Card | Goimomi Holidays",
+    "description": "Official Goimomi Holidays B2B Visa Rate Card with live updated partner pricing, processing times, and document requirements for travel agents.",
+    "image": "/images/seo/b2b-visa-partners.jpg",
+    "canonical": "/visaratecardb2b",
+    "keywords": "B2B visa rate card, visa partner pricing, travel agent visa rates, visa processing fees, Goimomi Holidays"
+  },
+  {
+    "route": "/visa-rate-card-b2b",
+    "title": "B2B Visa Rate Card | Goimomi Holidays",
+    "description": "Official Goimomi Holidays B2B Visa Rate Card with live updated partner pricing, processing times, and document requirements for travel agents.",
+    "image": "/images/seo/b2b-visa-partners.jpg",
+    "canonical": "/visaratecardb2b",
     "keywords": "B2B visa rate card, visa partner pricing, travel agent visa rates, visa processing fees, Goimomi Holidays"
   },
   {

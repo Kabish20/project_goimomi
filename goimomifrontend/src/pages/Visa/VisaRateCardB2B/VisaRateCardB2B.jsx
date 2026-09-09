@@ -30,7 +30,7 @@ const VisaRateCardB2B = () => {
   usePageSEO(
     'B2B Visa Rate Card | Goimomi Holidays',
     'Official Goimomi Holidays B2B Visa Rate Card with live updated partner pricing, processing times, and document requirements for travel agents.',
-    undefined,
+    'https://goimomi.com/images/seo/b2b-visa-partners.jpg',
     'B2B visa rate card, visa partner pricing, travel agent visa rates, visa processing fees, Goimomi Holidays'
   );
 
