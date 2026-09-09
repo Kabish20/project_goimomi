@@ -831,14 +831,6 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
     if (!selectedOrder) return;
     setSavingInvoice(true);
     try {
-      const payload = {
-        book_invoice_number: bookInvoiceNo.trim(),
-        logistics_provider: logisticsProvider.trim(),
-        tracking_number: trackingNo.trim()
-      };
-      await api.patch(`/api/goimomi-product-orders/${selectedOrder.id}/`, payload);
-      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, ...payload } : o));
-      setSelectedOrder(prev => ({ ...prev, ...payload }));
       const formData = new FormData();
       formData.append("book_invoice_number", bookInvoiceNo.trim());
       formData.append("logistics_provider", logisticsProvider.trim());
@@ -865,7 +857,6 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
       setTimeout(() => setOrderInvoiceSaved(false), 2500);
     } catch (err) {
       console.error("Error saving invoice details:", err);
-      alert("Failed to save invoice details.");
       const errMsg = err.response?.data?.error || err.response?.data?.detail || "Failed to save invoice details.";
       alert(`Save Error: ${errMsg}`);
     } finally {
@@ -1588,10 +1579,8 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                         type="button"
                         onClick={handleSaveInvoiceDetails}
                         disabled={savingInvoice}
-                        className="px-4 py-1.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-lg shadow transition disabled:opacity-50"
                         className="px-4 py-1.5 bg-sky-700 hover:bg-sky-800 text-white font-bold text-xs rounded-lg shadow transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
                       >
-                        {savingInvoice ? "Saving..." : "Save Invoice & Shipping Details"}
                         {savingInvoice ? (
                           <>
                             <RefreshCw size={12} className="animate-spin" /> Saving...

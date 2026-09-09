@@ -1,13 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import usePageSEO from '../../../hooks/usePageSEO';
-import { RefreshCw, ExternalLink, ShieldCheck, PhoneCall, Mail, Maximize2, Minimize2 } from 'lucide-react';
+import {
+  RefreshCw,
+  ExternalLink,
+  ShieldCheck,
+  PhoneCall,
+  Mail,
+  Maximize2,
+  Minimize2,
+  Scan,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+} from 'lucide-react';
 
 const ZOHO_SHEET_URL =
   'https://sheet.zohopublic.in/sheet/publishedrange/e891f931c63f08cffbe2ada1f0d9509ff7ebd1c4f73242a9a3cc4b682a677a03?type=grid&mode=embed';
 
+const BASE_WIDTH = 1140;
+const BASE_HEIGHT = 1025;
+
 const VisaRateCardB2B = () => {
   const [key, setKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [isFitToWidth, setIsFitToWidth] = useState(true);
+  const containerRef = useRef(null);
 
   usePageSEO(
     'B2B Visa Rate Card | Goimomi Holidays',
@@ -20,9 +38,55 @@ const VisaRateCardB2B = () => {
     setKey((prev) => prev + 1);
   };
 
+  const calculateFitScale = useCallback(() => {
+    if (!containerRef.current) return 1;
+    const availableWidth = containerRef.current.clientWidth - 32;
+    if (availableWidth <= 0) return 1;
+    const fitted = availableWidth / BASE_WIDTH;
+    return Math.min(1, Math.max(0.35, parseFloat(fitted.toFixed(3))));
+  }, []);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (isFitToWidth) {
+        setScale(calculateFitScale());
+      }
+    };
+
+    updateScale();
+    const timer = setTimeout(updateScale, 300);
+    window.addEventListener('resize', updateScale);
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      clearTimeout(timer);
+    };
+  }, [isFitToWidth, calculateFitScale, isFullscreen]);
+
+  const toggleFitMode = () => {
+    if (isFitToWidth) {
+      setIsFitToWidth(false);
+      setScale(1);
+    } else {
+      setIsFitToWidth(true);
+      setScale(calculateFitScale());
+    }
+  };
+
+  const handleZoom = (delta) => {
+    setIsFitToWidth(false);
+    setScale((prev) => {
+      const next = parseFloat((prev + delta).toFixed(2));
+      return Math.min(1.4, Math.max(0.4, next));
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-3 sm:px-6 lg:px-8">
-      <div className="max-w-[1180px] mx-auto space-y-5">
+      <div
+        className={`mx-auto space-y-5 transition-all duration-300 ${
+          isFullscreen ? 'max-w-7xl' : 'max-w-[1240px]'
+        }`}
+      >
         {/* Header Title & Controls */}
         <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
@@ -74,26 +138,113 @@ const VisaRateCardB2B = () => {
           </div>
         </div>
 
-        {/* Keep the published range readable with horizontal scrolling on small screens. */}
-        <div
-          className={`transition-all duration-300 ${
-            isFullscreen ? 'max-w-none w-full' : 'max-w-[1142px] mx-auto w-full'
-          }`}
-        >
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
-            <div className="w-full overflow-x-auto bg-slate-100">
-              <iframe
-                key={key}
-                src={ZOHO_SHEET_URL}
-                title="B2B Visa Rate Card"
-                width="1140"
-                height="1025"
-                style={{ border: '1px solid #ccc' }}
-                frameBorder="0"
-                scrolling="no"
-                className="block min-w-[1140px]"
-                allow="clipboard-read; clipboard-write"
-              />
+        {/* Centered & Responsive Sheet Card Container */}
+        <div className="w-full">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden flex flex-col">
+            {/* Control Sub-bar for Sheet Display (Fit to Width, Zoom, Centering indicators) */}
+            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-slate-600 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>
+                  Alignment:{' '}
+                  <strong className="text-slate-800 font-semibold">Center-Fitted</strong>
+                </span>
+                <span className="text-slate-300">•</span>
+                <span>
+                  Scale:{' '}
+                  <strong className="text-slate-800 font-semibold">
+                    {Math.round(scale * 100)}%
+                  </strong>
+                </span>
+                {isFitToWidth && (
+                  <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wide">
+                    Auto-Fit Active
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 ml-auto">
+                <button
+                  onClick={toggleFitMode}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition text-[11px] border ${
+                    isFitToWidth
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
+                  }`}
+                  title={
+                    isFitToWidth
+                      ? 'Switch to 100% natural resolution'
+                      : 'Auto-fit sheet to container width'
+                  }
+                >
+                  <Scan size={13} />
+                  <span>{isFitToWidth ? 'Fitted Width' : 'Fit to Width'}</span>
+                </button>
+
+                <button
+                  onClick={() => handleZoom(-0.05)}
+                  disabled={scale <= 0.4}
+                  className="p-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition disabled:opacity-30 border border-transparent hover:border-slate-200"
+                  title="Zoom Out"
+                >
+                  <ZoomOut size={14} />
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsFitToWidth(false);
+                    setScale(1);
+                  }}
+                  className="p-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition border border-transparent hover:border-slate-200"
+                  title="Reset to 100%"
+                >
+                  <RotateCcw size={14} />
+                </button>
+
+                <button
+                  onClick={() => handleZoom(0.05)}
+                  disabled={scale >= 1.4}
+                  className="p-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition disabled:opacity-30 border border-transparent hover:border-slate-200"
+                  title="Zoom In"
+                >
+                  <ZoomIn size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Center-Aligned Sheet Viewport */}
+            <div
+              ref={containerRef}
+              className="w-full overflow-x-auto bg-slate-100/70 p-3 sm:p-5 flex justify-center items-center min-h-[500px]"
+            >
+              <div className="w-fit min-w-full flex justify-center items-center">
+                <div
+                  className="transition-all duration-200 flex justify-center items-center mx-auto"
+                  style={{
+                    width: `${Math.round(BASE_WIDTH * scale)}px`,
+                    height: `${Math.round(BASE_HEIGHT * scale)}px`,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <iframe
+                    key={key}
+                    src={ZOHO_SHEET_URL}
+                    title="B2B Visa Rate Card"
+                    width={BASE_WIDTH}
+                    height={BASE_HEIGHT}
+                    frameBorder="0"
+                    scrolling="no"
+                    className="block rounded-xl shadow-xs border border-slate-200/80 bg-white"
+                    style={{
+                      transform: `scale(${scale})`,
+                      transformOrigin: 'top left',
+                      width: `${BASE_WIDTH}px`,
+                      height: `${BASE_HEIGHT}px`,
+                    }}
+                    allow="clipboard-read; clipboard-write"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
