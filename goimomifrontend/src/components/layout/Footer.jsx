@@ -126,6 +126,7 @@ const Footer = () => {
               <span>Hyderabad</span>
               <span>Dubai</span>
               <span>Saudi Arabia</span>
+              <span>Sri Lanka</span>
             </div>
           </div>
 
