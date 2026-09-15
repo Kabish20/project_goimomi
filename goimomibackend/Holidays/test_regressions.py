@@ -3,7 +3,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient
 
@@ -12,6 +12,51 @@ from Holidays.models import (
     CatalogueMaster, SubCatalogue, Visa, VisaApplication, GoimomiProduct,
 )
 from Holidays.views import quote_cab_fare
+from Holidays.models import Enquiry, ZohoWebhookLog
+
+
+@override_settings(ZOHO_CRM_WEBHOOK_SECRET='test-crm-secret')
+class CRMWebhookRegressionTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.url = reverse('zoho-crm-webhook')
+
+    def test_missing_or_invalid_secret_cannot_create_an_enquiry(self):
+        for secret in ('', 'wrong-secret', 'invalid-\u00e9-secret'):
+            with self.subTest(secret=secret):
+                response = self.client.post(self.url, {'name': 'Test lead'}, format='json',
+                                            HTTP_X_ZOHO_WEBHOOK_SECRET=secret)
+                self.assertEqual(response.status_code, 401)
+        self.assertFalse(Enquiry.objects.exists())
+
+    @override_settings(ZOHO_CRM_WEBHOOK_SECRET='')
+    def test_unconfigured_webhook_fails_closed(self):
+        response = self.client.post(self.url, {'name': 'Test lead'}, format='json')
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(Enquiry.objects.exists())
+
+    def test_valid_secret_is_accepted_but_not_stored_in_audit_log(self):
+        for transport in ('header', 'body', 'query'):
+            with self.subTest(transport=transport):
+                payload = {'name': 'Test lead', 'email': 'lead@example.test'}
+                headers = {}
+                url = self.url
+                if transport == 'header':
+                    headers['HTTP_X_ZOHO_WEBHOOK_SECRET'] = 'test-crm-secret'
+                elif transport == 'body':
+                    payload['secret'] = 'test-crm-secret'
+                else:
+                    url += '?secret=test-crm-secret'
+                response = self.client.post(url, payload, format='json', **headers)
+                self.assertEqual(response.status_code, 200)
+                log = ZohoWebhookLog.objects.get(pk=response.data['log_id'])
+                self.assertNotIn('secret', log.payload)
+                self.assertNotIn('x-zoho-webhook-secret', {key.lower() for key in log.headers})
+        self.assertEqual(Enquiry.objects.count(), 3)
+
+    def test_health_check_does_not_create_an_enquiry(self):
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+        self.assertFalse(Enquiry.objects.exists())
 
 
 class BookingRegressionTests(TestCase):

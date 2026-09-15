@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import api from "../../../api";
-import { Share2, Mail, Eye, MessageCircle, X, Copy, Calendar, MapPin, CheckCircle, ChevronDown, Search, FileDown, Plane, Clock, Building2, Sparkles, ArrowRight, Hotel, Utensils } from "lucide-react";
+import { Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle, ChevronDown, Search, FileDown, ArrowRight, Hotel, Utensils } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
 import jsPDF from "jspdf";
@@ -402,7 +402,7 @@ const Holidays = () => {
     }
   };
   const [emailModalPkg, setEmailModalPkg] = useState(null);
-  const [activePricePopup, setActivePricePopup] = useState(null);
+  const [, setActivePricePopup] = useState(null);
   const [sharingEmail, setSharingEmail] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -506,14 +506,6 @@ Email : hello@goimomi.com`;
 ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description ? `\n  - ${day.description}` : ""}`).join("\n\n")}`;
   };
 
-  const loadImage = (url) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = url;
-    });
-  };
 
   const downloadPackagePDF = async (pkg) => {
     const doc = new jsPDF();
@@ -648,7 +640,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
     y = 35;
 
     if (pkg.itinerary && pkg.itinerary.length > 0) {
-      pkg.itinerary.forEach((day, index) => {
+      pkg.itinerary.forEach((day) => {
         if (y > pageHeight - 50) {
           addFooter(doc, 3, 4);
           doc.addPage();
@@ -1125,8 +1117,7 @@ ${pkg.itinerary.map(day => `Day ${day.day_number}: ${day.title}${day.description
         isOpen={isDownloadModalOpen}
         onClose={() => setIsDownloadModalOpen(false)}
         packageName={downloadingPkg?.title}
-        onDownload={(formData) => {
-          console.log("PDF Lead collected:", formData);
+        onDownload={() => {
           downloadPackagePDF(downloadingPkg);
         }}
       />

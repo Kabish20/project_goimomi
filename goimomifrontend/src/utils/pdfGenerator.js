@@ -141,7 +141,7 @@ export const downloadPackagePDF = async (pkg) => {
   addHeader(doc, "Day Wise Itinerary");
   y = 35;
   if (pkg.itinerary && pkg.itinerary.length > 0) {
-    pkg.itinerary.forEach((day, index) => {
+    pkg.itinerary.forEach((day) => {
       if (y > pageHeight - 50) {
         addFooter(doc, 3, 4);
         doc.addPage();

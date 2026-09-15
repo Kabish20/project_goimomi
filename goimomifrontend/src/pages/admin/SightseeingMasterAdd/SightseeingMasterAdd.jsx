@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Image as ImageIcon, Plus, X, ArrowLeft, Camera, Clock, IndianRupee, Link as LinkIcon, Info } from "lucide-react";
+import { X, ArrowLeft, Camera, Clock, IndianRupee, Link as LinkIcon, Info } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";

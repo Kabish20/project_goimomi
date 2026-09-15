@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { 
-  Plus, Search, Flag, ChevronRight, Edit2, Trash2, Globe, RefreshCcw, User
-} from "lucide-react";
+import { Plus, Search, Flag, Edit2, Trash2, Globe, RefreshCcw } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 

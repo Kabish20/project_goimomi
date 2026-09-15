@@ -127,19 +127,6 @@ const ZohoLeadForm = ({ isOpen, onClose }) => {
     return true;
   };
 
-  const tooltipShow = (el) => {
-    const tooltip = el.nextElementSibling;
-    const tooltipDisplay = tooltip.style.display;
-    if (tooltipDisplay === 'none') {
-      const allTooltip = document.getElementsByClassName('zcwf_tooltip_over');
-      for (let i = 0; i < allTooltip.length; i++) {
-        allTooltip[i].style.display = 'none';
-      }
-      tooltip.style.display = 'block';
-    } else {
-      tooltip.style.display = 'none';
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4">

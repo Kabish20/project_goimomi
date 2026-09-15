@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
-import { ArrowLeft, Save, Calendar, DollarSign, FileText, Eye, Download, User, Edit, Trash2, Upload, Plus, X as LucideX } from "lucide-react";
+import { ArrowLeft, Save, Eye, Download, User, Edit, Trash2, Upload, Plus, X as LucideX } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
@@ -32,7 +32,7 @@ const VisaApplicationEdit = () => {
   const [statusMessage, setStatusMessage] = useState({ text: "", type: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
+  const [, setIsUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [editingApplicantId, setEditingApplicantId] = useState(null);

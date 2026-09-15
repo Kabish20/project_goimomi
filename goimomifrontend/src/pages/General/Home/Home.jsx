@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../../api";
-import {
-  MapPin, Zap, ShieldCheck, Headphones, Star, Award, Clock, Globe,
-  Users, CheckCircle2, Briefcase, CreditCard, Plane, FileText,
-  PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays, Car, Ticket
-} from "lucide-react";
+import { MapPin, Zap, ShieldCheck, Headphones, Award, Globe, Users, CheckCircle2, Briefcase, CreditCard, Plane, FileText, PhoneCall, BadgeCheck, TrendingUp, ArrowRight, Sparkles, CalendarDays, Car } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { simpleCache } from "../../../utils/cache";
 
 import homeBusiness1 from "../../../assets/Home/BusinessHeader/home-business-01.png";

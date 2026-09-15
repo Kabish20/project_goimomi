@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import api from "../../../api";
-import { CheckCircle, Upload, ChevronDown, Check, User, Info, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin, Zap, Loader2, Sparkles } from "lucide-react";
+import { CheckCircle, Upload, User, FileText, Image as ImageIcon, Trash2, X, Plus, MapPin, Zap, Loader2, Sparkles } from "lucide-react";
 import { getImageUrl } from "../../../utils/imageUtils";
 import { parsePassportImage } from "../../../utils/passportParser";
 import usePageSEO from "../../../hooks/usePageSEO";
@@ -72,16 +72,12 @@ const VisaApplication = () => {
     const [errors, setErrors] = useState({});
 
     const [submitting, setSubmitting] = useState(false);
-    const [showPriceDetails, setShowPriceDetails] = useState(false);
     const [pricePopupOpen, setPricePopupOpen] = useState(false);
     const pricePopupRef = useRef(null);
 
     // Refs for scrolling to sections
-    const internalIdRef = useRef(null);
-    const groupNameRef = useRef(null);
-    const travelerRef = useRef(null);
 
-    const [currentStep, setCurrentStep] = useState("internal_id");
+    const [currentStep] = useState("internal_id");
 
     // Form State
     const [applicationType, setApplicationType] = useState("Individual");

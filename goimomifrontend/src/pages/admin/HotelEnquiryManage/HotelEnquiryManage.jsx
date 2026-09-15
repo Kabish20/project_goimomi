@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
-import { Search, Eye, Trash2, Mail, Phone, Hotel, Edit, Save, X } from "lucide-react";
+import { Search, Eye, Trash2, Mail, Phone, Hotel, Edit, Save } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -267,7 +267,7 @@ const HotelEnquiryManage = () => {
                                     )}
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-2 mt-1 -ml-2 shrink-0">
                                 {!isEditing ? (
                                     <button onClick={handleEditEnquiry} className="flex items-center gap-1 bg-green-50 text-[#14532d] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">
@@ -284,7 +284,7 @@ const HotelEnquiryManage = () => {
                                     </div>
                                 )}
                             </div>
-                            
+
                             <button
                                 onClick={handleCloseModal}
                                 className="absolute right-5 top-5 text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full text-2xl leading-none"

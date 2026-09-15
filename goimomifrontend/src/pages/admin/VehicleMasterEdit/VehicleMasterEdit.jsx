@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus, ArrowRight, Loader, Check, Download, FileText, ChevronDown, Upload } from "lucide-react";
+import { ArrowLeft, Car, Camera, Users, Briefcase, Plus, Calendar, Trash2, Minus, Loader, Check, Download, FileText, Upload } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
@@ -70,11 +70,86 @@ const VehicleMasterEdit = () => {
     const [preview, setPreview] = useState(null);
     const [originalPhoto, setOriginalPhoto] = useState(null);
 
-    useEffect(() => {
-        fetchInitialData();
-    }, [id]);
 
-    const fetchInitialData = async () => {
+
+    const fetchInitialData = useCallback(async () => {
+        const fetchVehicleAndRateCard = async () => {
+            try {
+                const vRes = await api.get(`/api/vehicle-masters/${id}/`);
+                const vData = vRes.data;
+                setFormData({
+                    name: vData.name || "",
+                    brand: vData.brand || "",
+                    seating_capacity: String(vData.seating_capacity || "4"),
+                    luggage_capacity: String(vData.luggage_capacity || "2"),
+                    driver: vData.driver || "",
+                    description: vData.description || "",
+                    photo: null
+                });
+                setPrevName(vData.name || "");
+                if (vData.photo) {
+                    setPreview(vData.photo);
+                    setOriginalPhoto(vData.photo);
+                }
+
+                const rRes = await api.get(`/api/vehicle-rate-cards/?vehicle=${id}`);
+                const rData = Array.isArray(rRes.data) ? rRes.data : (rRes.data?.results || []);
+                if (rData && rData.length > 0) {
+                    const rc = rData[0];
+                    const count = detectVehicleCount(rc.routes);
+                    setVehicleCount(count);
+                    setRateCard({
+                        id: rc.id,
+                        country: rc.country || "",
+                        supplier: rc.supplier || "",
+                        vehicle: rc.vehicle || id,
+                        name: rc.name || "",
+                        validity_start: rc.validity_start || "",
+                        validity_end: rc.validity_end || "",
+                        rate_card_file: null,
+                        existing_file: rc.rate_card_file || null,
+                        routes: rc.routes.map(r => ({
+                            start_city: r.start_city?.trim() || "",
+                            start_from: r.start_from?.trim() || "",
+                            drop_city: r.drop_city?.trim() || "",
+                            drop_to: r.drop_to?.trim() || "",
+                            vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] ?? "")
+                        }))
+                    });
+                    setColumnVehicles(rc.column_vehicles || Array(count).fill(""));
+                } else {
+                    // Fallback: try searching by name for legacy cards
+                    const nameRes = await api.get(`/api/vehicle-rate-cards/?name=${encodeURIComponent(vData.name)}`);
+                    const nameData = Array.isArray(nameRes.data) ? nameRes.data : (nameRes.data?.results || []);
+                    if (nameData.length > 0) {
+                        const rc = nameData[0];
+                        const count = detectVehicleCount(rc.routes);
+                        setVehicleCount(count);
+                        setRateCard({
+                            id: rc.id,
+                            country: rc.country || "",
+                            supplier: rc.supplier || "",
+                            vehicle: rc.vehicle || id,
+                            name: rc.name || "",
+                            validity_start: rc.validity_start || "",
+                            validity_end: rc.validity_end || "",
+                            rate_card_file: null,
+                            existing_file: rc.rate_card_file || null,
+                            routes: rc.routes.map(r => ({
+                                start_city: r.start_city?.trim() || "",
+                                start_from: r.start_from?.trim() || "",
+                                drop_city: r.drop_city?.trim() || "",
+                                drop_to: r.drop_to?.trim() || "",
+                                vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] ?? "")
+                            }))
+                        });
+                        setColumnVehicles(rc.column_vehicles || Array(count).fill(""));
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching data:", err);
+            }
+        };
         setFetching(true);
         await Promise.all([
             fetchBrands(),
@@ -87,7 +162,11 @@ const VehicleMasterEdit = () => {
             fetchVehicleAndRateCard()
         ]);
         setFetching(false);
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchInitialData();
+    }, [fetchInitialData]);
 
     const fetchVehicleMasters = async () => {
         try {
@@ -162,83 +241,7 @@ const VehicleMasterEdit = () => {
         }
     };
 
-    const fetchVehicleAndRateCard = async () => {
-        try {
-            const vRes = await api.get(`/api/vehicle-masters/${id}/`);
-            const vData = vRes.data;
-            setFormData({
-                name: vData.name || "",
-                brand: vData.brand || "",
-                seating_capacity: String(vData.seating_capacity || "4"),
-                luggage_capacity: String(vData.luggage_capacity || "2"),
-                driver: vData.driver || "",
-                description: vData.description || "",
-                photo: null
-            });
-            setPrevName(vData.name || "");
-            if (vData.photo) {
-                setPreview(vData.photo);
-                setOriginalPhoto(vData.photo);
-            }
 
-            const rRes = await api.get(`/api/vehicle-rate-cards/?vehicle=${id}`);
-            const rData = Array.isArray(rRes.data) ? rRes.data : (rRes.data?.results || []);
-            if (rData && rData.length > 0) {
-                const rc = rData[0];
-                const count = detectVehicleCount(rc.routes);
-                setVehicleCount(count);
-                setRateCard({
-                    id: rc.id,
-                    country: rc.country || "",
-                    supplier: rc.supplier || "",
-                    vehicle: rc.vehicle || id,
-                    name: rc.name || "",
-                    validity_start: rc.validity_start || "",
-                    validity_end: rc.validity_end || "",
-                    rate_card_file: null,
-                    existing_file: rc.rate_card_file || null,
-                    routes: rc.routes.map(r => ({
-                        start_city: r.start_city?.trim() || "",
-                        start_from: r.start_from?.trim() || "",
-                        drop_city: r.drop_city?.trim() || "",
-                        drop_to: r.drop_to?.trim() || "",
-                        vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] ?? "")
-                    }))
-                });
-                setColumnVehicles(rc.column_vehicles || Array(count).fill(""));
-            } else {
-                // Fallback: try searching by name for legacy cards
-                const nameRes = await api.get(`/api/vehicle-rate-cards/?name=${encodeURIComponent(vData.name)}`);
-                const nameData = Array.isArray(nameRes.data) ? nameRes.data : (nameRes.data?.results || []);
-                if (nameData.length > 0) {
-                    const rc = nameData[0];
-                    const count = detectVehicleCount(rc.routes);
-                    setVehicleCount(count);
-                    setRateCard({
-                        id: rc.id,
-                        country: rc.country || "",
-                        supplier: rc.supplier || "",
-                        vehicle: rc.vehicle || id,
-                        name: rc.name || "",
-                        validity_start: rc.validity_start || "",
-                        validity_end: rc.validity_end || "",
-                        rate_card_file: null,
-                        existing_file: rc.rate_card_file || null,
-                        routes: rc.routes.map(r => ({
-                            start_city: r.start_city?.trim() || "",
-                            start_from: r.start_from?.trim() || "",
-                            drop_city: r.drop_city?.trim() || "",
-                            drop_to: r.drop_to?.trim() || "",
-                            vehicles: Array.from({ length: count }).map((_, i) => r[`v${i + 1}`] ?? "")
-                        }))
-                    });
-                    setColumnVehicles(rc.column_vehicles || Array(count).fill(""));
-                }
-            }
-        } catch (err) {
-            console.error("Error fetching data:", err);
-        }
-    };
 
     const detectVehicleCount = (routes) => {
         if (!routes || routes.length === 0) return 4;
@@ -457,7 +460,7 @@ const VehicleMasterEdit = () => {
             rateCardFD.append("validity_start", rateCard.validity_start);
             rateCardFD.append("validity_end", rateCard.validity_end);
             rateCardFD.append("column_vehicles", JSON.stringify(columnVehicles));
-            
+
             const routes = rateCard.routes.map(r => {
                 const route = {
                     start_city: r.start_city,

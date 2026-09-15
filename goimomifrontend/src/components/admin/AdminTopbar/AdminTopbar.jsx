@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Key, LogOut, Menu } from "lucide-react";
+import { ArrowLeft, ExternalLink, LogOut, Menu } from "lucide-react";
 import { clearAuthTokens } from '../../../api';
 
 const AdminTopbar = () => {

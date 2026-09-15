@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle, ShieldCheck, Clock, Headphones, Award, CreditCard, Star, Plane, ArrowRight, BadgeCheck, ChevronRight } from "lucide-react";
+import { Search, MapPin, Calendar, Users, ArrowLeftRight, Share2, Mail, Eye, MessageCircle, X, Copy, CheckCircle, ShieldCheck, Clock, Headphones, Award, CreditCard, BadgeCheck, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../../api";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
@@ -61,14 +61,13 @@ const Cab = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isAgreed, setIsAgreed] = useState(false);
-  const [transferType, setTransferType] = useState("airport"); // 'airport' or 'intercity'
   const [phone, setPhone] = useState("");
   const [bookingStatus, setBookingStatus] = useState({ loading: false, success: false, error: null });
   const [confirmedBookingIds, setConfirmedBookingIds] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [airports, setAirports] = useState([]);
+  const [, setAirports] = useState([]);
   const [pickupPoints, setPickupPoints] = useState([]);
   const [viewDetailsCar, setViewDetailsCar] = useState(null);
   const [emailModalCar, setEmailModalCar] = useState(null);
@@ -309,42 +308,6 @@ const Cab = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isGuestsOpen]);
 
-  useEffect(() => {
-    if (!isBooking || !selectedVehicle) return;
-
-    const fetchUpdatedPrice = async () => {
-      try {
-        const response = await api.get("/api/cab-search/", {
-          params: {
-            from_city: searchParams.fromName,
-            to_city: searchParams.toName,
-            pickup_date: searchParams.pickupDate,
-            pickup_point: bookingFormData.pickupPoint || "",
-            drop_point: bookingFormData.dropPoint || ""
-          }
-        });
-        
-        if (Array.isArray(response.data)) {
-          const matchedVehicle = response.data.find(v => v.id === selectedVehicle.id);
-          if (matchedVehicle) {
-            setSelectedVehicle(prev => {
-              if (!prev) return null;
-              return {
-                ...prev,
-                price: matchedVehicle.price
-              };
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Error updating price for points:", err);
-      }
-    };
-
-    fetchUpdatedPrice();
-  }, [bookingFormData.pickupPoint, bookingFormData.dropPoint, isBooking]);
-
-
   const getTomorrowDate = () => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -361,6 +324,51 @@ const Cab = () => {
     pickupDate: getTomorrowDate(),
     guests: 1
   });
+
+  const selectedVehicleId = selectedVehicle?.id;
+
+  useEffect(() => {
+    if (!isBooking || !selectedVehicleId) return;
+    const controller = new AbortController();
+
+    const fetchUpdatedPrice = async () => {
+      try {
+        const response = await api.get("/api/cab-search/", {
+          signal: controller.signal,
+          params: {
+            from_city: searchParams.fromName,
+            to_city: searchParams.toName,
+            pickup_date: searchParams.pickupDate,
+            pickup_point: bookingFormData.pickupPoint || "",
+            drop_point: bookingFormData.dropPoint || ""
+          }
+        });
+        
+        if (!controller.signal.aborted && Array.isArray(response.data)) {
+          const matchedVehicle = response.data.find(v => v.id === selectedVehicleId);
+          if (matchedVehicle) {
+            setSelectedVehicle(prev => {
+              if (!prev || prev.id !== selectedVehicleId) return prev;
+              return {
+                ...prev,
+                price: matchedVehicle.price
+              };
+            });
+          }
+        }
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        console.error("Error updating price for points:", err);
+      }
+    };
+
+    fetchUpdatedPrice();
+    return () => controller.abort();
+  }, [bookingFormData.pickupPoint, bookingFormData.dropPoint, isBooking,
+    selectedVehicleId, searchParams.fromName, searchParams.toName, searchParams.pickupDate]);
+
+
+
 
   useEffect(() => {
     loadDestinations();
@@ -1269,7 +1277,7 @@ const Cab = () => {
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                 <h3 className="text-base font-black text-gray-900 mb-4 tracking-tight">Fare Summary</h3>
                 <div className="space-y-3">
-                  {cart.map((item, idx) => (
+                  {cart.map((item) => (
                     <div key={item.cartId} className="flex justify-between items-center text-[11px] font-black">
                       <span className="text-gray-400 uppercase tracking-widest">{item.name}</span>
                       <span className="text-gray-900">₹{Number(item.price || 0).toLocaleString('en-IN')}</span>
@@ -2137,7 +2145,6 @@ const PaymentSuccessModal = ({ bookingId, onClose }) => {
 
 
 export default Cab;
-
 
 
 

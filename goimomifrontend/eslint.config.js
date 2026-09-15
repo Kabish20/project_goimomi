@@ -7,7 +7,7 @@ import react from 'eslint-plugin-react'
 export default [
   { ignores: ['dist'] },
   {
-    files: ['**/*.{js,jsx,mjs}'],
+    files: ['**/*.{js,jsx,mjs,cjs}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -26,16 +26,17 @@ export default [
       ...js.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-undef': 'error',
+      'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
-      'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', ignoreRestSiblings: true }],
     },
   },
   {
-    files: ['**/*.test.js', 'scripts/**/*.mjs'],
+    files: ['**/*.test.js', 'scripts/**/*.mjs', 'design/**/*.mjs', '*.config.js', '*.config.cjs'],
     languageOptions: { globals: globals.node },
   },
 ]

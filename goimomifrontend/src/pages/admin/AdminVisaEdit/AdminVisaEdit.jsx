@@ -1,19 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
-import { ArrowLeft, Save, Plus, ChevronDown, Search, X } from "lucide-react";
+import { ArrowLeft, Plus, ChevronDown, Search, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
 // Helper to fix image URLs
-const getImageUrl = (url) => {
-    if (!url) return "";
-    if (typeof url !== "string") return url;
-    if (url.startsWith("http")) {
-        return url.replace("http://localhost:8000", "").replace("http://127.0.0.1:8000", "");
-    }
-    return url;
-};
 
 const AdminVisaEdit = () => {
     const { id } = useParams();
@@ -188,7 +180,7 @@ const AdminVisaEdit = () => {
             data.append("documents_required", documentsString);
             data.append("photography_required", photosString);
 
-            const response = await api.patch(`/api/visas/${id}/`, data, {
+            await api.patch(`/api/visas/${id}/`, data, {
                 headers: {
                     "Content-Type": "multipart/form-data"
                 }
@@ -642,6 +634,5 @@ const AdminVisaEdit = () => {
 };
 
 export default AdminVisaEdit;
-
 
 

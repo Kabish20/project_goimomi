@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, MapPin, ArrowRight, Upload, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Trash2, Info, Minus, Car, Upload, FileText } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
@@ -70,14 +70,7 @@ const VehicleRateCardEdit = () => {
         routes: [{ start_city: "", start_from: "", drop_city: "", drop_to: "", vehicles: Array(4).fill("") }]
     });
 
-    useEffect(() => {
-        fetchCountries();
-        fetchSuppliers();
-        fetchPickupPoints();
-        fetchDestinations();
-        fetchRateCard();
-        fetchVehicleMasters();
-    }, [id]);
+
 
     const fetchVehicleMasters = async () => {
         try {
@@ -137,7 +130,7 @@ const VehicleRateCardEdit = () => {
         }
     };
 
-    const fetchRateCard = async () => {
+    const fetchRateCard = useCallback(async () => {
         try {
             setFetching(true);
             const res = await api.get(`/api/vehicle-rate-cards/${id}/`);
@@ -182,7 +175,16 @@ const VehicleRateCardEdit = () => {
         } finally {
             setFetching(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchCountries();
+        fetchSuppliers();
+        fetchPickupPoints();
+        fetchDestinations();
+        fetchRateCard();
+        fetchVehicleMasters();
+    }, [fetchRateCard]);
 
     const addVehicle = () => {
         if (vehicleCount >= MAX_VEHICLES) return;

@@ -205,7 +205,7 @@ COMPANY_EMAIL = config("COMPANY_EMAIL")
 ZOHO_CRM_REFRESH_TOKEN = config("ZOHO_CRM_REFRESH_TOKEN", default="")
 ZOHO_CRM_CLIENT_ID = config("ZOHO_CRM_CLIENT_ID", default="")
 ZOHO_CRM_CLIENT_SECRET = config("ZOHO_CRM_CLIENT_SECRET", default="")
-ZOHO_CRM_WEBHOOK_SECRET = config("ZOHO_CRM_WEBHOOK_SECRET", default="goimomi-zoho-webhook-secret-2026")
+ZOHO_CRM_WEBHOOK_SECRET = config("ZOHO_CRM_WEBHOOK_SECRET", default="")
 FRONTEND_URL = config("FRONTEND_URL", default="https://goimomi.com")
 
 # Twilio Configuration

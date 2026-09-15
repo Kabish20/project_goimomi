@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
-import { useNavigate } from "react-router-dom";
-import {
-  Plus, Search, Plane, ChevronRight, Edit2, Trash2, MapPin, RefreshCcw, X, Check, Save, AlertCircle
-} from "lucide-react";
+import { Plus, Search, Plane, Edit2, Trash2, MapPin, RefreshCcw, X, Check, Save, AlertCircle } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -21,7 +18,6 @@ const AirportManage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAirports();

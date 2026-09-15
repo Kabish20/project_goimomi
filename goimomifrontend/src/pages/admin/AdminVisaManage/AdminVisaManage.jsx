@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../../api";
-import { Search, Trash2, Edit2, CheckCircle, XCircle, ChevronDown, MapPin } from "lucide-react";
+import { Search, Trash2, Edit2, ChevronDown, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";

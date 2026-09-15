@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"; // casing fix
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Plus, Search, MapPin, Star, Phone, Mail, Globe, Image as ImageIcon, X } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, MapPin, Star, Phone, Mail, Image as ImageIcon, X } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -9,7 +9,7 @@ const AccommodationManage = () => {
     const [accommodations, setAccommodations] = useState([]);
     const [filteredAccommodations, setFilteredAccommodations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [, setError] = useState("");
     const [message, setMessage] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
 

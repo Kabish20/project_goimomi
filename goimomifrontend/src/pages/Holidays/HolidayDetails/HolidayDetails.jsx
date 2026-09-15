@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Hotel, Star, MapPin, Info, Utensils, MessageCircle, FileDown, Eye, ArrowRight, Car } from "lucide-react";
+import { Hotel, Star, MapPin, Info, Utensils, FileDown, ArrowRight, Car } from "lucide-react";
 import { useParams, useLocation } from "react-router-dom";
 import api from "../../../api";
 import ZohoTripForm from "../../../components/forms/ZohoTripForm";
@@ -8,14 +8,12 @@ import usePageSEO from "../../../hooks/usePageSEO";
 import { getImageUrl } from "../../../utils/imageUtils";
 import { simpleCache } from "../../../utils/cache";
 import { downloadPackagePDF } from "../../../utils/pdfGenerator";
-import goimomilogo from "../../../assets/goimomilogo.png";
 // PDF Static Assets are handled by pdfGenerator utility
 
 const HolidayDetails = () => {
   const { id } = useParams();
   const tabsRef = React.useRef(null);
   const location = useLocation();
-  const [openDay, setOpenDay] = useState([]);
   const [pkg, setPkg] = useState(null);
   const [accommodations, setAccommodations] = useState([]);
   const [sightseeingMasters, setSightseeingMasters] = useState([]);
@@ -105,9 +103,6 @@ const HolidayDetails = () => {
     pkg ? `book ${pkg.title}, ${pkg.category} tour, ${pkg.starting_city} package, holiday details Goimomi` : "holiday details, tour package Goimomi"
   );
 
-  const toggleDay = (index) => {
-    setOpenDay(openDay === index ? null : index);
-  };
 
   useEffect(() => {
     simpleCache(`package_${id}`, () => api.get(`/api/packages/${id}/`))
@@ -794,8 +789,7 @@ const HolidayDetails = () => {
         isOpen={isDownloadModalOpen}
         onClose={() => setIsDownloadModalOpen(false)}
         packageName={pkg?.title}
-        onDownload={(formData) => {
-          console.log("PDF Lead collected:", formData);
+        onDownload={() => {
           downloadPackagePDF(pkg);
         }}
       />

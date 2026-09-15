@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Car, Camera, Users, Briefcase, Settings, Info, Plus, Calendar, MapPin, Trash2, Minus, ArrowRight, Check, Download, FileText, ChevronDown, Upload } from "lucide-react";
+import { ArrowLeft, Car, Camera, Users, Briefcase, Info, Plus, Calendar, Trash2, Minus, Check, Download, FileText, Upload } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
@@ -174,10 +174,6 @@ const VehicleMasterAdd = () => {
         }
     };
 
-    const handleRemovePhoto = () => {
-        setFormData(prev => ({ ...prev, photo: null }));
-        setPreview(null);
-    };
 
     const saveVehicleOnly = async () => {
         if (!formData.name || !formData.brand || !formData.seating_capacity || !formData.luggage_capacity) {
@@ -338,7 +334,7 @@ const VehicleMasterAdd = () => {
                                     rateCardFD.append("validity_end", rateCard.validity_end);
                                     rateCardFD.append("vehicle", vehicleRes.data.id);
                                     rateCardFD.append("column_vehicles", JSON.stringify(columnVehicles));
-                                    
+
                                     const routes = rateCard.routes.map(route => {
                                         const formattedRoute = {
                                             start_city: route.start_city,

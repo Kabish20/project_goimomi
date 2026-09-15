@@ -262,7 +262,6 @@ const App = () => {
               <Route path="/chithirai-global/pondicherry" element={<PondicherryJourney />} />
               <Route path="/chithirai-global/dubai" element={<DubaiJourney />} />
               <Route path="/" element={<Home />} />
-            <Route path="/test" element={<div className="p-20 text-4xl font-black text-green-600">React is Working!</div>} />
             <Route path="/aboutus" element={<About />} />
             <Route path="/contactus" element={<Contact />} />
             <Route path="/contact/success" element={<ContactSuccess />} />

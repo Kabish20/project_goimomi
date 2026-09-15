@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Plus, Search, Map, Calendar, Globe, FileText, Download, Loader2, ChevronDown, Upload, Copy } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Map, Calendar, Globe, FileText, Download, Upload, Copy } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import jsPDF from 'jspdf';
@@ -74,7 +74,7 @@ const VehicleRateCardManage = () => {
                 setLoading(true);
                 const response = await api.get(`${API_BASE_URL}/vehicle-rate-cards/${id}/`);
                 const data = response.data;
-                
+
                 const MAX_VEHICLES = 10;
                 let count = 0;
                 if (data.routes && data.routes.length > 0) {
@@ -133,7 +133,7 @@ const VehicleRateCardManage = () => {
         try {
             const vehicles = card.column_vehicles || [];
             const headers = ["Start City", "Start Point", "Drop City", "Drop Point", ...vehicles];
-            
+
             const rows = (card.routes || []).map(r => [
                 `"${r.start_city || ""}"`,
                 `"${r.start_from || ""}"`,
@@ -160,21 +160,21 @@ const VehicleRateCardManage = () => {
     const downloadPDF = (card) => {
         try {
             const doc = new jsPDF();
-            
+
             // Header
             doc.setFillColor(20, 83, 45); // #14532d
             doc.rect(0, 0, 210, 40, 'F');
-            
+
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(22);
             doc.text(card.name.toUpperCase(), 14, 25);
-            
+
             doc.setFontSize(10);
             doc.text(`${card.country} | VALIDITY: ${card.validity_start} TO ${card.validity_end}`, 14, 34);
-            
+
             const vehicles = card.column_vehicles || [];
             const headers = [["START CITY", "START POINT", "DROP CITY", "DROP POINT", ...vehicles.map(v => v.toUpperCase())]];
-            
+
             const data = (card.routes || []).map(r => [
                 r.start_city || "-",
                 r.start_from || "-",
@@ -329,7 +329,7 @@ const VehicleRateCardManage = () => {
                                                             >
                                                                 <Download size={16} />
                                                             </button>
-                                                            
+
                                                             {openDownloadId === c.id && (
                                                                 <>
                                                                     <div 

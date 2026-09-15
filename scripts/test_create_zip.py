@@ -14,11 +14,16 @@ class DeploymentArchiveTests(unittest.TestCase):
             source.mkdir()
             for name in ('app.py', '.env.example', '.env', '.env.production', 'server.key',
                          'self_client.json', 'db.sqlite3', 'debug.log', '.venv/pyvenv.cfg',
-                         'node_modules/package/index.js', 'media/passport.jpg'):
+                         'node_modules/package/index.js', 'media/passport.jpg',
+                         'design/manali/mobile-full.png', 'output/verification.json',
+                         'dist-ssr/index.js', 'public/images/visa_cards/india.png'):
                 path = source / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text('test fixture', encoding='utf-8')
             archive = root / 'package.zip'
             create_zip(archive, {str(source): ['backend']})
             with zipfile.ZipFile(archive) as result:
-                self.assertEqual(set(result.namelist()), {'backend/app.py', 'backend/.env.example'})
+                self.assertEqual(set(result.namelist()), {
+                    'backend/app.py', 'backend/.env.example',
+                    'backend/public/images/visa_cards/india.png',
+                })

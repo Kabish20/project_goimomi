@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  AlertTriangle,
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  ExternalLink,
-  LockKeyhole,
-  ShieldCheck,
-} from "lucide-react";
+import { AlertTriangle, ArrowLeft, ExternalLink, LockKeyhole, ShieldCheck } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
 import api from "../../../api";
 

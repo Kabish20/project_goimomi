@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Search, Home, Plane, Calendar, MapPin, ChevronDown, Zap,
-  ShieldCheck, Headphones, CheckCircle2, FileText, Clock,
-  Award, Users, Globe, ArrowRight, BadgeCheck, Star,
-  PhoneCall, AlertCircle, ChevronRight, Sparkles, TrendingUp,
-} from "lucide-react";
+import { Search, Home, Plane, Calendar, MapPin, ChevronDown, ShieldCheck, Headphones, CheckCircle2, FileText, Clock, Award, BadgeCheck, Star, ChevronRight, Sparkles, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../../api";
 import visaHero1 from "../../../assets/Hero/VisaHeader/visa-hero-01.png";
@@ -66,13 +61,13 @@ const VisaSearch = () => {
   const [travelDate, setTravelDate] = useState(getTomorrowDate());
   const [returnDate, setReturnDate] = useState("");
   const [countries, setCountries] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [countriesLoading, setCountriesLoading] = useState(false);
   const [showCitizenDropdown, setShowCitizenDropdown] = useState(false);
   const [showGoingToDropdown, setShowGoingToDropdown] = useState(false);
   const [citizenSearch, setCitizenSearch] = useState("India");
   const [goingToSearch, setGoingToSearch] = useState("");
-  const [popularDestinations, setPopularDestinations] = useState([]);
+  const [, setPopularDestinations] = useState([]);
   const [openFaq, setOpenFaq] = useState(null);
   const [countryFilter, setCountryFilter] = useState("");
   const citizenRef = useRef(null);

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import logo from '../../assets/goimomilogo.png'
 import AdminLogin from '../../pages/General/AdminLogin/AdminLogin.jsx'
 
@@ -19,7 +19,6 @@ const Navbar = () => {
   const umrahRef = useRef(null)
   const businessRef = useRef(null)
 
-  const navigate = useNavigate()
   const location = useLocation()
 
   const closeMobileMenu = () => {

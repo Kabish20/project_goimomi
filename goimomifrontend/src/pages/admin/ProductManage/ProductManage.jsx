@@ -4,10 +4,7 @@ import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import goimomilogo from "../../../assets/goimomilogo.png";
-import { 
-  Edit2, Trash2, Plus, Search, Package, RefreshCw, Tag, CheckCircle, 
-  XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, ChevronDown, User, FileText, Truck, Upload, Download, Copy, Check, ExternalLink
-} from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Package, RefreshCw, Tag, CheckCircle, XCircle, ShoppingCart, Eye, Phone, Mail, MapPin, Calendar, Clock, X, User, FileText, Truck, Upload, Download, Copy, Check, ExternalLink } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -252,7 +249,7 @@ const ProductManage = () => {
   // Common UI State
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [deleteConfirmProduct, setDeleteConfirmProduct] = useState(null);
+  const [, setDeleteConfirmProduct] = useState(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
   const handleCopyOrderDetails = (order) => {
@@ -1358,7 +1355,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
           {selectedOrder && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
               <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100">
-                
+
                 {/* Modal Header */}
                 <div className="p-4 bg-gradient-to-r from-[#14532d] to-[#1a6b3d] text-white flex justify-between items-center">
                   <div>
@@ -1404,7 +1401,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
 
                 {/* Modal Body */}
                 <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-                  
+
                   {/* Customer Info Card */}
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
@@ -1599,7 +1596,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
                       <Package size={14} className="text-emerald-700" /> Product Summary
                     </h4>
-                    
+
                     <div className="flex justify-between items-center text-sm pt-1 border-b border-gray-200 pb-2">
                       <span className="font-bold text-gray-900">
                         {selectedOrder.product_title || selectedOrder.product_details?.title || "Product Item"}
@@ -1794,7 +1791,7 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
       {showManualModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 max-h-[90vh] flex flex-col">
-            
+
             {/* Header */}
             <div className="p-5 bg-gradient-to-r from-[#14532d] to-[#1a6b3d] text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-2.5">
@@ -1816,13 +1813,13 @@ Total Amount: ${formatCurrency(order.total_amount)}${cartBreakdown}
 
             {/* Form */}
             <form onSubmit={handleSubmitManualOrder} className="p-6 overflow-y-auto space-y-5 flex-1">
-              
+
               {/* Customer Information */}
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
                   <User size={14} className="text-emerald-700" /> Customer Information
                 </h4>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                   <div>
                     <label className="block text-gray-700 font-bold mb-1">Customer Name *</label>

@@ -1,31 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
-import {
-  ChevronRight,
-  ArrowRight,
-  MapPin,
-  Compass,
-  Globe,
-  Star,
-  Users,
-  Briefcase,
-  CheckCircle2,
-  Plane,
-  Camera,
-  Heart,
-  Clock,
-  ShieldCheck,
-  Headphones,
-  CreditCard,
-  Sun,
-  Mountain,
-  Waves,
-  Building,
-  Sparkles,
-  CalendarDays,
-  BadgeCheck,
-} from "lucide-react";
+import { ArrowRight, MapPin, Compass, Globe, Star, Users, Briefcase, CheckCircle2, Camera, Heart, ShieldCheck, Headphones, CreditCard, Sun, Mountain, Waves, Building, Sparkles, CalendarDays, BadgeCheck } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
 
 // Assets

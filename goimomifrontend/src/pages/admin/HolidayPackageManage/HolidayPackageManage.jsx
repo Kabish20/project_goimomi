@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { Edit2, Trash2, Plus, Search, Package, Image as ImageIcon, Filter, Eye, X } from "lucide-react";
+import { Edit2, Trash2, Plus, Search, Package, Filter, Eye, X } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
@@ -16,7 +16,6 @@ const HolidayPackageManage = () => {
   const [startingCities, setStartingCities] = useState([]);
   const [regions, setRegions] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedPackage, setSelectedPackage] = useState(null);
 
@@ -97,10 +96,10 @@ const HolidayPackageManage = () => {
         pkg.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pkg.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pkg.starting_city?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesCity = !selectedCity || pkg.starting_city === selectedCity;
       const matchesCategory = !selectedCategory || pkg.category === selectedCategory;
-      
+
       return matchesSearch && matchesCity && matchesCategory;
     });
     setFilteredPackages(filtered);

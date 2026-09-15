@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { 
-  Plus, Search, Globe, ChevronRight, MapPin, Flag, Plane, Truck, Anchor, 
-  ArrowRight, Layers, Table as TableIcon, Filter, RefreshCcw, MoreVertical,
-  Edit2, Trash2
-} from "lucide-react";
+import { Plus, Search, Globe, MapPin, Flag, Plane, Truck, Anchor, Layers, Table as TableIcon, RefreshCcw, Edit2 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
 const CountryManagement = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
@@ -41,7 +37,7 @@ const CountryManagement = () => {
           page_size: 50
         }
       });
-      
+
       const responseData = response.data;
       if (responseData && responseData.results) {
         setData(responseData.results);
@@ -72,12 +68,6 @@ const CountryManagement = () => {
 
   const displayData = data;
 
-  const stats = [
-    { label: "Total Matches", value: pagination.count, icon: <Globe size={18} />, color: "bg-blue-500" },
-    { label: "Active Regions", value: "24+", icon: <Layers size={18} />, color: "bg-purple-500" },
-    { label: "Total Cities", value: "148+", icon: <MapPin size={18} />, color: "bg-green-500" },
-    { label: "Airports", value: "12+", icon: <Plane size={18} />, color: "bg-amber-500" },
-  ];
 
 
   return (
@@ -88,7 +78,7 @@ const CountryManagement = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
-        
+
         {/* Action Header */}
         <div className="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center z-10 shadow-sm backdrop-blur-md bg-opacity-90">
           <div>
@@ -114,7 +104,7 @@ const CountryManagement = () => {
 
         <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar bg-[#fcfdfc]">
           <div className="max-w-7xl mx-auto space-y-6">
-            
+
 
             {/* Hierarchy Tabs & Search */}
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
@@ -143,7 +133,7 @@ const CountryManagement = () => {
                   </button>
                 ))}
               </div>
-              
+
               <div className="relative group w-full lg:w-80">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#14532d] transition-colors" size={16} />
                 <input
@@ -267,7 +257,7 @@ const CountryManagement = () => {
                   </tbody>
                 </table>
               </div>
-              
+
               {/* Pagination Placeholder */}
                <div className="px-6 py-3 bg-gray-50/30 border-t border-gray-100 flex items-center justify-between">
                 <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">

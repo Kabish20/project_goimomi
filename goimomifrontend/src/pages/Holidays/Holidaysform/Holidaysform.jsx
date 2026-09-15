@@ -28,7 +28,7 @@ const POPULAR_NATIONALITIES = [
   "Indian", "Sri Lankan", "Malaysian", "Singaporean", "American", "British", "Australian"
 ];
 
-const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
+const HolidaysForm = ({ isOpen, onClose, packageType }) => {
   usePageSEO(
     "Plan Your Custom Trip | Personalised Holiday Planner | Goimomi Holidays",
     "Design your perfect holiday with Goimomi Holidays. Use our trip planner to customize your destination, accommodation, and activities for a unique travel experience."
@@ -61,7 +61,7 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
 
   // Data for Dropdowns
   const [destinationsList, setDestinationsList] = useState(POPULAR_DESTINATIONS.map((d, i) => ({ id: i, name: d })));
-  const [startingCitiesList, setStartingCitiesList] = useState(POPULAR_STARTING_CITIES.map((c, i) => ({ id: i, name: c })));
+  const [startingCitiesList] = useState(POPULAR_STARTING_CITIES.map((c, i) => ({ id: i, name: c })));
   const [nationalitiesList, setNationalitiesList] = useState(POPULAR_NATIONALITIES.map((n, i) => ({ id: i, nationality: n, country: n })));
 
   // Dropdown States
@@ -893,6 +893,5 @@ const HolidaysForm = ({ isOpen, onClose, packageType, packageData }) => {
 };
 
 export default HolidaysForm;
-
 
 

@@ -1,18 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CalendarDays,
-  CheckCircle2,
-  Handshake,
-  Hotel,
-  MapPin,
-  Mountain,
-  Sparkles,
-  UsersRound,
-  BadgeCheck,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Handshake, Hotel, MapPin, Mountain, Sparkles, UsersRound } from "lucide-react";
 import usePageSEO from "../../hooks/usePageSEO";
 
 import yelagiriImage from "../../assets/Chithirai/Journeys/yelagiri-hero.png";

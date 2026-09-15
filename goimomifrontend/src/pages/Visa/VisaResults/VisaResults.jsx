@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../../../api";
-import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, MapPin, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
+import { CheckCircle, Home, Plane, Calendar, Search, X, Copy, ChevronDown, Share2, Mail, Eye, MessageCircle, Zap } from "lucide-react";
 import { getImageUrl } from "../../../utils/imageUtils";
 import usePageSEO from "../../../hooks/usePageSEO";
 import visaBg from "../../../assets/Hero/visa_bg.jpg";
@@ -36,7 +36,7 @@ const VisaResults = () => {
     const [sharingEmail, setSharingEmail] = useState("");
     const [sendingEmail, setSendingEmail] = useState(false);
     const [selectedVisas, setSelectedVisas] = useState([]);
-    const [_isBulkSharing, setIsBulkSharing] = useState(false);
+    const [, setIsBulkSharing] = useState(false);
     const [viewBulkData, setViewBulkData] = useState(null);
 
     const getTomorrowDate = (days = 1) => {

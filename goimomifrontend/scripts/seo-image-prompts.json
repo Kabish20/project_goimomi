@@ -245,13 +245,6 @@
       "scene": "A premium conceptual secure travel payment still life: a simple unbranded card terminal beside a face-down blank bank card, closed travel document folder and a small brass padlock, with a compact suitcase softly blurred in the background. Reassuring restrained green accents and warm natural light, no readable numbers, logos or interface."
     },
     {
-      "file": "/images/seo/internal-test.png",
-      "routes": [
-        "/test"
-      ],
-      "scene": "A tidy internal travel-technology workspace with a laptop showing only softly blurred abstract colour blocks, a small globe, notebook and neatly placed headphones. Soft natural light and a calm professional office. Conceptual software testing and travel operations, no readable code, UI labels, logos or personal information."
-    },
-    {
       "file": "/images/seo/admin-access.png",
       "routes": [
         "/admin",

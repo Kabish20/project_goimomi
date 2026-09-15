@@ -2,7 +2,7 @@ import React from "react";
 import { FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import { FaLocationDot } from "react-icons/fa6";
 import { FaFacebookF, FaInstagram, FaYoutube } from "react-icons/fa";
-import { FaPlus } from "react-icons/fa6"; // if you still want FaPlus
+ // if you still want FaPlus
 import { Link, useNavigate } from "react-router-dom";
 
 

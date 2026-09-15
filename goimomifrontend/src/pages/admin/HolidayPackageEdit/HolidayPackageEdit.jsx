@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
-import { X, MapPin, Calendar, Package, Image as ImageIcon, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Bus, Camera, ChevronDown, ChevronLeft, ChevronRight, Clock, LayoutGrid, Map, Moon, Plus, Search, Settings, Star, Trash2, Upload, User, Users, Download, FileText, History, Check, ArrowRight } from 'lucide-react';
+import { X, MapPin, Calendar, Package, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Camera, Plus, FileText } from 'lucide-react';
 
 /* ---------- UI helpers ---------- */
 const Section = ({ title, children, active }) => (
@@ -157,18 +157,14 @@ const HolidayPackageEdit = () => {
     const [showRestorePrompt, setShowRestorePrompt] = useState(false);
 
     // Refs for Trip Information textareas
-    const inclusionsRef = useRef(null);
-    const exclusionsRef = useRef(null);
-    const cancellationRef = useRef(null);
-    const highlightsRef = useRef(null);
     const pricingSlotsRef = useRef(null);
     const [sightseeingMasters, setSightseeingMasters] = useState([]);
-    const [mealMasters, setMealMasters] = useState([]);
+    const [, setMealMasters] = useState([]);
     const [airlines, setAirlines] = useState([]);
-    const [driverMasters, setDriverMasters] = useState([]);
-    const [vehicleBrands, setVehicleBrands] = useState([]);
-    const [vehicleMasters, setVehicleMasters] = useState([]);
-    const [pickupPoints, setPickupPoints] = useState([]);
+    const [, setDriverMasters] = useState([]);
+    const [, setVehicleBrands] = useState([]);
+    const [, setVehicleMasters] = useState([]);
+    const [, setPickupPoints] = useState([]);
     const [vehicles, setVehicles] = useState([]);
     const [hotelMasters, setHotelMasters] = useState([]);
     const [roomTypes, setRoomTypes] = useState([]);
@@ -235,7 +231,6 @@ const HolidayPackageEdit = () => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
     const [activeSection, setActiveSection] = useState("overview");
 
     // Check for unsaved drafts on mount once id is loaded
@@ -348,7 +343,6 @@ const HolidayPackageEdit = () => {
 
     const TITLE_LIMIT = 200;
     const DESC_LIMIT = 2000;
-    const HIGHLIGHTS_LIMIT = 1000;
 
     const API_BASE_URL = "/api";
 
@@ -360,7 +354,7 @@ const HolidayPackageEdit = () => {
             if (!item || !item.name) return;
             const country = (item.country_name || item.country || "Other").toString().toUpperCase();
             if (!groups[country]) groups[country] = [];
-            
+
             const exists = groups[country].find(opt => opt.value === item.name);
             if (!exists) {
                 groups[country].push({
@@ -421,7 +415,7 @@ const HolidayPackageEdit = () => {
             try {
                 setLoading(true);
                 // Fetch dependencies in parallel
-                const [citiesRes, regionsRes, destRes, suppliersRes, mastersRes, sightseeingMastersRes, mealMastersRes, hotelMastersRes, airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pickupPointsRes, pkgRes] = await Promise.all([
+                const [citiesRes, regionsRes, destRes, suppliersRes, mastersRes, sightseeingMastersRes, mealMastersRes, , airlinesRes, vehicleBrandsRes, vehicleMastersRes, driverMastersRes, roomTypesRes, pickupPointsRes, pkgRes] = await Promise.all([
                     api.get('/api/cities/'),
                     api.get('/api/regions/'),
                     api.get(`${API_BASE_URL}/regions/`),
@@ -443,7 +437,7 @@ const HolidayPackageEdit = () => {
 
                 const citiesData = Array.isArray(citiesRes.data) ? citiesRes.data : (citiesRes.data?.results || []);
                 setStartingCities(citiesData);
-                
+
                 const destinationsData = Array.isArray(destRes.data) ? destRes.data : (destRes.data?.results || []);
                 setDestinations(destinationsData);
                 const suppliersData = Array.isArray(suppliersRes.data) ? suppliersRes.data : (suppliersRes.data?.results || []);
@@ -452,7 +446,7 @@ const HolidayPackageEdit = () => {
                 );
                 setSuppliers(filteredSuppliers);
                 const mastersData = Array.isArray(mastersRes.data) ? mastersRes.data : (mastersRes.data?.results || []);
-                
+
                 const fetchAccommodations = async () => {
                     try {
                       const [hotelsRes, destsRes] = await Promise.all([
@@ -461,7 +455,7 @@ const HolidayPackageEdit = () => {
                       ]);
                       const hotelsData = Array.isArray(hotelsRes.data) ? hotelsRes.data : (hotelsRes.data?.results || []);
                       const destList = Array.isArray(destsRes.data) ? destsRes.data : (destsRes.data?.results || []);
-                
+
                       const enriched = hotelsData.map(hm => ({
                         ...hm,
                         stars: hm.star_category ? hm.star_category.split(' ')[0] : (hm.stars || '3'), // Map star_category or fallback
@@ -770,13 +764,12 @@ const HolidayPackageEdit = () => {
         if (loading) return;
         const totalNights = packageDestinations.reduce((acc, d) => acc + parseInt(d.nights || 0, 10), 0);
         const calculatedDays = totalNights + 1;
-        if (formData.days !== calculatedDays.toString()) {
-            setFormData(prev => ({
-                ...prev,
-                days: calculatedDays.toString(),
-                arrival_no_of_nights: totalNights.toString()
-            }));
-        }
+        setFormData(prev => {
+            const days = calculatedDays.toString();
+            const nights = totalNights.toString();
+            if (prev.days === days && prev.arrival_no_of_nights === nights) return prev;
+            return { ...prev, days, arrival_no_of_nights: nights };
+        });
     }, [packageDestinations, loading]);
 
     // Automatically sync Departure Date when Arrival Date or Days change
@@ -796,9 +789,7 @@ const HolidayPackageEdit = () => {
         const dd = String(departure.getDate()).padStart(2, '0');
         const depStr = `${yyyy}-${mm}-${dd}`;
 
-        if (formData.departure_date !== depStr) {
-            setFormData(prev => ({ ...prev, departure_date: depStr }));
-        }
+        setFormData(prev => prev.departure_date === depStr ? prev : { ...prev, departure_date: depStr });
     }, [formData.arrival_date, formData.days, loading]);
 
     // Auto-sync Accommodation "No. of Nights" per itinerary day from packageDestinations
@@ -880,46 +871,12 @@ const HolidayPackageEdit = () => {
 
 
     /* ---------- handlers ---------- */
-    const addRow = (setter, row) => setter((p) => [...p, row]);
     const removeRow = (setter, index) =>
         setter((p) => p.filter((_, i) => i !== index));
 
     // Inserts a bullet point at the cursor position in a textarea
-    const insertBullet = (ref, lines, setter) => {
-        const el = ref.current;
-        if (!el) return;
-        const start = el.selectionStart;
-        const currentVal = lines.join('\n');
-        // Find start of current line
-        const lineStart = currentVal.lastIndexOf('\n', start - 1) + 1;
-        const insertText = start === 0 || currentVal[start - 1] === '\n' ? '• ' : '\n• ';
-        const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(start);
-        setter(newVal.split('\n'));
-        setTimeout(() => {
-            el.focus();
-            const newCursor = start + insertText.length;
-            el.setSelectionRange(newCursor, newCursor);
-        }, 0);
-    };
 
     // Inserts the next numbered item at the cursor position in a textarea
-    const insertNumbered = (ref, lines, setter) => {
-        const el = ref.current;
-        if (!el) return;
-        const start = el.selectionStart;
-        const currentVal = lines.join('\n');
-        // Count existing numbered lines to determine next number
-        const existing = currentVal.split('\n').filter(l => /^\d+\./.test(l.trim()));
-        const nextNum = existing.length + 1;
-        const insertText = start === 0 || currentVal[start - 1] === '\n' ? `${nextNum}. ` : `\n${nextNum}. `;
-        const newVal = currentVal.slice(0, start) + insertText + currentVal.slice(start);
-        setter(newVal.split('\n'));
-        setTimeout(() => {
-            el.focus();
-            const newCursor = start + insertText.length;
-            el.setSelectionRange(newCursor, newCursor);
-        }, 0);
-    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -932,16 +889,6 @@ const HolidayPackageEdit = () => {
     };
 
 
-    const getNightRange = (index) => {
-        let start = 1;
-        for (let i = 0; i < index; i++) {
-            start += parseInt(packageDestinations[i].nights || 0, 10);
-        }
-        const nights = parseInt(packageDestinations[index].nights || 0, 10);
-        if (nights <= 0) return "";
-        if (nights === 1) return `Night ${start}`;
-        return `Nights ${start}-${start + nights - 1}`;
-    };
 
     const getDestinationForDay = (dayIndex) => {
         let currentDay = 0;
@@ -960,17 +907,6 @@ const HolidayPackageEdit = () => {
         return "---";
     };
 
-    const getDestIndexForDay = (dayIndex) => {
-        let currentDay = 0;
-        for (let i = 0; i < packageDestinations.length; i++) {
-            const nights = parseInt(packageDestinations[i].nights || 0, 10);
-            if (dayIndex >= currentDay && dayIndex < currentDay + nights) {
-                return i;
-            }
-            currentDay += nights;
-        }
-        return -1;
-    };
 
     const handleFileChange = (e) => {
         const { name, files } = e.target;
@@ -2197,9 +2133,7 @@ const HolidayPackageEdit = () => {
                                                         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                                                             {/* 1. DAY ITINERARY */}
                                                             {(!row.details_json?.active_tab || row.details_json?.active_tab === 'day_itinerary') && (() => {
-                                                                const dayMasterSearch = row.details_json?._dayMasterSearch || '';
                                                                 const dayMeals = row.details_json?.meals_included || [];
-                                                                const dayTransferType = row.details_json?.transfer_type || '';
                                                                 const updateDay = (patch) => {
                                                                     const copy = [...itineraryDays];
                                                                     copy[i].details_json = { ...copy[i].details_json, ...patch };
@@ -2210,11 +2144,6 @@ const HolidayPackageEdit = () => {
                                                                     ...(currentDest && currentDest !== "---" && groupedItineraryMasters[currentDest] ? groupedItineraryMasters[currentDest] : []),
                                                                     ...(groupedItineraryMasters["Global / General"] || [])
                                                                 ];
-                                                                const filteredDayMasters = dayMasterSearch
-                                                                    ? availableMasters.filter(m =>
-                                                                        m.name?.toLowerCase().includes(dayMasterSearch.toLowerCase()) ||
-                                                                        m.title?.toLowerCase().includes(dayMasterSearch.toLowerCase())
-                                                                    ) : [];
                                                                 const mealOptions = ['No Meals', 'Breakfast', 'Lunch', 'Dinner'];
                                                                 return (
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -2350,13 +2279,7 @@ const HolidayPackageEdit = () => {
 
                                                             {/* 2. SIGHTSEEING */}
                                                             {row.details_json?.active_tab === 'sightseeing' && (() => {
-                                                                const sightseeingSearch = row.details_json?._sightseeingSearch || '';
                                                                 const addedSightseeings = (row.details_json?.sightseeing || []).filter(s => s && s.trim());
-                                                                const updateDay = (patch) => {
-                                                                    const copy = [...itineraryDays];
-                                                                    copy[i].details_json = { ...copy[i].details_json, ...patch };
-                                                                    setItineraryDays(copy);
-                                                                };
                                                                 const currentDest = getDestinationForDay(i);
                                                                 const allowedSightseeings = currentDest && currentDest !== "---"
                                                                     ? sightseeingMasters.filter(sm => {
@@ -2369,11 +2292,6 @@ const HolidayPackageEdit = () => {
                                                                     })
                                                                     : sightseeingMasters;
 
-                                                                const filteredSightseeings = sightseeingSearch
-                                                                    ? allowedSightseeings.filter(sm =>
-                                                                        sm.name?.toLowerCase().includes(sightseeingSearch.trim().toLowerCase()) ||
-                                                                        sm.city?.toLowerCase().includes(sightseeingSearch.trim().toLowerCase())
-                                                                    ) : [];
                                                                 return (
                                                                     <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                                                         {/* Main sightseeing panel */}
@@ -2794,15 +2712,15 @@ const HolidayPackageEdit = () => {
                                                                                                 if (newHotelForm.latitude) fd.append('latitude', newHotelForm.latitude);
                                                                                                 if (newHotelForm.longitude) fd.append('longitude', newHotelForm.longitude);
                                                                                                 if (newHotelForm.image) fd.append('accommodation_images', newHotelForm.image); // Map to Accommodation field
-                                                                                                
+
                                                                                                 const res = await api.post('/api/accommodations/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                                                                                
+
                                                                                                 // Enrich the new hotel master data for local state
                                                                                                 const master = {
                                                                                                     ...res.data,
                                                                                                     stars: res.data.star_category ? res.data.star_category.split(' ')[0] : '3'
                                                                                                 };
-                                                                                                
+
                                                                                                 setHotelMasters(prev => [...prev, master]);
                                                                                                 const updated = [...dayAccs, {
                                                                                                     hotelId: master.id,
@@ -3170,7 +3088,7 @@ const HolidayPackageEdit = () => {
                                                     </button>
 
                                                     <div className="flex gap-2">
-                                                        {navItems.map((item, i) => (
+                                                        {navItems.map((item) => (
                                                             <div key={item.id} className={`h-1.5 rounded-full transition-all duration-500 ${activeSection === item.id ? 'w-8 bg-[#14532d]' : 'w-1.5 bg-gray-200'}`}></div>
                                                         ))}
                                                     </div>

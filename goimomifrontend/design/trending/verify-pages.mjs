@@ -1,18 +1,20 @@
-import { chromium } from 'file:///C:/Users/kabis/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/.pnpm/playwright-core@1.61.1/node_modules/playwright-core/index.mjs';
+import { chromium } from 'playwright-core';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 
-const browser = await chromium.launch({ headless: true, channel: 'msedge' });
+const browser = await chromium.launch({ headless: true, channel: process.env.VERIFY_BROWSER_CHANNEL || 'msedge' });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
-const base = 'http://localhost:5176';
-const output = 'goimomifrontend/design/trending';
+const base = process.env.VERIFY_BASE_URL || 'http://localhost:5174';
+const output = fileURLToPath(new URL('../../../output/design/trending/', import.meta.url));
+await fs.mkdir(output, { recursive: true });
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
 await page.addInitScript(() => sessionStorage.setItem('generalEnquiryShown', 'true'));
 await page.route('**/*', route => {
   const url = new URL(route.request().url());
   if (url.pathname.startsWith('/api/')) return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
-  if (url.hostname === 'localhost' || (url.hostname === 'cdn-icons-png.flaticon.com' && route.request().resourceType() === 'image')) return route.continue();
+  if (url.origin === new URL(base).origin || (url.hostname === 'cdn-icons-png.flaticon.com' && route.request().resourceType() === 'image')) return route.continue();
   return route.abort();
 });
 const render = async (path) => {

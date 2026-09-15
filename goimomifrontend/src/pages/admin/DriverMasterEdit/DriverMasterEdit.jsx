@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, User, Camera, CreditCard, Phone, MessageSquare, Info, FileText, Loader } from "lucide-react";
@@ -12,12 +12,6 @@ const FormLabel = ({ label, required, optional }) => (
     </div>
 );
 
-const Input = (props) => (
-    <input
-        {...props}
-        className="bg-white border-2 border-gray-100 px-3 py-2 rounded-xl w-full text-gray-900 text-[11px] font-bold transition-all placeholder:text-gray-400 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-[#14532d]/5 focus:border-[#14532d] hover:border-gray-200"
-    />
-);
 
 const COUNTRY_CODES = [
     { code: "+91", label: "IN (+91)" },
@@ -57,11 +51,9 @@ const DriverMasterEdit = () => {
     const [photoPreview, setPhotoPreview] = useState(null);
     const [idCopyName, setIdCopyName] = useState("");
 
-    useEffect(() => {
-        fetchDriverDetails();
-    }, [id]);
 
-    const fetchDriverDetails = async () => {
+
+    const fetchDriverDetails = useCallback(async () => {
         try {
             setFetching(true);
             const res = await api.get(`/api/driver-masters/${id}/`);
@@ -93,7 +85,11 @@ const DriverMasterEdit = () => {
             alert("Driver record not found.");
             navigate("/admin/driver-masters");
         }
-    };
+    }, [id, navigate]);
+
+    useEffect(() => {
+        fetchDriverDetails();
+    }, [fetchDriverDetails]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
-import { Search, Eye, Trash2, Mail, Phone, ArrowLeft, MapPin, Edit, Save, X } from "lucide-react";
+import { Search, Eye, Trash2, Mail, Phone, ArrowLeft, Edit, Save } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import { useNavigate } from "react-router-dom";
@@ -253,7 +253,7 @@ const GeneralEnquiryManage = () => {
                                     <span className="bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-wider text-gray-500">General Enquiry</span>
                                 </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-2 mt-1 -ml-2 shrink-0">
                                 {!isEditing ? (
                                     <button onClick={handleEditEnquiry} className="flex items-center gap-1 bg-green-50 text-[#14532d] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors">
@@ -270,7 +270,7 @@ const GeneralEnquiryManage = () => {
                                     </div>
                                 )}
                             </div>
-                            
+
                             <button
                                 onClick={handleCloseModal}
                                 className="absolute right-5 top-5 text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-50 rounded-full text-2xl leading-none"

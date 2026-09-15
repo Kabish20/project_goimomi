@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  CheckCircle2, Award, ShieldCheck, Headphones, Star,
-  ArrowRight, BadgeCheck, Sparkles, ChevronDown, PhoneCall,
-  Globe, Anchor, Compass, Sunrise, Utensils, Music,
-} from "lucide-react";
+import { CheckCircle2, Award, ShieldCheck, Headphones, Star, ArrowRight, BadgeCheck, Sparkles, ChevronDown, Globe, Anchor, Compass, Sunrise, Utensils, Music } from "lucide-react";
 import api from "../../../api";
 import ZohoCruiseForm from "../../../components/forms/ZohoCruiseForm";
 import usePageSEO from "../../../hooks/usePageSEO";

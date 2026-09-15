@@ -22,7 +22,7 @@ const SupplierAdd = () => {
     });
     const [countries, setCountries] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [fetchingCountries, setFetchingCountries] = useState(true);
+    const [, setFetchingCountries] = useState(true);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
     const [errors, setErrors] = useState({});

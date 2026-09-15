@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
-import { Search, Eye, Download, X, Calendar, User, Edit, Trash2, Upload, Plus, Save } from "lucide-react";
+import { Search, Eye, Download, X, Calendar, User, Edit, Trash2, Upload, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
@@ -25,18 +25,15 @@ const VisaApplicationManage = () => {
   const [showModal, setShowModal] = useState(false);
   const [imagePreview, setImagePreview] = useState(null); // For image preview modal
   const [showImageModal, setShowImageModal] = useState(false);
-  const [editingApplicantId, setEditingApplicantId] = useState(null);
-  const [editApplicantData, setEditApplicantData] = useState({});
-  const [isUpdatingApplicant, setIsUpdatingApplicant] = useState(false);
+  const [, setEditingApplicantId] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [availableCountries, setAvailableCountries] = useState([]);
-  
-  // Application editing states
-  const [isEditingApp, setIsEditingApp] = useState(false);
-  const [editAppForm, setEditAppForm] = useState({});
-  const [isUpdatingApp, setIsUpdatingApp] = useState(false);
 
-  const [isUploading, setIsUploading] = useState(false);
+  // Application editing states
+  const [, setIsEditingApp] = useState(false);
+  const [, setEditAppForm] = useState({});
+
+  const [, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
   const API_BASE_URL = "/api";
@@ -93,13 +90,13 @@ const VisaApplicationManage = () => {
         app.group_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.internal_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.status?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesCountry = selectedCountry === "" || app.visa_country === selectedCountry;
-      
+
       return matchesSearch && matchesCountry;
     });
     setFilteredApplications(filtered);
-  }, [searchTerm, applications]);
+  }, [searchTerm, applications, selectedCountry]);
 
   const handleView = (app) => {
     setSelectedApplication(app);
@@ -114,31 +111,8 @@ const VisaApplicationManage = () => {
     setEditAppForm({});
   };
 
-  const handleEditAppStart = () => {
-    setIsEditingApp(true);
-    setEditAppForm({ ...selectedApplication });
-  };
 
-  const handleEditAppChange = (e) => {
-    setEditAppForm({ ...editAppForm, [e.target.name]: e.target.value });
-  };
 
-  const handleUpdateApp = async () => {
-    try {
-      setIsUpdatingApp(true);
-      await api.patch(`${API_BASE_URL}/visa-applications/${selectedApplication.id}/`, editAppForm);
-      const updated = { ...selectedApplication, ...editAppForm };
-      setSelectedApplication(updated);
-      setFilteredApplications(filteredApplications.map(e => e.id === updated.id ? updated : e));
-      setApplications(applications.map(e => e.id === updated.id ? updated : e));
-      setIsEditingApp(false);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update application.");
-    } finally {
-      setIsUpdatingApp(false);
-    }
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -282,51 +256,8 @@ const VisaApplicationManage = () => {
   };
 
   // Applicant Data Editing
-  const handleStartEditApplicant = (applicant) => {
-    setEditingApplicantId(applicant.id);
-    setEditApplicantData({ ...applicant, additional_documents: undefined });
-  };
 
-  const handleCancelEditApplicant = () => {
-    setEditingApplicantId(null);
-    setEditApplicantData({});
-  };
 
-  const handleSaveApplicant = async (e) => {
-    if (e) e.preventDefault();
-    try {
-      setIsUpdatingApplicant(true);
-      const fieldsToInclude = [
-        'first_name', 'last_name', 'passport_number', 'nationality',
-        'sex', 'dob', 'place_of_birth', 'place_of_issue',
-        'marital_status', 'phone', 'date_of_issue', 'date_of_expiry'
-      ];
-
-      const dataToSend = {};
-      fieldsToInclude.forEach(key => {
-        if (editApplicantData[key] !== undefined) {
-          dataToSend[key] = editApplicantData[key];
-        }
-      });
-
-      await api.patch(`${API_BASE_URL}/visa-applicants/${editingApplicantId}/`, dataToSend);
-
-      const data = await fetchApplications();
-      if (data) {
-        const updatedApp = data.find(a => a.id === selectedApplication.id);
-        setSelectedApplication(updatedApp);
-      }
-
-      setEditingApplicantId(null);
-      setEditApplicantData({});
-      alert("Applicant details updated successfully!");
-    } catch (err) {
-      console.error("Error updating applicant:", err);
-      alert(`Failed to update applicant details`);
-    } finally {
-      setIsUpdatingApplicant(false);
-    }
-  };
 
   return (
     <div className="flex bg-gray-100 h-full w-full overflow-hidden relative">
@@ -356,7 +287,7 @@ const VisaApplicationManage = () => {
                 className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#14532d] bg-white transition-all shadow-sm"
               />
             </div>
-            
+
             <div className="relative w-48">
               <select
                 value={selectedCountry}
@@ -784,6 +715,5 @@ const VisaApplicationManage = () => {
 };
 
 export default VisaApplicationManage;
-
 
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import api from "../../../api";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaUsers, FaChild, FaMoon, FaCalendarAlt, FaHotel, FaUtensils, FaPlane, FaWallet, FaMapMarkerAlt, FaGlobe } from "react-icons/fa";
+import { FaMoon, FaCalendarAlt, FaHotel, FaWallet, FaGlobe } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import SuccessModal from "../../../components/common/SuccessModal";

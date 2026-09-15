@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import api from "../../../api";
-import { useNavigate } from "react-router-dom";
-import {
-    Plus, Search, MapPin, Trash2, Edit3, MoreVertical,
-    Filter, Download, ChevronRight, Loader, AlertCircle, X, Check, Save, RefreshCcw
-} from "lucide-react";
+import { Plus, Search, MapPin, Trash2, Edit3, Filter, ChevronRight, Loader, AlertCircle, X, Check, Save, RefreshCcw } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
 const PickupPointManage = () => {
-    const navigate = useNavigate();
     const [points, setPoints] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");

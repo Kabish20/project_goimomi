@@ -1,10 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import {
-  CheckCircle2, Award, BadgeCheck, Headphones, ShieldCheck,
-  Globe, Star, ArrowRight, TrendingUp, Users, MapPin,
-  Heart, Briefcase, Plane, Clock, Sparkles,
-} from 'lucide-react';
+import { CheckCircle2, Award, BadgeCheck, Headphones, ShieldCheck, Globe, Users, Heart, Plane, Sparkles } from 'lucide-react';
 import aboutHero from '../../../assets/aboutus.png';
 import officeImg from '../../../assets/office.png';
 import usePageSEO from '../../../hooks/usePageSEO';

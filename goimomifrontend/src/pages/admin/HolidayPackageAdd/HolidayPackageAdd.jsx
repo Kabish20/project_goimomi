@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../api";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
-import { X, MapPin, Calendar, Package, Plane, Hotel, Car, Info, IndianRupee, ClipboardList, Globe, Search, Plus, Star, List, ListOrdered, PlayCircle } from "lucide-react";
+import { X, Calendar, Package, Plane, Info, IndianRupee, ClipboardList, Globe, Plus } from "lucide-react";
 
 /* ---------- UI helpers ---------- */
 const formatWithCommas = (value) => {
@@ -159,10 +159,6 @@ const HolidayPackageAdd = () => {
   const [cancellationPolicies, setCancellationPolicies] = useState([""]);
 
   // Refs for Trip Information textareas
-  const inclusionsRef = useRef(null);
-  const exclusionsRef = useRef(null);
-  const cancellationRef = useRef(null);
-  const highlightsRef = useRef(null);
   const [itineraryDays, setItineraryDays] = useState([
     {
       day: "1",
@@ -178,12 +174,12 @@ const HolidayPackageAdd = () => {
   const [sightseeingMasters, setSightseeingMasters] = useState([]);
   const [hotelMasters, setHotelMasters] = useState([]);
   const [roomTypes, setRoomTypes] = useState([]);
-  const [mealMasters, setMealMasters] = useState([]);
+  const [, setMealMasters] = useState([]);
 
   const [airlines, setAirlines] = useState([]);
-  const [driverMasters, setDriverMasters] = useState([]);
-  const [vehicleBrands, setVehicleBrands] = useState([]);
-  const [vehicleMasters, setVehicleMasters] = useState([]);
+  const [, setDriverMasters] = useState([]);
+  const [, setVehicleBrands] = useState([]);
+  const [, setVehicleMasters] = useState([]);
   const [vehicles, setVehicles] = useState([""]);
   // New Sightseeing panel state
   const [newSightseeingForm, setNewSightseeingForm] = useState({
@@ -262,12 +258,11 @@ const HolidayPackageAdd = () => {
   const [destinations, setDestinations] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [itineraryMasters, setItineraryMasters] = useState([]);
-  const [pickupPoints, setPickupPoints] = useState([]);
+  const [, setPickupPoints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
 
   const [isAutosaveEnabled, setIsAutosaveEnabled] = useState(() => {
     const saved = localStorage.getItem("goimomi_package_add_autosave_enabled");
@@ -333,7 +328,7 @@ const HolidayPackageAdd = () => {
       if (!formData.title && !formData.description && itineraryDays.length === 1 && !itineraryDays[0].title) {
         return;
       }
-      
+
       setAutosaveStatus("Saving...");
       try {
         const draftData = {
@@ -362,7 +357,6 @@ const HolidayPackageAdd = () => {
 
   const TITLE_LIMIT = 200;
   const DESC_LIMIT = 2000;
-  const HIGHLIGHTS_LIMIT = 1000;
 
   const navigatePage = (direction) => {
     if (direction === 'next' && currentPage < totalPages) {
@@ -453,7 +447,7 @@ const HolidayPackageAdd = () => {
       if (!item || !item.name) return;
       const country = (item.country_name || item.country || "Other").toString().toUpperCase();
       if (!groups[country]) groups[country] = [];
-      
+
       const exists = groups[country].find(opt => opt.value === item.name);
       if (!exists) {
         groups[country].push({
@@ -493,7 +487,7 @@ const HolidayPackageAdd = () => {
       ]);
       const hotelsData = Array.isArray(hotelsRes.data) ? hotelsRes.data : (hotelsRes.data?.results || []);
       const destList = Array.isArray(destsRes.data) ? destsRes.data : (destsRes.data?.results || []);
-      
+
       const enriched = hotelsData.map(hm => ({
         ...hm,
         stars: hm.star_category ? hm.star_category.split(' ')[0] : (hm.stars || '3'), // Map star_category or fallback
@@ -647,13 +641,12 @@ const HolidayPackageAdd = () => {
   useEffect(() => {
     const totalNights = packageDestinations.reduce((acc, d) => acc + parseInt(d.nights || 0, 10), 0);
     const calculatedDays = totalNights + 1;
-    if (formData.days !== calculatedDays.toString()) {
-      setFormData(prev => ({
-        ...prev,
-        days: calculatedDays.toString(),
-        arrival_no_of_nights: totalNights.toString()
-      }));
-    }
+    setFormData(prev => {
+      const days = calculatedDays.toString();
+      const nights = totalNights.toString();
+      if (prev.days === days && prev.arrival_no_of_nights === nights) return prev;
+      return { ...prev, days, arrival_no_of_nights: nights };
+    });
   }, [packageDestinations]);
 
   // Automatically sync Departure Date when Arrival Date or Days change
@@ -673,9 +666,7 @@ const HolidayPackageAdd = () => {
     const dd = String(departure.getDate()).padStart(2, '0');
     const depStr = `${yyyy}-${mm}-${dd}`;
 
-    if (formData.departure_date !== depStr) {
-      setFormData(prev => ({ ...prev, departure_date: depStr }));
-    }
+    setFormData(prev => prev.departure_date === depStr ? prev : { ...prev, departure_date: depStr });
   }, [formData.arrival_date, formData.days]);
 
   // Auto-sync Accommodation "No. of Nights" per itinerary day from packageDestinations
@@ -751,13 +742,7 @@ const HolidayPackageAdd = () => {
   const removeRow = (setter, index) =>
     setter((p) => p.filter((_, i) => i !== index));
 
-  const insertBullet = (ref, lines, setter) => {
-    // Obsolete
-  };
 
-  const insertNumbered = (ref, lines, setter) => {
-    // Obsolete
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -786,17 +771,6 @@ const HolidayPackageAdd = () => {
     return "---";
   };
 
-  const getDestIndexForDay = (dayIndex) => {
-    let currentDay = 0;
-    for (let i = 0; i < packageDestinations.length; i++) {
-      const nights = parseInt(packageDestinations[i].nights || 0, 10);
-      if (dayIndex >= currentDay && dayIndex < currentDay + nights) {
-        return i;
-      }
-      currentDay += nights;
-    }
-    return -1;
-  };
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
@@ -996,7 +970,6 @@ const HolidayPackageAdd = () => {
 
       if (response.status === 201) {
         // After package is successfully created, save/update marked itineraries to master
-        const updatedDays = [...itineraryDays];
         let mastersToSaveCount = itineraryDays.filter(d => d.save_to_master && d.title).length;
 
         if (mastersToSaveCount > 0) {
@@ -1680,9 +1653,7 @@ const HolidayPackageAdd = () => {
                         <div className="pl-4">
                           {/* DAY ITINERARY TAB */}
                           {(!row.details_json?.active_tab || row.details_json?.active_tab === 'day_itinerary') && (() => {
-                            const dayMasterSearch = row.details_json?._dayMasterSearch || '';
                             const dayMeals = row.details_json?.meals_included || [];
-                            const dayTransferType = row.details_json?.transfer_type || '';
                             const updateDay = (patch) => {
                               const copy = [...itineraryDays];
                               copy[i].details_json = { ...copy[i].details_json, ...patch };
@@ -1693,11 +1664,6 @@ const HolidayPackageAdd = () => {
                               ...(currentDest && currentDest !== "---" && groupedItineraryMasters[currentDest] ? groupedItineraryMasters[currentDest] : []),
                               ...(groupedItineraryMasters["Global / General"] || [])
                             ];
-                            const filteredDayMasters = dayMasterSearch
-                              ? availableMasters.filter(m =>
-                                m.name?.toLowerCase().includes(dayMasterSearch.toLowerCase()) ||
-                                m.title?.toLowerCase().includes(dayMasterSearch.toLowerCase())
-                              ) : [];
                             const mealOptions = ['No Meals', 'Breakfast', 'Lunch', 'Dinner'];
                             return (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -1806,13 +1772,7 @@ const HolidayPackageAdd = () => {
 
                           {/* SIGHTSEEING TAB */}
                           {row.details_json?.active_tab === 'sightseeing' && (() => {
-                            const sightseeingSearch = row.details_json?._sightseeingSearch || '';
                             const addedSightseeings = (row.details_json?.sightseeing || []).filter(s => s && s.trim());
-                            const updateDay = (patch) => {
-                              const copy = [...itineraryDays];
-                              copy[i].details_json = { ...copy[i].details_json, ...patch };
-                              setItineraryDays(copy);
-                            };
                             const currentDest = getDestinationForDay(i);
                             const allowedSightseeings = currentDest && currentDest !== "---"
                               ? sightseeingMasters.filter(sm => {
@@ -2250,13 +2210,13 @@ const HolidayPackageAdd = () => {
                                             if (newHotelForm.image) fd.append('accommodation_images', newHotelForm.image); // Map to Accommodation field
 
                                             const res = await api.post('/api/accommodations/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                                            
+
                                             // Enrich for local state
                                             const master = {
                                               ...res.data,
                                               stars: res.data.star_category ? res.data.star_category.split(' ')[0] : '3'
                                             };
-                                            
+
                                             setHotelMasters(prev => [...prev, master]);
                                             const updated = [...dayAccs, {
                                               hotelId: master.id,

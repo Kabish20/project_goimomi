@@ -606,9 +606,7 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
   }, [product.id]);
 
   useEffect(() => {
-    if (maxStock > 0 && qty > maxStock) {
-      setQty(maxStock);
-    }
+    setQty(previous => maxStock > 0 ? Math.min(previous, maxStock) : previous);
   }, [maxStock]);
 
   const decreaseQty = () => setQty((prev) => Math.max(1, prev - 1));

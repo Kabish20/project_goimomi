@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, Calendar, Loader2 } from "lucide-react";
@@ -30,11 +30,9 @@ const CruiseCalendarEdit = () => {
         dec: ""
     });
 
-    useEffect(() => {
-        fetchCalendarEntry();
-    }, [id]);
 
-    const fetchCalendarEntry = async () => {
+
+    const fetchCalendarEntry = useCallback(async () => {
         try {
             setLoading(true);
             const response = await api.get(`${API_BASE_URL}/cruise-calendar/${id}/`);
@@ -46,7 +44,11 @@ const CruiseCalendarEdit = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
+
+    useEffect(() => {
+        fetchCalendarEntry();
+    }, [fetchCalendarEntry]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

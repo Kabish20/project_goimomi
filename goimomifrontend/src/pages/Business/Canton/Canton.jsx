@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Calendar, MapPin, ChevronDown, ChevronUp, ChevronRight, CheckCircle, Clock,
-  Users, ShieldCheck, Globe, Phone, Mail, Instagram, Facebook,
-  Check, X, ArrowRight, Shield, Plane, Cpu, Settings, Shirt, Layers,
-  Lightbulb, Stethoscope, Building, Utensils, Wrench, Hammer, Car, Tv,
-  ShoppingBag, Gamepad, Factory, Sparkles, Handshake, Languages,
-  UserCheck, Hotel, FileText, TrendingUp, Layout, Building2, Star
-} from "lucide-react";
+import { Calendar, MapPin, ChevronDown, ChevronUp, ChevronRight, CheckCircle, Clock, Users, ShieldCheck, Globe, Phone, Check, X, ArrowRight, Shield, Plane, Cpu, Settings, Shirt, Layers, Lightbulb, Stethoscope, Building, Utensils, Wrench, Hammer, Car, Tv, ShoppingBag, Gamepad, Factory, Sparkles, Handshake, Languages, UserCheck, Hotel, FileText, TrendingUp, Layout } from "lucide-react";
 import usePageSEO from "../../../hooks/usePageSEO";
 
 
@@ -22,34 +15,6 @@ import cantonIntroThumb from "@/assets/images/canton_fair_intro_thumb.png";
 import cantonActivityReview from "@/assets/images/canton-activity-review.png";
 
 /* ─────────────────────────────── Countdown ─────────────────────────────── */
-const CountdownTimer = ({ targetDate }) => {
-  const calc = () => {
-    const diff = +new Date(targetDate) - +new Date();
-    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
-    return {
-      days: Math.floor(diff / 86400000),
-      hours: Math.floor((diff / 3600000) % 24),
-      minutes: Math.floor((diff / 60000) % 60),
-      seconds: Math.floor((diff / 1000) % 60),
-      expired: false,
-    };
-  };
-  const [t, setT] = useState(calc);
-  useEffect(() => { const id = setInterval(() => setT(calc()), 1000); return () => clearInterval(id); }, []);
-
-  if (t.expired) return <p className="font-bold text-red-600 text-center">Early Bird Offer Expired</p>;
-
-  return (
-    <div className="flex justify-center gap-3 flex-wrap">
-      {[["Days", t.days], ["Hours", t.hours], ["Mins", t.minutes], ["Secs", t.seconds]].map(([l, v]) => (
-        <div key={l} className="bg-white border-2 border-amber-400 rounded-2xl px-5 py-3 text-center min-w-[72px] shadow-lg">
-          <div className="text-3xl font-black text-amber-600 font-mono leading-none">{String(v).padStart(2,"0")}</div>
-          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">{l}</div>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 /* ─────────────────────────────── Main Page ─────────────────────────────── */
 const Canton = () => {

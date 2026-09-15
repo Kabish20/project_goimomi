@@ -329,14 +329,6 @@
     "indexable": false
   },
   {
-    "route": "/test",
-    "title": "Goimomi Holidays Test Page",
-    "description": "Internal Goimomi Holidays application test page.",
-    "image": "/images/seo/internal-test.png",
-    "keywords": "",
-    "indexable": false
-  },
-  {
     "route": "/admin",
     "title": "Goimomi Holidays Administration Login",
     "description": "Secure administrative access for authorized Goimomi Holidays team members.",

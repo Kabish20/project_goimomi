@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { 
-  Plus, Save, ArrowLeft, Globe, Flag, MapPin
-} from "lucide-react";
+import { Save, ArrowLeft, Globe } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -55,7 +53,7 @@ const CountryAdd = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
-        
+
         {/* Header */}
         <div className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center z-10 shadow-sm">
           <div>
@@ -76,7 +74,7 @@ const CountryAdd = () => {
           <div className="max-w-2xl mx-auto">
             <form onSubmit={handleSubmit} className="bg-white rounded-[1.5rem] border border-gray-100 shadow-xl overflow-hidden">
               <div className="p-8 space-y-6">
-                
+
                 {error && (
                   <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
                     {error}

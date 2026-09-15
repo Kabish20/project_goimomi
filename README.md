@@ -41,6 +41,22 @@ npm run zip:package     # Build deployment package archive
 Backend tests use an isolated in-memory SQLite database through `backend.test_settings`.
 The repository keeps generated build output and local deployment artifacts out of version control.
 
+### Code quality and repository maintenance
+
+- Frontend linting rejects unused imports, unused variables, and React effect warnings.
+- Keep automated tests, database migrations, deployment scripts, and original design assets.
+- Generated screenshots and browser reports belong in the ignored `output/design/` directory.
+- Deployment archives exclude design sources and generated output, while retaining public website images.
+- Run `npm run test:browser` from `goimomifrontend` with the local frontend running.
+  See [browser verification setup](goimomifrontend/design/README.md).
+
+### CRM webhook configuration
+
+Set `ZOHO_CRM_WEBHOOK_SECRET` in `goimomibackend/.env` and configure Zoho CRM to send
+the same value in the `X-Zoho-Webhook-Secret` header. There is no built-in secret.
+POST requests return 503 when no secret is configured and 401 when the supplied
+secret is missing or invalid. Authentication secrets are excluded from webhook audit records.
+
 ---
 
 ## 📂 Workspace Structure & Organization

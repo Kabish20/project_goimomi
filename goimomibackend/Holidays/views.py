@@ -1,4 +1,5 @@
 import os
+import logging
 import json
 from decimal import Decimal, InvalidOperation
 
@@ -22,6 +23,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
+logger = logging.getLogger(__name__)
 
 class IsAuthenticatedOrWriteOnly(BasePermission):
     """
@@ -1583,11 +1586,6 @@ class VehicleBrandViewSet(ModelViewSet):
     serializer_class = VehicleBrandSerializer
     pagination_class = None
 
-    def list(self, request, *args, **kwargs):
-        # Health check log
-        print(f"INFO: VehicleBrand API accessed. Total brands: {self.get_queryset().count()}")
-        return super().list(request, *args, **kwargs)
-
 class AccommodationViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = Accommodation.objects.all().order_by('-created_at')
@@ -1792,7 +1790,6 @@ class CabBookingViewSet(ModelViewSet):
         return Response({'error': 'Invalid or expired OTP.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def create(self, request, *args, **kwargs):
-        print(f"[CabBooking Create] Received request.data: {request.data}")
         is_staff_user = bool(request.user and request.user.is_authenticated and request.user.is_staff)
         verified_otp = None
         if not is_staff_user:
@@ -1805,7 +1802,7 @@ class CabBookingViewSet(ModelViewSet):
 
                 from datetime import timedelta
                 if not otp_obj or not otp_obj.is_verified or (timezone.now() - otp_obj.created_at > timedelta(hours=24)):
-                    print(f"[CabBooking Error] OTP check failed for email '{email}'. otp_obj={otp_obj}, verified={getattr(otp_obj, 'is_verified', None)}", flush=True)
+                    logger.warning("Cab booking rejected: email verification is required")
                     return Response({'error': 'Email verification is required before submitting a booking. Please verify your email with OTP.'}, status=status.HTTP_400_BAD_REQUEST)
                 verified_otp = otp_obj
             except Exception as otp_err:
@@ -4099,10 +4096,10 @@ def zoho_crm_webhook(request):
         ''
     ).strip()
 
-    # Extract loggable headers for audit trail
+    # Keep authentication credentials out of the audit trail.
     log_headers = {
         k: v for k, v in request.headers.items()
-        if k.lower() in ('x-zoho-webhook-secret', 'content-type', 'user-agent', 'x-forwarded-for', 'host')
+        if k.lower() in ('content-type', 'user-agent', 'x-forwarded-for', 'host')
     }
 
     # Handle health-check GET probe
@@ -4112,25 +4109,27 @@ def zoho_crm_webhook(request):
             "message": "Zoho CRM Webhook endpoint is active and listening for POST requests."
         }, status=status.HTTP_200_OK)
 
-    # Validate secret if one was supplied (or if strict secret check is enabled)
-    if expected_secret and received_secret:
-        if not hmac.compare_digest(expected_secret, received_secret):
-            print("[Zoho CRM Webhook] Unauthorized attempt - secret mismatch.")
-            try:
-                ZohoWebhookLog.objects.create(
-                    event_type='unauthorized_access',
-                    module=request.data.get('module') if isinstance(request.data, dict) else 'CRM',
-                    payload=request.data if isinstance(request.data, dict) else {},
-                    headers=log_headers,
-                    status='unauthorized',
-                    response_message='Webhook secret token mismatch'
-                )
-            except Exception as log_err:
-                print(f"[Zoho CRM Webhook] Error creating audit log: {log_err}")
-            return Response(
-                {"error": "Unauthorized: Invalid X-Zoho-Webhook-Secret header"},
-                status=status.HTTP_401_UNAUTHORIZED
+    if not expected_secret:
+        logger.error("Zoho CRM webhook secret is not configured")
+        return Response({"error": "Webhook is not configured"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    if not received_secret or not hmac.compare_digest(expected_secret.encode(), received_secret.encode()):
+        logger.warning("Zoho CRM webhook rejected: missing or invalid secret")
+        try:
+            ZohoWebhookLog.objects.create(
+                event_type='unauthorized_access',
+                module='CRM',
+                payload={},
+                headers=log_headers,
+                status='unauthorized',
+                response_message='Missing or invalid webhook secret'
             )
+        except Exception:
+            logger.exception("Unable to create CRM webhook audit log")
+        return Response(
+            {"error": "Unauthorized: Missing or invalid webhook secret"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
     # 2. Extract and Merge Data Payload (Supports JSON, Form-data, and Query params)
     data = {}
@@ -4151,7 +4150,7 @@ def zoho_crm_webhook(request):
         except Exception:
             data = {}
 
-    print(f"[Zoho CRM Webhook] Inbound Payload: {data}")
+    data.pop('secret', None)
 
     module = str(data.get('module') or request.query_params.get('module') or 'Leads').strip()
     event_type = str(data.get('event') or data.get('action') or 'record_triggered').strip()
@@ -4196,7 +4195,7 @@ def zoho_crm_webhook(request):
                 purpose=purpose_text,
                 enquiry_type="General"
             )
-            print(f"[Zoho CRM Webhook] Successfully recorded Enquiry #{created_enquiry.id} for {full_name}")
+            logger.info("CRM webhook recorded enquiry %s", created_enquiry.id)
 
         log_entry = ZohoWebhookLog.objects.create(
             event_type=event_type,

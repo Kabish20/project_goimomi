@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
-import { Search, Eye, Trash2, Phone, MapPin, Calendar, Clock, Plane, Luggage, MessageSquare, X, Mail, Plus, FileText, Ticket, Download } from "lucide-react";
+import { Search, Eye, Trash2, Phone, MapPin, Clock, Plane, Luggage, X, Mail, Plus, FileText, Ticket } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
-import jsPDF from "jspdf";
-import goimomilogo from "../../../assets/goimomilogo.png";
 
 const CabBookingManage = () => {
     const [bookings, setBookings] = useState([]);
@@ -254,7 +252,7 @@ const CabBookingManage = () => {
             const formData = new FormData();
             formData.append('status', newStatus);
 
-            const response = await api.put(`${API_BASE_URL}/cab-bookings/${bookingId}/`, formData);
+            await api.put(`${API_BASE_URL}/cab-bookings/${bookingId}/`, formData);
 
             // Update local state to reflect change immediately
             setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b));
@@ -1245,6 +1243,5 @@ const CabBookingManage = () => {
 };
 
 export default CabBookingManage;
-
 
 

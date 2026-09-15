@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import {
-    MapPin,
-    Image as ImageIcon,
-    Plus,
-    X,
-    ArrowLeft,
-    Camera,
-    Globe,
-    Phone,
-    Mail,
-    Link as LinkIcon,
-    Info,
-    Star
-} from "lucide-react";
+import { MapPin, Plus, X, ArrowLeft, Phone, Mail, Link as LinkIcon, Star } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";

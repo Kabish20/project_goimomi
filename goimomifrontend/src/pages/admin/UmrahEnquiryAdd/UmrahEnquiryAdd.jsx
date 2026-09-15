@@ -3,7 +3,7 @@ import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Users, MapPin, Plus, Trash2, ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 const UmrahEnquiryAdd = () => {
     useEffect(() => {

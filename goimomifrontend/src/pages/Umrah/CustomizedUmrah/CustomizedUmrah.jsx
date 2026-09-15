@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import {
-  FaCheckCircle, FaPhoneAlt, FaUsers,
-  FaShieldAlt, FaUtensils,
-} from "react-icons/fa";
+import { FaCheckCircle, FaPhoneAlt, FaUsers, FaShieldAlt } from "react-icons/fa";
 import { FaRegHeart, FaPlane, FaHotel, FaShieldHalved } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import {

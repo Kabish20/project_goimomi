@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
-import { MapPin, Image as ImageIcon, Plus, X, ArrowLeft, Camera, Clock, IndianRupee, Link as LinkIcon, Info, Trash2 } from "lucide-react";
+import { X, ArrowLeft, Camera, Clock, IndianRupee, Link as LinkIcon } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 import SearchableSelect from "../../../components/admin/SearchableSelect/SearchableSelect";
@@ -48,10 +48,7 @@ const SightseeingMasterEdit = () => {
     const [galleryImages, setGalleryImages] = useState([]);
     const [previews, setPreviews] = useState({ main: null, gallery: [] });
 
-    useEffect(() => {
-        fetchCities();
-        fetchSightseeingData();
-    }, [id]);
+
 
     const fetchCities = async () => {
         try {
@@ -102,7 +99,7 @@ const SightseeingMasterEdit = () => {
             }));
     }, [allCities, allRegions]);
 
-    const fetchSightseeingData = async () => {
+    const fetchSightseeingData = useCallback(async () => {
         try {
             setLoading(true);
             const res = await api.get(`/api/sightseeing-masters/${id}/`);
@@ -128,7 +125,12 @@ const SightseeingMasterEdit = () => {
             alert("Failed to load sightseeing data.");
             navigate("/admin/sightseeing-masters");
         }
-    };
+    }, [id, navigate]);
+
+    useEffect(() => {
+        fetchCities();
+        fetchSightseeingData();
+    }, [fetchSightseeingData]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;

@@ -4,11 +4,7 @@ import {
   FaShieldAlt, FaStar, FaUtensils, FaCheckCircle, FaPhoneAlt,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
-import {
-  Award, BadgeCheck, Headphones, Sparkles, Globe, ShieldCheck,
-  ArrowRight, CheckCircle2, PhoneCall, ChevronDown, TrendingUp,
-  MapPin, Heart, Briefcase,
-} from "lucide-react";
+import { Award, BadgeCheck, Headphones, Sparkles, Globe, ShieldCheck, ArrowRight, CheckCircle2, PhoneCall, ChevronDown, TrendingUp } from "lucide-react";
 import ZohoCustomizedForm from "../../../components/forms/ZohoCustomizedForm.jsx";
 import { useNavigate } from "react-router-dom";
 import usePageSEO from "../../../hooks/usePageSEO";

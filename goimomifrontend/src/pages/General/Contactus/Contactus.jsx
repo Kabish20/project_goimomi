@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import {
-  Phone, Mail, MapPin, Send, Instagram, Facebook, Linkedin, Clock,
-  CheckCircle2, Headphones, BadgeCheck, ArrowRight, MessageCircle,
-  Globe, ShieldCheck, Award,
-} from "lucide-react";
-import { FiPhone, FiMail, FiMapPin, FiUser, FiMessageCircle } from "react-icons/fi";
+import { Phone, Mail, Send, Instagram, Facebook, Linkedin, Clock, CheckCircle2, Headphones, BadgeCheck, MessageCircle, ShieldCheck } from "lucide-react";
+import { FiMail, FiUser, FiMessageCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
 import usePageSEO from "../../../hooks/usePageSEO";
-import api from "../../../api";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import emailjs from "emailjs-com";

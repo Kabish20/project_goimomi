@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
-import { 
-  Plus, Save, ArrowLeft, Globe, Layers, Trash2
-} from "lucide-react";
+import { Save, ArrowLeft, Globe, Layers, Trash2 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -19,18 +17,16 @@ const RegionEdit = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchInitialData();
-  }, [id]);
 
-  const fetchInitialData = async () => {
+
+  const fetchInitialData = useCallback(async () => {
     try {
       setFetching(true);
       const [regionRes, countriesRes] = await Promise.all([
         api.get(`/api/regions/${id}/`),
         api.get("/api/countries/")
       ]);
-      
+
       setCountries(countriesRes.data || []);
       setFormData({
         name: regionRes.data.name,
@@ -42,7 +38,11 @@ const RegionEdit = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,7 +90,7 @@ const RegionEdit = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden text-gray-900 uppercase">
         <AdminTopbar />
-        
+
         {/* Header */}
         <div className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center z-10 shadow-sm transition-all text-gray-900 uppercase tracking-tight">
           <div>
@@ -113,7 +113,7 @@ const RegionEdit = () => {
           <div className="max-w-2xl mx-auto focus-within:scale-[1.002] transition-transform duration-500">
             <form onSubmit={handleSubmit} className="bg-white rounded-[1.5rem] border border-gray-100 shadow-xl overflow-hidden">
               <div className="p-8 space-y-6">
-                
+
                 {error && (
                   <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
                     {error}

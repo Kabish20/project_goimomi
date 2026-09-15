@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -91,9 +91,9 @@ const CountryEdit = () => {
   };
 
   /* ── fetch all ── */
-  useEffect(() => { fetchAll(); }, [id]);
 
-  const fetchAll = async () => {
+
+  const fetchAll = useCallback(async () => {
     try {
       setFetching(true);
       const [cRes, natRes, regRes, citRes, airRes, pickRes, termRes] = await Promise.all([
@@ -136,7 +136,9 @@ const CountryEdit = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   /* ═══════════ COUNTRY ═══════════ */
   const saveCountry = async () => {
@@ -561,7 +563,7 @@ const CountryEdit = () => {
                   <span className="text-[11px] font-bold italic">No regions added yet</span>
                 </div>
               ) : (
-                regions.map((region, ri) => {
+                regions.map((region) => {
                   const isOpen = expandedRegions.has(region.id);
                   const cityCount = region.cities?.length || 0;
                   const airportCount = region.cities?.reduce((s, c) => s + (c.airports?.length || 0), 0) || 0;
@@ -633,7 +635,7 @@ const CountryEdit = () => {
                               regionId={region.id}
                               onUpdateCity={updateCity}
                               onDeleteCity={deleteCity}
-                              
+
                               onAddAirport={addAirport}
                               onDeleteAirport={deleteAirport}
                               airportDraft={newAirport[city.id] || { name: "", iata_code: "" }}
@@ -763,7 +765,7 @@ const CityCard = ({
   onAddAirport, onDeleteAirport,
   airportDraft, onAirportDraftChange,
   showForm, onToggleForm, onCloseForm,
-  
+
   onAddPickup, onDeletePickup,
   pickupDraft, onPickupDraftChange,
   showPickupForm, onTogglePickupForm, onClosePickupForm,
@@ -772,7 +774,6 @@ const CityCard = ({
   terminalDraft, onTerminalDraftChange,
   showTerminalForm, onToggleTerminalForm, onCloseTerminalForm,
 
-  navigate,
 }) => {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
@@ -920,6 +921,5 @@ const CityCard = ({
 };
 
 export default CountryEdit;
-
 
 

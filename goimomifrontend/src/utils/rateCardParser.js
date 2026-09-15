@@ -1,4 +1,3 @@
-import api from "../api";
 
 // Helper: load PDF.js from CDN dynamically
 const loadPdfJS = () => {

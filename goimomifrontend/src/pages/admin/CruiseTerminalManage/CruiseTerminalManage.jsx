@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
-import { useNavigate } from "react-router-dom";
 import {
   Plus, Search, Anchor, Edit2, Trash2, RefreshCcw, Ship, X, Check, Save, AlertCircle, MapPin
 } from "lucide-react";
@@ -21,7 +20,6 @@ const CruiseTerminalManage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTerminals();

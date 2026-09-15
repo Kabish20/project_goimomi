@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../../../api";
 import { useNavigate, useParams } from "react-router-dom";
-import { 
-  Plus, Save, ArrowLeft, Globe, MapPin, Layers, Trash2
-} from "lucide-react";
+import { Save, ArrowLeft, Globe, MapPin, Layers, Trash2 } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
@@ -21,9 +19,7 @@ const CityEdit = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchInitialData();
-  }, [id]);
+
 
   useEffect(() => {
     if (formData.country) {
@@ -33,21 +29,21 @@ const CityEdit = () => {
     }
   }, [formData.country]);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = useCallback(async () => {
     try {
       setFetching(true);
       const [cityRes, countriesRes] = await Promise.all([
         api.get(`/api/cities/${id}/`),
         api.get("/api/countries/")
       ]);
-      
+
       setCountries(countriesRes.data || []);
       setFormData({
         name: cityRes.data.name,
         country: cityRes.data.country,
         region: cityRes.data.region || ""
       });
-      
+
       if (cityRes.data.country) {
         await fetchRegions(cityRes.data.country);
       }
@@ -57,7 +53,11 @@ const CityEdit = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   const fetchRegions = async (countryId) => {
     try {
@@ -114,7 +114,7 @@ const CityEdit = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
-        
+
         {/* Header */}
         <div className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center z-10 shadow-sm transition-all backdrop-blur-sm bg-opacity-95 text-gray-900 uppercase">
           <div>
@@ -137,7 +137,7 @@ const CityEdit = () => {
           <div className="max-w-2xl mx-auto focus-within:scale-[1.002] transition-transform duration-300">
             <form onSubmit={handleSubmit} className="bg-white rounded-[1.5rem] border border-gray-100 shadow-xl overflow-hidden">
               <div className="p-8 space-y-6">
-                
+
                 {error && (
                   <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-[10px] font-black uppercase tracking-widest text-center animate-shake">
                     {error}

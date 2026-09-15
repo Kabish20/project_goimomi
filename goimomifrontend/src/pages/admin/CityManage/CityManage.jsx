@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../api";
 import { useNavigate } from "react-router-dom";
-import { 
-  Plus, Search, MapPin, ChevronRight, Edit2, Trash2, Globe, Layers, 
-  Map as MapIcon, Filter, RefreshCcw, Download, Info
-} from "lucide-react";
+import { Plus, Search, MapPin, Edit2, Trash2, Globe, Layers, RefreshCcw } from "lucide-react";
 import AdminSidebar from "../../../components/admin/AdminSidebar/AdminSidebar";
 import AdminTopbar from "../../../components/admin/AdminTopbar/AdminTopbar";
 
 const CityManage = () => {
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
@@ -44,7 +41,7 @@ const CityManage = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <AdminTopbar />
-        
+
         {/* Action Header */}
         <div className="bg-white border-b border-gray-100 px-6 py-3 flex justify-between items-center z-10 shadow-sm">
           <div>
@@ -69,7 +66,7 @@ const CityManage = () => {
 
         <div className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar bg-[#fcfdfc]">
           <div className="max-w-7xl mx-auto space-y-4">
-            
+
             {/* Search & Filter */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="md:col-span-3 relative group">
