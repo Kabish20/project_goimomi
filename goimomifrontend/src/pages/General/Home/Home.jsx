@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../../api";
 import {
@@ -46,24 +46,6 @@ import homeLeisure7 from "../../../assets/Home/LeisureHeader/home-leisure-07.png
 import homeLeisure8 from "../../../assets/Home/LeisureHeader/home-leisure-08.png";
 import homeLeisure9 from "../../../assets/Home/LeisureHeader/home-leisure-09.png";
 import homeLeisure10 from "../../../assets/Home/LeisureHeader/home-leisure-10.png";
-import destinationBangkok from "../../../assets/Home/Destinations/destination-bangkok.png";
-import destinationKerala from "../../../assets/Home/Destinations/destination-kerala.png";
-import destinationBali from "../../../assets/Home/Destinations/destination-bali.png";
-import destinationUae from "../../../assets/Home/Destinations/destination-uae.png";
-import destinationSingapore from "../../../assets/Home/Destinations/destination-singapore.png";
-import destinationParis from "../../../assets/Home/Destinations/destination-paris.png";
-import destinationBangkok2 from "../../../assets/Home/Destinations/destination-bangkok-02.png";
-import destinationBangkok3 from "../../../assets/Home/Destinations/destination-bangkok-03.png";
-import destinationKerala2 from "../../../assets/Home/Destinations/destination-kerala-02.png";
-import destinationKerala3 from "../../../assets/Home/Destinations/destination-kerala-03.png";
-import destinationBali2 from "../../../assets/Home/Destinations/destination-bali-02.png";
-import destinationBali3 from "../../../assets/Home/Destinations/destination-bali-03.png";
-import destinationUae2 from "../../../assets/Home/Destinations/destination-uae-02.png";
-import destinationUae3 from "../../../assets/Home/Destinations/destination-uae-03.png";
-import destinationSingapore2 from "../../../assets/Home/Destinations/destination-singapore-02.png";
-import destinationSingapore3 from "../../../assets/Home/Destinations/destination-singapore-03.png";
-import destinationParis2 from "../../../assets/Home/Destinations/destination-paris-02.png";
-import destinationParis3 from "../../../assets/Home/Destinations/destination-paris-03.png";
 import offerDubai2 from "../../../assets/Home/SpecialOffers/offer-dubai-02.png";
 import offerDubai3 from "../../../assets/Home/SpecialOffers/offer-dubai-03.png";
 import offerKerala2 from "../../../assets/Home/SpecialOffers/offer-kerala-02.png";
@@ -175,7 +157,7 @@ const getVisaImageSet = (country, primary, fallback) => {
 
 
 // Animated Destination Card with 3 Smooth Moving / Crossfading Images
-const AnimatedDestinationCard = ({ item, index, onNavigate }) => {
+const AnimatedDestinationCard = ({ item, index }) => {
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
 
   useEffect(() => {
@@ -196,10 +178,12 @@ const AnimatedDestinationCard = ({ item, index, onNavigate }) => {
   }, [index, item.images.length]);
 
   return (
-    <div
-      className="relative h-[310px] rounded-2xl overflow-hidden group border border-white/10 shadow-2xl fade-up cursor-pointer bg-slate-950"
+    <Link
+      to={item.path || `/holidays?category=${item.category}`}
+      state={item.path ? undefined : { filter: item.title }}
+      aria-label={`Explore ${item.title} packages`}
+      className="block relative h-[310px] rounded-2xl overflow-hidden group border border-white/10 shadow-2xl fade-up cursor-pointer bg-slate-950 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-emerald-600"
       style={{ animationDelay: `${index * 0.05}s` }}
-      onClick={() => onNavigate(item)}
     >
       {/* 3 Moving / Animated Images Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -285,16 +269,16 @@ const AnimatedDestinationCard = ({ item, index, onNavigate }) => {
           <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
             <div className="overflow-hidden">
               <p className="text-white/70 text-[10px] my-2 leading-tight line-clamp-1 font-medium">
-                Experience the magic of {item.title}.
+                {item.description || `Experience the magic of ${item.title}.`}
               </p>
-              <button className="w-full py-2.5 bg-white hover:bg-[#14532d] text-slate-950 hover:text-white font-black uppercase text-[10px] tracking-[0.15em] rounded-xl transition-all shadow-xl cursor-pointer">
+              <span className="block text-center w-full py-2.5 bg-white hover:bg-[#14532d] text-slate-950 hover:text-white font-black uppercase text-[10px] tracking-[0.15em] rounded-xl transition-all shadow-xl cursor-pointer">
                 Explore Now
-              </button>
+              </span>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -349,13 +333,7 @@ const Home = () => {
   const [popularVisas, setPopularVisas] = useState([]);
   const [loadingVisas, setLoadingVisas] = useState(true);
 
-  const heroContent = [
-    { title: "Discover Ancient Streets", subtitle: "Historic tours and cultural experiences to bring the past alive." },
-    { title: "Explore Blue Seas", subtitle: "Relax on pristine beaches with crystal-clear waters." },
-    { title: "Journey Into Nature", subtitle: "Feel the beauty of untouched landscapes around the world." },
-    { title: "Scale Majestic Peaks", subtitle: "Adventure awaits in the heart of the world's most stunning mountains." },
-    { title: "Discover Turkey's Wonders", subtitle: "Where East meets West in a fusion of history and beauty." }
-  ];
+
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -723,95 +701,61 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ---------------- POPULAR DESTINATIONS ---------------- */}
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic text-center fade-up">
-          Popular Destinations
+      {/* ---------------- POPULAR TRENDING DESTINATION ---------------- */}
+      <section id="popular-destinations" aria-labelledby="trending-destinations-heading" className="py-16 px-6 max-w-7xl mx-auto">
+        <h2 id="trending-destinations-heading" className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic text-center fade-up">
+          Trending Destination
         </h2>
         <p className="text-center text-gray-600 mt-2 fade-up">
-          Discover amazing places around the world
+          Discover unforgettable holidays across India and the world
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-10 max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 max-w-5xl mx-auto sm:px-4">
           {[
             {
               images: [
-                destinationBangkok,
-                destinationBangkok2,
-                destinationBangkok3
+                "/images/azerbaijan/baku-hero.webp",
+                "/images/azerbaijan/baku-social.jpg"
               ],
-              title: "Bangkok",
-              region: "SOUTH EAST ASIA",
-              country: "Thailand",
-              category: "International"
+              title: "Azerbaijan",
+              region: "CAUCASUS",
+              country: "Azerbaijan",
+              category: "International",
+              path: "/trendinginternationaldestination",
+              description: "4 nights / 5 days · Packages from ₹52,430 for 2 adults"
             },
             {
               images: [
-                destinationKerala,
-                destinationKerala2,
-                destinationKerala3
+                "/images/kashmir/dal-lake-hero.webp",
+                "/images/kashmir/pahalgam-valley.webp"
               ],
-              title: "Kerala",
-              region: "SOUTH ASIA",
+              title: "Kashmir",
+              region: "NORTH INDIA",
               country: "India",
-              category: "Domestic"
-            },
-            {
-              images: [
-                destinationBali,
-                destinationBali2,
-                destinationBali3
-              ],
-              title: "Bali",
-              region: "SOUTH EAST ASIA",
-              country: "Indonesia",
-              category: "International"
-            },
-            {
-              images: [
-                destinationUae,
-                destinationUae2,
-                destinationUae3
-              ],
-              title: "UAE",
-              region: "MIDDLE EAST",
-              country: "UAE",
-              category: "International"
-            },
-            {
-              images: [
-                destinationSingapore,
-                destinationSingapore2,
-                destinationSingapore3
-              ],
-              title: "Singapore",
-              region: "SOUTH EAST ASIA",
-              country: "Singapore",
-              category: "International"
-            },
-            {
-              images: [
-                destinationParis,
-                destinationParis2,
-                destinationParis3
-              ],
-              title: "Paris",
-              region: "EUROPE",
-              country: "France",
-              category: "International"
+              category: "Domestic",
+              path: "/trendingdomesticdestination",
+              description: "4 nights / 5 days · Packages from ₹6,499 per person"
             }
           ].map((item, i) => (
-            <AnimatedDestinationCard
-              key={i}
-              item={item}
-              index={i}
-              onNavigate={(dest) =>
-                navigate(`/holidays?category=${dest.category}`, { state: { filter: dest.title } })
-              }
-            />
+            <AnimatedDestinationCard key={item.title} item={item} index={i} />
           ))}
         </div>
+        <div className="flex flex-wrap justify-center gap-4 mt-8">
+          <Link
+            to="/trendinginternationaldestination"
+            className="px-5 py-3 rounded-lg bg-[#14532d] text-white text-sm font-semibold hover:bg-[#166534] transition-colors"
+          >
+            Explore International Destinations
+          </Link>
+          <Link
+            to="/trendingdomesticdestination"
+            className="px-5 py-3 rounded-lg border border-[#14532d] text-[#14532d] text-sm font-semibold hover:bg-emerald-50 transition-colors"
+          >
+            Explore Domestic Destinations
+          </Link>
+        </div>
       </section>
+
 
       {/* ---------------- SPECIAL OFFERS ---------------- */}
       <section className="py-20 px-6 bg-slate-50">

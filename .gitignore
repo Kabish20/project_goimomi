@@ -63,3 +63,6 @@ goimomibackend/media/
 .agents/
 .rehost/
 goimomi_known_hosts
+
+# ---- Local verification output ----
+output/

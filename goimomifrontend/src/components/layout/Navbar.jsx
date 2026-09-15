@@ -108,6 +108,11 @@ const Navbar = () => {
     location.pathname.startsWith('/customized-umrah') || 
     (location.pathname === '/holidays' && location.search.includes('Umrah'));
   const isHolidayActive = 
+    location.pathname.toLowerCase() === '/manali' ||
+    location.pathname.toLowerCase() === '/azerbaijan' ||
+    location.pathname.toLowerCase().startsWith('/trendingdomesticdestination') ||
+    location.pathname.toLowerCase().startsWith('/trendinginternationaldestination') ||
+    location.pathname.toLowerCase() === '/kashmir' ||
     location.pathname === '/holidayhome' ||
     location.pathname.startsWith('/holiday/') || 
     location.pathname.toLowerCase().startsWith('/customizedholidays') || 
@@ -343,7 +348,7 @@ const Navbar = () => {
               </button>
 
               {desktopHoliday && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-56 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown z-50">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-3 w-72 rounded-xl border border-slate-100 bg-white text-slate-700 shadow-xl animate-slideDown z-50">
                   <NavLink
                     to="/holidayhome"
                     onClick={() => setDesktopHoliday(false)}
@@ -371,6 +376,12 @@ const Navbar = () => {
                     className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
                   >
                     Customized Holidays
+                  </NavLink>
+                  <NavLink to="/trendingdomesticdestination" onClick={() => setDesktopHoliday(false)} className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full">
+                    Trending Domestic Destination
+                  </NavLink>
+                  <NavLink to="/trendinginternationaldestination" onClick={() => setDesktopHoliday(false)} className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full">
+                    Trending International Destination
                   </NavLink>
                   <NavLink
                     to="/Europeantours"
@@ -643,6 +654,12 @@ const Navbar = () => {
                     onClick={closeMobileMenu}
                   >
                     Customized Holidays
+                  </NavLink>
+                  <NavLink to="/trendingdomesticdestination" className="block py-1.5 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
+                    Trending Domestic Destination
+                  </NavLink>
+                  <NavLink to="/trendinginternationaldestination" className="block py-1.5 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
+                    Trending International Destination
                   </NavLink>
                   <NavLink
                     to="/Europeantours"

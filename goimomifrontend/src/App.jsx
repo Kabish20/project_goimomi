@@ -18,6 +18,11 @@ const PaymentCheckout = lazyRetry(() => import('./pages/General/PaymentCheckout/
 const CustomizedHolidays = lazyRetry(() => import('./pages/Holidays/CustomizedHolidays/CustomizedHolidays.jsx'));
 const CustomizedUmrah = lazyRetry(() => import('./pages/Umrah/CustomizedUmrah/CustomizedUmrah.jsx'));
 const Holidays = lazyRetry(() => import('./pages/Holidays/Holidays/Holidays.jsx'));
+const Kashmir = lazyRetry(() => import('./pages/Holidays/Kashmir/Kashmir.jsx'));
+const Manali = lazyRetry(() => import('./pages/Holidays/Manali/Manali.jsx'));
+const Azerbaijan = lazyRetry(() => import('./pages/Holidays/Azerbaijan/azerbaijan.jsx'));
+const TrendingDomesticDestination = lazyRetry(() => import('./pages/Holidays/TrendingDestinations/trendingdomesticdestination.jsx'));
+const TrendingInternationalDestination = lazyRetry(() => import('./pages/Holidays/TrendingDestinations/trendingInternationaldestination.jsx'));
 const PlanTrip = lazyRetry(() => import('./pages/Holidays/Holidaysform/Holidaysform.jsx'));
 const Cab = lazyRetry(() => import('./pages/Services/cab/cab.jsx'));
 const Cruise = lazyRetry(() => import('./pages/Services/Cruise/Cruise.jsx'));
@@ -137,11 +142,12 @@ const PageLoader = () => (
 const App = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
+  const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|trendingdomesticdestination|trendinginternationaldestination)\/?$/i.test(location.pathname);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   useEffect(() => {
     // Only show if not on admin path and hasn't been shown before
-    if (!isAdminPath) {
+    if (!isAdminPath && !isDestinationLandingPath) {
       const hasShown = sessionStorage.getItem("generalEnquiryShown");
       if (!hasShown) {
         const timer = setTimeout(() => {
@@ -151,7 +157,7 @@ const App = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [isAdminPath]);
+  }, [isAdminPath, isDestinationLandingPath]);
 
   // Global IntersectionObserver for .fade-up animations
   useEffect(() => {
@@ -268,6 +274,11 @@ const App = () => {
             <Route path="/businesshome" element={<BusinessHome />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/holidays" element={<Holidays />} />
+            <Route path="/kashmir" element={<Kashmir />} />
+            <Route path="/manali" element={<Manali />} />
+            <Route path="/azerbaijan" element={<Azerbaijan />} />
+            <Route path="/trendingdomesticdestination" element={<TrendingDomesticDestination />} />
+            <Route path="/trendinginternationaldestination" element={<TrendingInternationalDestination />} />
 
             <Route path="/customizedHolidays" element={<CustomizedHolidays />} />
             <Route
@@ -472,7 +483,7 @@ const App = () => {
     </main>
 
     {!isAdminPath && <Footer />}
-      <EnquiryForm isOpen={isEnquiryOpen} onClose={() => setIsEnquiryOpen(false)} />
+      <EnquiryForm isOpen={isEnquiryOpen && !isDestinationLandingPath} onClose={() => setIsEnquiryOpen(false)} />
     </div>
   );
 };

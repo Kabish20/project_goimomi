@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": [
+    "Azerbaijan discoverable by Baku search and card opens page",
+    "Total-for-two card price and unchanged Kashmir per-person label",
+    "Five days, eight city attractions, 17 inclusions, nine exclusions, eight important notes",
+    "Hotel selection updates both the total and enquiry",
+    "Mocked failed request retains input",
+    "Both hotel enquiry payloads have correct total, adults, rooms, nights and category",
+    "No page overflow at 320px, 390px or 768px",
+    "No browser JavaScript errors"
+  ],
+  "note": "No live enquiries submitted; API success and error responses were mocked."
+}

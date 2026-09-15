@@ -1,5 +1,40 @@
 [
   {
+    "route": "/manali",
+    "title": "Chandigarh – Manali | 3 Nights / 4 Days | Goimomi Holidays",
+    "description": "Manali, Solang Valley, Atal Tunnel and Kullu, 26–29 November 2026. Private sedan, 3 breakfasts and 3 dinners. From ₹23,500 for 2 adults plus 5% GST.",
+    "image": "/images/manali/manali-social.jpg",
+    "keywords": "Manali holiday package, Chandigarh Manali, Solang Valley, Atal Tunnel, Kullu, November 2026"
+  },
+  {
+    "route": "/azerbaijan",
+    "title": "Baku, Azerbaijan | 4 Nights / 5 Days Private Tour | Goimomi",
+    "description": "A private Azerbaijan holiday for 2 adults from ₹52,430 total. Explore Baku, Shahdag and Absheron with 4 nights, daily breakfast, private sedan and specified entry tickets.",
+    "image": "/images/azerbaijan/baku-social.jpg",
+    "keywords": "Baku Azerbaijan package, Shahdag, Absheron, private tour, 4 nights 5 days, Goimomi"
+  },
+  {
+    "route": "/trendingdomesticdestination",
+    "title": "Trending Domestic Destination | Goimomi Holidays",
+    "description": "Explore Manali, Kashmir and Kerala with Goimomi Holidays. Discover domestic holiday packages and personalised travel options across India.",
+    "image": "/images/kashmir/dal-lake-social.jpg",
+    "keywords": "domestic holiday destinations, Manali package, Kashmir holiday package, Kerala holiday, India holidays"
+  },
+  {
+    "route": "/trendinginternationaldestination",
+    "title": "Trending International Destination | Goimomi Holidays",
+    "description": "Explore Azerbaijan, Bangkok, Bali, UAE, Singapore and Paris. Browse international destination inspiration and find your next holiday with Goimomi.",
+    "image": "/images/seo/holiday-inspiration.jpg",
+    "keywords": "international holiday destinations, Azerbaijan, Baku, Bangkok, Bali, UAE, Singapore, Paris, Goimomi"
+  },
+  {
+    "route": "/kashmir",
+    "title": "Kashmir Holiday Packages | 4 Nights / 5 Days from ₹6,499 | Goimomi",
+    "description": "Discover Srinagar, Sonmarg, Gulmarg and Pahalgam. Budget packages from ₹6,499 and private tours from ₹9,034 per person. Compare hotels, itinerary and rates.",
+    "image": "/images/kashmir/dal-lake-social.jpg",
+    "keywords": "Kashmir holiday package, Srinagar, Sonmarg, Gulmarg, Pahalgam, Kashmir 4 nights 5 days"
+  },
+  {
     "route": "/",
     "title": "Goimomi Holidays | Premium Travel Experiences",
     "description": "Plan holidays with Goimomi Holidays—custom travel packages, family vacations, honeymoon escapes, visa assistance, cruises and business journeys designed around you.",

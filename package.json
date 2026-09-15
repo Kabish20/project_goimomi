@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Goimomi Full-Stack Workspace",
   "scripts": {
-    "dev": "start_dev.bat",
+    "dev": "scripts\\start_dev.bat",
     "dev:backend": "cd goimomibackend && python manage.py runserver 0.0.0.0:8000",
     "dev:frontend": "cd goimomifrontend && npm run dev",
     "build:frontend": "cd goimomifrontend && npm run build",

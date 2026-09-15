@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checks": [
+    "Domestic and international pages render with all images",
+    "Kashmir card opens the complete package page",
+    "Search and region filters combine correctly",
+    "Empty state resets both filters",
+    "International card carries its destination into holiday results",
+    "Desktop menu opens the new landing page",
+    "SEO titles and share image",
+    "No horizontal overflow at 320px, 390px or 768px on either page",
+    "No JavaScript runtime errors"
+  ],
+  "notes": "Read-only browser checks with mocked API responses. No enquiries submitted."
+}

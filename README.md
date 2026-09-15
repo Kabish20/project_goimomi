@@ -11,15 +11,15 @@
 Start both the backend REST API and React frontend dev server effortlessly:
 
 ### Windows:
-Run the one-click local development launcher:
+Run the one-click local development launcher from the workspace root:
 ```cmd
-start_dev.bat
+scripts\start_dev.bat
 ```
 
 ### Linux / macOS:
 ```bash
-chmod +x start_dev.sh
-./start_dev.sh
+chmod +x scripts/start_dev.sh
+./scripts/start_dev.sh
 ```
 
 ### Workspace npm Commands:
@@ -39,7 +39,7 @@ npm run zip:package     # Build deployment package archive
 ```
 
 Backend tests use an isolated in-memory SQLite database through `backend.test_settings`.
-See [PROJECT_AUDIT.md](PROJECT_AUDIT.md) for the latest bug fixes, checks, and remaining validation limits.
+The repository keeps generated build output and local deployment artifacts out of version control.
 
 ---
 
@@ -92,8 +92,6 @@ goimomi-workspace/
 │   └── .env.example                  # Backend environment template
 │
 ├── .env.example                      # Root environment template
-├── start_dev.bat                     # Convenience launcher wrapper (Windows)
-├── start_dev.sh                      # Convenience launcher wrapper (Linux/macOS)
 ├── package.json                      # Workspace root NPM configuration
 └── README.md                         # Project documentation
 ```
