@@ -1,7 +1,7 @@
 export const trip = {
   name: 'North East — Assam & Meghalaya',
   startDate: '2026-11-08',
-  dates: '8–14 November 2026',
+  dates: '6 nights / 7 days',
   nights: 6,
   adults: 4,
   rooms: 2,
@@ -9,10 +9,10 @@ export const trip = {
 };
 
 export const stops = [
-  { city: 'Guwahati', nights: 1, dates: '8–9 November', label: 'Night 1' },
-  { city: 'Kaziranga', nights: 1, dates: '9–10 November', label: 'Night 2' },
-  { city: 'Shillong', nights: 2, dates: '10–12 November', label: 'Nights 3–4' },
-  { city: 'Cherrapunji', nights: 2, dates: '12–14 November', label: 'Nights 5–6' },
+  { city: 'Guwahati', nights: 1, dates: '1 night', label: 'Night 1' },
+  { city: 'Kaziranga', nights: 1, dates: '1 night', label: 'Night 2' },
+  { city: 'Shillong', nights: 2, dates: '2 nights', label: 'Nights 3–4' },
+  { city: 'Cherrapunji', nights: 2, dates: '2 nights', label: 'Nights 5–6' },
 ];
 
 // Supplier prices are already per adult on double sharing, for four adults in two rooms.
@@ -49,37 +49,44 @@ export const packages = [
 export const days = [
   {
     date: '8 November 2026', title: 'Guwahati arrival & sightseeing', overnight: 'Guwahati',
+    date: 'Day 1', title: 'Guwahati arrival & sightseeing', overnight: 'Guwahati',
     description: 'Meet your vehicle at Guwahati airport or railway station and begin city sightseeing directly, without an early check-in or rest stop. Visit Kamakhya Temple, Srimanta Sankardev Kalakshetra and the Brahmaputra riverfront. Umananda Temple or the State Zoo cum Botanical Garden can be considered if time and your preferences allow. Check in to your hotel in the evening.',
     places: ['Kamakhya Temple', 'Kalakshetra', 'Brahmaputra riverfront'],
   },
   {
     date: '9 November 2026', title: 'Guwahati to Kaziranga', overnight: 'Kaziranga',
+    date: 'Day 2', title: 'Guwahati to Kaziranga', overnight: 'Kaziranga',
     description: 'After breakfast, drive to Kaziranga and check in to your hotel. Settle in for an overnight stay close to the region’s wildlife landscapes.',
     places: ['Kaziranga'],
   },
   {
     date: '10 November 2026', title: 'Kaziranga safari & onward to Shillong', overnight: 'Shillong',
+    date: 'Day 3', title: 'Kaziranga safari & onward to Shillong', overnight: 'Shillong',
     description: 'The supplied programme offers an optional early-morning elephant ride around 5:15–6:15 AM, subject to availability. Return for breakfast, with time for leisure or plantation visits. An optional Central Range jeep safari follows after lunch, before the onward drive to Shillong via Umiam Lake. Ward’s Lake and the Botanical Garden are time permitting.',
     places: ['Kaziranga', 'Umiam Lake', 'Shillong'],
     note: 'Safari charges are extra. Safari availability, entry fees and the timing of the onward transfer must be confirmed before booking.',
   },
   {
     date: '11 November 2026', title: 'Laitlum Canyons & Krang Suri Falls', overnight: 'Shillong',
+    date: 'Day 4', title: 'Laitlum Canyons & Krang Suri Falls', overnight: 'Shillong',
     description: 'After breakfast, explore the green gorges and sweeping views of Laitlum Canyons, then continue to Krang Suri Falls. Enjoy the waterfall scenery before returning to Shillong for the night. Any water activities depend on local access and conditions.',
     places: ['Laitlum Canyons', 'Krang Suri Falls'],
   },
   {
     date: '12 November 2026', title: 'Mawlynnong & Dawki, then Cherrapunji', overnight: 'Cherrapunji',
+    date: 'Day 5', title: 'Mawlynnong & Dawki, then Cherrapunji', overnight: 'Cherrapunji',
     description: 'Check out after breakfast and travel via Mawlynnong and the nearby living root bridge. Continue to Dawki and the clear waters of the Umngot River, where optional boating can be arranged at an extra charge. After sightseeing, proceed to your Cherrapunji hotel.',
     places: ['Mawlynnong', 'Living root bridge', 'Dawki & Umngot River'],
   },
   {
     date: '13 November 2026', title: 'Day 6 itinerary awaiting confirmation', overnight: 'Cherrapunji — as listed in the hotel schedule',
+    date: 'Day 6', title: 'Day 6 itinerary awaiting confirmation', overnight: 'Cherrapunji — as listed in the hotel schedule',
     description: 'The sightseeing programme for this day is being revised. Your listed accommodation remains in Cherrapunji; the final route and overnight arrangements will be confirmed with your itinerary.',
     places: [], pending: true,
   },
   {
     date: '14 November 2026', title: 'Day 7 departure transfer awaiting confirmation',
+    date: 'Day 7', title: 'Day 7 departure transfer awaiting confirmation',
     description: 'Departure is planned via Guwahati airport or railway station. The pickup city and transfer programme are awaiting the corrected itinerary.',
     places: [], pending: true,
   },
@@ -125,6 +132,7 @@ export const exclusions = [
 export const information = [
   'The trip covers Assam and Meghalaya: Guwahati, Kaziranga, Shillong and Cherrapunji.',
   'Prices are per adult on twin sharing, based on 4 adults sharing 2 rooms. The departure is 8 November 2026, with hotel checkout on 14 November.',
+  'Prices are per adult on twin sharing, based on 4 adults sharing 2 rooms for a 6 nights / 7 days itinerary.',
   'All listed hotel stays specify dinner and breakfast. The supplied exclusions also exclude travel-day meals; exact meal service on transfer days needs confirmation.',
   'Hotel names, categories and room types follow the supplied quotation. Availability and final arrangements are confirmed when booking.',
   'Super Deluxe and Premium options use a vegetarian hotel in Cherrapunji.',

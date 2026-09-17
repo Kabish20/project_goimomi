@@ -2,3 +2,59 @@
 @media(max-width:1050px){.td-destination-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.td-section-heading{align-items:flex-start;flex-direction:column;gap:18px}.td-section-heading>p{max-width:550px}.td-feature-grid{gap:30px}.td-package-prices{gap:12px}.td-package-prices strong span{display:block}.td-collection-nav>.td-container{gap:25px}.td-collection-nav a{font-size:11px}}
 @media(max-width:700px){.td-container{width:calc(100% - 40px)}.td-section{padding-block:48px}.td-hero{min-height:570px}.td-hero-image{object-position:65% center}.td-hero-overlay{background:linear-gradient(90deg,#0b2e25d9,#123c2b75)}.td-breadcrumb{font-size:9px;margin-bottom:53px;gap:9px}.td-hero .td-eyebrow{font-size:8px;letter-spacing:1.5px}.trending-page h1{font-size:44px;letter-spacing:-1.3px}.td-hero-content>p{font-size:12px;max-width:400px;line-height:1.9}.td-button{font-size:11px;padding:13px 17px;gap:12px}.td-hero-caption{font-size:8px;margin-top:31px}.td-collection-nav>.td-container{width:100%;padding-inline:20px;gap:24px;overflow-x:auto}.td-collection-nav a{min-width:210px;font-size:10px;line-height:1.5;padding-block:17px;gap:8px}.trending-page h2{font-size:32px}.td-section-heading{gap:14px;margin-bottom:23px}.td-eyebrow{font-size:8px;letter-spacing:1.5px}.td-search-bar{flex-direction:column;padding:11px;gap:10px}.td-region{width:100%}.td-search input,.td-region select{font-size:11px;padding-block:12px}.td-destination-grid,.trending-domestic .td-destination-grid{grid-template-columns:1fr;gap:23px}.td-card-image,.trending-domestic .td-card-image{height:235px}.td-card-body{padding:23px}.td-card h3{font-size:29px}.td-feature-section{padding-block:45px}.td-feature-grid{grid-template-columns:1fr;gap:28px}.td-feature-grid>img{height:290px}.td-package-prices strong{font-size:25px}.td-package-prices strong span{display:inline-block}.td-plan-section{grid-template-columns:1fr;gap:32px}.td-cta{padding-block:43px}.td-cta>.td-container{flex-direction:column;align-items:flex-start;gap:25px}.td-cta h2{font-size:32px}.td-cta-actions{align-items:flex-start}.td-collection-note{font-size:9px}.td-feature-grid .td-price-note{font-size:9px}#destination-collection{scroll-margin-top:105px}}
 @media(prefers-reduced-motion:reduce){html:has(.trending-page){scroll-behavior:auto}.trending-page *{transition:none!important;animation:none!important}.td-card:hover,.td-card:hover img,.td-button:hover{transform:none}}
+
+.td-modal-overlay, .az-modal-overlay, .ga-modal-overlay, .ne-modal-overlay, .ml-modal-overlay, .an-modal-overlay, .km-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(11, 28, 23, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: tdFadeIn 0.2s ease-out;
+}
+.td-modal-card, .az-modal-card, .ga-modal-card, .ne-modal-card, .ml-modal-card, .an-modal-card, .km-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  padding: 32px;
+  color: #294832;
+  animation: tdSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.td-modal-close, .az-modal-close, .ga-modal-close, .ne-modal-close, .ml-modal-close, .an-modal-close, .km-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: #f3f5ee;
+  color: #556c4c;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 10;
+}
+.td-modal-close:hover, .az-modal-close:hover, .ga-modal-close:hover, .ne-modal-close:hover, .ml-modal-close:hover, .an-modal-close:hover, .km-modal-close:hover {
+  background: #e2e8d8;
+  color: #203b34;
+}
+@keyframes tdFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tdSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

@@ -101,6 +101,7 @@ const ComingSoon = ({ title, description }) => {
           In the meantime, explore our other services or{" "}
           <a href="/" className="text-[#14532d] font-semibold hover:underline">
             return to home
+            Return to Home
           </a>
         </p>
       </div>

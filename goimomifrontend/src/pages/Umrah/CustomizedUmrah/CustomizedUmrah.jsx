@@ -460,8 +460,8 @@ const CustomizedUmrah = () => {
                   </div>
 
                   <div className="border-t border-green-100 pt-4 mb-5">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Starting from</p>
-                    <p className="text-3xl font-black text-green-800 tracking-tight">{pkg.price}<span className="text-sm font-bold text-gray-400 ml-1">/ person</span></p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Starting From</p>
+                    <p className="text-3xl font-black text-green-800 tracking-tight">{pkg.price}<span className="text-sm font-bold text-gray-400 ml-1">/ Person</span></p>
                   </div>
 
                   <button

@@ -38,6 +38,9 @@ const Navbar = () => {
     const updateHeaderHeight = () => {
       if (headerRef.current) {
         setHeaderHeight(headerRef.current.offsetHeight);
+        const height = headerRef.current.offsetHeight;
+        setHeaderHeight(height);
+        document.documentElement.style.setProperty('--navbar-height', `${height}px`);
       }
       if (window.innerWidth >= 1024) {
         setMobileOpen(false);
@@ -357,7 +360,7 @@ const Navbar = () => {
                     onClick={() => setDesktopHoliday(false)}
                     className="flex items-center gap-2 px-4 py-2 text-xs font-semibold hover:bg-goimomi-light"
                   >
-                    Europe Tours
+                    European Tours
                   </NavLink>
                 </div>
               )}

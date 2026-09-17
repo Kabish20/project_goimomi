@@ -19,8 +19,10 @@ export default function Sikkim() {
   usePageSEO(
     'North East — Assam & Meghalaya | 6 Nights / 7 Days | Goimomi',
     'Explore Guwahati, Kaziranga, Shillong and Cherrapunji, 8–14 November 2026. Three hotel options from ₹40,000 per adult on twin sharing, for 4 adults in 2 rooms.',
+    'Explore Guwahati, Kaziranga, Shillong and Cherrapunji. Three hotel options from ₹40,000 per adult on twin sharing, for 4 adults in 2 rooms.',
     hero,
     'North East holiday, Assam Meghalaya package, Guwahati, Kaziranga, Shillong, Cherrapunji, Dawki, November 2026',
+    'North East holiday, Assam Meghalaya package, Guwahati, Kaziranga, Shillong, Cherrapunji, Dawki',
   );
 
   const choosePackage = index => {
@@ -57,6 +59,7 @@ export default function Sikkim() {
           `${selected.name}: INR ${selected.pricePerAdult} per adult on twin sharing. Total for 4 adults: INR ${totalFor(selected)}.`,
           ...selected.hotels.map((hotel, index) => `${stops[index].city}, ${stops[index].dates}: ${hotel.name} (${hotel.category}), 2 ${hotel.room}; dinner and breakfast.${hotel.note ? ` ${hotel.note}.` : ''}`),
           'Day 6 sightseeing and Day 7 departure pickup city await the corrected itinerary. Hotel schedule lists Cherrapunji for 12–14 November.',
+          'Day 6 sightseeing and Day 7 departure pickup city await the corrected itinerary. Hotel schedule lists Cherrapunji for nights 5 and 6.',
           'Safari charges, entry tickets, permits where applicable and optional activities are extra. Travel-day meal coverage requires confirmation.',
           form.message.trim(),
         ].filter(Boolean).join('\n'),
@@ -84,7 +87,7 @@ export default function Sikkim() {
     </section>
 
     <div className="td-container ne-snapshot">{[[Hotel, '6 nights / 7 days', '4 destinations, 2 rooms'], [Utensils, 'Breakfast & dinner', 'At the listed hotel stays'], [CarFront, 'Innova Crysta', 'As per scheduled itinerary'], [Users, 'Travel together', '4 adults on twin sharing']].map(([Icon, title, detail]) => <div key={title}><Icon size={24} strokeWidth={1.5} /><span><strong>{title}</strong><small>{detail}</small></span></div>)}</div>
-    <nav className="ne-nav" aria-label="North East package sections"><div className="td-container">{[['ne-overview', 'Overview'], ['ne-itinerary', 'Itinerary'], ['ne-packages', 'Hotels & prices'], ['ne-inclusions', 'Inclusions'], ['ne-info', 'Good to know'], ['ne-enquire', 'Enquire now']].map(([id, label]) => <a href={`#${id}`} key={id}>{label}</a>)}</div></nav>
+    <nav className="ne-nav" aria-label="North East package sections"><div className="td-container">{[['ne-overview', 'Overview'], ['ne-itinerary', 'Itinerary'], ['ne-packages', 'Hotels & prices'], ['ne-inclusions', 'Inclusions'], ['ne-info', 'Good to know']].map(([id, label]) => <a href={`#${id}`} key={id}>{label}</a>)}<a href="#ne-enquire" className="ne-nav-enquire-btn">Enquire now <ArrowRight size={14} /></a></div></nav>
 
     <section id="ne-overview" className="td-container td-section ne-overview">
       <div><span className="td-eyebrow">SIKKIM · ONE BEAUTIFUL JOURNEY</span><h2>A little adventure.<br /><em>A different pace.</em></h2></div>
@@ -93,9 +96,9 @@ export default function Sikkim() {
     </section>
 
     <section id="ne-itinerary" className="ne-soft"><div className="td-container td-section">
-      <div className="td-section-heading"><div><span className="td-eyebrow">8–14 NOVEMBER 2026</span><h2>Your seven-day <em>North East journey.</em></h2></div><p>One Innova Crysta for the scheduled route. The final two days are awaiting the corrected programme.</p></div>
+      <div className="td-section-heading"><div><span className="td-eyebrow">6 NIGHTS / 7 DAYS</span><h2>Your seven-day <em>North East journey.</em></h2></div><p>One Innova Crysta for the scheduled route. The final two days are awaiting the corrected programme.</p></div>
       <div className="ne-itinerary-grid"><aside className="ne-journey-photo"><img src={hero} alt="Meghalaya-inspired emerald river and forested hills" width="1536" height="1024" loading="lazy" /><div><span className="td-eyebrow">TAKE THE SCENIC ROUTE</span><h3>Clear waters.<br />Green horizons.</h3><p>Assam · Meghalaya</p></div></aside>
-        <div className="ne-days">{days.map((day, index) => <details className="ne-day" key={day.date} open={index === 0 ? true : undefined}><summary><span className="ne-day-number">DAY<strong>{String(index + 1).padStart(2, '0')}</strong></span><span><small>{day.date}</small><h3>{day.title}</h3></span><ChevronDown className="ne-chevron" size={18} /></summary><div className="ne-day-body">{day.pending && <span className="ne-pending">Programme pending confirmation</span>}<p>{day.description}</p>{day.places.length > 0 && <ul className="ne-tags">{day.places.map(place => <li key={place}>{place}</li>)}</ul>}{day.note && <p className="ne-note">{day.note}</p>}{day.overnight && <div className="ne-overnight"><Hotel size={14} />Overnight: {day.overnight}</div>}</div></details>)}</div>
+        <div className="ne-days">{days.map((day, index) => <details className="ne-day" key={day.title} open={index === 0 ? true : undefined}><summary><span className="ne-day-number">DAY<strong>{String(index + 1).padStart(2, '0')}</strong></span><span><h3>{day.title}</h3></span><ChevronDown className="ne-chevron" size={18} /></summary><div className="ne-day-body">{day.pending && <span className="ne-pending">Programme pending confirmation</span>}<p>{day.description}</p>{day.places.length > 0 && <ul className="ne-tags">{day.places.map(place => <li key={place}>{place}</li>)}</ul>}{day.note && <p className="ne-note">{day.note}</p>}{day.overnight && <div className="ne-overnight"><Hotel size={14} />Overnight: {day.overnight}</div>}</div></details>)}</div>
       </div>
     </div></section>
 
@@ -120,9 +123,9 @@ export default function Sikkim() {
         <label htmlFor="ne-package">Your package<select id="ne-package" value={packageIndex} onChange={event => choosePackage(Number(event.target.value))}>{packages.map((option, index) => <option key={option.name} value={index}>{option.name} · {rupees(option.pricePerAdult)} per adult · twin sharing</option>)}</select></label>
         <div className="ne-form-row"><label htmlFor="ne-name">Full name<input id="ne-name" name="name" value={form.name} onChange={updateForm} autoComplete="name" maxLength={100} required /></label><label htmlFor="ne-phone">Phone number<input id="ne-phone" name="phone" type="tel" value={form.phone} onChange={updateForm} autoComplete="tel" maxLength={20} required /></label></div>
         <label htmlFor="ne-email">Email address<input id="ne-email" name="email" type="email" value={form.email} onChange={updateForm} autoComplete="email" maxLength={254} required /></label>
-        <label htmlFor="ne-dates">Travel dates<input id="ne-dates" value={`${trip.dates} · 6 nights / 7 days`} readOnly /></label>
-        <label htmlFor="ne-message">Anything else? <span>(optional)</span><textarea id="ne-message" name="message" value={form.message} onChange={updateForm} rows={3} maxLength={2000} placeholder="Arrival timings, meal preferences or any questions…" /></label>
-        {error && <p className="ne-error" role="alert">{error}</p>}<button className="td-button td-button-green" type="submit">{status === 'submitting' ? 'Sending your enquiry…' : 'Enquire about North East'}<ArrowRight size={16} /></button><p className="ne-privacy">By submitting, you agree to be contacted about your trip. <Link to="/privacy-policy">Privacy policy</Link></p>
+        <label htmlFor="ne-dates">Package duration<input id="ne-dates" value="6 nights / 7 days" readOnly /></label>
+        <label htmlFor="ne-message">Anything else? <span>(optional)</span><textarea id="ne-message" name="message" value={form.message} onChange={updateForm} rows={2} maxLength={2000} placeholder="Arrival timings, meal preferences or any questions…" /></label>
+        {error && <p className="ne-error" role="alert">{error}</p>}<button className="td-button td-button-green" type="submit">{status === 'submitting' ? 'Sending your enquiry…' : 'Enquire about North East'}<ArrowRight size={16} /></button><p className="ne-privacy">By submitting, you agree to be contacted about your trip. <Link to="/privacy-policy">Privacy Policy</Link></p>
       </fieldset></form>}</div>
     </div></section>
     <TrendingDomesticDestinations />

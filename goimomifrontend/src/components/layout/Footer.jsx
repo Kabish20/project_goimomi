@@ -84,7 +84,7 @@ const Footer = () => {
             <li><Link to="/holidays" state={{ category: "Domestic" }} className="hover:text-white transition-colors">Domestic</Link></li>
             <li><Link to="/holidays" state={{ category: "International" }} className="hover:text-white transition-colors">International</Link></li>
             <li><Link to="/holidays" state={{ category: "Umrah" }} className="hover:text-white transition-colors">Hajj/Umrah</Link></li>
-            <li><Link to="/Europeantours" className="hover:text-white transition-colors">European Tour</Link></li>
+            <li><Link to="/Europeantours" className="hover:text-white transition-colors">European Tours</Link></li>
             <li><Link to="/canton" className="hover:text-white transition-colors">Canton Fair</Link></li>
             <li><Link to="/customizedHolidays" className="hover:text-white transition-colors">Customized Holidays</Link></li>
             <li><Link to="/blog" className="hover:text-white transition-colors">Travel Blog & Guides</Link></li>

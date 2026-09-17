@@ -1,11 +1,16 @@
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { stays } from '../../pages/Holidays/Manali/manaliData';
+import { packages as northEastPackages } from '../../pages/Holidays/Sikkim/sikkimData';
+import { packages as andamanPackages } from '../../pages/Holidays/Andaman/andamanData';
+import { hotels as goaHotels } from '../../pages/Holidays/Goa/goaData';
 import './TrendingDomesticDestinations.css';
 
 const destinations = [
   {
     name: 'Kashmir',
     region: 'North India',
+    startingPrice: 6499,
     highlights: ['4 nights / 5 days', 'Srinagar, Gulmarg & Pahalgam', 'Budget & private holiday options'],
     image: '/images/kashmir/kashmir-destination-card.webp',
     imageAlt: 'Kashmir-inspired scene of a yellow-canopied shikara on a lake beneath Himalayan mountains',
@@ -15,6 +20,7 @@ const destinations = [
   {
     name: 'Manali',
     region: 'Himachal Pradesh',
+    startingPrice: Math.min(...stays.map(stay => stay.price / 2)),
     highlights: ['3 nights / 4 days', 'Solang Valley & Atal Tunnel', 'Private cab from Chandigarh'],
     image: '/images/manali/manali-destination-card.webp',
     imageAlt: 'Manali-inspired scene of a turquoise river, pine forests and snow-capped Himalayan peaks',
@@ -24,7 +30,8 @@ const destinations = [
   {
     name: 'Sikkim',
     region: 'Assam & Meghalaya',
-    highlights: ['6 nights / 7 days', '8–14 November 2026', 'From ₹40,000 per adult · twin sharing'],
+    startingPrice: Math.min(...northEastPackages.map(option => option.pricePerAdult)),
+    highlights: ['6 nights / 7 days', 'Assam & Meghalaya', '4 adults · 2 rooms'],
     image: '/images/north-east/dawki-hero.webp',
     imageAlt: 'Meghalaya-inspired scene of a wooden boat on an emerald river between forested hills',
     description: 'Guwahati, Kaziranga, Shillong and Cherrapunji, together in one journey.',
@@ -33,7 +40,8 @@ const destinations = [
   {
     name: 'Andaman',
     region: 'Andaman & Nicobar Islands',
-    highlights: ['3 or 4 nights / 4 or 5 days', 'Port Blair, Ross Island & North Bay', 'From ₹10,723 per person'],
+    startingPrice: Math.min(...andamanPackages.map(option => option.price)),
+    highlights: ['3 or 4 nights / 4 or 5 days', 'Port Blair, Ross Island & North Bay', 'Private transfers & ferry excursions'],
     image: '/images/andaman/andaman-destination-card.jpg',
     imageAlt: 'Andaman Islands pristine white beach with turquoise water, coral reef and a wooden boat',
     description: 'Island history, clear water and a slower winter rhythm by the sea.',
@@ -42,7 +50,8 @@ const destinations = [
   {
     name: 'Goa',
     region: 'North & South Goa',
-    highlights: ['3 nights / 4 days', '6 adults · 2 rooms · triple sharing', 'From ₹9,400 per adult'],
+    startingPrice: Math.min(...goaHotels.map(hotel => hotel.pricePerAdult)),
+    highlights: ['3 nights / 4 days', '6 adults · 2 rooms', 'Breakfast & private Innova Crysta'],
     image: '/images/goa/goa-coast-hero.webp',
     imageAlt: 'Goa-inspired golden beach, coconut palms and a coastal fort by the Arabian Sea',
     description: 'Beach days, colourful streets and a private Innova Crysta for your group.',
@@ -60,7 +69,7 @@ export default function TrendingDomesticDestinations() {
         <div className="domestic-trending-heading">
           <div>
             <span className="domestic-trending-eyebrow">DISCOVER INCREDIBLE INDIA</span>
-            <h2 id="domestic-trending-title">Trending domestic destinations</h2>
+            <h2 id="domestic-trending-title">Trending Domestic Destinations</h2>
           </div>
           <p>Choose your next Indian escape and start planning something beautiful.</p>
         </div>
@@ -84,6 +93,11 @@ export default function TrendingDomesticDestinations() {
                   width="800"
                   height="533"
                 />
+                <div className="domestic-trending-price">
+                  <span>Starting From</span>
+                  <strong>₹{destination.startingPrice.toLocaleString('en-IN')}</strong>
+                  <small>Per Person</small>
+                </div>
               </div>
               <div className="domestic-trending-card-body">
                 <span className="domestic-trending-region">{destination.region}</span>
@@ -97,7 +111,7 @@ export default function TrendingDomesticDestinations() {
                     </li>
                   ))}
                 </ul>
-                <Link to={destination.path} className="domestic-trending-link">
+                <Link to={destination.path} className="domestic-trending-link" tabIndex={index >= destinations.length ? -1 : undefined}>
                   <span>Explore {destination.name}</span>
                   <ArrowRight size={16} aria-hidden="true" />
                 </Link>

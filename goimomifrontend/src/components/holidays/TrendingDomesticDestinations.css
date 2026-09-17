@@ -1,4 +1,4 @@
-﻿/* ── Marquee keyframes ────────────────────────────────────────────── */
+/* ── Marquee keyframes ────────────────────────────────────────────── */
 @keyframes dtd-marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }   /* -50% = exactly one full copy */
@@ -72,7 +72,8 @@
 }
 
 /* Pause the marquee when the user hovers anywhere over it */
-.domestic-trending-overflow:hover .domestic-trending-track {
+.domestic-trending-overflow:hover .domestic-trending-track,
+.domestic-trending-overflow:focus-within .domestic-trending-track {
   animation-play-state: paused;
 }
 
@@ -92,12 +93,12 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  flex: 0 0 280px;           /* fixed width — one row */
-  width: 280px;
+  flex: 0 0 250px;
+  width: 250px;
   min-width: 0;
   overflow: hidden;
   isolation: isolate;
-  border: 1.5px solid #eef2f6;
+  border: 1.5px solid #34d399;
   border-radius: 16px;
   background: #fff;
   box-shadow: 0 18px 28px -14px #0f172a40, 0 5px 8px -5px #0f172a20;
@@ -137,11 +138,49 @@
 
 /* ── Photo ───────────────────────────────────────────────────────── */
 .domestic-trending-photo {
-  height: 165px;
+  position: relative;
+  height: 145px;
   flex-shrink: 0;
   overflow: hidden;
   background: #e2e8f0;
 }
+.domestic-trending-price {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  gap: 2px;
+  padding: 6px 9px;
+  border: 1px solid #d1fae5;
+  border-radius: 10px;
+  background: #fff;
+  gap: 1px;
+  padding: 4px 7px;
+  border: 1px solid rgba(209, 250, 229, .6);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #047857;
+  text-align: right;
+  box-shadow: 0 4px 16px #0f172a20;
+  box-shadow: 0 2px 8px #0f172a14;
+}
+.domestic-trending-price > span {
+  font-size: 9px;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .7px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.domestic-trending-price > strong { font-size: 18px; line-height: 1.15; }
+.domestic-trending-price > small { color: #526277; font-size: 10px; line-height: 1.5; }
+.domestic-trending-price > strong { font-size: 13px; line-height: 1.15; }
+.domestic-trending-price > small { color: #526277; font-size: 8px; line-height: 1.4; }
+.international-trending-grid { display: flex; flex-wrap: wrap; gap: 20px; }
 .domestic-trending-photo img {
   display: block;
   width: 100%;
@@ -161,13 +200,13 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  padding: 16px;
+  padding: 12px;
 }
 
 /* ── Region label ────────────────────────────────────────────────── */
 .domestic-trending-region {
-  margin-bottom: 4px;
-  color: #64748b;
+  margin-bottom: 6px;
+  color: #059669;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -178,7 +217,7 @@
 
 /* ── Title & description ─────────────────────────────────────────── */
 .domestic-trending-section .domestic-trending-card h3 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   color: #0f172a;
   font-family: inherit;
   font-size: 22px;
@@ -199,7 +238,7 @@
 .domestic-trending-highlights {
   display: grid;
   gap: 4px;
-  margin: 10px 0;
+  margin: 10px 0 12px;
   padding: 0;
   list-style: none;
 }
@@ -223,7 +262,7 @@
   margin-top: auto;
   padding: 8px 0;
   color: #0f172a;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 1.2px;
   text-transform: uppercase;
@@ -241,7 +280,7 @@
   width: 100%;
   height: 1.5px;
   background: #059669;
-  transform: scaleX(0);
+  transform: scaleX(1);
   transform-origin: left center;
   transition: transform .3s ease;
 }
@@ -262,8 +301,8 @@
   .domestic-trending-section { padding: 52px 0 60px; }
   .domestic-trending-heading { margin-bottom: 30px; }
   .domestic-trending-eyebrow { letter-spacing: 2.5px; }
-  .domestic-trending-card { flex: 0 0 240px; width: 240px; }
-  .domestic-trending-photo { height: 140px; }
+  .domestic-trending-card { flex: 0 0 min(250px, calc(100vw - 48px)); width: min(250px, calc(100vw - 48px)); }
+  .domestic-trending-photo { height: auto; aspect-ratio: 250 / 145; }
   .domestic-trending-track { gap: 14px; padding: 12px 16px 20px; animation-duration: 22s; }
 }
 

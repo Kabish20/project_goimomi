@@ -287,7 +287,7 @@ const App = () => {
               element={
                 <ComingSoon
                   title="Umrah Packages"
-                  description="We are curated special Umrah packages for you. Stay tuned for the launch!"
+                  description="We are curating special Umrah packages for you. Stay tuned for the launch!"
                 />
               }
             />

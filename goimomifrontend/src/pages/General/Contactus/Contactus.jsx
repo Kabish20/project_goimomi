@@ -395,7 +395,7 @@ const Contact = () => {
                       <option value="Visa">Visa Processing</option>
                       <option value="Tour Package">Tour Package</option>
                       <option value="Umrah">Umrah Package</option>
-                      <option value="Haj">Hajj Package</option>
+                      <option value="Hajj">Hajj Package</option>
                       <option value="Group Ticket">Group Ticket</option>
                       <option value="Passport Assistance">Passport Assistance</option>
                       <option value="Insurance">Travel Insurance</option>

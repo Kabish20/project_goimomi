@@ -408,7 +408,7 @@ const CustomizedHolidays = () => {
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-1">{card.title}</h3>
-                  <p className="text-sm font-black text-emerald-700 mb-4">Starting from {card.price} per person</p>
+                  <p className="text-sm font-black text-emerald-700 mb-4">Starting From {card.price} Per Person</p>
                   <div className="space-y-2 mb-5">
                     {card.features.map((f, j) => (
                       <div key={j} className="flex items-center gap-2 text-slate-600 text-[13px]">

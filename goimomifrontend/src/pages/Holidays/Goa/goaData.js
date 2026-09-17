@@ -1,5 +1,5 @@
 // Year assumed from the other supplied 2026 packages; change here if clarified.
-export const trip = { dates: '1–4 October 2026', startDate: '2026-10-01', adults: 6, rooms: 2, nights: 3, vehicle: 'Innova Crysta' };
+export const trip = { dates: '3 nights / 4 days', startDate: '2026-10-01', adults: 6, rooms: 2, nights: 3, vehicle: 'Innova Crysta' };
 export const hotels = [
   { name: 'Zone Connect by The Park Parra', pricePerAdult: 9400 },
   { name: 'Vilmaris Breeze Hotel', pricePerAdult: 9400 },
@@ -7,24 +7,24 @@ export const hotels = [
 ];
 export const days = [
   {
-    title: 'Welcome to Goa', date: '1 October', time: 'Arrival & hotel check-in',
+    title: 'Welcome to Goa', date: 'Day 1', time: 'Arrival & hotel check-in',
     description: 'Arrive at Goa Dabolim Airport, meet your private vehicle and transfer to your selected hotel for check-in. Settle into your rooms and enjoy the start of your Goa holiday.',
     places: ['Dabolim Airport', 'Hotel check-in'],
   },
   {
-    title: 'North Goa beaches & Aguada', date: '2 October', time: '10:00 AM–6:00 PM · private vehicle',
+    title: 'North Goa beaches & Aguada', date: 'Day 2', time: '10:00 AM–6:00 PM · private vehicle',
     description: 'Spend the day exploring North Goa by private vehicle. Visit Calangute, Baga, Sinquerim and Anjuna, then explore Aguada Fort and the lighthouse before continuing to Vagator. A lunch stop is planned during the sightseeing day.',
     places: ['Calangute Beach', 'Baga Beach', 'Sinquerim Beach', 'Anjuna Beach', 'Aguada Fort & lighthouse', 'Vagator Beach'],
     note: 'Lunch and entry tickets are not included. Water sports at Baga are optional; availability and charges require confirmation.',
   },
   {
-    title: 'South Goa heritage & colourful streets', date: '3 October', time: '10:00 AM–6:00 PM · private vehicle',
+    title: 'South Goa heritage & colourful streets', date: 'Day 3', time: '10:00 AM–6:00 PM · private vehicle',
     description: 'Explore temples, churches and the waterfront on your South Goa sightseeing day. The programme includes Mangeshi and Shantadurga temples, a spice plantation lunch stop, Miramar and Dona Paula, the Old Goa churches, Balaji Temple, Panjim and the colourful houses of Fontainhas.',
     places: ['Mangeshi Temple', 'Shantadurga Temple', 'Spice plantation lunch stop', 'Miramar Beach', 'Dona Paula', 'Sé Cathedral, Old Goa', 'St. Augustine Church, Old Goa', 'Chapel of Our Lady of the Mount, Old Goa', 'Balaji Temple', 'Panjim City', 'Fontainhas colourful houses'],
     note: 'The spice plantation visit is a lunch stop; lunch and all entry tickets are payable separately. The final order and coverage depend on local timings and traffic.',
   },
   {
-    title: 'Until next time, Goa', date: '4 October', time: 'Hotel checkout & departure transfer',
+    title: 'Until next time, Goa', date: 'Day 4', time: 'Hotel checkout & departure transfer',
     description: 'Check out from your hotel and travel by private vehicle to Dabolim Airport for your onward journey.',
     places: ['Hotel checkout', 'Dabolim Airport drop'],
   },

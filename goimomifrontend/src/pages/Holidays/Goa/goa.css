@@ -14,8 +14,14 @@
 .ga-snapshot small { font-size: 10px; color: #748469; margin-top: 4px; }
 .ga-nav { border-block: 1px solid #e1e7da; background: #f7f8f2; }
 .ga-nav > div { display: flex; gap: 28px; overflow-x: auto; }
+.ga-nav { position: sticky; top: var(--navbar-height, 85px); z-index: 40; border-block: 1px solid #e1e7da; background: rgba(247, 248, 242, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.ga-nav > div { display: flex; gap: 28px; overflow-x: auto; scrollbar-width: none; }
+.ga-nav > div::-webkit-scrollbar { display: none; }
 .ga-nav a { flex-shrink: 0; padding: 18px 0; font-size: 11px; color: #567148; }
 .ga-nav a:last-child { margin-left: auto; font-weight: 700; }
+.ga-nav a, .ga-nav button.ga-nav-enquire-btn { flex-shrink: 0; padding: 18px 0; font-size: 11px; color: #567148; font-family: inherit; background: none; border: none; cursor: pointer; transition: color .15s ease; }
+.ga-nav a:hover, .ga-nav button.ga-nav-enquire-btn:hover { color: #274b1e; }
+.ga-nav button.ga-nav-enquire-btn { display: flex; align-items: center; gap: 8px; margin-left: auto; font-weight: 700; color: #294c2e; padding-inline: 0; }
 .ga-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
 .ga-overview p { color: #708264; font-size: 13px; line-height: 1.9; }
 .goa-page .ga-overview p + p { margin-top: 16px; }
@@ -55,6 +61,7 @@
 .ga-outline { background: #fff; color: #52703f; border: 1px solid #9aac88; }
 .ga-selection { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 24px; padding: 18px 20px; border: 1px solid #dce5cf; border-radius: 5px; background: #edf3e5; color: #557344; font-size: 11px; }
 .ga-selection a { display: flex; align-items: center; gap: 8px; flex-shrink: 0; font-weight: 600; }
+.ga-selection a, .ga-selection button { display: flex; align-items: center; gap: 8px; flex-shrink: 0; font-weight: 600; background: none; border: none; cursor: pointer; color: #284d25; font-family: inherit; font-size: 11px; }
 .goa-page .ga-fine { margin-top: 18px; font-size: 10px; line-height: 1.8; color: #78886c; }
 .ga-inclusion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 32px; }
 .ga-inclusion-grid article + article { border-left: 1px solid #dce5d1; padding-left: 35px; }
@@ -76,22 +83,22 @@
 .ga-enquiry-summary > p { margin-top: 10px; font-size: 34px; color: #efd5a0; }
 .ga-enquiry-summary small { display: inline-block; margin-left: 8px; font-size: 10px; color: #c6d7b9; }
 .ga-contact { display: flex; align-items: center; gap: 10px; margin-top: 25px; color: #e3ebd6; font-size: 18px; }
-.ga-form-card { min-width: 0; padding: 30px; background: #fff; border-radius: 8px; color: #34532d; }
-.ga-form-card h3 { font-family: Georgia, serif; font-size: 25px; font-weight: 400; line-height: 1.3; }
-.ga-form-card form > p { margin: 8px 0 22px; color: #788970; font-size: 10px; }
-.ga-form-card fieldset { display: grid; gap: 14px; min-width: 0; padding: 0; border: 0; }
-.ga-form-card label { display: block; min-width: 0; font-size: 10px; font-weight: 600; color: #647f53; }
+.ga-form-card { min-width: 0; max-width: 440px; margin-left: auto; padding: 20px 22px; background: #fff; border-radius: 8px; color: #34532d; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
+.ga-form-card h3 { font-family: Georgia, serif; font-size: 20px; font-weight: 400; line-height: 1.25; }
+.ga-form-card form > p { margin: 3px 0 12px; color: #788970; font-size: 9.5px; }
+.ga-form-card fieldset { display: grid; gap: 9px; min-width: 0; padding: 0; border: 0; }
+.ga-form-card label { display: block; min-width: 0; font-size: 9.5px; font-weight: 600; color: #647f53; }
 .ga-form-card label > span { font-weight: 400; }
-.ga-form-card input, .ga-form-card select, .ga-form-card textarea { display: block; width: 100%; min-width: 0; min-height: 40px; margin-top: 6px; padding: 10px; border: 1px solid #dbe4d1; border-radius: 4px; background: #fff; color: #47683c; font: 11px/1.6 Arial, sans-serif; }
+.ga-form-card input, .ga-form-card select, .ga-form-card textarea { display: block; width: 100%; min-width: 0; min-height: 34px; height: 34px; margin-top: 3px; padding: 6px 9px; border: 1px solid #dbe4d1; border-radius: 4px; background: #fff; color: #47683c; font: 10.5px/1.4 Arial, sans-serif; box-sizing: border-box; }
+.ga-form-card textarea { height: auto; min-height: 48px; resize: vertical; }
 .ga-form-card input[readonly] { background: #f3f6ed; }
-.ga-form-card textarea { resize: vertical; }
-.ga-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.ga-form-card .td-button { width: 100%; cursor: pointer; }
+.ga-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.ga-form-card .td-button { width: 100%; min-height: 36px; padding: 8px 14px; font-size: 11px; cursor: pointer; }
 .ga-form-card fieldset:disabled, .ga-hotel button:disabled { opacity: .65; }
-.ga-form-card .ga-privacy { font-size: 9px; line-height: 1.8; color: #7b8c6d; text-align: center; }
+.ga-form-card .ga-privacy { font-size: 8.5px; line-height: 1.5; color: #7b8c6d; text-align: center; margin-top: 3px; }
 .ga-privacy a { text-decoration: underline; }
-.ga-error { padding: 10px; border-radius: 4px; background: #fff0e9; color: #9d4935; font-size: 11px; }
-.ga-success { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; min-height: 380px; text-align: center; }
+.ga-error { padding: 8px 10px; border-radius: 4px; background: #fff0e9; color: #9d4935; font-size: 10px; }
+.ga-success { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; min-height: 320px; text-align: center; }
 .ga-success p { color: #728565; font-size: 12px; line-height: 1.8; }
 @media (max-width: 1050px) {
   .ga-snapshot { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -107,6 +114,7 @@
   .ga-selection { flex-direction: column; align-items: flex-start; gap: 12px; }
   .ga-inclusion-grid article + article { padding-left: 0; border-left: 0; }
   .ga-facts { font-size: 10px; }
+  .ga-form-card { max-width: 100%; margin-left: 0; }
 }
 @media (max-width: 420px) {
   .ga-snapshot { gap: 22px 12px; }
@@ -116,6 +124,6 @@
   .ga-day-body { padding-left: 0; }
   .ga-day summary { gap: 10px; }
   .ga-day summary h3 { font-size: 13px; }
-  .ga-form-card { padding: 22px 18px; }
+  .ga-form-card { padding: 18px 16px; }
   .ga-form-row { grid-template-columns: 1fr; }
 }

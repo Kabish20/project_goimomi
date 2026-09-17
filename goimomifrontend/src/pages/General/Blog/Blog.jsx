@@ -108,11 +108,11 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
   const tabs = [
     { id: "eligibility", label: "Eligibility", icon: <User size={14} /> },
     { id: "documents", label: "Documents", icon: <FileText size={14} /> },
-    { id: "fees", label: "Fees & time", icon: <BadgeCheck size={14} /> },
+    { id: "fees", label: "Fees & Time", icon: <BadgeCheck size={14} /> },
     { id: "process", label: "Process", icon: <Check size={14} /> },
-    { id: "rejections", label: "Avoid rejection", icon: <ShieldAlert size={14} /> },
+    { id: "rejections", label: "Avoid Rejection", icon: <ShieldAlert size={14} /> },
     { id: "faqs", label: "FAQs", icon: <HelpCircle size={14} /> },
-    { id: "tips", label: "Expert tips", icon: <Lightbulb size={14} /> }
+    { id: "tips", label: "Expert Tips", icon: <Lightbulb size={14} /> }
   ];
 
   return (
@@ -120,18 +120,18 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
       <div className="grid gap-3 md:grid-cols-3">
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
           <Globe2 size={20} className="mb-3 text-emerald-600" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Guide type</p>
-          <p className="mt-1 text-sm font-bold text-slate-800">Tourist visa knowledge</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Guide Type</p>
+          <p className="mt-1 text-sm font-bold text-slate-800">Tourist Visa Knowledge</p>
         </div>
         <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
           <Clock size={20} className="mb-3 text-amber-600" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">Typical timeline</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">Typical Timeline</p>
           <p className="mt-1 text-sm font-bold text-slate-800">{details.processingTime?.split("(")[0]?.trim()}</p>
         </div>
         <div className="rounded-2xl border border-sky-100 bg-sky-50/70 p-4">
           <ShieldAlert size={20} className="mb-3 text-sky-600" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-sky-700">Before you apply</p>
-          <p className="mt-1 text-sm font-bold text-slate-800">Check current official rules</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-sky-700">Before You Apply</p>
+          <p className="mt-1 text-sm font-bold text-slate-800">Check Current Official Rules</p>
         </div>
       </div>
 
@@ -165,7 +165,7 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
 
         {activeTab === "documents" && (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-slate-900">Document checklist</h3>
+            <h3 className="text-lg font-black text-slate-900">Document Checklist</h3>
             <ul className="space-y-3">
               {(details.documents || []).map((document, index) => (
                 <li key={index} className="flex items-start gap-3 text-[15px] leading-7 text-slate-600">
@@ -179,7 +179,7 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
 
         {activeTab === "fees" && (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-slate-900">Fees and processing time</h3>
+            <h3 className="text-lg font-black text-slate-900">Fees and Processing Time</h3>
             <p className="text-[15px] leading-8 text-slate-600"><strong className="text-slate-800">Processing:</strong> {details.processingTime}</p>
             <p className="text-[15px] leading-8 text-slate-600"><strong className="text-slate-800">Fees:</strong> {details.fees}</p>
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
@@ -190,7 +190,7 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
 
         {activeTab === "process" && (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-slate-900">Application process</h3>
+            <h3 className="text-lg font-black text-slate-900">Application Process</h3>
             <div className="space-y-4">
               {(details.process || []).map((step, index) => (
                 <div key={index} className="flex items-start gap-3">
@@ -204,7 +204,7 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
 
         {activeTab === "rejections" && (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-slate-900">Common rejection risks</h3>
+            <h3 className="text-lg font-black text-slate-900">Common Rejection Risks</h3>
             <ul className="space-y-3">
               {(details.rejections || []).map((reason, index) => (
                 <li key={index} className="flex items-start gap-3 text-[15px] leading-7 text-slate-600">
@@ -218,7 +218,7 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
 
         {activeTab === "faqs" && (
           <div className="space-y-5">
-            <h3 className="text-lg font-black text-slate-900">Frequently asked questions</h3>
+            <h3 className="text-lg font-black text-slate-900">Frequently Asked Questions</h3>
             {(details.faqs || []).map((faq, index) => (
               <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4">
                 <p className="font-bold leading-6 text-slate-800">{faq.q}</p>
@@ -230,7 +230,7 @@ const VisaGuideContent = ({ post, activeTab, setActiveTab }) => {
 
         {activeTab === "tips" && (
           <div className="space-y-4">
-            <h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><Lightbulb size={19} className="text-[#e9b343]" /> Expert recommendations</h3>
+            <h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><Lightbulb size={19} className="text-[#e9b343]" /> Expert Recommendations</h3>
             <ul className="space-y-3">
               {(details.tips || []).map((tip, index) => (
                 <li key={index} className="flex items-start gap-3 text-[15px] leading-7 text-slate-600">
@@ -445,7 +445,7 @@ const Blog = () => {
         <div className="mx-auto flex max-w-7xl items-center gap-4">
           <div className="hidden shrink-0 items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 lg:flex"><Globe2 size={15} className="text-[#14532d]" /> Browse by interest</div>
           <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 custom-scrollbar">
-            <button type="button" onClick={() => handleCategorySelect("all")} className={`whitespace-nowrap rounded-full px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all ${categoryParam === "all" ? "bg-[#14532d] text-white shadow-md shadow-green-950/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>All stories</button>
+            <button type="button" onClick={() => handleCategorySelect("all")} className={`whitespace-nowrap rounded-full px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all ${categoryParam === "all" ? "bg-[#14532d] text-white shadow-md shadow-green-950/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>All Stories</button>
             {blogCategories.map((category) => (
               <button type="button" key={category.id} onClick={() => handleCategorySelect(category.id)} className={`inline-flex whitespace-nowrap items-center gap-1.5 rounded-full px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all ${categoryParam === category.id ? "bg-[#14532d] text-white shadow-md shadow-green-950/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
                 <span>{category.icon}</span>{category.title.replace(" Knowledge Centre", "").replace(" Guide", "")}
@@ -466,12 +466,12 @@ const Blog = () => {
                 <span className="absolute bottom-6 left-6 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/80"><MapPin size={13} className="text-[#e9b343]" /> {categoryFor(featuredPost.category).title}</span>
               </div>
               <div className="flex flex-col justify-center p-7 md:p-10 lg:p-12">
-                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#14532d]">Featured story</p>
+                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#14532d]">Featured Story</p>
                 <h2 id="featured-story-heading" className="text-3xl font-black leading-tight tracking-tight text-slate-900 md:text-4xl">{featuredPost.title}</h2>
                 <p className="mt-5 text-[15px] leading-8 text-slate-500">{featuredPost.excerpt}</p>
                 <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-5">
                   <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-sm font-black text-[#14532d]">{featuredPost.author.charAt(0)}</span><div><p className="text-xs font-bold text-slate-700">{featuredPost.author}</p><Metadata post={featuredPost} /></div></div>
-                  <button type="button" onClick={() => openPost(featuredPost)} className="inline-flex items-center gap-2 rounded-full bg-[#14532d] px-5 py-3 text-[10px] font-black uppercase tracking-[0.15em] text-white shadow-lg shadow-green-950/15 transition-all hover:-translate-y-0.5 hover:bg-[#0f4325]">Read story <ArrowUpRight size={15} /></button>
+                  <button type="button" onClick={() => openPost(featuredPost)} className="inline-flex items-center gap-2 rounded-full bg-[#14532d] px-5 py-3 text-[10px] font-black uppercase tracking-[0.15em] text-white shadow-lg shadow-green-950/15 transition-all hover:-translate-y-0.5 hover:bg-[#0f4325]">Read Story <ArrowUpRight size={15} /></button>
                 </div>
               </div>
             </div>
@@ -523,7 +523,7 @@ const Blog = () => {
           <aside className="space-y-6 lg:sticky lg:top-[148px]">
             <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm"><p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#14532d]">Need a starting point?</p><h2 className="text-xl font-black leading-tight text-slate-900">Plan a trip that feels like you.</h2><p className="mt-3 text-sm leading-7 text-slate-500">Tell our travel specialists what matters to you and we&apos;ll shape the details around it.</p><Link to="/customizedHolidays" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#14532d] px-5 py-3.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-green-950/15 transition-all hover:-translate-y-0.5 hover:bg-[#0f4325]">Start planning <ArrowUpRight size={15} /></Link></div>
 
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm"><div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4"><h2 className="text-sm font-black uppercase tracking-[0.16em] text-slate-900">Popular reads</h2><Sparkles size={17} className="text-[#e9b343]" /></div><div className="space-y-5">{blogPosts.slice(0, 4).map((post, index) => (<button type="button" key={post.slug} onClick={() => openPost(post)} className="group flex w-full items-start gap-3 text-left"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-50 text-xs font-black text-[#14532d]">0{index + 1}</span><span><strong className="line-clamp-2 text-sm leading-5 text-slate-800 transition-colors group-hover:text-[#14532d]">{post.title}</strong><span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"><Clock size={11} /> {post.readTime}</span></span></button>))}</div></div>
+            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm"><div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4"><h2 className="text-sm font-black uppercase tracking-[0.16em] text-slate-900">Popular Reads</h2><Sparkles size={17} className="text-[#e9b343]" /></div><div className="space-y-5">{blogPosts.slice(0, 4).map((post, index) => (<button type="button" key={post.slug} onClick={() => openPost(post)} className="group flex w-full items-start gap-3 text-left"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-50 text-xs font-black text-[#14532d]">0{index + 1}</span><span><strong className="line-clamp-2 text-sm leading-5 text-slate-800 transition-colors group-hover:text-[#14532d]">{post.title}</strong><span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"><Clock size={11} /> {post.readTime}</span></span></button>))}</div></div>
 
             <div className="rounded-3xl bg-[#0c2b1c] p-6 text-white shadow-lg"><div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-[#e9b343]"><BookOpen size={19} /></div><h2 className="text-lg font-black leading-tight">Travel well-informed.</h2><p className="mt-2 text-sm leading-6 text-white/65">Save the guides you need, share them with your companions, and return when it&apos;s time to make the booking.</p></div>
           </aside>
@@ -543,7 +543,7 @@ const Blog = () => {
 
                   <div className="mt-12 flex flex-col items-start justify-between gap-5 rounded-3xl border border-green-100 bg-gradient-to-br from-green-50 to-amber-50/60 p-6 md:flex-row md:items-center md:p-8"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#14532d]">Make the next step easy</p><h3 className="mt-2 text-xl font-black tracking-tight text-slate-900">Want help turning this guide into a real itinerary?</h3><p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">Our team can help with stays, transfers, visas, and a trip plan built around your dates.</p></div><button type="button" onClick={() => { handleClosePost(); navigate(`/enquiry?subject=${encodeURIComponent(selectedPost.title)}`); }} className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#14532d] px-6 py-3.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-green-950/15 transition-all hover:-translate-y-0.5 hover:bg-[#0f4325]"><Send size={14} /> Talk to our team</button></div>
 
-                  <div className="mt-12 border-t border-slate-100 pt-8"><div className="mb-5 flex items-center justify-between"><h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-900">Keep exploring</h3><Link to="/blog" onClick={handleClosePost} className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-[#14532d]">All stories <ArrowRight size={13} /></Link></div><div className="grid gap-4 md:grid-cols-2">{blogPosts.filter((post) => post.category === selectedPost.category && post.slug !== selectedPost.slug).slice(0, 2).map((relatedPost) => (<button type="button" key={relatedPost.slug} onClick={() => { openPost(relatedPost); document.getElementById("blog-modal-scroll")?.scrollTo({ top: 0, behavior: "smooth" }); }} className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition-all hover:bg-white hover:shadow-md"><img src={relatedPost.image} alt={relatedPost.title} className="h-16 w-20 shrink-0 rounded-xl object-cover" /><span><strong className="line-clamp-2 text-sm leading-5 text-slate-800 group-hover:text-[#14532d]">{relatedPost.title}</strong><span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"><Clock size={11} /> {relatedPost.readTime}</span></span></button>))}</div></div>
+                  <div className="mt-12 border-t border-slate-100 pt-8"><div className="mb-5 flex items-center justify-between"><h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-900">Keep Exploring</h3><Link to="/blog" onClick={handleClosePost} className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-[#14532d]">All Stories <ArrowRight size={13} /></Link></div><div className="grid gap-4 md:grid-cols-2">{blogPosts.filter((post) => post.category === selectedPost.category && post.slug !== selectedPost.slug).slice(0, 2).map((relatedPost) => (<button type="button" key={relatedPost.slug} onClick={() => { openPost(relatedPost); document.getElementById("blog-modal-scroll")?.scrollTo({ top: 0, behavior: "smooth" }); }} className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition-all hover:bg-white hover:shadow-md"><img src={relatedPost.image} alt={relatedPost.title} className="h-16 w-20 shrink-0 rounded-xl object-cover" /><span><strong className="line-clamp-2 text-sm leading-5 text-slate-800 group-hover:text-[#14532d]">{relatedPost.title}</strong><span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400"><Clock size={11} /> {relatedPost.readTime}</span></span></button>))}</div></div>
                 </div>
               </div>
             </MotionDiv>

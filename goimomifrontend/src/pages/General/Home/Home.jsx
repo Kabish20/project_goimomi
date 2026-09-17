@@ -845,7 +845,7 @@ const Home = () => {
           Travel Gallery
         </h2>
         <p className="text-center text-gray-600 mt-2 fade-up">
-          Moments captured from our travelers
+          Moments captured from our travellers
         </p>
 
         <div className="mt-10 max-w-7xl mx-auto">
@@ -1049,7 +1049,7 @@ const Home = () => {
 
           {/* Heading */}
           <div className="text-center mb-16">
-            <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-400 font-black">Your Trusted Travel Partner Since 2010</span>
+            <span className="text-[10px] uppercase tracking-[0.5em] text-emerald-400 font-black">Your Trusted Travel Partner Since 2014</span>
             <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter leading-none mt-2 mb-4">
               Why Book With A <span className="text-emerald-400">Professional Agent?</span>
             </h2>
@@ -1066,7 +1066,7 @@ const Home = () => {
               {
                 icon: <Award className="w-5 h-5" />,
                 title: "10+ Years of Expertise",
-                desc: "Established in 2010, Goimomi has planned thousands of trips across 80+ destinations. Our deep destination knowledge means your itinerary is built on real experience — not guesswork."
+                desc: "Established in 2014, Goimomi has planned thousands of trips across 80+ destinations. Our deep destination knowledge means your itinerary is built on real experience — not guesswork."
               },
               {
                 icon: <TrendingUp className="w-5 h-5" />,
@@ -1161,7 +1161,7 @@ const Home = () => {
               {
                 title: "About Goimomi Holidays",
                 icon: <BadgeCheck className="w-5 h-5" />,
-                body: "Established in 2010, Goimomi Holidays has grown into one of India's most trusted travel agencies — renowned for delivering competitive airfares, exclusive holiday packages, and seamless visa processing. We've served thousands of happy travellers across domestic and international routes, backed by a team of passionate, certified travel professionals."
+                body: "Established in 2014, Goimomi Holidays has grown into one of India's most trusted travel agencies — renowned for delivering competitive airfares, exclusive holiday packages, and seamless visa processing. We've served thousands of happy travellers across domestic and international routes, backed by a team of passionate, certified travel professionals."
               },
               {
                 title: "Flight Booking Expertise",
