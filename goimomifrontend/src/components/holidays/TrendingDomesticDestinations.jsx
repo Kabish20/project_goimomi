@@ -1,12 +1,22 @@
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import DestinationCard from './DestinationCard';
 import { stays } from '../../pages/Holidays/Manali/manaliData';
 import { packages as northEastPackages } from '../../pages/Holidays/Sikkim/sikkimData';
 import { packages as andamanPackages } from '../../pages/Holidays/Andaman/andamanData';
 import { hotels as goaHotels } from '../../pages/Holidays/Goa/goaData';
+import { packages as keralaPackages, lowestPrice } from '../../pages/Holidays/Kerala/keralaData';
 import './TrendingDomesticDestinations.css';
 
 const destinations = [
+  {
+    name: 'Kerala',
+    region: 'Hills, Backwaters & Kannur',
+    startingPrice: Math.min(...keralaPackages.map(lowestPrice)),
+    highlights: ['2 or 4 nights / 3 or 5 days', 'Green Triangle & Kannur journeys', 'Breakfast & private transport'],
+    image: '/images/kerala/kerala-backwaters-hero.png',
+    imageAlt: 'Kerala-inspired palm-lined backwaters with a traditional wooden houseboat',
+    description: 'Tea-green hills, tranquil backwaters and the living traditions of Kannur.',
+    path: '/kerala',
+  },
   {
     name: 'Kashmir',
     region: 'North India',
@@ -62,7 +72,7 @@ const destinations = [
 /* Duplicate for seamless infinite loop */
 const loopedDestinations = [...destinations, ...destinations];
 
-export default function TrendingDomesticDestinations() {
+export default function TrendingDomesticDestinations({ layout = 'marquee' }) {
   return (
     <section className="domestic-trending-section" aria-labelledby="domestic-trending-title">
       <div className="domestic-trending-container">
@@ -76,47 +86,10 @@ export default function TrendingDomesticDestinations() {
       </div>
 
       {/* Full-width marquee strip — outside the container so it bleeds edge-to-edge */}
-      <div className="domestic-trending-overflow" aria-label="Scrolling destination cards">
+      <div className={`domestic-trending-overflow${layout === 'grid' ? ' domestic-trending-grid-view' : ''}`} aria-label={layout === 'grid' ? 'Domestic destination cards' : 'Scrolling destination cards'}>
         <div className="domestic-trending-track">
-          {loopedDestinations.map((destination, index) => (
-            <article
-              className="domestic-trending-card"
-              key={`${destination.name}-${index}`}
-              aria-hidden={index >= destinations.length ? true : undefined}
-            >
-              <div className="domestic-trending-photo">
-                <img
-                  src={destination.image}
-                  alt={destination.imageAlt}
-                  loading={index < destinations.length ? 'eager' : 'lazy'}
-                  decoding="async"
-                  width="800"
-                  height="533"
-                />
-                <div className="domestic-trending-price">
-                  <span>Starting From</span>
-                  <strong>₹{destination.startingPrice.toLocaleString('en-IN')}</strong>
-                  <small>Per Person</small>
-                </div>
-              </div>
-              <div className="domestic-trending-card-body">
-                <span className="domestic-trending-region">{destination.region}</span>
-                <h3>{destination.name}</h3>
-                <p>{destination.description}</p>
-                <ul className="domestic-trending-highlights">
-                  {destination.highlights.map(highlight => (
-                    <li key={highlight}>
-                      <CheckCircle2 size={15} aria-hidden="true" />
-                      {highlight}
-                    </li>
-                  ))}
-                </ul>
-                <Link to={destination.path} className="domestic-trending-link" tabIndex={index >= destinations.length ? -1 : undefined}>
-                  <span>Explore {destination.name}</span>
-                  <ArrowRight size={16} aria-hidden="true" />
-                </Link>
-              </div>
-            </article>
+          {(layout === 'grid' ? destinations : loopedDestinations).map((destination, index) => (
+            <DestinationCard key={`${destination.name}-${index}`} destination={destination} duplicate={index >= destinations.length} eager={index < destinations.length} />
           ))}
         </div>
       </div>

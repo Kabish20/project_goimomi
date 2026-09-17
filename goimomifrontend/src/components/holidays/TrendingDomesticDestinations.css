@@ -1,7 +1,7 @@
 /* ── Marquee keyframes ────────────────────────────────────────────── */
 @keyframes dtd-marquee {
   from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }   /* -50% = exactly one full copy */
+  to   { transform: translateX(calc(-50% - var(--dtd-gap, 24px) / 2)); }
 }
 @keyframes dtd-shimmer {
   from { left: -120%; }
@@ -21,6 +21,15 @@
 /* ── Heading (stays inside a centred container) ───────────────────── */
 .domestic-trending-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 .domestic-trending-heading { margin-bottom: 48px; text-align: center; }
+.domestic-trending-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.domestic-trending-heading {
+  margin-bottom: 48px;
+  text-align: center;
+}
 .domestic-trending-eyebrow {
   display: block;
   margin-bottom: 12px;
@@ -79,34 +88,36 @@
 
 /* ── Scrolling track ─────────────────────────────────────────────── */
 .domestic-trending-track {
+  --dtd-gap: 24px;
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 20px;
+  gap: var(--dtd-gap);
   width: max-content;
-  padding: 16px 24px 24px;  /* room for card shadows */
-  animation: dtd-marquee 28s linear infinite;
+  padding: 16px 0 28px;
+  animation: dtd-marquee 32s linear infinite;
 }
 
 /* ── Card ────────────────────────────────────────────────────────── */
+/* ── Card Base ───────────────────────────────────────────────────── */
 .domestic-trending-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 250px;
-  width: 250px;
+  display: block;
+  flex: 0 0 330px;
+  width: 330px;
+  max-width: 330px;
+  height: auto;
+  aspect-ratio: 1;
   min-width: 0;
+  margin: 0;
   overflow: hidden;
+  text-decoration: none;
   isolation: isolate;
-  border: 1.5px solid #34d399;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 18px 28px -14px #0f172a40, 0 5px 8px -5px #0f172a20;
-  /* hover */
-  transition:
-    transform .35s cubic-bezier(.22,.68,0,1.2),
-    box-shadow .35s ease,
-    border-color .3s ease;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #020617;
+  box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.4);
+  transition: transform 0.4s cubic-bezier(0.22, 0.68, 0, 1.15), box-shadow 0.4s ease;
   cursor: pointer;
 }
 
@@ -128,12 +139,9 @@
 
 /* Lift + green glow on hover */
 .domestic-trending-card:hover {
-  transform: translateY(-10px) scale(1.025);
+  transform: translateY(-8px);
   border-color: #34d399;
-  box-shadow:
-    0 30px 50px -10px #0f172a30,
-    0 8px 18px -6px #05966938,
-    0 0 0 1px #34d39940;
+  box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.5), 0 0 30px rgba(20, 83, 45, 0.25);
 }
 
 /* ── Photo ───────────────────────────────────────────────────────── */
@@ -143,6 +151,10 @@
   flex-shrink: 0;
   overflow: hidden;
   background: #e2e8f0;
+}
+.domestic-trending-card:focus-visible {
+  outline: 3px solid #047857;
+  outline-offset: 4px;
 }
 .domestic-trending-price {
   position: absolute;
@@ -218,9 +230,9 @@
 /* ── Title & description ─────────────────────────────────────────── */
 .domestic-trending-section .domestic-trending-card h3 {
   margin: 0 0 8px;
-  color: #0f172a;
+  color: #fff;
   font-family: inherit;
-  font-size: 22px;
+  font-size: 20px;
   font-style: italic;
   font-weight: 900;
   letter-spacing: -.8px;
@@ -229,8 +241,8 @@
 }
 .domestic-trending-section .domestic-trending-card p {
   margin: 0;
-  color: #526277;
-  font-size: 12px;
+  color: #6ee7b7;
+  font-size: 9px;
   line-height: 1.5;
 }
 
@@ -301,13 +313,84 @@
   .domestic-trending-section { padding: 52px 0 60px; }
   .domestic-trending-heading { margin-bottom: 30px; }
   .domestic-trending-eyebrow { letter-spacing: 2.5px; }
-  .domestic-trending-card { flex: 0 0 min(250px, calc(100vw - 48px)); width: min(250px, calc(100vw - 48px)); }
+  .domestic-trending-card {
+    flex: 0 0 min(330px, calc(100vw - 48px));
+    width: min(330px, calc(100vw - 48px));
+    height: auto;
+    aspect-ratio: 1;
+  }
   .domestic-trending-photo { height: auto; aspect-ratio: 250 / 145; }
-  .domestic-trending-track { gap: 14px; padding: 12px 16px 20px; animation-duration: 22s; }
+  .domestic-trending-track {
+    --dtd-gap: 16px;
+    gap: var(--dtd-gap);
+    padding: 12px 16px 24px;
+    animation-duration: 24s;
+  }
+}
+
+/* ── Grid View ───────────────────────────────────────────────────── */
+.domestic-trending-grid-view {
+  max-width: 1180px;
+  margin: auto;
+  overflow: visible;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+.domestic-trending-grid-view .domestic-trending-track {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 330px);
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+  padding: 16px 24px 28px;
+  animation: none;
+}
+.domestic-trending-grid-view .domestic-trending-card {
+  width: 100%;
+  max-width: 330px;
+}
+@media (max-width: 600px) {
+  .domestic-trending-grid-view .domestic-trending-track {
+    grid-template-columns: min(330px, calc(100vw - 48px));
+    padding-inline: 0;
+  }
 }
 
 /* ── Reduced motion ──────────────────────────────────────────────── */
+.destination-disclosure-card { cursor: default; }
+.destination-disclosure-card:hover { transform: none; }
+.domestic-trending-overflow:has(.destination-card-toggle[aria-expanded=true]) .domestic-trending-track { animation-play-state: paused; }
+.destination-card-image-link { position: absolute; inset: 0; display: block; }
+.destination-card-image-link img { width: 100%; height: 100%; object-fit: cover; }
+.destination-card-image-link::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, #000b, #0002); pointer-events: none; }
+.destination-card-price { position: absolute; top: 10px; right: 10px; padding: 6px 12px; border-radius: 12px; background: #101c2abf; backdrop-filter: blur(12px); text-align: right; color: white; pointer-events: none; }
+.destination-card-price span,.destination-card-price small { display: block; font-size: 8px; line-height: 1.5; }
+.destination-card-price span { color: #6ee7b7; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
+.destination-card-price strong { display: block; font-size: 14px; line-height: 1.5; }
+.destination-card-panel { position: absolute; bottom: 10px; left: 10px; right: 10px; padding: 10px; border: 1px solid #ffffff20; border-radius: 12px; background: #080e0de6; backdrop-filter: blur(18px); color: white; }
+.domestic-trending-section .destination-card-panel h3 { margin: 0; }
+.destination-card-toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; border: 0; padding: 0; background: transparent; color: white; cursor: pointer; text-align: left; }
+.destination-card-labels { min-width: 0; }
+.destination-card-region { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6ee7b7; font: 700 8px/1.5 Arial,sans-serif; letter-spacing: .7px; text-transform: uppercase; }
+.destination-card-name { display: block; font: italic 900 20px/1.2 Arial,sans-serif; letter-spacing: -.5px; text-transform: uppercase; }
+.destination-card-toggle>svg { flex-shrink: 0; transition: transform .2s; }
+.destination-card-toggle[aria-expanded=true]>svg { transform: rotate(180deg); }
+.destination-card-details { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows .24s ease, opacity .2s ease, visibility .24s; }
+.destination-card-details[data-expanded=true] { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
+.destination-card-details-inner { min-height: 0; overflow: hidden; }
+.destination-card-details ul { display: grid; gap: 4px; list-style: none; padding: 0; margin: 8px 0 12px; }
+.destination-card-details li { display: flex; align-items: center; gap: 6px; color: #ffffffe0; font: 500 11px/1.4 Arial,sans-serif; }
+.destination-card-details li svg { flex-shrink: 0; color: #34d399; }
+.destination-card-details li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.destination-card-explore { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 5px; border-radius: 10px; background: white; color: #111; text-decoration: none; text-transform: uppercase; font: 900 10px/1.4 Arial,sans-serif; letter-spacing: 1px; }
+.destination-card-toggle:focus-visible,.destination-card-explore:focus-visible { outline: 2px solid #6ee7b7; outline-offset: 3px; }
+@media (hover: none) {
+  .domestic-trending-overflow { overflow-x: auto; mask-image: none; -webkit-mask-image: none; }
+  .domestic-trending-track { animation: none; }
+}
 @media (prefers-reduced-motion: reduce) {
+  .destination-card-details,.destination-card-toggle>svg { transition: none; }
+  .domestic-trending-overflow { overflow-x: auto; mask-image: none; -webkit-mask-image: none; }
   .domestic-trending-track { animation: none; }
   .domestic-trending-card {
     transition: none;
@@ -320,4 +403,7 @@
   .domestic-trending-card:hover { transform: none; }
   .domestic-trending-card:hover .domestic-trending-photo img { transform: none; filter: none; }
   .domestic-trending-card:hover .domestic-trending-link svg { transform: none; }
+  .domestic-trending-card:hover {
+    transform: none;
+  }
 }

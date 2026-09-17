@@ -21,10 +21,10 @@ try {
   await page.goto(base, { waitUntil: 'networkidle' });
   const domestic = page.locator('.domestic-trending-section').filter({ has: page.locator('#domestic-trending-title') });
   const originalCards = domestic.locator('article:not([aria-hidden="true"])');
-  const card = originalCards.filter({ has: page.getByRole('heading', { name: 'Sikkim', exact: true }) });
+  const card = originalCards.filter({ has: page.getByRole('button', { name: 'Sikkim details', exact: true }) });
   assert.equal(await card.count(), 1);
   assert.match(await card.innerText(), /Assam & Meghalaya/i);
-  assert.equal(await card.getByRole('link').getAttribute('href'), '/sikkim');
+  assert.equal(await card.getByRole('link', { name: 'View Sikkim package', exact: true }).getAttribute('href'), '/sikkim');
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await domestic.scrollIntoViewIfNeeded();
@@ -34,7 +34,7 @@ try {
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await card.getByRole('link').click();
+  await card.getByRole('link', { name: 'View Sikkim package', exact: true }).click();
   await page.locator('#ne-title').waitFor();
   assert.equal(new URL(page.url()).pathname, '/sikkim');
   assert.match(await page.title(), /North East.*Assam & Meghalaya/);
@@ -45,7 +45,7 @@ try {
   assert.equal(await page.locator('.ne-pending').count(), 2);
   assert.equal(await page.locator('.ne-inclusion-grid article').first().locator('li').count(), 6);
   assert.equal(await page.locator('.ne-inclusion-grid article').nth(1).locator('li').count(), 25);
-  assert.equal(await page.locator('.ne-information li').count(), 8);
+  assert.equal(await page.locator('.ne-information li').count(), 9);
   assert.equal(await page.locator('.ne-hotels').filter({ hasText: 'Vegetarian hotel' }).count(), 2);
   assert.doesNotMatch(await page.locator('.north-east-page').innerText(), /GST|Gangtok|Nathula/i);
   await page.locator('.ne-day summary').nth(2).click();

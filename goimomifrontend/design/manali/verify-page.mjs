@@ -18,6 +18,8 @@ await page.route('**/*', route => {
 });
 try {
   await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('.destination-disclosure-card').filter({ has: page.getByRole('button', { name: 'Manali details', exact: true }) }).first().hover();
   await page.getByRole('link', { name: 'Explore Manali', exact: true }).click();
   await page.locator('#ml-title').waitFor();
   assert.equal(new URL(page.url()).pathname, '/manali');

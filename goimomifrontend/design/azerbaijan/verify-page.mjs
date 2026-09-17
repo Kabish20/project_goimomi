@@ -19,7 +19,8 @@ await page.route('**/*', route => {
 });
 try {
   await page.goto(`${base}/`, { waitUntil: 'networkidle' });
-  await page.getByRole('link', { name: 'Explore Azerbaijan', exact: true }).click();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByRole('link', { name: 'View Azerbaijan package', exact: true }).click();
   await page.locator('#az-title').waitFor();
   assert.equal(new URL(page.url()).pathname, '/azerbaijan');
   assert.match(await page.locator('.az-hero-actions').innerText(), /26,215[\s\S]*per adult.*twin sharing/);

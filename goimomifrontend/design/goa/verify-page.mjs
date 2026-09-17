@@ -20,13 +20,13 @@ await page.route('**/*', route => {
 try {
   await page.goto(base, { waitUntil: 'networkidle' });
   const section = page.locator('.domestic-trending-section').filter({ has: page.locator('#domestic-trending-title') });
-  const card = section.locator('article:not([aria-hidden="true"])').filter({ has: page.getByRole('heading', { name: 'Goa', exact: true }) });
+  const card = section.locator('article:not([aria-hidden="true"])').filter({ has: page.getByRole('button', { name: 'Goa details', exact: true }) });
   await card.waitFor();
   assert.equal(await card.count(), 1);
-  assert.match(await card.innerText(), /triple sharing/);
-  assert.equal(await card.getByRole('link').getAttribute('href'), '/goa');
+  assert.match(await card.innerText(), /Per Person/);
+  assert.equal(await card.getByRole('link', { name: 'View Goa package', exact: true }).getAttribute('href'), '/goa');
   await card.locator('img').evaluate(image => image.decode());
-  await card.getByRole('link').click();
+  await card.getByRole('link', { name: 'View Goa package', exact: true }).click();
   await page.locator('#ga-title').waitFor();
   assert.equal(new URL(page.url()).pathname, '/goa');
   assert.match(await page.title(), /Goa.*Triple Sharing/);

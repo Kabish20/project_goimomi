@@ -18,10 +18,14 @@ const PaymentCheckout = lazyRetry(() => import('./pages/General/PaymentCheckout/
 const CustomizedHolidays = lazyRetry(() => import('./pages/Holidays/CustomizedHolidays/CustomizedHolidays.jsx'));
 const CustomizedUmrah = lazyRetry(() => import('./pages/Umrah/CustomizedUmrah/CustomizedUmrah.jsx'));
 const Holidays = lazyRetry(() => import('./pages/Holidays/Holidays/Holidays.jsx'));
+const TrendingDomestic = lazyRetry(() => import('./pages/Holidays/TrendingDestinations/TrendingDomestic.jsx'));
+const TrendingInternational = lazyRetry(() => import('./pages/Holidays/TrendingDestinations/TrendingInternational.jsx'));
 const Kashmir = lazyRetry(() => import('./pages/Holidays/Kashmir/Kashmir.jsx'));
 const Manali = lazyRetry(() => import('./pages/Holidays/Manali/Manali.jsx'));
 const Sikkim = lazyRetry(() => import('./pages/Holidays/Sikkim/sikkim.jsx'));
 const Goa = lazyRetry(() => import('./pages/Holidays/Goa/goa.jsx'));
+const Kerala = lazyRetry(() => import('./pages/Holidays/Kerala/kerala.jsx'));
+const Bali = lazyRetry(() => import('./pages/Holidays/Bali/bali.jsx'));
 const Azerbaijan = lazyRetry(() => import('./pages/Holidays/Azerbaijan/azerbaijan.jsx'));
 const Andaman = lazyRetry(() => import('./pages/Holidays/Andaman/andaman.jsx'));
 const PlanTrip = lazyRetry(() => import('./pages/Holidays/Holidaysform/Holidaysform.jsx'));
@@ -143,7 +147,7 @@ const PageLoader = () => (
 const App = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
-  const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|sikkim|andaman|goa)\/?$/i.test(location.pathname);
+  const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|sikkim|andaman|goa|kerala|bali|trendingdomesticdestination|trendinginternationaldestination)\/?$/i.test(location.pathname);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   useEffect(() => {
@@ -274,10 +278,14 @@ const App = () => {
             <Route path="/businesshome" element={<BusinessHome />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/holidays" element={<Holidays />} />
+            <Route path="/trendingdomesticdestination" element={<TrendingDomestic />} />
+            <Route path="/trendinginternationaldestination" element={<TrendingInternational />} />
             <Route path="/kashmir" element={<Kashmir />} />
             <Route path="/manali" element={<Manali />} />
             <Route path="/sikkim" element={<Sikkim />} />
             <Route path="/goa" element={<Goa />} />
+            <Route path="/kerala" element={<Kerala />} />
+            <Route path="/bali" element={<Bali />} />
             <Route path="/azerbaijan" element={<Azerbaijan />} />
             <Route path="/andaman" element={<Andaman />} />
 
