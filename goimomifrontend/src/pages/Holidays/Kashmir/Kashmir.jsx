@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowRight, CalendarDays, CarFront, Check, ChevronDown, Compass, Headphones, Hotel, MapPin, Mountain, Phone, Plane, ShieldCheck, Sparkles, Users, Utensils, X } from 'lucide-react';
 import api from '../../../api';
+import TrendingDomesticDestinations from '../../../components/holidays/TrendingDomesticDestinations';
 import usePageSEO from '../../../hooks/usePageSEO';
 import { budgetInclusions, exclusions, formatRupees, hotelCategories, itinerary, privateInclusions, privateRates, supplements } from './kashmirData';
 import './Kashmir.css';
@@ -123,7 +124,7 @@ export default function Kashmir() {
 
     <section id="itinerary" className="km-section km-itinerary-section"><div className="km-container">
       <div className="km-section-heading"><div><span className="km-eyebrow">FIVE DAYS. SO MANY STORIES.</span><h2>A journey worth <em>slowing down for.</em></h2></div><p>Unpack once in Srinagar. Wake up to a new adventure every day.</p></div>
-      <div className="km-itinerary-grid"><div className="km-journey-photo"><img src={valleyImage} alt="Kashmir-inspired alpine valley with pine forests, mountain peaks and the Lidder river" loading="lazy" width="1672" height="941" /><div><span className="km-eyebrow km-light">A BREATH OF FRESH AIR</span><h3>Take the road<br /><em>to somewhere beautiful.</em></h3><p><MapPin size={15} /> Inspired by Pahalgam, Kashmir</p></div><span className="km-photo-note">AI-generated destination imagery</span></div>
+      <div className="km-itinerary-grid"><div className="km-journey-photo"><img src={valleyImage} alt="Kashmir-inspired alpine valley with pine forests, mountain peaks and the Lidder river" loading="lazy" width="1672" height="941" /><div><span className="km-eyebrow km-light">A BREATH OF FRESH AIR</span><h3>Take the road<br /><em>to somewhere beautiful.</em></h3><p><MapPin size={15} /> Inspired by Pahalgam, Kashmir</p></div></div>
         <div className="km-days">{itinerary.map((day, index) => <details key={day.place + index} className="km-day" open={index === 0 ? true : undefined}><summary><span className="km-day-number">DAY <strong>{String(index + 1).padStart(2, '0')}</strong></span><span className="km-day-heading"><small>{day.place}</small><h3>{day.title}</h3></span><ChevronDown size={19} className="km-chevron" /></summary><div className="km-day-content"><span className="km-day-tag">{day.tag}</span><p>{day.description}</p><div className="km-tags">{day.highlights.map(item => <span key={item}>{item}</span>)}</div></div></details>)}<p className="km-fine-print">Gondola tickets, pony rides, union cabs, entry fees and optional activities are extra. Shikara arrangements and charges will be confirmed in your quote. Activities depend on weather and local availability.</p></div>
       </div>
     </div></section>
@@ -162,6 +163,7 @@ export default function Kashmir() {
         <button className="km-button km-button-green" type="submit">{status === 'submitting' ? 'Sending your enquiry…' : 'Help me plan my Kashmir trip'}<ArrowRight size={17} /></button><p className="km-form-privacy">By submitting, you agree to be contacted about your trip. <Link to="/privacy-policy">Privacy policy</Link></p></fieldset>
       </form>}</div>
     </div></section>
+    <TrendingDomesticDestinations />
     <div className="km-closing"><Mountain size={23} strokeWidth={1.4} /><span>Comfortable stays <i>·</i> Beautiful places <i>·</i> Memories that stay</span></div>
     <div className="km-mobile-cta"><span>5 days in Kashmir<strong>From ₹6,499 <small>/ person</small></strong></span><a className="km-button km-button-green" href="#enquire">Enquire now <ArrowRight size={16} /></a></div>
   </div>;

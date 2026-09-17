@@ -107,10 +107,10 @@ const Navbar = () => {
     location.pathname.startsWith('/customized-umrah') || 
     (location.pathname === '/holidays' && location.search.includes('Umrah'));
   const isHolidayActive = 
+    location.pathname.toLowerCase() === '/goa' ||
+    location.pathname.toLowerCase() === '/sikkim' ||
     location.pathname.toLowerCase() === '/manali' ||
     location.pathname.toLowerCase() === '/azerbaijan' ||
-    location.pathname.toLowerCase().startsWith('/trendingdomesticdestination') ||
-    location.pathname.toLowerCase().startsWith('/trendinginternationaldestination') ||
     location.pathname.toLowerCase() === '/kashmir' ||
     location.pathname === '/holidayhome' ||
     location.pathname.startsWith('/holiday/') || 
@@ -169,38 +169,14 @@ const Navbar = () => {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-7 text-slate-700">
-            {/* Flights - temporarily disabled */}
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Flights booking is temporarily unavailable"
-              className={`${animatedButton} cursor-not-allowed opacity-50 grayscale`}
-            >
-              <img src="https://cdn-icons-png.flaticon.com/128/1350/1350120.png" alt="Flights" className="w-9 h-9 mb-1 object-contain" />
-              <span className="font-bold text-[11px] uppercase tracking-wide">Flights</span>
-            </button>
-
-            {/* Hotels - temporarily disabled */}
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Hotel booking is temporarily unavailable"
-              className={`${animatedButton} cursor-not-allowed opacity-50 grayscale`}
-            >
-              <img src="https://cdn-icons-png.flaticon.com/128/3168/3168622.png" alt="Hotels" className="w-9 h-9 mb-1 object-contain" />
-              <span className="font-bold text-[11px] uppercase tracking-wide">Hotels</span>
-            </button>
-
             {/* Visa */}
-            <NavLink to="/visa" className={({ isActive }) => `${animatedButton} ${isActive || isVisaActive ? "text-goimomi-primary font-black" : ""}`}>
+            <NavLink to="/visa" className={({ isActive }) => `order-[-4] ${animatedButton} ${isActive || isVisaActive ? "text-goimomi-primary font-black" : ""}`}>
               <img src="https://cdn-icons-png.flaticon.com/128/15544/15544932.png" alt="Visa" className="w-9 h-9 mb-1 object-contain" />
               <span className="font-bold text-[11px] uppercase tracking-wide">Visa</span>
             </NavLink>
 
             {/* Business Travel Dropdown */}
-            <div className="relative" ref={businessRef}>
+            <div className="relative order-[-2]" ref={businessRef}>
               <button
                 type="button"
                 className={`${animatedButton} ${isBusinessActive ? "text-goimomi-primary font-black" : ""}`}
@@ -266,7 +242,7 @@ const Navbar = () => {
             </div>
 
             {/* Umrah / Hajj Dropdown */}
-            <div className="relative" ref={umrahRef}>
+            <div className="relative order-[-1]" ref={umrahRef}>
               <button
                 type="button"
                 className={`${animatedButton} ${isUmrahActive ? "text-goimomi-primary font-black" : ""}`}
@@ -318,7 +294,7 @@ const Navbar = () => {
             </div>
 
             {/* Holidays Dropdown */}
-            <div className="relative" ref={holidayRef}>
+            <div className="relative order-[-3]" ref={holidayRef}>
               <button
                 type="button"
                 className={`${animatedButton} ${isHolidayActive ? "text-goimomi-primary font-black" : ""}`}
@@ -375,12 +351,6 @@ const Navbar = () => {
                     className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full"
                   >
                     Customized Holidays
-                  </NavLink>
-                  <NavLink to="/trendingdomesticdestination" onClick={() => setDesktopHoliday(false)} className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full">
-                    Trending Domestic Destination
-                  </NavLink>
-                  <NavLink to="/trendinginternationaldestination" onClick={() => setDesktopHoliday(false)} className="block px-4 py-2 text-xs font-semibold hover:bg-goimomi-light text-left w-full">
-                    Trending International Destination
                   </NavLink>
                   <NavLink
                     to="/Europeantours"
@@ -485,31 +455,9 @@ const Navbar = () => {
         >
           <div className="px-5 py-4 space-y-2.5 text-base font-medium pb-16 flex-1">
 
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Flights booking is temporarily unavailable"
-              className="flex items-center justify-start gap-3 py-2.5 text-slate-400 cursor-not-allowed w-full text-left opacity-60 grayscale"
-            >
-              <img src="https://cdn-icons-png.flaticon.com/128/1350/1350120.png" alt="Flight" className="w-6 h-6 object-contain" />
-              Flight
-            </button>
-
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Hotel booking is temporarily unavailable"
-              className="flex items-center justify-start gap-3 py-2.5 text-slate-400 cursor-not-allowed w-full text-left opacity-60 grayscale"
-            >
-              <img src="https://cdn-icons-png.flaticon.com/128/3168/3168622.png" alt="Hotels" className="w-6 h-6 object-contain" />
-              Hotels
-            </button>
-
             <NavLink 
               to="/visa" 
-              className={({ isActive }) => `flex items-center justify-start gap-3 py-2.5 hover:text-[#14532d] transition w-full rounded-xl px-2 ${isActive || isVisaActive ? "text-[#14532d] font-bold bg-green-50/60" : "text-slate-700"}`} 
+              className={({ isActive }) => `order-[-4] flex items-center justify-start gap-3 py-2.5 hover:text-[#14532d] transition w-full rounded-xl px-2 ${isActive || isVisaActive ? "text-[#14532d] font-bold bg-green-50/60" : "text-slate-700"}`} 
               onClick={closeMobileMenu}
             >
               <img src="https://cdn-icons-png.flaticon.com/128/15544/15544932.png" alt="Visa" className="w-6 h-6 object-contain" />
@@ -517,7 +465,7 @@ const Navbar = () => {
             </NavLink>
 
             {/* Mobile Business Travel Accordion */}
-            <div className="rounded-xl overflow-hidden border border-slate-100/80 bg-slate-50/50 p-1">
+            <div className="rounded-xl overflow-hidden border border-slate-100/80 bg-slate-50/50 p-1 order-[-2]">
               <button
                 type="button"
                 onClick={() => {
@@ -562,7 +510,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Umrah Accordion */}
-            <div className="rounded-xl overflow-hidden border border-slate-100/80 bg-slate-50/50 p-1">
+            <div className="rounded-xl overflow-hidden border border-slate-100/80 bg-slate-50/50 p-1 order-[-1]">
               <button
                 type="button"
                 onClick={() => {
@@ -601,7 +549,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Holidays Accordion */}
-            <div className="rounded-xl overflow-hidden border border-slate-100/80 bg-slate-50/50 p-1">
+            <div className="rounded-xl overflow-hidden border border-slate-100/80 bg-slate-50/50 p-1 order-[-3]">
               <button
                 type="button"
                 onClick={() => {
@@ -653,12 +601,6 @@ const Navbar = () => {
                     onClick={closeMobileMenu}
                   >
                     Customized Holidays
-                  </NavLink>
-                  <NavLink to="/trendingdomesticdestination" className="block py-1.5 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
-                    Trending Domestic Destination
-                  </NavLink>
-                  <NavLink to="/trendinginternationaldestination" className="block py-1.5 text-sm hover:text-[#14532d] transition" onClick={closeMobileMenu}>
-                    Trending International Destination
                   </NavLink>
                   <NavLink
                     to="/Europeantours"

@@ -1,0 +1,284 @@
+﻿/* ── Marquee keyframes ────────────────────────────────────────────── */
+@keyframes dtd-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }   /* -50% = exactly one full copy */
+}
+@keyframes dtd-shimmer {
+  from { left: -120%; }
+  to   { left:  130%; }
+}
+
+/* ── Section shell ───────────────────────────────────────────────── */
+.domestic-trending-section {
+  position: relative;
+  padding: 72px 0 80px;
+  background: radial-gradient(ellipse at top right, #ecfdf580, transparent 45%), #f8fafc;
+  color: #0f172a;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;          /* clip the marquee edges */
+}
+
+/* ── Heading (stays inside a centred container) ───────────────────── */
+.domestic-trending-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+.domestic-trending-heading { margin-bottom: 48px; text-align: center; }
+.domestic-trending-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #047857;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  line-height: 1.8;
+}
+.domestic-trending-section .domestic-trending-heading h2 {
+  margin: 0;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: clamp(30px, 3.4vw, 48px);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  text-transform: uppercase;
+}
+.domestic-trending-section .domestic-trending-heading p {
+  max-width: 560px;
+  margin: 18px auto 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* ── Marquee overflow wrapper ────────────────────────────────────── */
+.domestic-trending-overflow {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  /* soft fade masks at both edges */
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+/* Pause the marquee when the user hovers anywhere over it */
+.domestic-trending-overflow:hover .domestic-trending-track {
+  animation-play-state: paused;
+}
+
+/* ── Scrolling track ─────────────────────────────────────────────── */
+.domestic-trending-track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 20px;
+  width: max-content;
+  padding: 16px 24px 24px;  /* room for card shadows */
+  animation: dtd-marquee 28s linear infinite;
+}
+
+/* ── Card ────────────────────────────────────────────────────────── */
+.domestic-trending-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 280px;           /* fixed width — one row */
+  width: 280px;
+  min-width: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1.5px solid #eef2f6;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 28px -14px #0f172a40, 0 5px 8px -5px #0f172a20;
+  /* hover */
+  transition:
+    transform .35s cubic-bezier(.22,.68,0,1.2),
+    box-shadow .35s ease,
+    border-color .3s ease;
+  cursor: pointer;
+}
+
+/* Shimmer sweep on hover */
+.domestic-trending-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent 25%, rgba(255,255,255,.6) 50%, transparent 75%);
+  pointer-events: none;
+  z-index: 2;
+}
+.domestic-trending-card:hover::before {
+  animation: dtd-shimmer .65s ease forwards;
+}
+
+/* Lift + green glow on hover */
+.domestic-trending-card:hover {
+  transform: translateY(-10px) scale(1.025);
+  border-color: #34d399;
+  box-shadow:
+    0 30px 50px -10px #0f172a30,
+    0 8px 18px -6px #05966938,
+    0 0 0 1px #34d39940;
+}
+
+/* ── Photo ───────────────────────────────────────────────────────── */
+.domestic-trending-photo {
+  height: 165px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+.domestic-trending-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center center;
+  transition: transform .55s cubic-bezier(.25,.46,.45,.94), filter .55s ease;
+  filter: brightness(1) saturate(1);
+}
+.domestic-trending-card:hover .domestic-trending-photo img {
+  transform: scale(1.09);
+  filter: brightness(1.07) saturate(1.14);
+}
+
+/* ── Card body ───────────────────────────────────────────────────── */
+.domestic-trending-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 16px;
+}
+
+/* ── Region label ────────────────────────────────────────────────── */
+.domestic-trending-region {
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: color .3s ease;
+}
+.domestic-trending-card:hover .domestic-trending-region { color: #059669; }
+
+/* ── Title & description ─────────────────────────────────────────── */
+.domestic-trending-section .domestic-trending-card h3 {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -.8px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.domestic-trending-section .domestic-trending-card p {
+  margin: 0;
+  color: #526277;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Highlights ──────────────────────────────────────────────────── */
+.domestic-trending-highlights {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+.domestic-trending-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.domestic-trending-highlights svg { flex-shrink: 0; color: #059669; }
+
+/* ── Explore link ────────────────────────────────────────────────── */
+.domestic-trending-section .domestic-trending-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  margin-top: auto;
+  padding: 8px 0;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+/* Underline sweep on text only */
+.domestic-trending-link span {
+  position: relative;
+}
+.domestic-trending-link span::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: #059669;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .3s ease;
+}
+.domestic-trending-card:hover .domestic-trending-link span::after { transform: scaleX(1); }
+
+/* Full-card click target */
+.domestic-trending-link::after { content: ''; position: absolute; inset: 0; }
+
+.domestic-trending-link svg { transition: transform .35s cubic-bezier(.22,.68,0,1.2); }
+.domestic-trending-card:hover .domestic-trending-link svg { transform: translateX(6px); }
+
+/* ── Focus ───────────────────────────────────────────────────────── */
+.domestic-trending-card:focus-within { outline: 3px solid #047857; outline-offset: 4px; }
+.domestic-trending-link:focus-visible { outline: none; }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .domestic-trending-section { padding: 52px 0 60px; }
+  .domestic-trending-heading { margin-bottom: 30px; }
+  .domestic-trending-eyebrow { letter-spacing: 2.5px; }
+  .domestic-trending-card { flex: 0 0 240px; width: 240px; }
+  .domestic-trending-photo { height: 140px; }
+  .domestic-trending-track { gap: 14px; padding: 12px 16px 20px; animation-duration: 22s; }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .domestic-trending-track { animation: none; }
+  .domestic-trending-card {
+    transition: none;
+  }
+  .domestic-trending-card::before,
+  .domestic-trending-link span::after,
+  .domestic-trending-link svg,
+  .domestic-trending-photo img,
+  .domestic-trending-region { animation: none; transition: none; }
+  .domestic-trending-card:hover { transform: none; }
+  .domestic-trending-card:hover .domestic-trending-photo img { transform: none; filter: none; }
+  .domestic-trending-card:hover .domestic-trending-link svg { transform: none; }
+}

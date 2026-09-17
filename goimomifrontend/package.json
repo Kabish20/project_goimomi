@@ -9,6 +9,8 @@
     "lint": "eslint . --max-warnings 0",
     "test": "node --test",
     "test:browser": "node scripts/verify-maintenance.mjs && node design/trending/verify-pages.mjs && node design/manali/verify-page.mjs && node design/azerbaijan/verify-page.mjs",
+    "test:browser:north-east": "node design/north-east/verify-page.mjs",
+    "test:browser:goa": "node design/goa/verify-page.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

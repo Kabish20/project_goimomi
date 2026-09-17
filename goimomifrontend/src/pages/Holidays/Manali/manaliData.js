@@ -1,3 +1,4 @@
+// Prices are package totals for two adults sharing one room; displayed rates divide by two.
 export const stays = [
   { name: 'Value Stay', price: 23500, room: 'Deluxe Room', hotels: ['Hotel Manali Paradise', 'Holiday BnB'] },
   { name: 'Comfort Stay', price: 25000, room: 'Deluxe Room', hotels: ['Hotel Snow Paradise Manali', 'MBN Resorts Manali', 'Hotel Snow Creek Manali'] },
@@ -31,5 +32,3 @@ export const information = [
   'Transportation follows the stated itinerary. Additional routes, sightseeing locations or extra vehicle usage may attract additional charges.',
 ];
 export const rupees = amount => `₹${amount.toLocaleString('en-IN')}`;
-export const gstFor = stay => Math.round(stay.price * 0.05);
-export const totalFor = stay => stay.price + gstFor(stay);

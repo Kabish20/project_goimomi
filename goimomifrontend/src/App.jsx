@@ -20,9 +20,10 @@ const CustomizedUmrah = lazyRetry(() => import('./pages/Umrah/CustomizedUmrah/Cu
 const Holidays = lazyRetry(() => import('./pages/Holidays/Holidays/Holidays.jsx'));
 const Kashmir = lazyRetry(() => import('./pages/Holidays/Kashmir/Kashmir.jsx'));
 const Manali = lazyRetry(() => import('./pages/Holidays/Manali/Manali.jsx'));
+const Sikkim = lazyRetry(() => import('./pages/Holidays/Sikkim/sikkim.jsx'));
+const Goa = lazyRetry(() => import('./pages/Holidays/Goa/goa.jsx'));
 const Azerbaijan = lazyRetry(() => import('./pages/Holidays/Azerbaijan/azerbaijan.jsx'));
-const TrendingDomesticDestination = lazyRetry(() => import('./pages/Holidays/TrendingDestinations/trendingdomesticdestination.jsx'));
-const TrendingInternationalDestination = lazyRetry(() => import('./pages/Holidays/TrendingDestinations/trendingInternationaldestination.jsx'));
+const Andaman = lazyRetry(() => import('./pages/Holidays/Andaman/andaman.jsx'));
 const PlanTrip = lazyRetry(() => import('./pages/Holidays/Holidaysform/Holidaysform.jsx'));
 const Cab = lazyRetry(() => import('./pages/Services/cab/cab.jsx'));
 const Cruise = lazyRetry(() => import('./pages/Services/Cruise/Cruise.jsx'));
@@ -142,7 +143,7 @@ const PageLoader = () => (
 const App = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
-  const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|trendingdomesticdestination|trendinginternationaldestination)\/?$/i.test(location.pathname);
+  const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|sikkim|andaman|goa)\/?$/i.test(location.pathname);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   useEffect(() => {
@@ -275,9 +276,10 @@ const App = () => {
             <Route path="/holidays" element={<Holidays />} />
             <Route path="/kashmir" element={<Kashmir />} />
             <Route path="/manali" element={<Manali />} />
+            <Route path="/sikkim" element={<Sikkim />} />
+            <Route path="/goa" element={<Goa />} />
             <Route path="/azerbaijan" element={<Azerbaijan />} />
-            <Route path="/trendingdomesticdestination" element={<TrendingDomesticDestination />} />
-            <Route path="/trendinginternationaldestination" element={<TrendingInternationalDestination />} />
+            <Route path="/andaman" element={<Andaman />} />
 
             <Route path="/customizedHolidays" element={<CustomizedHolidays />} />
             <Route

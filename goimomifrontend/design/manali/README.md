@@ -1,6 +1,6 @@
 # Manali holiday landing page
 
-Route: `/manali`, featured on `/trendingdomesticdestination`.
+Route: `/manali`, featured in the homepage domestic destinations section.
 
 All paths below are relative to `goimomifrontend`:
 
@@ -14,15 +14,15 @@ All paths below are relative to `goimomifrontend`:
 
 Uses the supplied Chandigarh–Manali brief: 26–29 November 2026, 3 nights / 4 days, 2 adults, 1 room, private sedan, 3 breakfasts and 3 dinners. Rates are valid 11 July–20 December 2026. Value and Comfort use a Deluxe Room; Premium uses a Super Deluxe Room. No hotel star rating was supplied or invented.
 
-Prices for 2 adults:
+Displayed prices are per adult on a twin-sharing basis (2 adults sharing 1 room):
 
-| Stay | Base | 5% GST | Total |
-| --- | ---: | ---: | ---: |
-| Value | INR 23,500 | INR 1,175 | INR 24,675 |
-| Comfort | INR 25,000 | INR 1,250 | INR 26,250 |
-| Premium | INR 29,500 | INR 1,475 | INR 30,975 |
+| Stay | Per adult, twin sharing | Package total for 2 adults |
+| --- | ---: | ---: |
+| Value | INR 11,750 | INR 23,500 |
+| Comfort | INR 12,500 | INR 25,000 |
+| Premium | INR 14,750 | INR 29,500 |
 
-Enquiry date is the supplied departure date, 26 November 2026. Requests for other dates can be entered in the message and require confirmation. Enquiries use `/api/holiday-form/`; they are not bookings. The payload records the base, GST, total, selected room, fixed dates and two adults.
+Enquiry date is the supplied departure date, 26 November 2026. Requests for other dates can be entered in the message and require confirmation. Enquiries use `/api/holiday-form/`; they are not bookings. The budget retains the two-adult package total; the message records both that total and the per-adult twin-sharing rate, selected room, fixed dates and two adults. No GST calculation or surcharge is applied.
 
 ## Generated image
 

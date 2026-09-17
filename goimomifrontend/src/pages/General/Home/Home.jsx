@@ -10,6 +10,8 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { motion } from "framer-motion";
 import { simpleCache } from "../../../utils/cache";
+import TrendingDomesticDestinations from "../../../components/holidays/TrendingDomesticDestinations";
+import TrendingInternationalDestinations from "../../../components/holidays/TrendingInternationalDestinations";
 
 import homeBusiness1 from "../../../assets/Home/BusinessHeader/home-business-01.png";
 import homeBusiness2 from "../../../assets/Home/BusinessHeader/home-business-02.png";
@@ -151,132 +153,6 @@ const getVisaImageSet = (country, primary, fallback) => {
   return key ? visaImageSets[key] : [primary, fallback].filter(Boolean);
 };
 
-
-// Animated Destination Card with 3 Smooth Moving / Crossfading Images
-const AnimatedDestinationCard = ({ item, index }) => {
-  const [currentImgIdx, setCurrentImgIdx] = useState(0);
-
-  useEffect(() => {
-    // Stagger slide transition per card for organic visual movement
-    const staggerDelay = (index % 3) * 700;
-    let intervalId;
-
-    const timer = setTimeout(() => {
-      intervalId = setInterval(() => {
-        setCurrentImgIdx((prev) => (prev + 1) % item.images.length);
-      }, 3600);
-    }, staggerDelay);
-
-    return () => {
-      clearTimeout(timer);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [index, item.images.length]);
-
-  return (
-    <Link
-      to={item.path || `/holidays?category=${item.category}`}
-      state={item.path ? undefined : { filter: item.title }}
-      aria-label={`Explore ${item.title} packages`}
-      className="block relative h-[310px] rounded-2xl overflow-hidden group border border-white/10 shadow-2xl fade-up cursor-pointer bg-slate-950 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-emerald-600"
-      style={{ animationDelay: `${index * 0.05}s` }}
-    >
-      {/* 3 Moving / Animated Images Layer */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        {item.images.map((imgSrc, imgIdx) => {
-          const isActive = imgIdx === currentImgIdx;
-          return (
-            <div
-              key={imgIdx}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-              }`}
-            >
-              <img
-                src={imgSrc}
-                alt={`${item.title} - ${imgIdx + 1}`}
-                className={`h-full w-full object-cover transition-transform duration-[3800ms] ease-out will-change-transform ${
-                  isActive
-                    ? imgIdx % 2 === 0
-                      ? "scale-115 translate-x-2 translate-y-1"
-                      : "scale-115 -translate-x-2 -translate-y-1"
-                    : "scale-100 translate-x-0 translate-y-0"
-                }`}
-                loading="lazy"
-                onError={(e) => {
-                  if (item.images[0] && e.currentTarget.src !== item.images[0]) {
-                    e.currentTarget.src = item.images[0];
-                  }
-                }}
-              />
-            </div>
-          );
-        })}
-        {/* Cinematic Gradient Overlay */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/30 to-black/40 group-hover:from-black/95 transition-all duration-500" />
-      </div>
-
-      {/* 3-Image Slide Progress Indicators */}
-      <div className="absolute top-3.5 left-4 z-30 flex items-center gap-1.5">
-        {item.images.map((_, idx) => (
-          <div
-            key={idx}
-            className={`h-1 rounded-full transition-all duration-500 ${
-              idx === currentImgIdx
-                ? "w-6 bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"
-                : "w-1.5 bg-white/40"
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Unique Vertical Accent */}
-      <div className="absolute top-4 left-0 w-1.5 h-10 bg-[#14532d] z-20 transition-all duration-700 group-hover:h-full group-hover:top-0 shadow-[0_0_15px_rgba(20,83,45,0.7)]" />
-
-      {/* Top Country Badge */}
-      <div className="absolute top-3 right-3 z-30">
-        <div className="bg-black/50 backdrop-blur-xl border border-white/20 px-3 py-1 rounded-xl shadow-lg">
-          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white">
-            {item.country}
-          </span>
-        </div>
-      </div>
-
-      {/* Floating Content Card */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
-        <div className="relative p-4 rounded-2xl border border-white/15 bg-black/60 backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-4px] group-hover:bg-black/80 shadow-2xl">
-          {/* Glowing Accent Line */}
-          <div className="absolute -top-[1px] left-6 right-6 h-[1.5px] bg-gradient-to-r from-transparent via-[#14532d] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-          <div className="flex justify-between items-center mb-1.5">
-            <div>
-              <p className="text-[8px] uppercase tracking-widest text-green-400 font-black mb-0.5">
-                {item.region}
-              </p>
-              <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none italic">
-                {item.title}
-              </h3>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/15 group-hover:bg-[#14532d] transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(20,83,45,0.6)]">
-              <Zap className="w-3.5 h-3.5 text-white" />
-            </div>
-          </div>
-
-          <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500">
-            <div className="overflow-hidden">
-              <p className="text-white/70 text-[10px] my-2 leading-tight line-clamp-1 font-medium">
-                {item.description || `Experience the magic of ${item.title}.`}
-              </p>
-              <span className="block text-center w-full py-2.5 bg-white hover:bg-[#14532d] text-slate-950 hover:text-white font-black uppercase text-[10px] tracking-[0.15em] rounded-xl transition-all shadow-xl cursor-pointer">
-                Explore Now
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-};
 
 const AnimatedOfferImages = ({ images, title, fallbackImage }) => {
   const [currentImgIdx, setCurrentImgIdx] = useState(0);
@@ -519,10 +395,13 @@ const Home = () => {
               so you can focus entirely on the experience.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-4 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 max-w-[1400px] mx-auto">
 
             {/* Business Block */}
             <motion.div
+              initial={{ opacity: 0, x: 48 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.65, delay: 0, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -8 }}
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/businesshome')}
@@ -552,6 +431,9 @@ const Home = () => {
 
             {/* Leisure Block */}
             <motion.div
+              initial={{ opacity: 0, x: 48 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.65, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -8 }}
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/holidayhome')}
@@ -581,6 +463,9 @@ const Home = () => {
 
             {/* Visa & Documentation Block */}
             <motion.div
+              initial={{ opacity: 0, x: 48 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.65, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -8 }}
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/visa')}
@@ -608,8 +493,7 @@ const Home = () => {
               </div>
             </motion.div>
 
-            {/* Flight Ticket Block - temporarily disabled */}
-            <motion.div
+            {false && <motion.div
               aria-disabled="true"
               title="Flight booking is temporarily unavailable"
               className="bg-white/70 p-5 group rounded-3xl border border-slate-200 shadow-xl relative overflow-hidden cursor-not-allowed opacity-60 grayscale"
@@ -634,10 +518,13 @@ const Home = () => {
               <div className="flex items-center gap-2 text-slate-500 font-black uppercase tracking-widest text-[8px]">
                 <span>BOOKING TEMPORARILY PAUSED</span>
               </div>
-            </motion.div>
+            </motion.div>}
 
             {/* Umrah Service Block */}
             <motion.div
+              initial={{ opacity: 0, x: 48 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.65, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -8 }}
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/holidays?category=Umrah')}
@@ -667,6 +554,9 @@ const Home = () => {
 
             {/* Cab Service Block */}
             <motion.div
+              initial={{ opacity: 0, x: 48 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.65, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -8 }}
               className="bg-white p-5 group hover:bg-[#14532d] transition-all duration-500 rounded-3xl border border-slate-100 shadow-xl relative overflow-hidden cursor-pointer"
               onClick={() => navigate('/cab')}
@@ -697,61 +587,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ---------------- POPULAR TRENDING DESTINATION ---------------- */}
-      <section id="popular-destinations" aria-labelledby="trending-destinations-heading" className="py-16 px-6 max-w-7xl mx-auto">
-        <h2 id="trending-destinations-heading" className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic text-center fade-up">
-          Trending Destination
-        </h2>
-        <p className="text-center text-gray-600 mt-2 fade-up">
-          Discover unforgettable holidays across India and the world
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 max-w-5xl mx-auto sm:px-4">
-          {[
-            {
-              images: [
-                "/images/azerbaijan/baku-hero.webp",
-                "/images/azerbaijan/baku-social.jpg"
-              ],
-              title: "Azerbaijan",
-              region: "CAUCASUS",
-              country: "Azerbaijan",
-              category: "International",
-              path: "/trendinginternationaldestination",
-              description: "4 nights / 5 days · Packages from ₹52,430 for 2 adults"
-            },
-            {
-              images: [
-                "/images/kashmir/dal-lake-hero.webp",
-                "/images/kashmir/pahalgam-valley.webp"
-              ],
-              title: "Kashmir",
-              region: "NORTH INDIA",
-              country: "India",
-              category: "Domestic",
-              path: "/trendingdomesticdestination",
-              description: "4 nights / 5 days · Packages from ₹6,499 per person"
-            }
-          ].map((item, i) => (
-            <AnimatedDestinationCard key={item.title} item={item} index={i} />
-          ))}
-        </div>
-        <div className="flex flex-wrap justify-center gap-4 mt-8">
-          <Link
-            to="/trendinginternationaldestination"
-            className="px-5 py-3 rounded-lg bg-[#14532d] text-white text-sm font-semibold hover:bg-[#166534] transition-colors"
-          >
-            Explore International Destinations
-          </Link>
-          <Link
-            to="/trendingdomesticdestination"
-            className="px-5 py-3 rounded-lg border border-[#14532d] text-[#14532d] text-sm font-semibold hover:bg-emerald-50 transition-colors"
-          >
-            Explore Domestic Destinations
-          </Link>
-        </div>
-      </section>
-
+      <TrendingDomesticDestinations />
+      <TrendingInternationalDestinations />
 
       {/* ---------------- SPECIAL OFFERS ---------------- */}
       <section className="py-20 px-6 bg-slate-50">
@@ -1390,5 +1227,3 @@ const Home = () => {
 };
 
 export default Home;
-
-

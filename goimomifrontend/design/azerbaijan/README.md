@@ -2,7 +2,7 @@
 
 - Page: `src/pages/Holidays/Azerbaijan/azerbaijan.jsx`
 - Related files: `azerbaijanData.js` and `azerbaijan.css` in the same folder.
-- Route: `/azerbaijan`; featured first on `/trendinginternationaldestination`.
+- Route: `/azerbaijan`; featured in the homepage international destinations section.
 - Preserved original: `design/azerbaijan/baku-original.png`.
 - Optimised web asset: `public/images/azerbaijan/baku-hero.webp`.
 - Sharing preview: `public/images/azerbaijan/baku-social.jpg`.
@@ -19,6 +19,6 @@ Use case: photorealistic-natural. Asset type: panoramic hero photograph for a pr
 
 ## Package data
 
-Uses the supplied 4-night / 5-day itinerary for 2 adults, one Standard Double Room, daily breakfast, private sedan and English-speaking driver. Metro City Hotel 3-star costs INR 52,430 total; Parkside Hotel 4-star costs INR 63,700 total. These are total prices for two adults, including on the destination card and enquiry payload. Only a one-way Shahdag cable car ride and the specified Fire Temple and Fire Mountain entrance tickets are included. No professional guide, flights or visa is included.
+Uses the supplied 4-night / 5-day itinerary for 2 adults, one Standard Double Room, daily breakfast, private sedan and English-speaking driver. Displayed prices are per adult on a twin-sharing basis: Metro City Hotel 3-star costs INR 26,215 per adult; Parkside Hotel 4-star costs INR 31,850 per adult. The enquiry budget retains the two-adult totals of INR 52,430 and INR 63,700 respectively; the message records both the per-adult rate and package total. Only a one-way Shahdag cable car ride and the specified Fire Temple and Fire Mountain entrance tickets are included. No professional guide, flights or visa is included.
 
 Enquiries use the existing `/api/holiday-form/` endpoint. They are not confirmed bookings. No external enquiry is sent during browser checks.

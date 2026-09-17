@@ -26,15 +26,16 @@ const render = async (path) => {
 };
 try {
   await render('/trendingdomesticdestination');
-  assert.equal(await page.locator('.td-card').count(), 3);
+  assert.equal(await page.locator('.td-card').count(), 2);
   assert.match(await page.title(), /Trending Domestic Destination/);
   assert.equal(await page.getByRole('link', { name: 'Explore Kashmir packages', exact: true }).getAttribute('href'), '/kashmir');
   await page.screenshot({ path: `${output}/domestic-desktop.png`, fullPage: true });
   await page.locator('#td-search').fill('kashmir');
   assert.equal(await page.locator('.td-card').count(), 1);
-  await page.locator('#td-region').selectOption('South India');
+  await page.locator('#td-region').selectOption('North India');
+  await page.locator('#td-search').fill('no matching holiday');
   await page.getByRole('button', { name: 'Show all destinations' }).click();
-  assert.equal(await page.locator('.td-card').count(), 3);
+  assert.equal(await page.locator('.td-card').count(), 2);
   await page.getByRole('link', { name: 'Explore Kashmir packages', exact: true }).click();
   await page.locator('#km-title').waitFor();
   assert.equal(new URL(page.url()).pathname, '/kashmir');

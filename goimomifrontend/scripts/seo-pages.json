@@ -1,24 +1,38 @@
 [
   {
+    "route": "/goa",
+    "title": "Goa | 3 Nights / 4 Days | Triple Sharing | Goimomi",
+    "description": "Explore North and South Goa, 1–4 October 2026. From ₹9,400 per adult on triple sharing, for a minimum of 6 adults in 2 rooms, with breakfast and Innova Crysta transport.",
+    "image": "/images/goa/goa-coast-hero.webp",
+    "keywords": "Goa holiday package, North Goa, South Goa, triple sharing, Innova Crysta, Dabolim Airport"
+  },
+  {
+    "route": "/sikkim",
+    "title": "North East — Assam & Meghalaya | 6 Nights / 7 Days | Goimomi",
+    "description": "Explore Guwahati, Kaziranga, Shillong and Cherrapunji, 8–14 November 2026. Three hotel options from ₹40,000 per adult on twin sharing, for 4 adults in 2 rooms.",
+    "image": "/images/north-east/dawki-hero.webp",
+    "keywords": "North East holiday, Assam Meghalaya package, Guwahati, Kaziranga, Shillong, Cherrapunji, Dawki, November 2026"
+  },
+  {
     "route": "/manali",
     "title": "Chandigarh – Manali | 3 Nights / 4 Days | Goimomi Holidays",
-    "description": "Manali, Solang Valley, Atal Tunnel and Kullu, 26–29 November 2026. Private sedan, 3 breakfasts and 3 dinners. From ₹23,500 for 2 adults plus 5% GST.",
+    "description": "Manali, Solang Valley, Atal Tunnel and Kullu, 26–29 November 2026. Private sedan, 3 breakfasts and 3 dinners. From ₹11,750 per adult on a twin-sharing basis.",
     "image": "/images/manali/manali-social.jpg",
     "keywords": "Manali holiday package, Chandigarh Manali, Solang Valley, Atal Tunnel, Kullu, November 2026"
   },
   {
     "route": "/azerbaijan",
     "title": "Baku, Azerbaijan | 4 Nights / 5 Days Private Tour | Goimomi",
-    "description": "A private Azerbaijan holiday for 2 adults from ₹52,430 total. Explore Baku, Shahdag and Absheron with 4 nights, daily breakfast, private sedan and specified entry tickets.",
+    "description": "A private Azerbaijan holiday from ₹26,215 per adult on a twin-sharing basis. Explore Baku, Shahdag and Absheron with 4 nights, daily breakfast, private sedan and specified entry tickets.",
     "image": "/images/azerbaijan/baku-social.jpg",
     "keywords": "Baku Azerbaijan package, Shahdag, Absheron, private tour, 4 nights 5 days, Goimomi"
   },
   {
     "route": "/trendingdomesticdestination",
     "title": "Trending Domestic Destination | Goimomi Holidays",
-    "description": "Explore Manali, Kashmir and Kerala with Goimomi Holidays. Discover domestic holiday packages and personalised travel options across India.",
+    "description": "Explore Manali and Kashmir with Goimomi Holidays. Discover domestic holiday packages and personalised travel options in the Himalayas.",
     "image": "/images/kashmir/dal-lake-social.jpg",
-    "keywords": "domestic holiday destinations, Manali package, Kashmir holiday package, Kerala holiday, India holidays"
+    "keywords": "domestic holiday destinations, Manali package, Kashmir holiday package, Himalayan holidays, India holidays"
   },
   {
     "route": "/trendinginternationaldestination",

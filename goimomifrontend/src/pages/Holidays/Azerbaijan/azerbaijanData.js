@@ -1,3 +1,4 @@
+// Prices are package totals for two adults sharing one room; displayed rates divide by two.
 export const hotels = [
   { name: 'Metro City Hotel', stars: 3, price: 52430, description: 'A comfortable base for your Baku adventure.' },
   { name: 'Parkside Hotel', stars: 4, price: 63700, description: 'Choose a four-star stay for your private escape.' },
