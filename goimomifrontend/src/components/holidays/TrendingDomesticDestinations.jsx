@@ -1,6 +1,5 @@
 import DestinationCard from './DestinationCard';
 import { stays } from '../../pages/Holidays/Manali/manaliData';
-import { packages as northEastPackages } from '../../pages/Holidays/Sikkim/sikkimData';
 import { packages as andamanPackages } from '../../pages/Holidays/Andaman/andamanData';
 import { hotels as goaHotels } from '../../pages/Holidays/Goa/goaData';
 import { packages as keralaPackages, lowestPrice } from '../../pages/Holidays/Kerala/keralaData';
@@ -36,16 +35,6 @@ const destinations = [
     imageAlt: 'Manali-inspired scene of a turquoise river, pine forests and snow-capped Himalayan peaks',
     description: 'A private Himalayan escape through scenic valleys and pine forests.',
     path: '/manali',
-  },
-  {
-    name: 'Sikkim',
-    region: 'Assam & Meghalaya',
-    startingPrice: Math.min(...northEastPackages.map(option => option.pricePerAdult)),
-    highlights: ['6 nights / 7 days', 'Assam & Meghalaya', '4 adults · 2 rooms'],
-    image: '/images/north-east/dawki-hero.webp',
-    imageAlt: 'Meghalaya-inspired scene of a wooden boat on an emerald river between forested hills',
-    description: 'Guwahati, Kaziranga, Shillong and Cherrapunji, together in one journey.',
-    path: '/sikkim',
   },
   {
     name: 'Andaman',

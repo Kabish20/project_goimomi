@@ -26,6 +26,7 @@ const Sikkim = lazyRetry(() => import('./pages/Holidays/Sikkim/sikkim.jsx'));
 const Goa = lazyRetry(() => import('./pages/Holidays/Goa/goa.jsx'));
 const Kerala = lazyRetry(() => import('./pages/Holidays/Kerala/kerala.jsx'));
 const Bali = lazyRetry(() => import('./pages/Holidays/Bali/bali.jsx'));
+const Dubai = lazyRetry(() => import('./pages/Holidays/Dubai/dubai.jsx'));
 const Azerbaijan = lazyRetry(() => import('./pages/Holidays/Azerbaijan/azerbaijan.jsx'));
 const Andaman = lazyRetry(() => import('./pages/Holidays/Andaman/andaman.jsx'));
 const PlanTrip = lazyRetry(() => import('./pages/Holidays/Holidaysform/Holidaysform.jsx'));
@@ -147,7 +148,7 @@ const PageLoader = () => (
 const App = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
-  const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|sikkim|andaman|goa|kerala|bali|trendingdomesticdestination|trendinginternationaldestination)\/?$/i.test(location.pathname);
+  const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|sikkim|andaman|goa|kerala|bali|dubai|trendingdomesticdestination|trendinginternationaldestination)\/?$/i.test(location.pathname);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   useEffect(() => {
@@ -286,6 +287,7 @@ const App = () => {
             <Route path="/goa" element={<Goa />} />
             <Route path="/kerala" element={<Kerala />} />
             <Route path="/bali" element={<Bali />} />
+            <Route path="/dubai" element={<Dubai />} />
             <Route path="/azerbaijan" element={<Azerbaijan />} />
             <Route path="/andaman" element={<Andaman />} />
 

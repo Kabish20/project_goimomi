@@ -17,10 +17,29 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, res) => {
+            if (res && !res.headersSent && typeof res.writeHead === 'function') {
+              res.writeHead(503, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                error: 'Backend server is not running on http://127.0.0.1:8000. Start Django: python manage.py runserver',
+                code: err.code || 'ECONNREFUSED',
+              }));
+            }
+          });
+        },
       },
       '/media': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (err, _req, res) => {
+            if (res && !res.headersSent && typeof res.writeHead === 'function') {
+              res.writeHead(503, { 'Content-Type': 'text/plain' });
+              res.end('Backend media server is not running.');
+            }
+          });
+        },
       },
     }
   },

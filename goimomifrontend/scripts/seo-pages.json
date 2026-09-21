@@ -1,10 +1,17 @@
 [
   {
+    "route": "/dubai",
+    "title": "Dubai Holiday Package | 4 Nights / 5 Days from ₹25,330 | Goimomi",
+    "description": "Stay at 3-star Citymax Bur Dubai with breakfast, a half-day city tour, deluxe desert safari, Dubai Creek dinner cruise and private airport transfers. Valid 15 October 2026 – 30 January 2027.",
+    "keywords": "Dubai holiday package, Citymax Bur Dubai, Dubai Creek cruise, desert safari, 4 nights 5 days, twin sharing",
+    "image": "/images/dubai/dubai-creek-sunset.png"
+  },
+  {
     "route": "/bali",
-    "title": "Bali Special Package | 5 Days / 4 Nights from ₹24,570 | Goimomi",
-    "description": "Discover Ubud, Kintamani, Nusa Penida and South Bali. Four nights at Bliss Surfer Hotel or similar, private transfers, fast boats, 4 breakfasts and 1 lunch.",
-    "image": "/images/bali/bali-nusa-penida-hero.png",
-    "keywords": "Bali package, Ubud, Kintamani, Nusa Penida, Uluwatu, Bliss Surfer Hotel"
+    "title": "Bali Special Package | 3 Nights / 4 Days from ₹17,300 | Goimomi",
+    "description": "Low Season 2026 Bali private tour without Bali Swing. Stay 3 nights at BRTIS HOTEL with breakfast, private transfers, Uluwatu, Melasti Beach, Ubud, Tegenungan Waterfall and Kintamani.",
+    "image": "/images/bali/bali-temple.jpeg",
+    "keywords": "Bali package, Low Season 2026, Ubud, Kintamani, Tegenungan Waterfall, Melasti Beach, Uluwatu, BRTIS HOTEL, without Bali Swing"
   },
   {
     "route": "/kerala",
@@ -44,16 +51,16 @@
   {
     "route": "/trendingdomesticdestination",
     "title": "Trending Domestic Holidays | Goimomi",
-    "description": "Explore Kerala, Kashmir, Manali, Assam and Meghalaya, Andaman and Goa with curated domestic holiday packages.",
+    "description": "Explore Kerala, Kashmir, Manali, Andaman and Goa with curated domestic holiday packages.",
     "image": "/images/kerala/kerala-backwaters-hero.png",
     "keywords": "trending domestic holidays, India holiday packages"
   },
   {
     "route": "/trendinginternationaldestination",
     "title": "Trending International Holidays | Goimomi",
-    "description": "Discover Bali and Azerbaijan with curated international holiday packages, detailed itineraries and private transfers.",
-    "image": "/images/bali/bali-nusa-penida-hero.png",
-    "keywords": "trending international holidays, Bali, Azerbaijan"
+    "description": "Discover Dubai, Bali and Azerbaijan with curated international holiday packages, detailed itineraries and airport transfers.",
+    "image": "/images/bali/bali-temple.jpeg",
+    "keywords": "trending international holidays, Dubai, Bali, Azerbaijan"
   },
   {
     "route": "/kashmir",

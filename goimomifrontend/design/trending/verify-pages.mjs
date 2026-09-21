@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 const base = process.env.VERIFY_BASE_URL || 'http://127.0.0.1:5174';
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const errors = [];
-const groups = { domestic: ['Kerala', 'Kashmir', 'Manali', 'Sikkim', 'Andaman', 'Goa'], international: ['Azerbaijan', 'Bali'] };
+const groups = { domestic: ['Kerala', 'Kashmir', 'Manali', 'Andaman', 'Goa'], international: ['Dubai', 'Azerbaijan', 'Bali'] };
 try {
  for (const touch of [false, true]) {
   console.log(touch ? 'Checking touch controls' : 'Checking mouse controls');
@@ -78,7 +78,7 @@ try {
  }
  assert.deepEqual(errors, []);
  await fs.mkdir('../output/design/trending', { recursive: true });
- const report = { passed: true, checked: 'All 8 destinations; mouse/touch/keyboard/Escape; collapsed content inert; square panel fit; mobile and desktop menus; 320-1440px overflow; all package routes and hero images; marquee pause and reduced motion.', errors };
+ const report = { passed: true, checked: 'All 8 listed destinations; mouse/touch/keyboard/Escape; collapsed content inert; square panel fit; mobile and desktop menus; 320-1440px overflow; listed package routes and hero images; marquee pause and reduced motion.', errors };
  await fs.writeFile('../output/design/trending/verification.json', JSON.stringify(report, null, 2));
  console.log(JSON.stringify(report));
 } finally { await browser.close(); }
