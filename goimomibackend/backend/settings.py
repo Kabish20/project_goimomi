@@ -233,14 +233,14 @@ SIMPLE_JWT = {
 
 # Production Security Hardening
 if not DEBUG:
-    # SECURE_SSL_REDIRECT is enabled for production security (can be toggled in .env)
-    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1', 'yes')
-    SECURE_HSTS_SECONDS = 31536000 if SECURE_SSL_REDIRECT else 0
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_SSL_REDIRECT
-    SECURE_HSTS_PRELOAD = SECURE_SSL_REDIRECT
+    # SECURE_SSL_REDIRECT is enabled for production security
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000 # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
-    CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # Suppress noisy "HTTPS-over-HTTP" probe warnings in the dev server terminal.
 # These come from browser extensions, antivirus tools, or Chrome HSTS probing
