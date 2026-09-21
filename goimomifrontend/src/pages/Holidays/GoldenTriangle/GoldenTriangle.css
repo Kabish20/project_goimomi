@@ -1,0 +1,432 @@
+.gt-page {
+  background: #f7f3ea;
+  color: #203b34;
+}
+
+.gt-section {
+  padding-block: 72px;
+}
+
+.gt-hero {
+  min-height: 580px;
+}
+
+.gt-hero .td-hero-content {
+  padding-top: 24px;
+}
+
+.gt-hero-chips,
+.gt-hero-bottom,
+.gt-hero-actions,
+.gt-callout,
+.gt-package-top,
+.gt-day-header,
+.gt-cards {
+  display: flex;
+  align-items: center;
+}
+
+.gt-hero-chips,
+.gt-hero-bottom {
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.gt-hero-chips span,
+.gt-hero-bottom span,
+.gt-day-badge,
+.gt-tag,
+.gt-spec {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(10, 24, 20, 0.18);
+  padding: 8px 14px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gt-hero-actions {
+  gap: 18px;
+  margin-top: 32px;
+}
+
+.gt-hero-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #f8ead1;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.gt-intro {
+  margin-bottom: 26px;
+}
+
+.gt-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.gt-feature-card,
+.gt-package-card,
+.gt-day-card,
+.gt-panel,
+.gt-enquire-card,
+.gt-exclusions {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(32, 59, 52, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(15, 30, 25, 0.05);
+}
+
+.gt-feature-card {
+  padding: 30px 26px;
+}
+
+.gt-feature-icon {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f2d997, #d7a862);
+  color: #15342f;
+  margin-bottom: 18px;
+}
+
+.gt-feature-card h3,
+.gt-package-card h3,
+.gt-panel h3,
+.gt-exclusions h3,
+.gt-enquire-section h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: -0.03em;
+}
+
+.gt-feature-card h3 {
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  margin-bottom: 10px;
+}
+
+.gt-feature-card p,
+.gt-package-card p,
+.gt-day-card p,
+.gt-enquire-section p,
+.gt-panel li,
+.gt-exclusions li {
+  color: #495d57;
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.gt-package-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 26px;
+}
+
+.gt-package-card {
+  padding: 26px;
+}
+
+.gt-package-top {
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.gt-tag,
+.gt-spec,
+.gt-day-badge {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 8px 10px;
+  color: #233d35;
+  background: rgba(238, 208, 132, 0.22);
+  border-color: rgba(36, 59, 52, 0.14);
+}
+
+.gt-package-card h3 {
+  font-size: clamp(1.9rem, 2vw, 2.4rem);
+  margin-bottom: 16px;
+}
+
+.gt-price-row {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.gt-price-row strong {
+  font-size: clamp(2.1rem, 3vw, 2.8rem);
+  color: #1d372f;
+  font-weight: 800;
+}
+
+.gt-price-row span {
+  color: #53685f;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.gt-package-card .td-button {
+  margin-top: 18px;
+}
+
+.gt-itinerary-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.gt-day-card {
+  padding: 24px 26px;
+}
+
+.gt-day-header {
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.gt-day-header h3 {
+  flex: 1;
+  font-size: clamp(1.5rem, 2vw, 1.9rem);
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: -0.03em;
+}
+
+.gt-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.gt-badges span {
+  background: rgba(18, 58, 49, 0.06);
+  color: #24413a;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gt-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 22px;
+}
+
+.gt-panel {
+  padding: 28px;
+}
+
+.gt-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  display: grid;
+  gap: 14px;
+}
+
+.gt-list li,
+.gt-exclusions li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.gt-exclusions {
+  margin-top: 22px;
+  padding: 28px;
+}
+
+.gt-exclusions ul {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.gt-enquire-section {
+  padding: 0 0 76px;
+}
+
+.gt-enquire-inner {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 26px;
+  background: linear-gradient(135deg, #153b33, #203e36);
+  color: #f7f2e6;
+  border-radius: 30px;
+  padding: 42px 36px;
+}
+
+.gt-enquire-section h2 {
+  font-size: clamp(2.2rem, 3vw, 3.2rem);
+  line-height: 1.12;
+  margin-bottom: 14px;
+}
+
+.gt-enquire-section p {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.gt-callout {
+  gap: 12px;
+  margin-top: 22px;
+  font-weight: 700;
+}
+
+.gt-callout a {
+  color: #f9e7b6;
+}
+
+.gt-enquire-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+
+.gt-cards {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.gt-cards div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f5efd9;
+}
+
+.gt-package-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.gt-package-tab {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(32, 59, 52, 0.2);
+  background: rgba(255, 255, 255, 0.6);
+  color: #203b34;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+
+.gt-package-tab:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.gt-package-tab.active {
+  background: #153b33;
+  color: #fff;
+  border-color: #153b33;
+  box-shadow: 0 4px 14px rgba(21, 59, 51, 0.25);
+}
+
+.gt-hotel-section {
+  margin-top: 24px;
+}
+
+.gt-hotel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.gt-hotel-card {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(32, 59, 52, 0.08);
+}
+
+.gt-hotel-card h4 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  color: #1d372f;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.gt-hotel-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #495d57;
+  line-height: 1.6;
+}
+
+@media (max-width: 1024px) {
+  .gt-feature-grid,
+  .gt-package-grid,
+  .gt-hotel-grid,
+  .gt-info-grid,
+  .gt-enquire-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .gt-section {
+    padding-block: 56px;
+  }
+
+  .gt-hero {
+    min-height: 510px;
+  }
+
+  .gt-hero-chips,
+  .gt-hero-bottom,
+  .gt-hero-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gt-feature-card,
+  .gt-package-card,
+  .gt-day-card,
+  .gt-panel,
+  .gt-exclusions,
+  .gt-enquire-inner {
+    padding: 20px;
+  }
+
+  .gt-day-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.gt-enquiry-form { display: grid; gap: 14px; }
+.gt-enquiry-form label { display: grid; gap: 6px; font-size: .875rem; text-align: left; }
+.gt-enquiry-form input, .gt-enquiry-form select, .gt-enquiry-form textarea { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #b8c9c0; border-radius: 8px; color: #153d29; background: white; font: inherit; }
+.gt-enquiry-form button:disabled { opacity: .7; cursor: default; }

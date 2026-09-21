@@ -675,10 +675,7 @@ class HolidayEnquiryAPI(ModelViewSet):
     def perform_create(self, serializer):
         enquiry = serializer.save()
         try:
-            from .utils import send_enquiry_email, create_zoho_crm_lead
-            send_enquiry_email(enquiry, "Holiday Package")
-
-            import threading
+            from .tasks import queue_enquiry_notifications
             lead_data = {
                 'name': getattr(enquiry, 'full_name', '') or getattr(enquiry, 'name', '') or 'Holiday Lead',
                 'email': getattr(enquiry, 'email', '') or '',
@@ -688,7 +685,7 @@ class HolidayEnquiryAPI(ModelViewSet):
                 'lead_source': 'Website Holiday Enquiry',
                 'company': 'Individual'
             }
-            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+            queue_enquiry_notifications(enquiry, 'Holiday Package', lead_data)
         except Exception as e:
             print(f"Error handling HolidayEnquiry perform_create: {e}")
 
@@ -702,10 +699,7 @@ class UmrahEnquiryAPI(ModelViewSet):
     def perform_create(self, serializer):
         enquiry = serializer.save()
         try:
-            from .utils import send_enquiry_email, create_zoho_crm_lead
-            send_enquiry_email(enquiry, "Umrah")
-
-            import threading
+            from .tasks import queue_enquiry_notifications
             lead_data = {
                 'name': getattr(enquiry, 'full_name', '') or getattr(enquiry, 'name', '') or 'Umrah Lead',
                 'email': getattr(enquiry, 'email', '') or '',
@@ -715,7 +709,7 @@ class UmrahEnquiryAPI(ModelViewSet):
                 'lead_source': 'Website Umrah Enquiry',
                 'company': 'Individual'
             }
-            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+            queue_enquiry_notifications(enquiry, 'Umrah', lead_data)
         except Exception as e:
             print(f"Error handling UmrahEnquiry perform_create: {e}")
 
@@ -729,11 +723,8 @@ class EnquiryAPI(ModelViewSet):
     def perform_create(self, serializer):
         enquiry = serializer.save()
         try:
-            from .utils import send_enquiry_email, create_zoho_crm_lead
+            from .tasks import queue_enquiry_notifications
             enquiry_type = getattr(enquiry, 'enquiry_type', 'General')
-            send_enquiry_email(enquiry, enquiry_type)
-
-            import threading
             lead_data = {
                 'name': getattr(enquiry, 'name', '') or getattr(enquiry, 'full_name', '') or 'Enquiry Lead',
                 'email': getattr(enquiry, 'email', '') or '',
@@ -743,7 +734,7 @@ class EnquiryAPI(ModelViewSet):
                 'lead_source': f"Website {enquiry_type} Enquiry",
                 'company': 'Individual'
             }
-            threading.Thread(target=create_zoho_crm_lead, args=(lead_data,)).start()
+            queue_enquiry_notifications(enquiry, enquiry_type, lead_data)
         except Exception as e:
             print(f"Error handling Enquiry perform_create: {e}")
 

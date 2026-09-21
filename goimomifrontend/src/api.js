@@ -10,7 +10,11 @@ const publicForms = new Set([
     'chithiraienquiries', 'canton-enquiries', 'cantonenquiries',
     'enquiry-form', 'enquiryform', 'holiday-form', 'holidayform', 'umrah-form', 'umrahform',
 ]);
-const publicReads = new Set(['cities', 'pickup-point-masters', 'airports']);
+const publicReads = new Set([
+    'cities', 'pickup-point-masters', 'airports', 'countries', 'nationalities',
+    'regions', 'destinations', 'visas', 'packages', 'cruisecalendar', 'cruise-calendar',
+    'goimomiproducts', 'goimomi-products',
+]);
 
 const isPublicRequest = (config) => {
     if (config.skipAuth) return true;
@@ -19,8 +23,13 @@ const isPublicRequest = (config) => {
     const match = path.match(/^\/api\/([^/]+)\/(.*)$/);
     if (!match) return false;
     const method = (config.method || 'get').toLowerCase();
+    // Administrative catalogue requests must retain their credentials.
+    const params = new URLSearchParams((config.url || '').split('?')[1] || '');
+    const all = config.params?.all ?? params.get('all');
+    if (String(all).toLowerCase() === 'true') return false;
     return (method === 'post' && !match[2] && publicForms.has(match[1])) ||
-        (['get', 'head', 'options'].includes(method) && publicReads.has(match[1]));
+        (['get', 'head', 'options'].includes(method) && publicReads.has(match[1]) &&
+            (!match[2] || /^\d+\/$/.test(match[2])));
 };
 
 export const clearAuthTokens = () => {

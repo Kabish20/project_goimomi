@@ -3,6 +3,47 @@ from celery import shared_task
 
 logger = logging.getLogger(__name__)
 
+
+def queue_enquiry_notifications(enquiry, enquiry_type, lead_data):
+    """Publish after commit; an unavailable notification service cannot reject a saved lead."""
+    from django.db import transaction
+
+    def publish():
+        jobs = (
+            (send_enquiry_email_task, [enquiry._meta.label, enquiry.pk, enquiry_type]),
+            (sync_enquiry_crm_task, [lead_data]),
+        )
+        for task, args in jobs:
+            try:
+                task.apply_async(args=args, retry=False, queue='enquiries')
+            except Exception:
+                logger.exception('Could not queue %s for saved enquiry %s:%s',
+                                 task.name, enquiry._meta.label, enquiry.pk)
+
+    transaction.on_commit(publish)
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=45, time_limit=60)
+def send_enquiry_email_task(self, model_label, enquiry_pk, enquiry_type):
+    from django.apps import apps
+    from Holidays.utils import send_enquiry_email
+    model = apps.get_model(model_label)
+    enquiry = model.objects.filter(pk=enquiry_pk).first()
+    if enquiry is None:
+        return False
+    if not send_enquiry_email(enquiry, enquiry_type):
+        raise self.retry(exc=RuntimeError('Enquiry email delivery failed'))
+    return True
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60, soft_time_limit=60, time_limit=75)
+def sync_enquiry_crm_task(self, lead_data):
+    from Holidays.utils import create_zoho_crm_lead
+    result = create_zoho_crm_lead(lead_data)
+    if not result.get('success'):
+        raise self.retry(exc=RuntimeError('CRM enquiry synchronization failed'))
+    return True
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def send_product_order_email_task(self, order_pk):
     """

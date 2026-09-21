@@ -40,6 +40,9 @@ test('public requests remove inherited credentials, including after refresh', as
     api.defaults.headers.common.Authorization = 'Bearer stale-token';
     for (const request of [
         { method: 'get', url: '/api/cities/?country_id=1' },
+        { method: 'get', url: '/api/visas/?is_popular=true' },
+        { method: 'get', url: '/api/packages/' },
+        { method: 'get', url: '/api/goimomi-products/1/' },
         { method: 'post', url: '/api/enquiryform/' },
         { method: 'post', url: '/api/token/' },
         { method: 'get', url: '/api/packages/', skipAuth: true },
@@ -47,6 +50,29 @@ test('public requests remove inherited credentials, including after refresh', as
         const response = await api.request(request);
         assert.equal(response.config.headers.Authorization, undefined);
     }
+});
+
+test('admin catalogue queries and writes retain authorization', async () => {
+    for (const request of [
+        { method: 'get', url: '/api/visas/?all=true' },
+        { method: 'get', url: '/api/packages/', params: { all: true } },
+        { method: 'patch', url: '/api/visas/1/' },
+        { method: 'post', url: '/api/goimomi-products/' },
+    ]) {
+        const response = await api.request(request);
+        assert.equal(response.config.headers.Authorization, 'Bearer access-token');
+    }
+});
+
+test('public visa reads never attempt to refresh an expired admin session', async () => {
+    let refreshes = 0;
+    axios.defaults.adapter = async (config) => { refreshes++; return ok(config); };
+    api.defaults.adapter = async (config) => {
+        assert.equal(config.headers.Authorization, undefined);
+        return ok(config, []);
+    };
+    await api.get('/api/visas/?is_popular=true');
+    assert.equal(refreshes, 0);
 });
 
 test('a logged-out request cannot reuse an old default bearer token', async () => {

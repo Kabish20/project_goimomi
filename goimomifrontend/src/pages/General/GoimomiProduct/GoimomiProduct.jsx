@@ -691,6 +691,7 @@ const ProductDetailsPage = ({ product, onClose, onAddToCart, onBuyNow, isInCart,
         <div className="gp-details-info-section">
           <div className="gp-details-header">
             <h2 className="gp-details-title">{product.title}</h2>
+            {product.image?.includes('/generated/') && <p style={{ fontSize: 12, color: '#64748b' }}>Illustrative product image. Packaging may vary.</p>}
             <span className={`gp-details-stock-badge ${isOutOfStock ? "out" : "in"}`}>
               {isOutOfStock ? "Out of Stock" : "In Stock"}
             </span>
@@ -803,7 +804,7 @@ const ProductCard = ({ product, onAddToCart, onBuyNow, isInCart, onViewDetails }
   if (product.image) images.push(product.image);
   if (product.images && product.images.length > 0) {
     product.images.forEach((img) => {
-      if (img.image) images.push(img.image);
+      if (img.image && !images.includes(img.image)) images.push(img.image);
     });
   }
 
@@ -903,6 +904,7 @@ const ProductCard = ({ product, onAddToCart, onBuyNow, isInCart, onViewDetails }
       {/* Body */}
       <div className="gp-card-body" style={{ cursor: "pointer" }} onClick={() => onViewDetails(product)}>
         <h3 className="gp-card-title">{product.title}</h3>
+        {product.image?.includes('/generated/') && <p style={{ fontSize: 11, color: '#64748b' }}>Illustrative image; packaging may vary.</p>}
 
         <div className="gp-card-price-row">
           <span className="gp-price">{formatCurrency(product.price)}</span>

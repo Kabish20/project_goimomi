@@ -56,6 +56,16 @@ const destinations = [
     description: 'Beach days, colourful streets and a private Innova Crysta for your group.',
     path: '/goa',
   },
+  {
+    name: 'Delhi Agra Jaipur',
+    region: 'Golden Triangle',
+    startingPrice: 14650,
+    highlights: ['4 nights / 5 days', 'Delhi → Agra → Jaipur → Delhi', 'Private cab, breakfasts, dinners & sightseeing'],
+    image: '/images/trending/golden-triangle-tour.jpg',
+    imageAlt: 'Golden Triangle tour featuring the Taj Mahal in Agra, Hawa Mahal in Jaipur, and Red Fort in Delhi',
+    description: 'Historic landmarks, iconic Mughal grandeur and the royal heritage of Jaipur in one classic India circuit.',
+    path: '/golden-triangle',
+  },
 ];
 
 /* Duplicate for seamless infinite loop */

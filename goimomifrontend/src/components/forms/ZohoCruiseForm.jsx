@@ -1,3 +1,4 @@
+import { loadSalesIQOnInteraction } from '../../utils/salesiq';
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
@@ -11,28 +12,7 @@ const ZohoCruiseForm = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (!isOpen) return;
 
-    // 1. SalesIQ Global Config & Script
-    window.$zoho = window.$zoho || {};
-    window.$zoho.salesiq = window.$zoho.salesiq || {
-      widgetcode: 'siq728d0317d0309852f4889fdec03e4cabaa5c80fa1a246bd2cdb3b355a354df81',
-      values: {},
-      ready: function () { }
-    };
-
-    if (!document.getElementById('zsiqscript')) {
-      const d = document;
-      const s = d.createElement('script');
-      s.type = 'text/javascript';
-      s.id = 'zsiqscript';
-      s.defer = true;
-      s.src = 'https://salesiq.zoho.in/widget';
-      const t = d.getElementsByTagName('script')[0];
-      if (t && t.parentNode) {
-        t.parentNode.insertBefore(s, t);
-      } else {
-        document.head.appendChild(s);
-      }
-    }
+    loadSalesIQOnInteraction();
 
     // 2. WebForm Analytics Tracking
     if (!document.getElementById('wf_anal')) {
