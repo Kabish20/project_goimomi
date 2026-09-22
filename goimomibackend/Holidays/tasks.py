@@ -56,7 +56,7 @@ def send_product_order_email_task(self, order_pk):
         order = GoimomiProductOrder.objects.get(pk=order_pk)
         success = send_product_order_email(order)
         if not success:
-            logger.warning(f"[Celery] Order email attempt returned False for order_pk={order_pk}")
+            raise RuntimeError('Order email was not accepted for delivery')
         return success
     except GoimomiProductOrder.DoesNotExist:
         logger.error(f"[Celery] Order with pk={order_pk} does not exist.")
@@ -77,7 +77,7 @@ def send_product_shipped_email_task(self, order_pk):
         order = GoimomiProductOrder.objects.get(pk=order_pk)
         success = send_product_shipped_email(order)
         if not success:
-            logger.warning(f"[Celery] Shipping email attempt returned False for order_pk={order_pk}")
+            raise RuntimeError('Shipping email was not accepted for delivery')
         return success
     except GoimomiProductOrder.DoesNotExist:
         logger.error(f"[Celery] Order with pk={order_pk} does not exist.")
@@ -98,7 +98,7 @@ def send_product_delivered_email_task(self, order_pk):
         order = GoimomiProductOrder.objects.get(pk=order_pk)
         success = send_product_delivered_email(order)
         if not success:
-            logger.warning(f"[Celery] Delivered email attempt returned False for order_pk={order_pk}")
+            raise RuntimeError('Delivered email was not accepted for delivery')
         return success
     except GoimomiProductOrder.DoesNotExist:
         logger.error(f"[Celery] Order with pk={order_pk} does not exist.")
@@ -119,7 +119,7 @@ def send_product_cancelled_email_task(self, order_pk):
         order = GoimomiProductOrder.objects.get(pk=order_pk)
         success = send_product_cancelled_email(order)
         if not success:
-            logger.warning(f"[Celery] Cancelled email attempt returned False for order_pk={order_pk}")
+            raise RuntimeError('Cancelled email was not accepted for delivery')
         return success
     except GoimomiProductOrder.DoesNotExist:
         logger.error(f"[Celery] Order with pk={order_pk} does not exist.")
@@ -142,7 +142,7 @@ def send_cab_booking_email_task(self, booking_pk):
         booking = CabBooking.objects.get(pk=booking_pk)
         success = send_booking_voucher(booking)
         if not success:
-            logger.warning(f"[Celery] Cab voucher email attempt returned False for booking_pk={booking_pk}")
+            raise RuntimeError('Cab voucher email was not accepted for delivery')
         return success
     except CabBooking.DoesNotExist:
         logger.error(f"[Celery] Booking with pk={booking_pk} does not exist.")

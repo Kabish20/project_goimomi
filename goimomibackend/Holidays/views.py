@@ -1693,8 +1693,8 @@ class CabBookingViewSet(ModelViewSet):
             return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Generate 6 digit OTP
-        import random
-        otp = str(random.randint(100000, 999999))
+        import secrets
+        otp = str(secrets.randbelow(900000) + 100000)
         
         # Save or update OTP in the database
         OTPVerification.objects.update_or_create(
@@ -1727,34 +1727,8 @@ class CabBookingViewSet(ModelViewSet):
         </div>
         """
         
-        try:
-            from django.core.mail import EmailMultiAlternatives
-            import threading
-            msg = EmailMultiAlternatives(
-                subject=subject,
-                body=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[email]
-            )
-            msg.attach_alternative(html_message, "text/html")
-            
-            # Send in background thread to avoid blocking Gunicorn worker
-            threading.Thread(target=msg.send).start()
-            return Response({'message': 'OTP sent successfully.'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            try:
-                from django.core.mail import send_mail
-                import threading
-                # Send in background thread to avoid blocking Gunicorn worker
-                threading.Thread(
-                    target=send_mail,
-                    args=(subject, message, settings.DEFAULT_FROM_EMAIL, [email]),
-                    kwargs={'fail_silently': False}
-                ).start()
-                return Response({'message': 'OTP sent successfully.'}, status=status.HTTP_200_OK)
-            except Exception as mail_err:
-                print(f"Error sending OTP email: {mail_err}")
-                return Response({'error': 'Failed to send OTP email.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        from .otp_email import deliver_otp
+        return deliver_otp(email, otp, subject, message, html_message)
 
     @action(detail=False, methods=['post'], url_path='verify-otp', permission_classes=[AllowAny])
     def verify_otp(self, request):
@@ -3151,8 +3125,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         if not email:
             return Response({'error': 'Email ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        import random
-        otp = str(random.randint(100000, 999999))
+        import secrets
+        otp = str(secrets.randbelow(900000) + 100000)
         
         OTPVerification.objects.update_or_create(
             email=email,
@@ -3183,22 +3157,8 @@ class GoimomiProductOrderViewSet(ModelViewSet):
         </div>
         """
         
-        try:
-            from django.core.mail import EmailMultiAlternatives
-            import threading
-            sender = getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@goimomi.com')
-            msg = EmailMultiAlternatives(
-                subject=subject,
-                body=message,
-                from_email=sender,
-                to=[email]
-            )
-            msg.attach_alternative(html_message, "text/html")
-            threading.Thread(target=msg.send).start()
-            return Response({'message': 'OTP sent successfully to your email address.'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            print(f"Error sending OTP email: {e}")
-            return Response({'error': 'Failed to send OTP email. Please try again.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        from .otp_email import deliver_otp
+        return deliver_otp(email, otp, subject, message, html_message)
 
     @action(detail=False, methods=['post'], url_path='verify-otp', permission_classes=[AllowAny])
     def verify_otp(self, request):

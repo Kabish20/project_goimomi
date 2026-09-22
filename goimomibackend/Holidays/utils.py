@@ -717,7 +717,7 @@ def get_zoho_crm_access_token() -> str:
         'client_secret': settings.ZOHO_CRM_CLIENT_SECRET,
         'grant_type': 'refresh_token'
     }
-    response = requests.post(url, data=params)
+    response = requests.post(url, data=params, timeout=10)
     response.raise_for_status()
     return response.json()['access_token']
 

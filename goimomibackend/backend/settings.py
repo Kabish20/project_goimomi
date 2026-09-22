@@ -285,6 +285,7 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BROKER_CONNECTION_TIMEOUT = 3
 CELERY_BROKER_TRANSPORT_OPTIONS = {'socket_connect_timeout': 3, 'socket_timeout': 3}
+CELERY_TASK_ROUTES = {'Holidays.tasks.send_*': {'queue': 'enquiries'}}
 
 # Celery Beat Scheduled Tasks
 CELERY_BEAT_SCHEDULE = {
