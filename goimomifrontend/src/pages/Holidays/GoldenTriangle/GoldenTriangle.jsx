@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarDays, CarFront, Check, ChevronRight, Clock3, Hotel, MapPin, Phone, ShieldCheck, Sparkles, Users, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, CarFront, Check, Hotel, MapPin, Phone, Utensils, Users, X } from 'lucide-react';
 import TrendingDomesticDestinations from '../../../components/holidays/TrendingDomesticDestinations';
 import usePageSEO from '../../../hooks/usePageSEO';
 import api from '../../../api';
 import '../TrendingDestinations/trendingDestinations.css';
 import './GoldenTriangle.css';
 
-const heroImage = '/images/trending/golden-triangle-tour.jpg';
+const heroImage = '/images/golden-triangle/taj-mahal-sunrise.png';
 
 const itinerary = [
   {
@@ -183,224 +183,94 @@ export default function GoldenTriangle() {
   return (
     <div className="gt-page trending-page">
       <section className="td-hero gt-hero" aria-labelledby="gt-title">
-        <img className="td-hero-image" src={heroImage} alt="Golden Triangle tour featuring Delhi Red Fort, Agra Taj Mahal and Jaipur Hawa Mahal" fetchPriority="high" width="1600" height="1000" />
+        <img className="td-hero-image" src={heroImage} alt="The Taj Mahal and its reflecting pool in warm sunrise light" fetchPriority="high" width="1672" height="941" />
         <div className="td-hero-overlay" />
         <div className="td-container td-hero-content">
-          <div className="td-breadcrumb">
-            <Link to="/holidayhome">Goimomi Holidays</Link>
-            <span>/</span>
-            <span>Golden Triangle</span>
-          </div>
-          <span className="td-eyebrow">ICONIC INDIA HERITAGE ROUTE</span>
-          <h1 id="gt-title">Discover the <em>Golden Triangle.</em></h1>
-          <p>Delhi, Agra and Jaipur come together in one unforgettable journey through imperial history, Mughal architecture and Rajasthan’s royal charm.</p>
-          <div className="gt-hero-chips">
-            <span><MapPin size={15} /> Delhi → Agra → Jaipur → Delhi</span>
-            <span><CalendarDays size={15} /> 4 Nights / 5 Days</span>
-          </div>
-          <div className="gt-hero-actions">
-            <a className="td-button td-button-gold" href="#packages">Browse packages <ArrowRight size={18} /></a>
-            <a className="gt-hero-link" href="#itinerary">View itinerary <ChevronRight size={16} /></a>
-          </div>
-          <div className="gt-hero-bottom">
-            <span><Clock3 size={16} /> 5 days</span>
-            <span>From <strong>₹14,650</strong> <small>/ person</small></span>
-          </div>
-          <small>Illustrative route artwork</small>
+          <div className="td-breadcrumb"><Link to="/holidayhome">Goimomi Holidays</Link><span>/</span><span>Golden Triangle</span></div>
+          <span className="td-eyebrow">PRIVATE JOURNEYS · INDIA</span>
+          <h1 id="gt-title">Three cities.<br />One extraordinary<br /><em>Golden Triangle.</em></h1>
+          <p>From Delhi’s timeless monuments to the Taj Mahal and Jaipur’s royal palaces. Discover an iconic Indian journey, at your own pace.</p>
+          <div className="gt-hero-chips"><span><MapPin size={15} /> Delhi → Agra → Jaipur → Delhi</span><span><CalendarDays size={15} /> 4 nights / 5 days</span></div>
+          <div className="gt-hero-actions"><a className="td-button td-button-gold" href="#packages">Explore the packages <ArrowRight size={18} /></a><a className="gt-hero-link" href="#itinerary">See the itinerary <ArrowRight size={16} /></a></div>
+          <div className="gt-hero-bottom"><span>Private Golden Triangle tour</span><span>From <strong>₹14,650</strong> <small>/ person</small></span></div>
+          <small className="gt-image-credit">AI-generated destination illustration</small>
         </div>
       </section>
 
-      <section className="gt-why gt-section td-container" aria-label="Why choose this route">
-        <div className="gt-intro">
-          <span className="td-eyebrow">WHY THIS JOURNEY</span>
-          <h2>Experience India’s most iconic heritage circuit.</h2>
-        </div>
+      <div className="gt-trip-facts"><div className="td-container">
+        {[[CalendarDays, 'THE DURATION', '4 nights · 5 days'], [MapPin, 'THE ROUTE', 'Delhi · Agra · Jaipur'], [CarFront, 'THE EXPERIENCE', 'Your own private cab'], [Utensils, 'THE MEALS', '4 breakfasts · 4 dinners']].map(([Icon, label, value]) => <div className="gt-trip-fact" key={label}><Icon size={22} strokeWidth={1.4} /><div><small>{label}</small><strong>{value}</strong></div></div>)}
+      </div></div>
+      <nav className="gt-page-nav td-container" aria-label="Explore this tour"><a href="#overview">The experience</a><a href="#packages">Packages & stays</a><a href="#itinerary">Day by day</a><a href="#included">What’s included</a><a href="#enquire">Enquire <ArrowRight size={14} /></a></nav>
+
+      <section id="overview" className="gt-why gt-section td-container">
+        <div className="gt-intro"><span className="td-eyebrow">A CLASSIC, BEAUTIFULLY PLANNED</span><h2>A little history.<br />A little wonder.<br /><em>A journey to remember.</em></h2><p>Three remarkable cities, four comfortable nights and a private vehicle throughout. We bring the essentials together so you can enjoy the places that make this route special.</p><a href="#itinerary" className="gt-text-link">Discover your five days <ArrowRight size={17} /></a></div>
         <div className="gt-feature-grid">
           {[
-            ['Taj Mahal', 'Witness the world-famous marble monument in Agra, one of the most iconic sights in India.'],
-            ['Historical Capital', 'Explore the layered history of Delhi through its UNESCO landmarks and key city landmarks.'],
-            ['Royal Jaipur', 'Enjoy the Pink City’s forts, palaces, observatories and vibrant local culture.'],
-          ].map(([title, desc]) => (
-            <article key={title} className="gt-feature-card">
-              <span className="gt-feature-icon"><Sparkles size={18} /></span>
-              <h3>{title}</h3>
-              <p>{desc}</p>
-            </article>
-          ))}
+            ['01', 'Delhi', 'The historic capital', 'Monumental gateways, Mughal history and the many layers of India’s capital.', '1 NIGHT'],
+            ['02', 'Agra', 'A moment of wonder', 'The Taj Mahal, Agra Fort and a glimpse of the city beyond its famous marble silhouette.', '1 NIGHT'],
+            ['03', 'Jaipur', 'A royal welcome', 'Amber Fort, pink sandstone palaces and time to explore the city’s colourful markets.', '2 NIGHTS'],
+          ].map(([number, title, subtitle, desc, stay]) => <article key={title} className="gt-feature-card"><span className="gt-city-number">{number}</span><div><div className="gt-city-heading"><h3>{title}</h3><span>{stay}</span></div><small>{subtitle}</small><p>{desc}</p></div></article>)}
         </div>
       </section>
 
-      <section id="packages" className="gt-section td-container">
-        <div className="td-section-heading">
-          <div>
-            <span className="td-eyebrow">PACKAGE OPTIONS</span>
-            <h2>Choose the best fit for your group.</h2>
+      <section id="packages" className="gt-section gt-package-section">
+        <div className="td-container">
+          <div className="td-section-heading"><div><span className="td-eyebrow">THE RIGHT FIT FOR YOUR GROUP</span><h2>Your journey.<br /><em>Your kind of comfort.</em></h2></div><p>Choose your stay category and group size. Every option includes a private cab, breakfast, dinner and the complete itinerary.</p></div>
+          <div className="gt-package-tabs" role="group" aria-label="Package category selection">
+            <button type="button" disabled={status === 'submitting'} aria-pressed={selectedPlan === 'budget'} className={`gt-package-tab ${selectedPlan === 'budget' ? 'active' : ''}`} onClick={() => { setSelectedPlan('budget'); setStatus('idle'); }}>Budget <span>From ₹14,650 / person</span></button>
+            <button type="button" disabled={status === 'submitting'} aria-pressed={selectedPlan === 'leisure'} className={`gt-package-tab ${selectedPlan === 'leisure' ? 'active' : ''}`} onClick={() => { setSelectedPlan('leisure'); setStatus('idle'); }}>Private Leisure <span>From ₹17,600 / person</span></button>
           </div>
-          <p>Comfortable hotel stays, meals, private cab and heritage sightseeing across Delhi, Agra and Jaipur.</p>
-        </div>
-
-        <div className="gt-package-tabs" role="tablist" aria-label="Package category selection">
-          <button
-            type="button"
-            role="tab" aria-selected={selectedPlan === 'budget'}
-            className={`gt-package-tab ${selectedPlan === 'budget' ? 'active' : ''}`}
-            onClick={() => setSelectedPlan('budget')}
-          >
-            Budget Package (From ₹14,650)
-          </button>
-          <button
-            type="button"
-            role="tab" aria-selected={selectedPlan === 'leisure'}
-            className={`gt-package-tab ${selectedPlan === 'leisure' ? 'active' : ''}`}
-            onClick={() => setSelectedPlan('leisure')}
-          >
-            Private Leisure Package (From ₹17,600)
-          </button>
-        </div>
-
-        <div className="gt-package-grid">
-          {currentPlan.options.map((pkg, index) => (
-            <article key={pkg.guests} className="gt-package-card">
-              <div className="gt-package-top">
-                <span className="gt-tag">{pkg.guests}</span>
-                <span className="gt-spec">{pkg.config}</span>
-              </div>
-              <h3>{currentPlan.name}</h3>
-              <div className="gt-price-row">
-                <span>From</span>
-                <strong>{pkg.price}</strong>
-                <span>{pkg.label}</span>
-              </div>
-              <p>{pkg.note}</p>
-              <a className="td-button td-button-green" href="#enquire" onClick={() => { setGroupIndex(index); setStatus('idle'); }}>Plan this trip <ArrowRight size={17} /></a>
-            </article>
-          ))}
-        </div>
-
-        <div className="gt-hotel-section">
-          <div className="td-section-heading" style={{ marginTop: '40px', marginBottom: '20px' }}>
-            <div>
-              <span className="td-eyebrow">HOTEL OPTIONS — {currentPlan.tag.toUpperCase()}</span>
-              <h3 style={{ fontSize: '1.7rem', margin: '6px 0 0' }}>Deluxe Accommodation Options</h3>
-            </div>
-            <p>Proposed hotels in Delhi, Agra and Jaipur. Deluxe Room or similar category, subject to availability.</p>
+          <div className="gt-package-grid">
+            {currentPlan.options.map((pkg, index) => <article key={pkg.guests} className={`gt-package-card ${index === 2 ? 'gt-package-featured' : ''}`}>
+              <div className="gt-package-top"><Users size={22} strokeWidth={1.5} /><span className="gt-tag">{index === 2 ? 'LOWEST PER-PERSON PRICE' : 'PRIVATE GROUP'}</span></div><h3>{pkg.guests}</h3><span className="gt-spec">{pkg.config}</span>
+              <div className="gt-price-row"><small>Starting from</small><strong>{pkg.price}</strong><span>per person · {currentPlan.name}</span></div>
+              <ul className="gt-package-benefits"><li><Check size={15} />4 nights in deluxe accommodation</li><li><Check size={15} />Breakfast, dinner & private transfers</li><li><Check size={15} />Sightseeing as per the itinerary</li></ul>
+              <a className="td-button" href="#enquire" onClick={() => { setGroupIndex(index); setStatus('idle'); }}>Plan this trip <ArrowRight size={17} /></a>
+            </article>)}
           </div>
-          <div className="gt-hotel-grid">
-            {currentPlan.hotels.map((h) => (
-              <div key={h.city} className="gt-hotel-card">
-                <h4>{h.city}</h4>
-                <p><strong>{h.options}</strong></p>
-                <small style={{ display: 'block', marginTop: '6px', color: '#668076' }}>{h.room}</small>
-              </div>
-            ))}
+          <p className="gt-price-note">Starting prices per person for the stated group size. Hotels and final pricing are subject to availability.</p>
+          <div className="gt-hotel-section"><div className="td-section-heading"><div><span className="td-eyebrow">YOUR STAYS · {currentPlan.tag.toUpperCase()}</span><h3 className="gt-hotel-title">A comfortable place to return to.</h3></div><p>Proposed hotels for your selected package. Deluxe rooms or a similar category.</p></div>
+            <div className="gt-hotel-grid">{currentPlan.hotels.map(h => <article key={h.city} className="gt-hotel-card"><div className="gt-hotel-heading"><Hotel size={20} strokeWidth={1.4} /><h4>{h.city}</h4><span>{h.city === 'Jaipur' ? '2 nights' : '1 night'}</span></div><ul>{h.options.split(' / ').map(hotel => <li key={hotel}>{hotel}</li>)}</ul><small>{h.room}</small></article>)}</div>
           </div>
         </div>
       </section>
 
       <section id="itinerary" className="gt-section td-container">
-        <div className="td-section-heading">
-          <div>
-            <span className="td-eyebrow">ITINERARY</span>
-            <h2>Your 5-day heritage journey.</h2>
-          </div>
-          <p>Explore the highlights without rushing, with well-paced transfers and overnight stays.</p>
-        </div>
-
-        <div className="gt-itinerary-list">
-          {itinerary.map((item) => (
-            <article key={item.day} className="gt-day-card">
-              <div className="gt-day-header">
-                <span className="gt-day-badge">{item.day}</span>
-                <h3>{item.title}</h3>
-              </div>
-              <p>{item.description}</p>
-              <div className="gt-badges">
-                {item.highlights.map((highlight) => (
-                  <span key={highlight}>{highlight}</span>
-                ))}
-              </div>
-            </article>
-          ))}
+        <div className="td-section-heading"><div><span className="td-eyebrow">THE JOURNEY, DAY BY DAY</span><h2>Five days.<br /><em>Countless memories.</em></h2></div><p>A thoughtfully planned route, with Delhi pickup and drop and four nights along the way.</p></div>
+        <div className="gt-itinerary-layout">
+          <figure className="gt-itinerary-photo"><img src="/images/golden-triangle/jaipur.png" alt="Jaipur’s Hawa Mahal in warm evening light" loading="lazy" width="1536" height="1024" /><figcaption><span>THE PINK CITY</span><strong>Stories in every stone.</strong><small>Representative AI-generated artwork</small></figcaption></figure>
+          <div className="gt-itinerary-list">{itinerary.map((item, index) => <article key={item.day} className="gt-day-card"><span className="gt-timeline-number">0{index + 1}</span><div><div className="gt-day-header"><span className="gt-day-badge">{item.day}</span><h3>{item.title}</h3></div><p>{item.description}</p><div className="gt-badges">{item.highlights.map(highlight => <span key={highlight}>{highlight}</span>)}</div></div></article>)}</div>
         </div>
       </section>
 
-      <section className="gt-section td-container">
+      <section id="included" className="gt-section gt-details-section"><div className="td-container">
+        <div className="td-section-heading"><div><span className="td-eyebrow">EVERY DETAIL, CLEARLY LAID OUT</span><h2>Know before <em>you go.</em></h2></div></div>
+        <div className="gt-stay-strip"><strong><Hotel size={20} /> Your accommodation plan</strong><span>Delhi <b>1 night</b></span><span>Agra <b>1 night</b></span><span>Jaipur <b>2 nights</b></span><span>Total <b>4 nights / 5 days</b></span></div>
         <div className="gt-info-grid">
-          <article className="gt-panel">
-            <span className="td-eyebrow">STAY & TRAVEL</span>
-            <h3>Accommodation Plan</h3>
-            <ul className="gt-list">
-              <li><Hotel size={15} /><strong>Delhi:</strong> 01 Night</li>
-              <li><Hotel size={15} /><strong>Agra:</strong> 01 Night</li>
-              <li><Hotel size={15} /><strong>Jaipur:</strong> 02 Nights</li>
-              <li><Clock3 size={15} /><strong>Total Duration:</strong> 04 Nights / 05 Days</li>
-            </ul>
-          </article>
-
-          <article className="gt-panel">
-            <span className="td-eyebrow">INCLUSIONS</span>
-            <h3>Package Inclusions</h3>
-            <ul className="gt-list">
-              {packageInclusions.map((item) => (
-                <li key={item}><Check size={15} />{item}</li>
-              ))}
-            </ul>
-          </article>
+          <article className="gt-panel"><span className="gt-list-heading"><Check size={20} /><h3>Included in your journey</h3></span><ul className="gt-list">{packageInclusions.map(item => <li key={item}><Check size={15} />{item}</li>)}</ul></article>
+          <article className="gt-panel gt-panel-excluded"><span className="gt-list-heading"><X size={20} /><h3>Plan for these separately</h3></span><ul className="gt-list">{packageExclusions.map(item => <li key={item}><X size={15} />{item}</li>)}</ul></article>
         </div>
+      </div></section>
 
-        <div className="gt-exclusions">
-          <h3>Package Exclusions</h3>
-          <ul>
-            {packageExclusions.map((item) => (
-              <li key={item}><X size={15} />{item}</li>
-            ))}
-          </ul>
+      <section id="enquire" className="gt-enquire-section"><div className="td-container gt-enquire-inner">
+        <div className="gt-enquire-copy"><span className="td-eyebrow">YOUR NEXT CHAPTER STARTS HERE</span><h2>Let’s make this<br /><em>your journey.</em></h2><p>Tell us who’s travelling and when. Our travel team will help with availability, hotel options and a personalised quote.</p><div className="gt-callout"><Phone size={23} strokeWidth={1.4} /><div><small>Prefer to talk it through?</small><a href="tel:+918110082222">+91 8110082222</a></div></div><div className="gt-enquire-route"><span>DELHI</span><i /><span>AGRA</span><i /><span>JAIPUR</span></div><p className="gt-enquire-note">4 nights · 5 days · A private journey</p></div>
+        <div className="gt-enquire-card"><span className="td-eyebrow">YOUR TRIP, YOUR DETAILS</span><h3>Request your personalised quote</h3>
+          <form className="gt-enquiry-form" onSubmit={submitEnquiry}>
+            <p className="gt-form-summary"><strong>{currentPlan.name}</strong><span>From {selectedGroup.price} / person</span></p>
+            <label>Package<select value={selectedPlan} onChange={event => { setSelectedPlan(event.target.value); setStatus('idle'); }} disabled={status === 'submitting'}><option value="budget">Budget Package</option><option value="leisure">Private Leisure Package</option></select></label>
+            <label>Group size<select value={groupIndex} onChange={event => { setGroupIndex(Number(event.target.value)); setStatus('idle'); }} disabled={status === 'submitting'}>{currentPlan.options.map((option, index) => <option key={option.guests} value={index}>{option.guests} — {option.config}</option>)}</select></label>
+            <label>Full name<input name="name" value={form.name} onChange={updateForm} required autoComplete="name" maxLength={100} placeholder="Your name" /></label>
+            <label>Email<input name="email" type="email" value={form.email} onChange={updateForm} required autoComplete="email" placeholder="you@example.com" /></label>
+            <label>Phone<input name="phone" type="tel" value={form.phone} onChange={updateForm} required autoComplete="tel" pattern="[+0-9 ()-]{10,20}" maxLength={20} placeholder="+91" /></label>
+            <label>Travel date<input name="date" type="date" value={form.date} onChange={updateForm} required min={new Date().toLocaleDateString('en-CA')} /></label>
+            <label className="gt-form-wide">Message<textarea name="message" value={form.message} onChange={updateForm} rows={3} placeholder="Anything you’d like us to know?" /></label>
+            <button type="submit" className="td-button td-button-gold" disabled={status === 'submitting' || status === 'success'}>{status === 'submitting' ? 'Sending…' : status === 'success' ? 'Enquiry received' : 'Request a quote'} <ArrowRight size={17} /></button>
+            <small className="gt-form-wide gt-form-footnote">An enquiry only. Availability and final price will be confirmed by our team.</small>
+            {status === 'success' && <p className="gt-form-wide" role="status">Your enquiry has been received. Our team will contact you to confirm availability.</p>}
+            {status === 'error' && <p className="gt-form-wide" role="alert">We couldn’t submit your enquiry. Please try again or call +91 8110082222.</p>}
+          </form>
         </div>
-      </section>
-
-      <section id="enquire" className="gt-enquire-section">
-        <div className="td-container gt-enquire-inner">
-          <div>
-            <span className="td-eyebrow">START YOUR JOURNEY</span>
-            <h2>Let’s plan your Golden Triangle getaway.</h2>
-            <p>Speak with our travel team for availability, room preferences and a personalised quote.</p>
-            <div className="gt-callout">
-              <Phone size={20} />
-              <a href="tel:+918110082222">+91 8110082222</a>
-            </div>
-          </div>
-
-          <div className="gt-enquire-card">
-            <div className="gt-cards">
-              <div>
-                <ShieldCheck size={18} />
-                <span>Private cab included</span>
-              </div>
-              <div>
-                <CarFront size={18} />
-                <span>Multiple group options</span>
-              </div>
-              <div>
-                <Users size={18} />
-                <span>Flights / rail not included</span>
-              </div>
-            </div>
-            <form className="gt-enquiry-form" onSubmit={submitEnquiry}>
-              <p><strong>{currentPlan.name}</strong> · {selectedGroup.price} per person, starting price</p>
-              <label>Group size<select value={groupIndex} onChange={event => { setGroupIndex(Number(event.target.value)); setStatus('idle'); }} disabled={status === 'submitting'}>{currentPlan.options.map((option, index) => <option key={option.guests} value={index}>{option.guests} — {option.config}</option>)}</select></label>
-              <label>Full name<input name="name" value={form.name} onChange={updateForm} required autoComplete="name" maxLength={100} /></label>
-              <label>Email<input name="email" type="email" value={form.email} onChange={updateForm} required autoComplete="email" /></label>
-              <label>Phone<input name="phone" type="tel" value={form.phone} onChange={updateForm} required autoComplete="tel" pattern="[+0-9 ()-]{10,20}" maxLength={20} /></label>
-              <label>Travel date<input name="date" type="date" value={form.date} onChange={updateForm} required min={new Date().toLocaleDateString('en-CA')} /></label>
-              <label>Message<textarea name="message" value={form.message} onChange={updateForm} rows={3} /></label>
-              <button type="submit" className="td-button td-button-gold" disabled={status === 'submitting' || status === 'success'}>{status === 'submitting' ? 'Sending…' : status === 'success' ? 'Enquiry received' : 'Request a quote'} <ArrowRight size={17} /></button>
-              {status === 'success' && <p role="status">Your enquiry has been received. Our team will contact you to confirm availability.</p>}
-              {status === 'error' && <p role="alert">We couldn’t submit your enquiry. Please try again or call +91 8110082222.</p>}
-            </form>
-          </div>
-        </div>
-      </section>
-
+      </div></section>
       <TrendingDomesticDestinations />
     </div>
   );
