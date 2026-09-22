@@ -89,7 +89,7 @@ try {
     }
   }
   assert.deepEqual(errors, []);
-  const report = { passed: true, checks: ['Homepage international card opens Azerbaijan', 'Per-adult twin-sharing prices 26215 and 31850 shown in cards and form options', 'Five days, eight city attractions, 17 inclusions, nine exclusions, eight important notes', 'Hotel selection updates the per-adult price and two-adult enquiry total', 'Mocked failed request retains input', 'Both hotel enquiry payloads retain the correct total and include the per-adult rate', 'No page overflow at 320px, 390px or 768px', 'No browser JavaScript errors'], note: 'No live enquiries submitted; API success and error responses were mocked.' };
+  const report = { passed: true, checks: ['Homepage international card opens Azerbaijan', 'Per-adult twin-sharing prices 26215 and 31850 shown in cards and form options', 'Five days, eight city attractions, 17 inclusions, nine exclusions', 'Hotel selection updates the per-adult price and two-adult enquiry total', 'Mocked failed request retains input', 'Both hotel enquiry payloads retain the correct total and include the per-adult rate', 'No page overflow at 320px, 390px or 768px', 'No browser JavaScript errors'], note: 'No live enquiries submitted; API success and error responses were mocked.' };
   await fs.writeFile(`${output}/verification.json`, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
 } finally { await browser.close(); }

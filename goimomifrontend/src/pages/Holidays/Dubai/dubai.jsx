@@ -70,15 +70,15 @@ export default function Dubai() {
     </section>
 
     <section id="db-itinerary" className="bl-soft"><div className="td-container td-section">
-      <div className="td-section-heading"><div><span className="td-eyebrow">4 NIGHTS / 5 DAYS</span><h2>Your Dubai story, <em>day by day.</em></h2></div><p>SIC means seat-in-coach: the city tour and desert safari are shared tours. Airport transfers are private.</p></div>
+      <div className="td-section-heading"><div><span className="td-eyebrow">4 NIGHTS / 5 DAYS</span><h2>Your Dubai story, <em>day by day.</em></h2></div></div>
       <div className="bl-itinerary"><aside className="bl-journey-photo"><img src={trip.image} alt={trip.imageAlt} loading="lazy" /><div><MapPin size={28} /><h3>An evening on the water.</h3><p>Dubai Creek Cruise with Dinner · Day 2</p></div></aside>
         <div className="bl-days">{days.map((day, index) => <details className="bl-day" key={day.title} open={index === 0}><summary><span className="bl-day-number">DAY<strong>{String(index + 1).padStart(2, '0')}</strong></span><span><small>{day.timing}</small><h3>{day.title}</h3></span><ChevronDown size={18} /></summary><div className="bl-day-body"><p>{day.description}</p><ul>{day.highlights.map(item => <li key={item}><Check size={14} />{item}</li>)}</ul><p className="bl-day-note">{day.note}</p></div></details>)}</div>
       </div>
     </div></section>
 
     <section id="db-stay" className="td-container td-section">
-      <div className="td-section-heading"><div><span className="td-eyebrow">YOUR DUBAI STAY</span><h2>Stay comfortably. <em>Explore freely.</em></h2></div><p>Minimum 2 persons · Twin sharing · {trip.mealPlan}</p></div>
-      <div className="bl-stay"><div><Hotel size={30} /><h3>{trip.hotel}</h3><p>3★ hotel · {trip.nights} nights · {trip.room}</p><ul><li><Check size={16} />Daily breakfast</li><li><Check size={16} />Welcome kit & UAE VAT included</li><li><CalendarDays size={16} />Stay validity: {trip.validity}</li></ul><p className="bl-fine">Tourism Dirham Fee is payable directly at the hotel. Our team will confirm availability for your full stay.</p></div><div className="bl-price"><span>3★ DUBAI HOLIDAY PACKAGE</span><strong>{rupees(trip.pricePerAdult)}</strong><small>per person · based on twin sharing</small><a href="#db-enquire" className="td-button td-button-green">Enquire about this stay <ArrowRight size={16} /></a></div></div>
+      <div className="td-section-heading"><div><span className="td-eyebrow">YOUR DUBAI STAY</span><h2>Stay comfortably. <em>Explore freely.</em></h2></div></div>
+      <div className="bl-stay"><div><Hotel size={30} /><h3>{trip.hotel}</h3><p>3★ hotel · {trip.nights} nights · {trip.room}</p><ul><li><Check size={16} />Daily breakfast</li><li><Check size={16} />Welcome kit & UAE VAT included</li></ul></div><div className="bl-price"><span>3★ DUBAI HOLIDAY PACKAGE</span><strong>{rupees(trip.pricePerAdult)}</strong><small>per person · based on twin sharing</small><a href="#db-enquire" className="td-button td-button-green">Enquire about this stay <ArrowRight size={16} /></a></div></div>
     </section>
 
     <section id="db-inclusions" className="bl-soft"><div className="td-container td-section"><span className="td-eyebrow">KNOW YOUR PACKAGE</span><h2>What’s included, <em>and what’s extra.</em></h2><div className="bl-inclusions"><article><h3>Package inclusions</h3><ul>{inclusions.map(item => <li key={item}><Check size={15} />{item}</li>)}</ul></article><article><h3>Package exclusions</h3><ul>{exclusions.map(item => <li key={item}><X size={15} />{item}</li>)}</ul></article></div></div></section>

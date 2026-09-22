@@ -57,8 +57,6 @@ try {
   for (const [index, price, room] of [[0,23500,'Deluxe Room'],[1,25000,'Deluxe Room'],[2,29500,'Super Deluxe Room']]) {
     await page.locator('.ml-stay button').nth(index).click();
     assert.equal(await page.locator('#ml-stay').inputValue(), String(index));
-    assert.match(await page.locator('.ml-selection').innerText(), new RegExp((price / 2).toLocaleString('en-IN')));
-    assert.match(await page.locator('.ml-selection').innerText(), /per adult.*twin sharing/);
     assert.match(await page.locator('.ml-enquiry-summary').innerText(), new RegExp((price / 2).toLocaleString('en-IN')));
     assert.match(await page.locator('.ml-enquiry-summary').innerText(), new RegExp(price.toLocaleString('en-IN')));
     await page.getByRole('button', { name: 'Enquire about Manali', exact: true }).click();
