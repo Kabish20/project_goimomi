@@ -3,8 +3,9 @@ from tempfile import TemporaryDirectory
 
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 from rest_framework.test import APIClient
@@ -46,6 +47,8 @@ class GlobalHorizonsProfileTests(TestCase):
         self.assertEqual(self.client.get(url, {'file_type': 'pdf'}).status_code, 200)
 
     def setUp(self):
+        # Each test gets a fresh throttle counter, independent of other API tests.
+        cache.clear()
         directory = TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         settings_override = override_settings(MEDIA_ROOT=directory.name)
@@ -79,6 +82,11 @@ class GlobalHorizonsProfileTests(TestCase):
         self.assertTrue(profile.photo.name.startswith('global_horizons/srilanka/'))
         with profile.photo.open('rb') as saved:
             self.assertEqual(Image.open(saved).size, (12, 12))
+
+    def test_bare_social_link_is_saved_as_https(self):
+        response = self.client.post(self.url, self.payload(website='  linkedin.com/in/example?ref=profile#about  '), format='multipart')
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(GlobalHorizonsProfile.objects.get().website, 'https://linkedin.com/in/example?ref=profile#about')
 
     def test_optional_website_and_zero_years_are_accepted(self):
         payload = self.payload(years_of_experience=0)
@@ -177,3 +185,28 @@ class GlobalHorizonsProfileTests(TestCase):
             self.assertFalse(getattr(profile, field))
         response = self.client.patch(detail, {'ticket_status': 'booked'}, format='multipart')
         self.assertEqual(response.status_code, 400)
+
+
+class ProfileLinkValidationTests(SimpleTestCase):
+    def test_supported_web_links(self):
+        from .profile_links import normalize_profile_link
+        for source, expected in [
+            ('', ''), ('  ', ''), ('example.com', 'https://example.com'),
+            ('www.example.com/about', 'https://www.example.com/about'),
+            ('instagram.com/example/', 'https://instagram.com/example/'),
+            ('https://wa.me/919876543210', 'https://wa.me/919876543210'),
+            ('https://youtu.be/abc?x=1#part', 'https://youtu.be/abc?x=1#part'),
+            ('http://example.com', 'http://example.com'),
+            ('//linkedin.com/in/example', 'https://linkedin.com/in/example'),
+        ]:
+            with self.subTest(source=source):
+                self.assertEqual(normalize_profile_link(source), expected)
+
+    def test_invalid_and_non_web_links(self):
+        from django.core.exceptions import ValidationError
+        from .profile_links import normalize_profile_link
+        for value in ['javascript:alert(1)', 'data:text/html,test', 'ftp://example.com/file',
+                      'mailto:hello@example.com', 'tel:+123456', 'not a link', '/relative',
+                      'https://user:password@example.com', 'https://example.com/' + 'a' * 500]:
+            with self.subTest(value=value), self.assertRaises(ValidationError):
+                normalize_profile_link(value)

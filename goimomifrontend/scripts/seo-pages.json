@@ -393,5 +393,21 @@
     "image": "/images/seo/admin-access.png",
     "keywords": "",
     "indexable": false
+  },
+  {
+    "route": "/globalhorizonssrilanka",
+    "canonical": "/globalhorizonssrilanka",
+    "title": "Global Horizons Sri Lanka | Participant Profile | Goimomi",
+    "description": "Share your professional profile for Global Horizons Sri Lanka. Connect with Tamil entrepreneurs in Colombo through curated introductions and networking dinners.",
+    "image": "/images/seo/sri-lanka-business-journey.jpg",
+    "keywords": "Global Horizons Sri Lanka, Colombo entrepreneur networking, participant profile, Tamil entrepreneurs"
+  },
+  {
+    "route": "/global-horizons-srilanka",
+    "canonical": "/globalhorizonssrilanka",
+    "title": "Global Horizons Sri Lanka | Participant Profile | Goimomi",
+    "description": "Share your professional profile for Global Horizons Sri Lanka. Connect with Tamil entrepreneurs in Colombo through curated introductions and networking dinners.",
+    "image": "/images/seo/sri-lanka-business-journey.jpg",
+    "keywords": "Global Horizons Sri Lanka, Colombo entrepreneur networking, participant profile, Tamil entrepreneurs"
   }
 ]

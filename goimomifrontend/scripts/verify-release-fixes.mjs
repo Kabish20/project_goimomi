@@ -5,6 +5,7 @@ import { chromium } from 'playwright-core';
 const base = process.env.VERIFY_BASE_URL || 'http://127.0.0.1:5186';
 const browser = await chromium.launch({ headless: true, channel: 'msedge' });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+page.setDefaultNavigationTimeout(Number(process.env.VERIFY_NAVIGATION_TIMEOUT_MS || 30000));
 const errors = [];
 const missing = [];
 let submitted;

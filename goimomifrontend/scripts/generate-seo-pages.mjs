@@ -153,12 +153,13 @@ for (const page of pages) {
   fs.writeFileSync(path.join(routeDirectory, 'index.html'), renderPage(page));
 }
 
-const sitemapPages = pages.filter((page) => page.indexable !== false);
-const sitemapEntries = sitemapPages.map((page) => {
-  const route = page.canonical || page.route;
-  const url = route === '/' ? siteUrl : `${siteUrl}${route}`;
-  return `  <url>\n    <loc>${escapeHtml(url)}</loc>\n  </url>`;
-}).join('\n');
+const sitemapUrls = [...new Set(pages.filter((page) => page.indexable !== false).map((page) => {
+  const route = (page.canonical || page.route).replace(/^\/+|\/+$/g, '');
+  return route ? `${siteUrl}/${route}/` : `${siteUrl}/`;
+}))];
+const sitemapEntries = sitemapUrls.map((url) =>
+  `  <url>\n    <loc>${escapeHtml(url)}</loc>\n  </url>`
+).join('\n');
 
 fs.writeFileSync(
   path.join(distDirectory, 'sitemap.xml'),
@@ -166,4 +167,4 @@ fs.writeFileSync(
 );
 
 console.log(`Generated crawler-readable SEO pages for ${pages.length} public routes.`);
-console.log(`Generated sitemap.xml with ${sitemapPages.length} indexable routes.`);
+console.log(`Generated sitemap.xml with ${sitemapUrls.length} unique indexable routes.`);

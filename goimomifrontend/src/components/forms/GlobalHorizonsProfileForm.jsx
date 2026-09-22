@@ -9,7 +9,7 @@ const fields = [
   { name: 'organization', label: 'Organization / Brand Name', maxLength: 255, autoComplete: 'organization' },
   { name: 'years_of_experience', label: 'Years of experience', type: 'number', min: 0, max: 100, step: 1 },
   { name: 'interests', label: 'Areas of interest or expertise', multiline: true, maxLength: 5000 },
-  { name: 'website', label: 'Website', type: 'url', optional: true, maxLength: 500, placeholder: 'https://example.com', autoComplete: 'url' },
+  { name: 'website', label: 'Website or social profile', type: 'text', inputMode: 'url', optional: true, maxLength: 500, placeholder: 'example.com or instagram.com/yourprofile', autoComplete: 'url' },
   { name: 'email', label: 'Email address', type: 'email', maxLength: 254, autoComplete: 'email' },
   { name: 'connections_sought', label: 'What kind of connection are you looking for in Sri Lanka?', multiline: true, maxLength: 5000 },
 ];
@@ -97,8 +97,9 @@ export default function GlobalHorizonsProfileForm({ initialProfile, onSaved, onC
             <label htmlFor={`gh-${name}`} className="mb-1 block text-sm font-semibold text-slate-700">{label}{optional ? ' (optional)' : ' *'}</label>
             <Control {...inputProps} id={`gh-${name}`} name={name} required={!optional} rows={multiline ? 2 : undefined}
               value={values[name]} onChange={event => setValues({ ...values, [name]: event.target.value })}
-              aria-invalid={Boolean(errors[name])} aria-describedby={errors[name] ? `gh-error-${name}` : undefined}
+              aria-invalid={Boolean(errors[name])} aria-describedby={[name === 'website' ? 'gh-website-help' : '', errors[name] ? `gh-error-${name}` : ''].filter(Boolean).join(' ') || undefined}
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+            {name === 'website' && <p id="gh-website-help" className="mt-1 text-xs text-slate-500">Website, LinkedIn, Instagram, Facebook, YouTube or another web link. You can leave out https://.</p>}
             {errors[name] && <p id={`gh-error-${name}`} className="mt-1 text-sm text-red-700">{String(errors[name])}</p>}
           </div>;
         })}

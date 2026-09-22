@@ -18,6 +18,8 @@ const NO_INDEX_PATHS = [
   /^\/goimomi-product(?:\/|$)/i,
 ];
 const CANONICAL_PATHS = {
+  '/globalhorizonssrilanka': '/globalhorizonssrilanka/',
+  '/global-horizons-srilanka': '/globalhorizonssrilanka/',
   '/goimomi-product': '/shop',
 };
 

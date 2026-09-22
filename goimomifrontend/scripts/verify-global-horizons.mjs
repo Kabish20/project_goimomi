@@ -14,7 +14,7 @@ const photo = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQ
 let profile = {
   id: 1, full_name: 'Sample Participant', city: 'Chennai', country: 'India', profession: 'Entrepreneur',
   organization: 'Sample Textiles', years_of_experience: 12, interests: 'Sustainable textiles',
-  website: 'https://example.com', email: 'participant@example.com', connections_sought: 'Meet distributors in Colombo',
+  website: 'linkedin.com/in/example', email: 'participant@example.com', connections_sought: 'Meet distributors in Colombo',
   photo: `data:image/png;base64,${photo.toString('base64')}`, created_at: '2026-09-22T10:00:00Z',
   ticket_status: 'booked', arrival_date: '2026-10-22', arrival_flight_no: 'UL 122', arrival_time: '12:30',
   return_date: '2026-10-24', return_flight_no: 'UL 123', return_time: '18:45',
@@ -62,6 +62,16 @@ await page.route('**/*', async route => {
 try {
   await page.goto(`${base}/global-horizons-srilanka`, { waitUntil: 'networkidle' });
   await page.getByRole('heading', { name: 'Participant Profile Request' }).waitFor();
+  assert.equal(await page.title(), 'Global Horizons Sri Lanka | Participant Profile | Goimomi');
+  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), `${base}/globalhorizonssrilanka/`);
+  assert.match(await page.locator('meta[property="og:image"]').getAttribute('content'), /sri-lanka-business-journey.jpg$/);
+  for (const route of ['/globalhorizonssrilanka/', '/global-horizons-srilanka/']) {
+    const html = await page.evaluate(async url => (await fetch(url)).text(), base + route);
+    assert.ok(html.includes('<title>Global Horizons Sri Lanka | Participant Profile | Goimomi</title>'));
+    assert.ok(html.includes('https://goimomi.com/globalhorizonssrilanka/'));
+  }
+  const sitemap = await page.evaluate(async url => (await fetch(url)).text(), base + '/sitemap.xml');
+  assert.equal(sitemap.split('<loc>https://goimomi.com/globalhorizonssrilanka/</loc>').length - 1, 1);
   // The general enquiry popup must not interrupt the profile form.
   assert.equal(await page.evaluate(() => sessionStorage.getItem('generalEnquiryShown')), null);
   for (const name of ['full_name', 'city', 'country', 'profession', 'organization', 'years_of_experience', 'interests', 'website', 'email', 'connections_sought']) {

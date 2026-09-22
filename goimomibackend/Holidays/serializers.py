@@ -26,6 +26,16 @@ from .models import (
 )
 
 class GlobalHorizonsProfileSerializer(serializers.ModelSerializer):
+    website = serializers.CharField(required=False, allow_blank=True, max_length=500)
+
+    def validate_website(self, value):
+        from django.core.exceptions import ValidationError
+        from .profile_links import normalize_profile_link
+        try:
+            return normalize_profile_link(value)
+        except ValidationError as error:
+            raise serializers.ValidationError(error.messages)
+
     ticket_status = serializers.ChoiceField(choices=GlobalHorizonsProfile._meta.get_field('ticket_status').choices, required=True)
 
     def validate(self, attrs):

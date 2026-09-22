@@ -5,7 +5,7 @@ import usePageSEO from '../../hooks/usePageSEO';
 
 export default function GlobalHorizonsSrilanka() {
   const [saved, setSaved] = useState(false);
-  usePageSEO('Global Horizons - Srilanka | Participant Profile', 'Share your participant profile for meaningful introductions with Tamil entrepreneurs in Colombo.');
+  usePageSEO('Global Horizons Sri Lanka | Participant Profile | Goimomi', 'Share your professional profile for Global Horizons Sri Lanka. Connect with Tamil entrepreneurs in Colombo through curated introductions and networking dinners.', '/images/seo/sri-lanka-business-journey.jpg');
 
   return <div className="min-h-screen bg-[#f4f8f5] px-4 py-6 sm:px-6 sm:py-8">
     <div className="mx-auto max-w-2xl">
