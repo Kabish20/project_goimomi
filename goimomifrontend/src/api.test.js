@@ -29,6 +29,7 @@ test('admin enquiry reads and master-data writes retain authorization', async ()
     for (const [method, url] of [
         ['get', '/api/enquiryform/'], ['get', '/api/holiday-form/'],
         ['get', '/api/business-journey-registrations/'], ['delete', '/api/cities/1/'],
+        ['get', '/api/global-horizons-srilanka/'], ['patch', '/api/global-horizons-srilanka/1/'],
         ['patch', '/api/airports/2/'], ['post', '/api/pickup-point-masters/'],
     ]) {
         const response = await api.request({ method, url });
@@ -44,6 +45,7 @@ test('public requests remove inherited credentials, including after refresh', as
         { method: 'get', url: '/api/packages/' },
         { method: 'get', url: '/api/goimomi-products/1/' },
         { method: 'post', url: '/api/enquiryform/' },
+        { method: 'post', url: '/api/global-horizons-srilanka/' },
         { method: 'post', url: '/api/token/' },
         { method: 'get', url: '/api/packages/', skipAuth: true },
     ]) {

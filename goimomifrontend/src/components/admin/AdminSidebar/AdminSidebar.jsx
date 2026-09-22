@@ -23,6 +23,7 @@ const menu = [
     title: "Menu",
     items: [
       { name: "Users", icon: <Users size={18} /> },
+      { name: "Global Horizons - Srilanka", icon: <Globe size={18} /> },
       {
         name: "Management Country",
         icon: <Globe size={18} />,
@@ -204,6 +205,7 @@ const AdminSidebar = () => {
     const key = typeof item === 'string' ? item : (item.key || item.name);
     switch (key) {
       case "Users": return handleChangeUsers;
+      case "Global Horizons - Srilanka": return () => navigate('/admin/global-horizons-srilanka');
       case "Holiday Packages": return handleChangePackage;
       case "Enquiries": return handleChangeEnquiry;
       case "Holiday Enquiries": return handleChangeHolidayEnquiry;

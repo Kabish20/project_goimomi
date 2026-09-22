@@ -201,7 +201,7 @@ from .models import (
     VehicleRateCard, PickupPointMaster, CabBooking, CabAdditionalDocument,
     CancellationPolicy, CantonEnquiry, BusinessJourneyRegistration, City, Region, Nationality, Country, Airport, CruiseTerminal, OTPVerification,
     GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking,
-    CatalogueMaster, SubCatalogue, ZohoWebhookLog
+    CatalogueMaster, SubCatalogue, ZohoWebhookLog, GlobalHorizonsProfile
 )
 from .serializers import (
     HolidayEnquirySerializer, UmrahEnquirySerializer, EnquirySerializer,
@@ -219,8 +219,28 @@ from .serializers import (
     CancellationPolicySerializer, CantonEnquirySerializer, BusinessJourneyRegistrationSerializer, CitySerializer,
     RegionSerializer, NationalitySerializer, CountrySerializer, AirportSerializer, CruiseTerminalSerializer,
     GoimomiProductSerializer, GoimomiProductImageSerializer, GoimomiProductOrderSerializer, LogisticsProviderSerializer, PackageBookingSerializer,
-    CatalogueMasterSerializer, SubCatalogueSerializer
+    CatalogueMasterSerializer, SubCatalogueSerializer, GlobalHorizonsProfileSerializer
 )
+
+class GlobalHorizonsProfileViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticatedOrWriteOnly]
+    queryset = GlobalHorizonsProfile.objects.all()
+    serializer_class = GlobalHorizonsProfileSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = None
+
+    @action(detail=False, methods=['get'], url_path='export', permission_classes=[IsAdminUser])
+    def export(self, request):
+        from .profile_exports import export_profiles
+        file_type = request.query_params.get('file_type', 'xlsx')
+        if file_type not in ('xlsx', 'pdf'):
+            return Response({'detail': 'Choose xlsx or pdf.'}, status=400)
+        search = request.query_params.get('search', '').strip().lower()
+        search_fields = ('full_name', 'city', 'country', 'profession', 'organization', 'email', 'interests', 'connections_sought')
+        profiles = [profile for profile in self.get_queryset()
+                    if not search or any(search in str(getattr(profile, field) or '').lower() for field in search_fields)]
+        return export_profiles(profiles, request, file_type)
+
 
 class BusinessJourneyRegistrationViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrWriteOnly]

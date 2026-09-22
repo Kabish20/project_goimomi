@@ -5,6 +5,7 @@ const api = axios.create({
 });
 
 const publicForms = new Set([
+    'global-horizons-srilanka',
     'business-journey-registrations', 'businessjourneyregistrations',
     'chithirai-registrations', 'chithirairegistrations', 'chithirai-enquiries',
     'chithiraienquiries', 'canton-enquiries', 'cantonenquiries',

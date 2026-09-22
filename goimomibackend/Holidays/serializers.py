@@ -3,6 +3,7 @@ from datetime import date
 
 # Rest Framework Imports
 from rest_framework import serializers
+from .models import GlobalHorizonsProfile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Django Imports
@@ -23,6 +24,30 @@ from .models import (
     GoimomiProduct, GoimomiProductImage, GoimomiProductOrder, LogisticsProvider, PackageBooking,
     CatalogueMaster, SubCatalogue
 )
+
+class GlobalHorizonsProfileSerializer(serializers.ModelSerializer):
+    ticket_status = serializers.ChoiceField(choices=GlobalHorizonsProfile._meta.get_field('ticket_status').choices, required=True)
+
+    def validate(self, attrs):
+        ticket_status = attrs.get('ticket_status', getattr(self.instance, 'ticket_status', 'not_booked'))
+        flight_fields = ('arrival_date', 'arrival_flight_no', 'arrival_time', 'return_date', 'return_flight_no', 'return_time')
+        if ticket_status == 'not_booked':
+            for field in flight_fields:
+                attrs[field] = '' if field.endswith('_no') else None
+        else:
+            values = {field: attrs.get(field, getattr(self.instance, field, None)) for field in flight_fields}
+            errors = {field: 'This field is required when tickets are booked.' for field, value in values.items() if not value}
+            if errors:
+                raise serializers.ValidationError(errors)
+            if values['return_date'] < values['arrival_date']:
+                raise serializers.ValidationError({'return_date': 'Return date cannot be before arrival date.'})
+        return attrs
+
+    class Meta:
+        model = GlobalHorizonsProfile
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
 
 class BusinessJourneyRegistrationSerializer(serializers.ModelSerializer):
     class Meta:

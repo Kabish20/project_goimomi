@@ -3,6 +3,21 @@ from django import forms
 from .models import *
 
 
+@admin.register(GlobalHorizonsProfile)
+class GlobalHorizonsProfileAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'city', 'country', 'profession', 'organization', 'email', 'created_at')
+    search_fields = ('full_name', 'city', 'country', 'organization', 'profession', 'email', 'interests', 'connections_sought')
+    list_filter = ('country', 'ticket_status', 'created_at')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('Participant details', {'fields': ('full_name', 'city', 'country', 'photo')}),
+        ('Business profile', {'fields': ('profession', 'organization', 'years_of_experience', 'interests')}),
+        ('Contact & connections', {'fields': ('website', 'email', 'connections_sought')}),
+        ('Flight details', {'fields': ('ticket_status', 'arrival_date', 'arrival_flight_no', 'arrival_time', 'return_date', 'return_flight_no', 'return_time')}),
+        ('Submission details', {'fields': ('created_at', 'updated_at')}),
+    )
+
+
 class HolidayPackageAdminForm(forms.ModelForm):
     """Custom form for HolidayPackage admin"""
     
@@ -327,6 +342,4 @@ class ZohoWebhookLogAdmin(admin.ModelAdmin):
     list_filter = ('status', 'module', 'created_at')
     search_fields = ('module', 'event_type', 'response_message')
     readonly_fields = ('created_at',)
-
-
 

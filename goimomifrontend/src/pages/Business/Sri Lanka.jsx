@@ -107,6 +107,13 @@ const SriLankaJourney = () => {
         </div>
       </section>
 
+      <section className="border-b border-emerald-100 bg-emerald-50 px-6 py-6 md:px-10">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
+          <div><h2 className="font-bold text-emerald-950">Joining Global Horizons - Srilanka?</h2><p className="mt-1 text-sm text-slate-600">Share your profile for thoughtful introductions with Tamil entrepreneurs in Colombo.</p></div>
+          <Link to="/globalhorizonssrilanka" className="rounded-xl bg-emerald-800 px-5 py-3 text-sm font-bold text-white">Share participant profile</Link>
+        </div>
+      </section>
+
       <section className="border-b border-emerald-100 bg-white px-6 py-8 md:px-10">
         <div className="mx-auto grid max-w-7xl gap-3 sm:grid-cols-2 lg:grid-cols-6">
           {highlights.map((highlight) => (

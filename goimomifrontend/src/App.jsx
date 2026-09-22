@@ -48,6 +48,8 @@ const Canton = lazyRetry(() => import("./pages/Business/Canton/Canton.jsx"));
 const MegaShowBangkok = lazyRetry(() => import("./pages/Business/MegaShowBangkok/MegaShowBangkok.jsx"));
 const ChithiraiGlobal = lazyRetry(() => import("./pages/Business/Chithirai Global.jsx"));
 const SriLankaJourney = lazyRetry(() => import("./pages/Business/Sri Lanka.jsx"));
+const GlobalHorizonsSrilanka = lazyRetry(() => import('./pages/Business/GlobalHorizonsSrilanka.jsx'));
+const GlobalHorizonsManage = lazyRetry(() => import('./pages/admin/GlobalHorizonsManage/GlobalHorizonsManage.jsx'));
 const YelagiriJourney = lazyRetry(() => import("./pages/Business/Yelagiri.jsx"));
 const PondicherryJourney = lazyRetry(() => import("./pages/Business/Pondicherry.jsx"));
 const DubaiJourney = lazyRetry(() => import("./pages/Business/Dubai.jsx"));
@@ -149,12 +151,13 @@ const PageLoader = () => (
 const App = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
+  const isProfileFormPath = ['/globalhorizonssrilanka', '/global-horizons-srilanka'].includes(location.pathname.replace(/\/$/, ''));
   const isDestinationLandingPath = /^\/(kashmir|manali|azerbaijan|sikkim|andaman|goa|kerala|bali|dubai|golden-triangle|goldentriangle|delhi-agra-jaipur|trendingdomesticdestination|trendinginternationaldestination)\/?$/i.test(location.pathname);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   useEffect(() => {
     // Only show if not on admin path and hasn't been shown before
-    if (!isAdminPath && !isDestinationLandingPath) {
+    if (!isAdminPath && !isDestinationLandingPath && !isProfileFormPath) {
       const hasShown = sessionStorage.getItem("generalEnquiryShown");
       if (!hasShown) {
         const timer = setTimeout(() => {
@@ -164,7 +167,7 @@ const App = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [isAdminPath, isDestinationLandingPath]);
+  }, [isAdminPath, isDestinationLandingPath, isProfileFormPath]);
 
   // Global IntersectionObserver for .fade-up animations
   useEffect(() => {
@@ -265,6 +268,8 @@ const App = () => {
               <Route path="/megashowbangkok" element={<MegaShowBangkok />} />
               <Route path="/chithirai-global" element={<ChithiraiGlobal />} />
               <Route path="/chithirai-global/sri-lanka" element={<SriLankaJourney />} />
+              <Route path="/globalhorizonssrilanka" element={<GlobalHorizonsSrilanka />} />
+              <Route path="/global-horizons-srilanka" element={<Navigate to="/globalhorizonssrilanka" replace />} />
               <Route path="/chithirai-global/yelagiri" element={<YelagiriJourney />} />
               <Route path="/chithirai-global/pondicherry" element={<PondicherryJourney />} />
               <Route path="/chithirai-global/dubai" element={<DubaiJourney />} />
@@ -398,6 +403,7 @@ const App = () => {
               <Route path="/admin/cantonenquiries" element={<CantonEnquiryManage />} />
 
               <Route path="/admin/business-journey-registrations" element={<BusinessJourneyRegistrationManage />} />
+              <Route path="/admin/global-horizons-srilanka" element={<GlobalHorizonsManage />} />
               <Route path="/admin/businessjourneyregistrations" element={<BusinessJourneyRegistrationManage />} />
               <Route path="/admin/chithirai-registrations" element={<BusinessJourneyRegistrationManage />} />
               <Route path="/admin/chithirairegistrations" element={<BusinessJourneyRegistrationManage />} />
@@ -498,7 +504,7 @@ const App = () => {
     </main>
 
     {!isAdminPath && <Footer />}
-      <EnquiryForm isOpen={isEnquiryOpen && !isDestinationLandingPath} onClose={() => setIsEnquiryOpen(false)} />
+      <EnquiryForm isOpen={isEnquiryOpen && !isDestinationLandingPath && !isProfileFormPath} onClose={() => setIsEnquiryOpen(false)} />
     </div>
   );
 };

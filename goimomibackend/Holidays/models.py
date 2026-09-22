@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
+from .profile_uploads import profile_photo_path, validate_profile_photo
 
 
 class HolidayEnquiry(models.Model):
@@ -863,6 +865,37 @@ class BusinessJourneyRegistration(models.Model):
 
     def __str__(self):
         return f"{self.full_name} - {self.company_name or 'No Company'} ({self.journey})"
+
+class GlobalHorizonsProfile(models.Model):
+    full_name = models.CharField(max_length=150)
+    city = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    profession = models.CharField('Business / Profession', max_length=255)
+    photo = models.ImageField(upload_to=profile_photo_path, validators=[validate_profile_photo])
+    organization = models.CharField('Organization / Brand Name', max_length=255)
+    years_of_experience = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
+    interests = models.TextField('Areas of interest or expertise', max_length=5000)
+    website = models.URLField(max_length=500, blank=True)
+    email = models.EmailField('Email address')
+    connections_sought = models.TextField('Connections sought in Sri Lanka', max_length=5000)
+    ticket_status = models.CharField(max_length=20, choices=[('not_booked', 'Not Booked'), ('booked', 'Booked')], default='not_booked')
+    arrival_date = models.DateField(blank=True, null=True)
+    arrival_flight_no = models.CharField(max_length=30, blank=True)
+    arrival_time = models.TimeField(blank=True, null=True)
+    return_date = models.DateField(blank=True, null=True)
+    return_flight_no = models.CharField(max_length=30, blank=True)
+    return_time = models.TimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        verbose_name = 'Global Horizons - Srilanka'
+        verbose_name_plural = 'Global Horizons - Srilanka'
+
+    def __str__(self):
+        return f'{self.full_name} - {self.city}, {self.country}'
+
 
 class OTPVerification(models.Model):
     email = models.EmailField(unique=True)

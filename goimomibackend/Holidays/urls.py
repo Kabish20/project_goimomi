@@ -9,6 +9,8 @@ else:
     router = SimpleRouter()
 
 # Form & Enquiry Endpoints
+router.register('global-horizons-srilanka', views.GlobalHorizonsProfileViewSet, basename='global-horizons-srilanka')
+
 router.register("holidayform", views.HolidayEnquiryAPI, basename="holidayform")
 router.register("holiday-form", views.HolidayEnquiryAPI, basename="holiday-enquiry")
 
