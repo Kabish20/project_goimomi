@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../../api';
 import AdminSidebar from '../../../components/admin/AdminSidebar/AdminSidebar';
@@ -153,11 +154,25 @@ export default function GlobalHorizonsManage() {
             <p className="mb-3 text-sm text-slate-500">{filtered.length} of {profiles.length} participant profiles</p>
             {!filtered.length ? <p className="py-10 text-center text-slate-500">{query ? 'No profiles match your search.' : 'No profiles yet. Share the form to collect participant details.'}</p> : <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-b bg-slate-50 text-slate-600"><tr>{['Participant', 'City & Country', 'Business / Profession', 'Organization', 'Submitted', 'Action'].map(label => <th key={label} className="px-3 py-3 font-semibold">{label}</th>)}</tr></thead>
+                <thead className="border-b bg-slate-50 text-slate-600"><tr>{['Participant', 'City & Country', 'Business / Profession', 'Organization', 'Submitted', 'Individual downloads', 'Action'].map(label => <th key={label} className="px-3 py-3 font-semibold">{label}</th>)}</tr></thead>
                 <tbody>{filtered.map(profile => <tr key={profile.id} className="border-b last:border-0">
                   <td className="px-3 py-4"><div className="flex items-center gap-3"><img loading="lazy" src={profile.photo} alt="" className="h-10 w-10 rounded-full object-cover" /><div><p className="font-semibold">{profile.full_name}</p><p className="text-slate-500">{profile.email}</p></div></div></td>
                   <td className="px-3 py-4">{profile.city}, {profile.country}</td><td className="px-3 py-4">{profile.profession}</td><td className="px-3 py-4">{profile.organization || '—'}</td>
                   <td className="whitespace-nowrap px-3 py-4">{new Date(profile.created_at).toLocaleDateString()}</td>
+                  <td className="px-3 py-4">
+                    <div className="flex min-w-[180px] flex-col items-start gap-2">
+                      {[
+                        ['Social poster (PNG)', 'social poster', profile.attending_poster_image, 'png'],
+                        ['Booklet (PDF)', 'booklet', profile.profile_booklet, 'pdf'],
+                      ].map(([label, kind, url, extension]) => url ? <a key={kind}
+                        href={url} download={`global-horizons-${profile.id}-${kind.replaceAll(' ', '-')}.${extension}`}
+                        target="_blank" rel="noreferrer"
+                        aria-label={`Download ${kind} for ${profile.full_name}`}
+                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 hover:border-emerald-600 hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700">
+                        <Download size={14} aria-hidden="true" />{label}
+                      </a> : <span key={kind} className="text-xs text-slate-500">{label}: not ready</span>)}
+                    </div>
+                  </td>
                   <td className="px-3 py-4">
                     <div className="flex items-center gap-3">
                       <button aria-label={`View profile for ${profile.full_name}`} onClick={() => { setSelected(profile); setNotice(''); setDeleteError(''); }} className="font-semibold text-emerald-800 underline">View profile</button>

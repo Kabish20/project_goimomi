@@ -28,6 +28,7 @@ let deletions = 0;
 await page.route('**/*', async route => {
   const request = route.request();
   const url = new URL(request.url());
+  if (url.pathname === '/media/example-profile.pdf') return route.fulfill({ contentType: 'application/pdf', body: '%PDF-1.4 test booklet fixture' });
   if (url.pathname === '/media/example-attending.png') {
     const preview = await fs.readFile(fileURLToPath(new URL('../../output/pdf/attending-poster-social.png', import.meta.url))).catch(() => photo);
     return route.fulfill({ contentType: 'image/png', body: preview });
@@ -132,6 +133,16 @@ try {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto(`${base}/admin/global-horizons-srilanka`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'View profile for Sample Participant' }).waitFor();
+  for (const [kind, path, filename] of [
+    ['social poster', profile.attending_poster_image, 'global-horizons-1-social-poster.png'],
+    ['booklet', profile.profile_booklet, 'global-horizons-1-booklet.pdf'],
+  ]) {
+    const link = page.getByRole('link', { name: `Download ${kind} for Sample Participant`, exact: true });
+    assert.equal(await link.getAttribute('href'), path);
+    const downloaded = page.waitForEvent('download');
+    await link.click();
+    assert.equal((await downloaded).suggestedFilename(), filename);
+  }
   await page.screenshot({ path: `${output}/admin-profiles.png`, fullPage: true });
   await page.getByLabel('Search profiles').fill('unmatched');
   await page.getByText('No profiles match your search.').waitFor();
