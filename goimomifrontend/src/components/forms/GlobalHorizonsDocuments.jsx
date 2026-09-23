@@ -1,7 +1,7 @@
 import React from 'react';
 
 export default function GlobalHorizonsDocuments({ profile }) {
-  const ready = profile?.attending_poster && profile?.profile_booklet;
+  const ready = profile?.attending_poster_image && profile?.profile_booklet;
   return <div className="mt-6 overflow-hidden rounded-2xl border border-[#dedbcf] bg-[#f7f4eb] text-left">
     <div className="border-b border-[#dedbcf] px-5 py-4">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a702f]">Global Horizons · Sri Lanka 2026</p>
@@ -20,7 +20,6 @@ export default function GlobalHorizonsDocuments({ profile }) {
             <p className="mt-2 text-center text-xs text-slate-500">1080 × 1350 px · Portrait post</p>
           </>}
           <a href={profile.profile_booklet} target="_blank" rel="noreferrer" download className="mt-4 rounded-lg border border-[#123e29] bg-white px-4 py-3 text-center text-sm font-semibold text-emerald-900">Download profile booklet (PDF)</a>
-          <a href={profile.attending_poster} target="_blank" rel="noreferrer" download className="mt-3 text-center text-xs font-semibold text-emerald-900 underline underline-offset-4">Download attending poster (PDF)</a>
         </div>
       </div>
     </> : <p className="p-5 text-sm leading-6 text-slate-600">Your profile is saved, but the downloads are not available yet. Please contact the Global Horizons team to prepare them.</p>}

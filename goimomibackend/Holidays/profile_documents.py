@@ -145,29 +145,32 @@ def attending_poster(profile):
     pdf.clipPath(clip, stroke=0)
     draw_portrait(pdf, uploaded_bytes(profile.photo), 62, 225, 160, 176)
     pdf.restoreState()
-    pdf.setFillColor(GOLD)
-    pdf.setFont('Helvetica-Bold', 8)
+    pdf.setFillColor(colors.HexColor('#efce73'))
+    pdf.setFont('Helvetica-Bold', 16)
     pdf.drawString(246, 394, 'MEET ME IN COLOMBO')
     fitted_text(pdf, profile.full_name, 246, 380, 408, 61, 36, bold=True, color=IVORY)
-    fitted_text(pdf, profile.organization, 246, 312, 408, 44, 24, bold=True, color=GOLD)
-    fitted_text(pdf, profile.profession, 246, 267, 318, 38, 17, color=IVORY)
-    fitted_text(pdf, f'{profile.city}, {profile.country}', 246, 228, 318, 20, 14, color=IVORY)
+    fitted_text(pdf, profile.organization, 246, 312, 408, 38, 24, bold=True, color=GOLD)
+    fitted_text(pdf, profile.profession, 246, 272, 292, 34, 17, color=IVORY)
+    fitted_text(pdf, f'{profile.city}, {profile.country}', 246, 233, 292, 18, 14, color=IVORY)
     if profile.logo:
-        pdf.drawImage(ImageReader(uploaded_bytes(profile.logo)), 584, 223, 68, 45,
+        pdf.drawImage(ImageReader(uploaded_bytes(profile.logo)), 556, 227, 96, 62,
                       preserveAspectRatio=True, anchor='c', mask='auto')
 
     # Keep approved brand marks intact and visually balanced.
     pdf.setFillColor(colors.white)
     pdf.setStrokeColor(GOLD)
     pdf.roundRect(90, 112, 540, 76, 14, fill=1, stroke=1)
-    pdf.drawImage(str(STATIC / 'goimomilogo.png'), 114, 122, 190, 55,
+    pdf.setFillColor(GREEN)
+    pdf.setFont('Helvetica-Bold', 10)
+    pdf.drawCentredString(209, 174, 'TRAVEL PARTNER')
+    pdf.drawImage(str(STATIC / 'goimomilogo.png'), 114, 117, 190, 49,
                   preserveAspectRatio=True, anchor='c', mask='auto')
     pdf.line(342, 124, 342, 176)
     pdf.drawImage(str(STATIC / 'global_horizons/chithirai-logo.png'), 368, 127, 46, 46,
                   preserveAspectRatio=True, anchor='c', mask='auto')
     pdf.setFillColor(colors.HexColor('#d30d28'))
     pdf.setFont('Helvetica-Bold', 27)
-    pdf.drawString(426, 138, 'Chithirai')
+    pdf.drawString(426, 138, 'CHITHIRAI')
     pdf.setFillColor(GREEN)
     pdf.setStrokeColor(GOLD)
     pdf.setLineWidth(1.5)
@@ -256,18 +259,26 @@ def participant_booklet(profiles):
         page_number += 1
         pdf.setFillColor(IVORY)
         pdf.rect(0, 0, width, height, fill=1, stroke=0)
-        # Three original brand marks anchor a clean editorial masthead.
+        # Full supplied Chithirai wordmark and a clean circular event badge.
         pdf.setFillColor(colors.white)
         pdf.rect(0, height - 132, width, 132, fill=1, stroke=0)
-        pdf.drawImage(str(STATIC / 'goimomilogo.png'), 30, height - 95, 160, 62,
-                      preserveAspectRatio=True, anchor='c', mask='auto')
-        pdf.drawImage(str(STATIC / 'global_horizons/event-logo.jpeg'),
-                      width / 2 - 52, height - 116, 104, 104, preserveAspectRatio=True, mask='auto')
         pdf.drawImage(str(STATIC / 'global_horizons/chithirai-logo.png'),
-                      width - 128, height - 86, 58, 58, preserveAspectRatio=True, mask='auto')
-        pdf.setFillColor(GREEN)
-        pdf.setFont('Helvetica-Bold', 15)
-        pdf.drawCentredString(width - 99, height - 105, 'Chithirai')
+                      30, height - 112, 94, 94, preserveAspectRatio=True, anchor='c', mask='auto')
+        pdf.setFillColor(colors.HexColor('#d30d28'))
+        pdf.setFont('Helvetica-Bold', 29)
+        pdf.drawString(138, height - 76, 'CHITHIRAI')
+        event_x, event_y, radius = width - 112, height - 66, 56
+        pdf.saveState()
+        clip = pdf.beginPath()
+        clip.circle(event_x, event_y, radius)
+        pdf.clipPath(clip, stroke=0)
+        pdf.drawImage(str(STATIC / 'global_horizons/event-logo.jpeg'),
+                      event_x - radius, event_y - radius, radius * 2, radius * 2,
+                      preserveAspectRatio=True, anchor='c', mask='auto')
+        pdf.restoreState()
+        pdf.setStrokeColor(GREEN)
+        pdf.setLineWidth(1.5)
+        pdf.circle(event_x, event_y, radius, stroke=1, fill=0)
         pdf.setStrokeColor(GOLD)
         pdf.setLineWidth(2)
         pdf.line(30, height - 132, width - 30, height - 132)
@@ -294,10 +305,17 @@ def participant_booklet(profiles):
         pdf.rect(0, 0, width, 130, fill=1, stroke=0)
         pdf.setFillColor(gold)
         pdf.setFont('Helvetica-Bold', 13)
-        pdf.drawString(36, 107, 'LET US CONNECT')
+        pdf.drawString(36, 107, 'CONTACT DETAILS')
         contact = '\n'.join(str(v) for v in [profile.email, profile.website,
                                            f'{profile.city}, {profile.country}'] if v)
-        fitted_text(pdf, contact, 36, 90, width - 72, 65, 15, color=IVORY)
+        fitted_text(pdf, contact, 36, 90, width - 262, 65, 15, color=IVORY)
+        pdf.setFillColor(colors.white)
+        pdf.roundRect(width - 206, 29, 176, 86, 9, fill=1, stroke=0)
+        pdf.setFillColor(GREEN)
+        pdf.setFont('Helvetica-Bold', 10)
+        pdf.drawCentredString(width - 118, 98, 'TRAVEL PARTNER')
+        pdf.drawImage(str(STATIC / 'goimomilogo.png'), width - 195, 36, 154, 53,
+                      preserveAspectRatio=True, anchor='c', mask='auto')
         pdf.setFillColor(gold)
         pdf.setFont('Helvetica', 8)
         pdf.drawString(36, 12, 'GLOBAL HORIZONS SRI LANKA 2026 / BUSINESS BEYOND BORDERS')

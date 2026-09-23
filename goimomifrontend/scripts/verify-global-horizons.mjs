@@ -111,7 +111,7 @@ try {
   await page.getByRole('button', { name: 'Submit profile' }).click();
   await page.getByRole('heading', { name: 'Thank you for sharing your profile' }).waitFor();
   assert.equal(submissions, 2);
-  assert.equal(await page.getByRole('link', { name: 'Download attending poster (PDF)' }).getAttribute('href'), profile.attending_poster);
+  assert.equal(await page.getByRole('link', { name: 'Download attending poster (PDF)' }).count(), 0);
   assert.equal(await page.getByRole('link', { name: 'Download profile booklet (PDF)' }).getAttribute('href'), profile.profile_booklet);
   assert.equal(await page.getByRole('link', { name: 'Download social poster (PNG)' }).getAttribute('href'), profile.attending_poster_image);
   await page.getByAltText("I'm attending poster for Sample Participant").waitFor();
