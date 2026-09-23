@@ -65,7 +65,7 @@ def attending_poster(profile):
     output = BytesIO()
     width, height = 720, 900
     pdf = canvas.Canvas(output, pagesize=(width, height))
-    pdf.setTitle(f"We are attending - {profile.full_name} - Global Horizons Sri Lanka")
+    pdf.setTitle(f"I am attending - {profile.full_name} - Global Horizons Sri Lanka")
     pdf.drawImage(str(STATIC / 'global_horizons/attending-landscape-v2.png'),
                   0, 0, width, height, mask='auto')
 
@@ -109,7 +109,7 @@ def attending_poster(profile):
     pdf.drawPath(brush, fill=1, stroke=0)
     pdf.setFillColor(colors.white)
     pdf.setFont('Helvetica-Bold', 35)
-    pdf.drawCentredString(360, 563, 'WE ARE')
+    pdf.drawCentredString(360, 563, 'I AM')
     pdf.setFont('Helvetica-Bold', 65)
     pdf.setFillColor(colors.HexColor('#735522'))
     pdf.drawCentredString(361, 500, 'ATTENDING')
@@ -132,10 +132,13 @@ def attending_poster(profile):
     pdf.line(105, 441, 180, 441)
     pdf.line(540, 441, 615, 441)
 
-    # Personalisation sits on a quiet panel so real photos and long names stay clear.
-    pdf.setFillColor(colors.white)
+    # Integrated translucent green panel retains the scenic artwork beneath.
+    pdf.saveState()
+    pdf.setFillAlpha(0.94)
+    pdf.setFillColor(GREEN)
     pdf.setStrokeColor(colors.HexColor('#d3b66b'))
     pdf.roundRect(44, 207, 632, 212, 15, fill=1, stroke=1)
+    pdf.restoreState()
     pdf.saveState()
     clip = pdf.beginPath()
     clip.roundRect(62, 225, 160, 176, 9)
@@ -144,11 +147,11 @@ def attending_poster(profile):
     pdf.restoreState()
     pdf.setFillColor(GOLD)
     pdf.setFont('Helvetica-Bold', 8)
-    pdf.drawString(246, 394, 'MEET US IN COLOMBO')
-    fitted_text(pdf, profile.full_name, 246, 380, 408, 61, 29, bold=True)
-    fitted_text(pdf, profile.organization, 246, 312, 408, 37, 18, bold=True)
-    fitted_text(pdf, profile.profession, 246, 268, 318, 27, 12)
-    fitted_text(pdf, f'{profile.city}, {profile.country}', 246, 234, 318, 18, 10)
+    pdf.drawString(246, 394, 'MEET ME IN COLOMBO')
+    fitted_text(pdf, profile.full_name, 246, 380, 408, 61, 36, bold=True, color=IVORY)
+    fitted_text(pdf, profile.organization, 246, 312, 408, 44, 24, bold=True, color=GOLD)
+    fitted_text(pdf, profile.profession, 246, 267, 318, 38, 17, color=IVORY)
+    fitted_text(pdf, f'{profile.city}, {profile.country}', 246, 228, 318, 20, 14, color=IVORY)
     if profile.logo:
         pdf.drawImage(ImageReader(uploaded_bytes(profile.logo)), 584, 223, 68, 45,
                       preserveAspectRatio=True, anchor='c', mask='auto')
@@ -183,10 +186,10 @@ def attending_poster(profile):
     return output.getvalue()
 
 
-def fitted_text(pdf, value, x, top, width, height, size, bold=False):
+def fitted_text(pdf, value, x, top, width, height, size, bold=False, color=GREEN):
     while True:
         style = ParagraphStyle('Fitted', fontName='Helvetica-Bold' if bold else 'Helvetica',
-                               fontSize=size, leading=size * 1.15, textColor=GREEN, splitLongWords=True)
+                               fontSize=size, leading=size * 1.15, textColor=color, splitLongWords=True)
         text = paragraph(value, style)
         _, actual = text.wrap(width, height)
         if actual <= height or size <= 6:
@@ -239,68 +242,110 @@ def poster_png(content):
 
 
 def participant_booklet(profiles):
-    """Professional introductions only; travel logistics remain in the staff export."""
+    """Reference-inspired editorial profiles; overflow continues without truncation."""
     output = BytesIO()
-    document = SimpleDocTemplate(output, pagesize=A4, leftMargin=40, rightMargin=40,
-                                 topMargin=132, bottomMargin=48, title='Global Horizons - Participant Profiles')
-    story = []
-    if len(profiles) > 1:
-        cover_title = ParagraphStyle('CoverTitle', parent=TITLE, fontSize=43, leading=47)
-        story.extend([Spacer(1, 24), paragraph('GLOBAL HORIZONS  /  SRI LANKA 2026', LABEL),
-                      Spacer(1, 14), paragraph('People.\nPossibilities.\nPartnerships.', cover_title),
-                      Spacer(1, 24), contained_image(str(STATIC / 'global_horizons/event-logo.jpeg'), 210, 210),
-                      Spacer(1, 24), paragraph('THE PARTICIPANT BOOKLET', LABEL),
-                      paragraph(f'{len(profiles)} entrepreneur profiles. A world of opportunity.'),
-                      paragraph('Meet the people building meaningful business connections in Colombo.'), PageBreak()])
-    for index, profile in enumerate(profiles):
-        if index:
-            story.append(PageBreak())
-        story.extend([paragraph(f'PARTICIPANT {index + 1:02d}  /  GLOBAL HORIZONS', LABEL),
-                      paragraph(profile.full_name, TITLE), Spacer(1, 12)])
-        identity = [paragraph('BUSINESS / PROFESSION', LABEL), paragraph(profile.profession),
-                    paragraph('ORGANIZATION / BRAND', LABEL), paragraph(profile.organization),
-                    paragraph(f'{profile.years_of_experience} years of experience'),
-                    paragraph(f'{profile.city}, {profile.country}')]
-        if profile.logo:
-            identity.append(contained_image(uploaded_bytes(profile.logo), 102, 40))
-        row = Table([[Portrait(uploaded_bytes(profile.photo)), identity]], colWidths=[170, document.width - 170])
-        row.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                                 ('BACKGROUND', (0, 0), (-1, -1), IVORY),
-                                 ('LEFTPADDING', (0, 0), (-1, -1), 14),
-                                 ('RIGHTPADDING', (0, 0), (-1, -1), 14),
-                                 ('TOPPADDING', (0, 0), (-1, -1), 14),
-                                 ('BOTTOMPADDING', (0, 0), (-1, -1), 14)]))
-        story.extend([row, Spacer(1, 20)])
-        for label, value in [
-            ('01  /  EXPERTISE & INTERESTS', profile.interests),
-            ('02  /  CONNECTIONS I AM LOOKING FOR', profile.connections_sought),
-            ('03  /  CONNECT WITH ME', '\n'.join(value for value in [profile.email, profile.website] if value)),
-        ]:
-            if value:
-                label_style = ParagraphStyle('SectionLabel', parent=LABEL, keepWithNext=True)
-                story.append(paragraph(label, label_style))
-                # Keep the heading with a short opening block so very long
-                # introductions can use the remaining space on the current page.
-                chunks = wrap(str(value), width=600, replace_whitespace=False, drop_whitespace=False)
-                for number, chunk in enumerate(chunks):
-                    style = ParagraphStyle('ProfileContinuation', parent=BODY,
-                                           spaceAfter=10 if number == len(chunks) - 1 else 0)
-                    story.append(paragraph(chunk, style))
-    if not story:
-        story.append(paragraph('No participant profiles yet.', TITLE))
+    width, height = A4
+    pdf = canvas.Canvas(output, pagesize=A4)
+    pdf.setTitle('Global Horizons - Participant Profiles')
+    ink = GREEN
+    gold = colors.HexColor('#dfbb76')
+    page_number = 0
 
-    def page_frame(pdf, doc):
-        pdf.saveState()
-        brand_header(pdf, *A4)
+    def frame(profile, continuation=False):
+        nonlocal page_number
+        page_number += 1
+        pdf.setFillColor(IVORY)
+        pdf.rect(0, 0, width, height, fill=1, stroke=0)
+        # Three original brand marks anchor a clean editorial masthead.
+        pdf.setFillColor(colors.white)
+        pdf.rect(0, height - 132, width, 132, fill=1, stroke=0)
+        pdf.drawImage(str(STATIC / 'goimomilogo.png'), 30, height - 95, 160, 62,
+                      preserveAspectRatio=True, anchor='c', mask='auto')
+        pdf.drawImage(str(STATIC / 'global_horizons/event-logo.jpeg'),
+                      width / 2 - 52, height - 116, 104, 104, preserveAspectRatio=True, mask='auto')
+        pdf.drawImage(str(STATIC / 'global_horizons/chithirai-logo.png'),
+                      width - 128, height - 86, 58, 58, preserveAspectRatio=True, mask='auto')
         pdf.setFillColor(GREEN)
-        pdf.setFont('Helvetica', 8)
+        pdf.setFont('Helvetica-Bold', 15)
+        pdf.drawCentredString(width - 99, height - 105, 'Chithirai')
         pdf.setStrokeColor(GOLD)
-        pdf.line(40, 43, A4[0] - 40, 43)
-        pdf.drawString(40, 26, 'BUSINESS BEYOND BORDERS  /  SRI LANKA 2026')
-        pdf.drawRightString(A4[0] - 40, 26, f'{doc.page:02d}')
-        pdf.restoreState()
+        pdf.setLineWidth(2)
+        pdf.line(30, height - 132, width - 30, height - 132)
+        pdf.setFillColor(GREEN)
+        pdf.rect(0, height - 374, width, 228, fill=1, stroke=0)
+        if continuation:
+            fitted_text(pdf, profile.full_name, 36, height - 176, width - 72, 80, 32, True, IVORY)
+            fitted_text(pdf, profile.organization, 36, height - 270, width - 72, 48, 22, True, gold)
+            pdf.setFillColor(gold)
+            pdf.setFont('Helvetica', 12)
+            pdf.drawString(36, height - 351, 'PARTICIPANT PROFILE / CONTINUED')
+        else:
+            pdf.saveState()
+            clip = pdf.beginPath()
+            clip.roundRect(30, height - 357, 168, 192, 10)
+            pdf.clipPath(clip, stroke=0)
+            draw_portrait(pdf, uploaded_bytes(profile.photo), 30, height - 357, 168, 192)
+            pdf.restoreState()
+            fitted_text(pdf, profile.full_name, 222, height - 169, width - 252, 78, 32, True, IVORY)
+            fitted_text(pdf, profile.organization, 222, height - 258, width - 252, 51, 23, True, gold)
+            fitted_text(pdf, profile.profession, 222, height - 318, width - 252, 46, 16, False, IVORY)
+        panel_top = height - 397
+        pdf.setFillColor(GREEN)
+        pdf.rect(0, 0, width, 130, fill=1, stroke=0)
+        pdf.setFillColor(gold)
+        pdf.setFont('Helvetica-Bold', 13)
+        pdf.drawString(36, 107, 'LET US CONNECT')
+        contact = '\n'.join(str(v) for v in [profile.email, profile.website,
+                                           f'{profile.city}, {profile.country}'] if v)
+        fitted_text(pdf, contact, 36, 90, width - 72, 65, 15, color=IVORY)
+        pdf.setFillColor(gold)
+        pdf.setFont('Helvetica', 8)
+        pdf.drawString(36, 12, 'GLOBAL HORIZONS SRI LANKA 2026 / BUSINESS BEYOND BORDERS')
+        pdf.drawRightString(width - 30, 12, f'{page_number:02d}')
+        return panel_top
 
-    document.build(story, onFirstPage=page_frame, onLaterPages=page_frame)
+    for profile in profiles:
+        y = frame(profile)
+        for label, value in [
+            ('YEARS OF EXPERIENCE', str(profile.years_of_experience)),
+            ('AREAS OF INTEREST OR EXPERTISE', profile.interests),
+            ('CONNECTIONS I AM LOOKING FOR', profile.connections_sought),
+        ]:
+            if not value:
+                continue
+            if y < 225:
+                pdf.showPage()
+                y = frame(profile, True)
+            pdf.setFillColor(ink)
+            pdf.setFont('Helvetica-Bold', 13)
+            pdf.drawString(36, y - 13, label)
+            pdf.setStrokeColor(gold)
+            pdf.setLineWidth(2)
+            pdf.line(36, y - 23, 100, y - 23)
+            y -= 38
+            style = ParagraphStyle('BookletDetail', fontName='Helvetica', fontSize=16,
+                                   leading=21, textColor=ink, splitLongWords=True)
+            remaining = paragraph(value, style)
+            while remaining:
+                available = y - 148
+                _, needed = remaining.wrap(width - 80, available)
+                if needed <= available:
+                    remaining.drawOn(pdf, 40, y - needed)
+                    y -= needed + 28
+                    remaining = None
+                else:
+                    pieces = remaining.split(width - 80, available)
+                    if pieces:
+                        _, used = pieces[0].wrap(width - 80, available)
+                        pieces[0].drawOn(pdf, 40, y - used)
+                        remaining = pieces[1] if len(pieces) > 1 else None
+                    pdf.showPage()
+                    y = frame(profile, True)
+        pdf.showPage()
+    if not profiles:
+        pdf.setFont('Helvetica', 16)
+        pdf.drawString(40, height - 60, 'No participant profiles yet.')
+    pdf.save()
     return output.getvalue()
 
 
