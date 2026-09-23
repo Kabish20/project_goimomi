@@ -9,7 +9,7 @@ const fields = [
   { name: 'organization', label: 'Organization / Brand Name', maxLength: 255, autoComplete: 'organization' },
   { name: 'years_of_experience', label: 'Years of experience', type: 'number', min: 0, max: 100, step: 1 },
   { name: 'interests', label: 'Areas of interest or expertise', multiline: true, maxLength: 5000 },
-  { name: 'website', label: 'Website or social profile', type: 'text', inputMode: 'url', optional: true, maxLength: 500, placeholder: 'example.com or instagram.com/yourprofile', autoComplete: 'url' },
+  { name: 'website', label: 'Website', type: 'text', inputMode: 'url', optional: true, maxLength: 500, placeholder: 'example.com or instagram.com/yourprofile', autoComplete: 'url' },
   { name: 'email', label: 'Email address', type: 'email', maxLength: 254, autoComplete: 'email' },
   { name: 'connections_sought', label: 'What kind of connection are you looking for in Sri Lanka?', multiline: true, maxLength: 5000 },
 ];

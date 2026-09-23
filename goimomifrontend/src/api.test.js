@@ -30,6 +30,7 @@ test('admin enquiry reads and master-data writes retain authorization', async ()
         ['get', '/api/enquiryform/'], ['get', '/api/holiday-form/'],
         ['get', '/api/business-journey-registrations/'], ['delete', '/api/cities/1/'],
         ['get', '/api/global-horizons-srilanka/'], ['patch', '/api/global-horizons-srilanka/1/'],
+        ['delete', '/api/global-horizons-srilanka/1/'],
         ['patch', '/api/airports/2/'], ['post', '/api/pickup-point-masters/'],
     ]) {
         const response = await api.request({ method, url });

@@ -22,6 +22,7 @@ let profile = {
 let failSubmission = true;
 let submissions = 0;
 let edits = 0;
+let deletions = 0;
 await page.route('**/*', async route => {
   const request = route.request();
   const url = new URL(request.url());
@@ -47,6 +48,11 @@ await page.route('**/*', async route => {
       return route.fulfill({ status: 201, json: profile });
     }
     assert.match(request.headers().authorization, /^Bearer /);
+    if (request.method() === 'DELETE') {
+      deletions++;
+      assert.equal(url.pathname, `/api/global-horizons-srilanka/${profile.id}/`);
+      return route.fulfill({ status: 204 });
+    }
     if (request.method() === 'PATCH') {
       edits++;
       assert.ok(!request.postDataBuffer().toString().includes('name="photo"'));
@@ -138,8 +144,13 @@ try {
   assert.equal(await page.locator('#gh-photo').getAttribute('required'), '');
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.getByRole('button', { name: 'View profile for Sample Participant' }).waitFor();
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Delete profile for Sample Participant' }).click();
+  await page.getByText('Profile for "Sample Participant" deleted successfully.').waitFor();
+  assert.equal(deletions, 1);
+  assert.equal(await page.getByRole('button', { name: 'View profile for Sample Participant' }).count(), 0);
   assert.deepEqual(errors, []);
-  console.log('Global Horizons browser checks passed: upload, retry, submission, mobile layout, admin search, detail, edit, add and cancel.');
+  console.log('Global Horizons browser checks passed: upload, retry, submission, mobile layout, admin search, detail, edit, add, cancel and delete.');
 } finally {
   await browser.close();
 }

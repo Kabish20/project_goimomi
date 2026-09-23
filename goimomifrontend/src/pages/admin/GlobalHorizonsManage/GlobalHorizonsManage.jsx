@@ -15,6 +15,31 @@ export default function GlobalHorizonsManage() {
   const [notice, setNotice] = useState('');
   const [exporting, setExporting] = useState('');
   const [exportError, setExportError] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+
+  const handleDelete = async (profile) => {
+    if (!profile?.id || deletingId) return;
+    const confirmed = window.confirm(`Are you sure you want to delete the profile for "${profile.full_name}"?`);
+    if (!confirmed) return;
+
+    setDeletingId(profile.id);
+    setNotice('');
+    setDeleteError('');
+    try {
+      await api.delete(`/api/global-horizons-srilanka/${profile.id}/`);
+      setProfiles(current => current.filter(item => item.id !== profile.id));
+      if (selected?.id === profile.id) {
+        setSelected(null);
+        setEditing(false);
+      }
+      setNotice(`Profile for "${profile.full_name}" deleted successfully.`);
+    } catch {
+      setDeleteError('Unable to delete participant profile. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const download = async (fileType) => {
     if (exporting) return;
@@ -64,20 +89,32 @@ export default function GlobalHorizonsManage() {
           <div><h1 className="text-2xl font-bold text-slate-900">Global Horizons - Srilanka</h1><p className="mt-1 text-sm text-slate-500">Participant profiles for entrepreneur introductions in Colombo</p></div>
           <div className="flex flex-wrap gap-2">
             <Link to="/globalhorizonssrilanka" target="_blank" rel="noreferrer" className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold">Open participant form</Link>
-            <button onClick={() => { setSelected(null); setEditing(true); setNotice(''); }} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Add profile</button>
+            <button onClick={() => { setSelected(null); setEditing(true); setNotice(''); setDeleteError(''); }} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Add profile</button>
           </div>
         </header>
         <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
           Share this participant form: <a className="break-all underline" href="/globalhorizonssrilanka" target="_blank" rel="noreferrer">{window.location.origin}/globalhorizonssrilanka</a>
         </div>
         {notice && <p role="status" className="mb-4 text-sm font-semibold text-emerald-800">{notice}</p>}
+        {deleteError && <p role="alert" className="mb-4 text-sm font-semibold text-red-700">{deleteError}</p>}
         {editing ? <section className="mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-sm">
           <h2 className="mb-5 text-xl font-bold">{selected ? 'Edit participant profile' : 'Add participant profile'}</h2>
           <GlobalHorizonsProfileForm key={selected?.id || 'new'} initialProfile={selected} onSaved={saved} onCancel={() => setEditing(false)} />
         </section> : selected ? <section className="mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-sm">
           <div className="mb-6 flex flex-wrap justify-between gap-3">
             <button onClick={() => setSelected(null)} className="text-sm font-semibold text-slate-600">← All profiles</button>
-            <button onClick={() => setEditing(true)} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Edit profile</button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                aria-label={`Delete profile for ${selected.full_name}`}
+                onClick={() => handleDelete(selected)}
+                disabled={deletingId === selected.id}
+                className="rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+              >
+                {deletingId === selected.id ? 'Deleting…' : 'Delete profile'}
+              </button>
+              <button onClick={() => setEditing(true)} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">Edit profile</button>
+            </div>
           </div>
           <img src={selected.photo} alt={selected.full_name} className="mb-5 h-36 w-36 rounded-xl object-cover" />
           <h2 className="text-2xl font-bold">{selected.full_name}</h2>
@@ -116,7 +153,19 @@ export default function GlobalHorizonsManage() {
                   <td className="px-3 py-4"><div className="flex items-center gap-3"><img loading="lazy" src={profile.photo} alt="" className="h-10 w-10 rounded-full object-cover" /><div><p className="font-semibold">{profile.full_name}</p><p className="text-slate-500">{profile.email}</p></div></div></td>
                   <td className="px-3 py-4">{profile.city}, {profile.country}</td><td className="px-3 py-4">{profile.profession}</td><td className="px-3 py-4">{profile.organization || '—'}</td>
                   <td className="whitespace-nowrap px-3 py-4">{new Date(profile.created_at).toLocaleDateString()}</td>
-                  <td className="px-3 py-4"><button aria-label={`View profile for ${profile.full_name}`} onClick={() => { setSelected(profile); setNotice(''); }} className="font-semibold text-emerald-800 underline">View profile</button></td>
+                  <td className="px-3 py-4">
+                    <div className="flex items-center gap-3">
+                      <button aria-label={`View profile for ${profile.full_name}`} onClick={() => { setSelected(profile); setNotice(''); setDeleteError(''); }} className="font-semibold text-emerald-800 underline">View profile</button>
+                      <button
+                        aria-label={`Delete profile for ${profile.full_name}`}
+                        onClick={() => handleDelete(profile)}
+                        disabled={deletingId === profile.id}
+                        className="font-semibold text-rose-700 underline hover:text-rose-900 disabled:opacity-50"
+                      >
+                        {deletingId === profile.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    </div>
+                  </td>
                 </tr>)}</tbody>
               </table>
             </div>}
