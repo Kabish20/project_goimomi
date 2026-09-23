@@ -13,6 +13,8 @@ page.on('pageerror', error => errors.push(error.message));
 const photo = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
 let profile = {
   id: 1, full_name: 'Sample Participant', city: 'Chennai', country: 'India', profession: 'Entrepreneur',
+  attending_poster: '/media/example-attending.pdf', profile_booklet: '/media/example-profile.pdf',
+  attending_poster_image: '/media/example-attending.png',
   organization: 'Sample Textiles', years_of_experience: 12, interests: 'Sustainable textiles',
   website: 'linkedin.com/in/example', email: 'participant@example.com', connections_sought: 'Meet distributors in Colombo',
   photo: `data:image/png;base64,${photo.toString('base64')}`, created_at: '2026-09-22T10:00:00Z',
@@ -26,6 +28,10 @@ let deletions = 0;
 await page.route('**/*', async route => {
   const request = route.request();
   const url = new URL(request.url());
+  if (url.pathname === '/media/example-attending.png') {
+    const preview = await fs.readFile(fileURLToPath(new URL('../../output/pdf/attending-poster-social.png', import.meta.url))).catch(() => photo);
+    return route.fulfill({ contentType: 'image/png', body: preview });
+  }
   if (url.pathname.startsWith('/api/global-horizons-srilanka/')) {
     if (url.pathname.endsWith('/export/')) {
       assert.match(request.headers().authorization, /^Bearer /);
@@ -41,7 +47,7 @@ await page.route('**/*', async route => {
         assert.ok(body.includes(`name="${name}"`));
         assert.ok(body.includes(profile[name]));
       }
-      for (const field of ['full_name', 'city', 'country', 'profession', 'photo', 'organization', 'years_of_experience', 'interests', 'website', 'email', 'connections_sought']) {
+      for (const field of ['full_name', 'city', 'country', 'profession', 'photo', 'logo', 'organization', 'years_of_experience', 'interests', 'website', 'email', 'connections_sought']) {
         assert.ok(body.includes(`name="${field}"`), `Missing multipart field ${field}`);
       }
       if (failSubmission) return route.fulfill({ status: 400, json: { email: ['Please check your email address.'] } });
@@ -85,6 +91,8 @@ try {
   }
   await page.locator('#gh-photo').setInputFiles({ name: 'portrait.png', mimeType: 'image/png', buffer: photo });
   await page.getByAltText('Participant photo preview').waitFor();
+  await page.locator('#gh-logo').setInputFiles({ name: 'logo.png', mimeType: 'image/png', buffer: photo });
+  await page.getByAltText('Organization logo preview').waitFor();
   assert.equal(await page.locator('#gh-arrival_date').count(), 0);
   await page.getByRole('radio', { name: 'Booked', exact: true }).check();
   for (const name of ['arrival_date', 'arrival_flight_no', 'arrival_time', 'return_date', 'return_flight_no', 'return_time']) {
@@ -102,6 +110,15 @@ try {
   await page.getByRole('button', { name: 'Submit profile' }).click();
   await page.getByRole('heading', { name: 'Thank you for sharing your profile' }).waitFor();
   assert.equal(submissions, 2);
+  assert.equal(await page.getByRole('link', { name: 'Download attending poster (PDF)' }).getAttribute('href'), profile.attending_poster);
+  assert.equal(await page.getByRole('link', { name: 'Download profile booklet (PDF)' }).getAttribute('href'), profile.profile_booklet);
+  assert.equal(await page.getByRole('link', { name: 'Download social poster (PNG)' }).getAttribute('href'), profile.attending_poster_image);
+  await page.getByAltText("I'm attending poster for Sample Participant").waitFor();
+  await page.waitForFunction(() => window.scrollY === 0);
+  await page.screenshot({ path: `${output}/participant-downloads.png`, fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Download cards overflow on mobile');
+  await page.screenshot({ path: `${output}/participant-downloads-mobile.png`, fullPage: true });
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload({ waitUntil: 'networkidle' });
@@ -121,7 +138,7 @@ try {
   assert.equal(await page.getByRole('button', { name: 'Download Excel' }).isDisabled(), true);
   assert.equal(await page.getByRole('button', { name: 'Download PDF' }).isDisabled(), true);
   await page.getByLabel('Search profiles').fill('textiles');
-  for (const [label, extension] of [['Download Excel', 'xlsx'], ['Download PDF', 'pdf']]) {
+  for (const [label, extension] of [['Download Excel', 'xlsx'], ['Download PDF', 'pdf'], ['Download participant booklet', 'pdf']]) {
     const downloaded = page.waitForEvent('download');
     await page.getByRole('button', { name: label }).click();
     const file = await downloaded;

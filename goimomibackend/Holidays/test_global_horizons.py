@@ -20,6 +20,70 @@ def photo_file(format='PNG'):
 
 
 class GlobalHorizonsProfileTests(TestCase):
+    def test_documents_are_generated_on_submission_and_refreshed_on_edit(self):
+        response = self.client.post(self.url, self.payload(logo=photo_file()), format='multipart')
+        self.assertEqual(response.status_code, 201, response.data)
+        profile = GlobalHorizonsProfile.objects.get()
+        self.assertTrue(response.data['attending_poster_image'].endswith('.png'))
+        original_image = profile.attending_poster_image.name
+        with profile.attending_poster_image.open('rb') as content:
+            social_image = Image.open(content)
+            self.assertEqual(social_image.size, (1080, 1350))
+            self.assertEqual(social_image.format, 'PNG')
+        old_names = []
+        for name in ('attending_poster', 'profile_booklet'):
+            field = getattr(profile, name)
+            self.assertTrue(response.data[name].endswith('.pdf'))
+            with field.open('rb') as content:
+                self.assertTrue(content.read().startswith(b'%PDF-'))
+            old_names.append(field.name)
+        self.client.force_authenticate(user=self.staff)
+        detail = reverse('global-horizons-srilanka-detail', args=[profile.pk])
+        response = self.client.patch(detail, {'full_name': 'Updated Participant'}, format='multipart')
+        self.assertEqual(response.status_code, 200, response.data)
+        profile.refresh_from_db()
+        self.assertNotEqual(profile.attending_poster_image.name, original_image)
+        self.assertFalse(profile.attending_poster_image.storage.exists(original_image))
+        for name, old in zip(('attending_poster', 'profile_booklet'), old_names):
+            field = getattr(profile, name)
+            self.assertNotEqual(field.name, old)
+            self.assertTrue(field.storage.exists(field.name))
+            self.assertFalse(field.storage.exists(old))
+
+    def test_document_failure_keeps_submission_and_staff_can_retry(self):
+        from unittest.mock import patch
+        with patch('Holidays.profile_documents.attending_poster', side_effect=OSError('Storage unavailable')):
+            with self.assertLogs('Holidays.profile_documents', level='ERROR'):
+                response = self.client.post(self.url, self.payload(), format='multipart')
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertFalse(response.data['attending_poster'])
+        self.assertFalse(response.data['profile_booklet'])
+        self.client.force_authenticate(user=self.staff)
+        detail = reverse('global-horizons-srilanka-detail', args=[response.data['id']])
+        response = self.client.patch(detail, {}, format='multipart')
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertTrue(response.data['attending_poster'])
+        self.assertTrue(response.data['profile_booklet'])
+
+    def test_combined_booklet_is_staff_only_and_uses_current_profiles(self):
+        from unittest.mock import patch
+        url = reverse('global-horizons-srilanka-export')
+        for user in (None, self.customer):
+            self.client.force_authenticate(user=user)
+            self.assertIn(self.client.get(url, {'file_type': 'booklet'}).status_code, (401, 403))
+        self.client.force_authenticate(user=self.staff)
+        self.client.post(self.url, self.payload(full_name='First Participant'), format='multipart')
+        self.client.post(self.url, self.payload(full_name='Second Participant'), format='multipart')
+        from .profile_documents import participant_booklet
+        with patch('Holidays.profile_documents.participant_booklet', wraps=participant_booklet) as generate:
+            response = self.client.get(url, {'file_type': 'booklet'})
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.content.startswith(b'%PDF-'))
+            self.assertEqual(len(generate.call_args.args[0]), 2)
+            response = self.client.get(url, {'file_type': 'booklet', 'search': 'Second Participant'})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual([p.full_name for p in generate.call_args.args[0]], ['Second Participant'])
+
     def test_staff_exports_filter_profiles_and_produce_real_files(self):
         from openpyxl import load_workbook
         self.client.post(self.url, self.payload(full_name='=1+1', interests='Textiles & design <partners>'), format='multipart')
@@ -82,6 +146,29 @@ class GlobalHorizonsProfileTests(TestCase):
         self.assertTrue(profile.photo.name.startswith('global_horizons/srilanka/'))
         with profile.photo.open('rb') as saved:
             self.assertEqual(Image.open(saved).size, (12, 12))
+
+    def test_logo_upload_and_edit_preservation(self):
+        response = self.client.post(self.url, self.payload(logo=photo_file()), format='multipart')
+        self.assertEqual(response.status_code, 201, response.data)
+        profile = GlobalHorizonsProfile.objects.get()
+        original = profile.logo.name
+        self.assertTrue(profile.logo.storage.exists(original))
+        self.client.force_authenticate(user=self.staff)
+        detail = reverse('global-horizons-srilanka-detail', args=[profile.pk])
+        response = self.client.patch(detail, {'city': 'Colombo'}, format='multipart')
+        self.assertEqual(response.status_code, 200, response.data)
+        profile.refresh_from_db()
+        self.assertEqual(profile.logo.name, original)
+        response = self.client.patch(detail, {'logo': photo_file()}, format='multipart')
+        self.assertEqual(response.status_code, 200, response.data)
+        profile.refresh_from_db()
+        self.assertNotEqual(profile.logo.name, original)
+
+    def test_invalid_logo_is_rejected(self):
+        invalid = SimpleUploadedFile('logo.png', b'not an image', content_type='image/png')
+        response = self.client.post(self.url, self.payload(logo=invalid), format='multipart')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('logo', response.data)
 
     def test_bare_social_link_is_saved_as_https(self):
         response = self.client.post(self.url, self.payload(website='  linkedin.com/in/example?ref=profile#about  '), format='multipart')

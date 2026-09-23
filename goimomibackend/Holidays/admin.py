@@ -3,19 +3,52 @@ from django import forms
 from .models import *
 
 
+@admin.register(GlobalHorizonsExportEmail)
+class GlobalHorizonsExportEmailAdmin(admin.ModelAdmin):
+    list_display = ('id', 'event', 'profile_id', 'status', 'attempts', 'created_at', 'sent_at', 'last_error')
+    list_filter = ('status', 'event')
+    readonly_fields = ('event', 'profile_id', 'recipients', 'created_at', 'next_attempt_at', 'attempts', 'sent_at', 'status', 'last_error')
+    actions = ['retry_failed']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.action(description='Retry selected failed Excel emails')
+    def retry_failed(self, request, queryset):
+        from django.db import transaction
+        from django.utils import timezone
+        from .profile_notifications import publish_export
+        with transaction.atomic():
+            for delivery in queryset.select_for_update().filter(status='failed'):
+                delivery.status = 'pending'
+                delivery.attempts = 0
+                delivery.next_attempt_at = timezone.now()
+                delivery.save()
+                transaction.on_commit(lambda pk=delivery.pk: publish_export(pk))
+
+
 @admin.register(GlobalHorizonsProfile)
 class GlobalHorizonsProfileAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'city', 'country', 'profession', 'organization', 'email', 'created_at')
     search_fields = ('full_name', 'city', 'country', 'organization', 'profession', 'email', 'interests', 'connections_sought')
     list_filter = ('country', 'ticket_status', 'created_at')
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at', 'attending_poster', 'profile_booklet', 'attending_poster_image')
     fieldsets = (
         ('Participant details', {'fields': ('full_name', 'city', 'country', 'photo')}),
-        ('Business profile', {'fields': ('profession', 'organization', 'years_of_experience', 'interests')}),
+        ('Business profile', {'fields': ('profession', 'organization', 'logo', 'years_of_experience', 'interests')}),
+        ('Participant documents', {'fields': ('attending_poster', 'attending_poster_image', 'profile_booklet')}),
         ('Contact & connections', {'fields': ('website', 'email', 'connections_sought')}),
         ('Flight details', {'fields': ('ticket_status', 'arrival_date', 'arrival_flight_no', 'arrival_time', 'return_date', 'return_flight_no', 'return_time')}),
         ('Submission details', {'fields': ('created_at', 'updated_at')}),
     )
+
+    def save_model(self, request, obj, form, change):
+        from .profile_documents import prepare_profile_documents
+        super().save_model(request, obj, form, change)
+        prepare_profile_documents(obj)
 
 
 class HolidayPackageAdminForm(forms.ModelForm):
@@ -342,4 +375,3 @@ class ZohoWebhookLogAdmin(admin.ModelAdmin):
     list_filter = ('status', 'module', 'created_at')
     search_fields = ('module', 'event_type', 'response_message')
     readonly_fields = ('created_at',)
-

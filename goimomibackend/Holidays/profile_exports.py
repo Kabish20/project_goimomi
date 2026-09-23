@@ -15,6 +15,10 @@ FIELDS = (
     ('arrival_flight_no', 'Arrival Flight No'), ('arrival_time', 'Arrival Time'),
     ('return_date', 'Return Date'), ('return_flight_no', 'Return Flight No'), ('return_time', 'Return Time'),
     ('photo', 'Photo URL'), ('created_at', 'Submitted (UTC)'),
+    ('id', 'Profile ID'), ('logo', 'Logo URL'),
+    ('attending_poster', 'Attending Poster PDF URL'),
+    ('attending_poster_image', 'Attending Poster Image URL'),
+    ('profile_booklet', 'Profile Booklet URL'), ('updated_at', 'Updated (UTC)'),
 )
 
 
@@ -22,11 +26,11 @@ def profile_values(profile, request):
     values = []
     for field, _ in FIELDS:
         value = getattr(profile, field)
-        if field == 'photo':
+        if field in ('photo', 'logo', 'attending_poster', 'attending_poster_image', 'profile_booklet'):
             value = request.build_absolute_uri(value.url) if value else ''
         elif field == 'ticket_status':
             value = profile.get_ticket_status_display()
-        elif field == 'created_at':
+        elif field in ('created_at', 'updated_at'):
             value = value.isoformat()
         values.append('' if value is None else value)
     return values

@@ -11,3 +11,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 CELERY_BROKER_URL = 'memory://'
 CELERY_RESULT_BACKEND = 'cache+memory://'
+GLOBAL_HORIZONS_EXPORT_RECIPIENTS = []
+
+GLOBAL_HORIZONS_EXPORT_CC = []

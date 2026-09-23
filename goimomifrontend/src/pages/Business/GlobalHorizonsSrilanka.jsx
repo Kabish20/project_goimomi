@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Globe2 } from 'lucide-react';
 import GlobalHorizonsProfileForm from '../../components/forms/GlobalHorizonsProfileForm';
+import GlobalHorizonsDocuments from '../../components/forms/GlobalHorizonsDocuments';
 import usePageSEO from '../../hooks/usePageSEO';
 
 export default function GlobalHorizonsSrilanka() {
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(null);
   usePageSEO('Global Horizons Sri Lanka | Participant Profile | Goimomi', 'Share your professional profile for Global Horizons Sri Lanka. Connect with Tamil entrepreneurs in Colombo through curated introductions and networking dinners.', '/images/seo/sri-lanka-business-journey.jpg');
 
   return <div className="min-h-screen bg-[#f4f8f5] px-4 py-6 sm:px-6 sm:py-8">
@@ -20,7 +21,8 @@ export default function GlobalHorizonsSrilanka() {
           <CheckCircle2 className="mx-auto mb-4 text-emerald-700" size={48} />
           <h2 className="text-2xl font-bold text-emerald-950">Thank you for sharing your profile</h2>
           <p className="mt-3 leading-7 text-slate-600">Your details and photo have been saved. The Global Horizons team will use your profile to curate introductions in Sri Lanka.</p>
-        </div> : <GlobalHorizonsProfileForm onSaved={() => { setSaved(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />}
+          <GlobalHorizonsDocuments profile={saved} />
+        </div> : <GlobalHorizonsProfileForm onSaved={profile => { setSaved(profile); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />}
       </section>
     </div>
   </div>;

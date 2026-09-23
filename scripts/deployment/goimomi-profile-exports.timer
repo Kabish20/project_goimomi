@@ -1,0 +1,10 @@
+[Unit]
+Description=Check pending participant Excel emails every minute
+
+[Timer]
+OnBootSec=60
+OnUnitInactiveSec=60
+Unit=goimomi-profile-exports.service
+
+[Install]
+WantedBy=timers.target

@@ -200,6 +200,13 @@ EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=15, cast=int)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+GLOBAL_HORIZONS_EXPORT_RECIPIENTS = list(dict.fromkeys(
+    address.strip().lower() for address in config('GLOBAL_HORIZONS_EXPORT_RECIPIENTS', default='').split(',') if address.strip()
+))
+GLOBAL_HORIZONS_EXPORT_CC = list(dict.fromkeys(
+    address.strip().lower() for address in config('GLOBAL_HORIZONS_EXPORT_CC', default='').split(',') if address.strip()
+))
+GLOBAL_HORIZONS_PUBLIC_URL = 'https://goimomi.com/'
 COMPANY_EMAIL = config("COMPANY_EMAIL")
 
 # Zoho CRM Configuration

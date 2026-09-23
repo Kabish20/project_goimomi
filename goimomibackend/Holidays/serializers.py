@@ -28,6 +28,18 @@ from .models import (
 class GlobalHorizonsProfileSerializer(serializers.ModelSerializer):
     website = serializers.CharField(required=False, allow_blank=True, max_length=500)
 
+    def create(self, validated_data):
+        from .profile_documents import prepare_profile_documents
+        profile = super().create(validated_data)
+        prepare_profile_documents(profile)
+        return profile
+
+    def update(self, instance, validated_data):
+        from .profile_documents import prepare_profile_documents
+        profile = super().update(instance, validated_data)
+        prepare_profile_documents(profile)
+        return profile
+
     def validate_website(self, value):
         from django.core.exceptions import ValidationError
         from .profile_links import normalize_profile_link
@@ -56,7 +68,7 @@ class GlobalHorizonsProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = GlobalHorizonsProfile
         fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at', 'attending_poster', 'profile_booklet', 'attending_poster_image')
 
 
 class BusinessJourneyRegistrationSerializer(serializers.ModelSerializer):

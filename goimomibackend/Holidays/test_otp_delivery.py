@@ -1,6 +1,7 @@
 import smtplib
 from unittest.mock import patch
 from django.core import mail
+from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
 from Holidays.models import OTPVerification
@@ -8,6 +9,9 @@ from Holidays.models import OTPVerification
 
 class OTPDeliveryTests(TestCase):
     endpoints = ['/api/cab-bookings/send-otp/', '/api/goimomi-product-orders/send-otp/']
+
+    def setUp(self):
+        cache.clear()
 
     def test_code_matches_email_accepted_by_backend(self):
         for endpoint in self.endpoints:

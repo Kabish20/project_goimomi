@@ -4,6 +4,7 @@ import api from '../../../api';
 import AdminSidebar from '../../../components/admin/AdminSidebar/AdminSidebar';
 import AdminTopbar from '../../../components/admin/AdminTopbar/AdminTopbar';
 import GlobalHorizonsProfileForm from '../../../components/forms/GlobalHorizonsProfileForm';
+import GlobalHorizonsDocuments from '../../../components/forms/GlobalHorizonsDocuments';
 
 export default function GlobalHorizonsManage() {
   const [profiles, setProfiles] = useState([]);
@@ -52,7 +53,7 @@ export default function GlobalHorizonsManage() {
       const url = URL.createObjectURL(data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `global-horizons-srilanka-${new Date().toISOString().slice(0, 10)}.${fileType}`;
+      link.download = `global-horizons-${fileType === 'booklet' ? 'participant-booklet' : 'srilanka'}-${new Date().toISOString().slice(0, 10)}.${fileType === 'booklet' ? 'pdf' : fileType}`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -118,6 +119,9 @@ export default function GlobalHorizonsManage() {
           </div>
           <img src={selected.photo} alt={selected.full_name} className="mb-5 h-36 w-36 rounded-xl object-cover" />
           <h2 className="text-2xl font-bold">{selected.full_name}</h2>
+          <GlobalHorizonsDocuments profile={selected} />
+          {(!selected.attending_poster || !selected.profile_booklet || !selected.attending_poster_image) && <p className="mt-2 text-sm text-slate-600">Use Edit profile and Save changes to generate the latest poster and booklet.</p>}
+          {selected.logo && <div className="mt-5"><p className="text-sm font-semibold text-slate-500">Organization / Brand Logo</p><img src={selected.logo} alt={`${selected.organization} logo`} className="mt-2 h-24 w-40 rounded-lg border border-slate-200 p-2 object-contain" /></div>}
           <dl className="mt-5 grid gap-5 sm:grid-cols-2">
             {[
               ['City & Country', `${selected.city}, ${selected.country}`], ['Business / Profession', selected.profession],
@@ -141,7 +145,8 @@ export default function GlobalHorizonsManage() {
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <button onClick={() => download('xlsx')} disabled={loading || Boolean(error) || !filtered.length || Boolean(exporting)} className="rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{exporting === 'xlsx' ? 'Preparing Excel…' : 'Download Excel'}</button>
             <button onClick={() => download('pdf')} disabled={loading || Boolean(error) || !filtered.length || Boolean(exporting)} className="rounded-lg border border-emerald-800 px-4 py-2 text-sm font-semibold text-emerald-800 disabled:opacity-50">{exporting === 'pdf' ? 'Preparing PDF…' : 'Download PDF'}</button>
-            <span className="text-xs text-slate-500">Downloads include the profiles matching your search.</span>
+            <button onClick={() => download('booklet')} disabled={loading || Boolean(error) || !filtered.length || Boolean(exporting)} className="rounded-lg border border-emerald-800 px-4 py-2 text-sm font-semibold text-emerald-800 disabled:opacity-50">{exporting === 'booklet' ? 'Preparing booklet...' : 'Download participant booklet'}</button>
+            <span className="text-xs text-slate-500">Downloads include the profiles matching your search. The booklet includes photos, logos and professional introductions.</span>
           </div>
           {exportError && <p role="alert" className="mb-4 text-sm text-red-700">{exportError}</p>}
           {loading ? <p role="status" className="py-10 text-center text-slate-500">Loading profiles…</p> : error ? <p role="alert" className="py-6 text-red-700">{error}</p> : <>

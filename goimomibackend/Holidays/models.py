@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from .profile_uploads import profile_photo_path, validate_profile_photo
 
@@ -872,6 +873,10 @@ class GlobalHorizonsProfile(models.Model):
     country = models.CharField(max_length=100)
     profession = models.CharField('Business / Profession', max_length=255)
     photo = models.ImageField(upload_to=profile_photo_path, validators=[validate_profile_photo])
+    logo = models.ImageField(upload_to=profile_photo_path, validators=[validate_profile_photo], blank=True)
+    attending_poster = models.FileField(upload_to='global_horizons/documents/', blank=True, editable=False)
+    attending_poster_image = models.FileField(upload_to='global_horizons/documents/', blank=True, editable=False)
+    profile_booklet = models.FileField(upload_to='global_horizons/documents/', blank=True, editable=False)
     organization = models.CharField('Organization / Brand Name', max_length=255)
     years_of_experience = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
     interests = models.TextField('Areas of interest or expertise', max_length=5000)
@@ -895,6 +900,22 @@ class GlobalHorizonsProfile(models.Model):
 
     def __str__(self):
         return f'{self.full_name} - {self.city}, {self.country}'
+
+
+class GlobalHorizonsExportEmail(models.Model):
+    """Durable delivery record independent of a participant's lifetime."""
+    event = models.CharField(max_length=20)
+    profile_id = models.PositiveBigIntegerField(null=True, blank=True)
+    recipients = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+    next_attempt_at = models.DateTimeField(default=timezone.now)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=10, default='pending', choices=[('pending', 'Pending'), ('sent', 'Sent'), ('failed', 'Failed')], db_index=True)
+    last_error = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class OTPVerification(models.Model):

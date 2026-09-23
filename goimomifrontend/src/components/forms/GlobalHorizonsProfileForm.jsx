@@ -28,6 +28,8 @@ export default function GlobalHorizonsProfileForm({ initialProfile, onSaved, onC
   const [flights, setFlights] = useState(() => Object.fromEntries(flightFields.map(({ name }) => [name, initialProfile?.[name] ?? ''])));
   const [values, setValues] = useState(() => Object.fromEntries(fields.map(({ name }) => [name, initialProfile?.[name] ?? ''])));
   const [photo, setPhoto] = useState(null);
+  const [logo, setLogo] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(initialProfile?.logo || '');
   const [preview, setPreview] = useState(initialProfile?.photo || '');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -40,6 +42,26 @@ export default function GlobalHorizonsProfileForm({ initialProfile, onSaved, onC
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [photo, initialProfile?.photo]);
+
+  useEffect(() => {
+    if (!logo) { setLogoPreview(initialProfile?.logo || ''); return; }
+    const url = URL.createObjectURL(logo);
+    setLogoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [logo, initialProfile?.logo]);
+
+  const chooseLogo = (event) => {
+    const file = event.target.files?.[0];
+    setLogo(null);
+    setErrors(current => { const next = { ...current }; delete next.logo; return next; });
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      event.target.value = '';
+      setErrors(current => ({ ...current, logo: 'Please choose a JPEG, PNG or WebP logo up to 5 MB.' }));
+      return;
+    }
+    setLogo(file);
+  };
 
   useEffect(() => {
     if (Object.keys(errors).length) errorSummary.current?.focus();
@@ -69,6 +91,7 @@ export default function GlobalHorizonsProfileForm({ initialProfile, onSaved, onC
     payload.append('ticket_status', ticketStatus);
     if (ticketStatus === 'booked') flightFields.forEach(({ name }) => payload.append(name, String(flights[name]).trim()));
     if (photo) payload.append('photo', photo);
+    if (logo) payload.append('logo', logo);
     try {
       const response = initialProfile?.id
         ? await api.patch(`/api/global-horizons-srilanka/${initialProfile.id}/`, payload)
@@ -125,6 +148,14 @@ export default function GlobalHorizonsProfileForm({ initialProfile, onSaved, onC
           </div>}
         </fieldset>
         <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50/50 p-3 sm:col-span-2">
+          <label htmlFor="gh-logo" className="mb-1 block text-sm font-semibold text-slate-700">Upload Organization / Brand Logo (optional)</label>
+          <p id="gh-logo-help" className="mb-2 text-xs leading-5 text-slate-500">JPEG, PNG or WebP, up to 5 MB.{initialProfile?.logo ? ' Choose a file only to replace the existing logo.' : ''}</p>
+          <input id="gh-logo" name="logo" type="file" accept="image/jpeg,image/png,image/webp"
+            onChange={chooseLogo} aria-invalid={Boolean(errors.logo)} aria-describedby={`gh-logo-help${errors.logo ? ' gh-error-logo' : ''}`} className="block w-full text-sm" />
+          {errors.logo && <p id="gh-error-logo" className="mt-1 text-sm text-red-700">{String(errors.logo)}</p>}
+          {logoPreview && <img src={logoPreview} alt="Organization logo preview" className="mt-3 h-20 w-32 rounded-lg bg-white p-2 object-contain" />}
+        </div>
+        <div className="rounded-xl border border-dashed border-emerald-300 bg-emerald-50/50 p-3 sm:col-span-2">
           <label htmlFor="gh-photo" className="mb-1 block text-sm font-semibold text-slate-700">Upload Photo *</label>
           <p id="gh-photo-help" className="mb-2 text-xs leading-5 text-slate-500">JPEG, PNG or WebP, up to 5 MB.{initialProfile?.photo ? ' Choose a file only to replace the existing photo.' : ''}</p>
           <input id="gh-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required={!initialProfile?.photo}
@@ -132,7 +163,7 @@ export default function GlobalHorizonsProfileForm({ initialProfile, onSaved, onC
           {preview && <img src={preview} alt="Participant photo preview" className="mt-3 h-16 w-16 rounded-lg object-cover" />}
         </div>
       </fieldset>
-      <p className="text-xs leading-5 text-slate-500">These details will help the Global Horizons team arrange thoughtful introductions with Tamil entrepreneurs in Colombo.</p>
+      <p className="text-xs leading-5 text-slate-500">These details will help the Global Horizons team arrange thoughtful introductions with Tamil entrepreneurs in Colombo. After submission, your attending poster and profile booklet will be prepared automatically with your photo and logo.</p>
       <div className="flex flex-wrap gap-3">
         <button disabled={saving} type="submit" className="rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-900 disabled:opacity-60">{saving ? 'Saving profile…' : initialProfile?.id ? 'Save changes' : 'Submit profile'}</button>
         {onCancel && <button disabled={saving} type="button" onClick={onCancel} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold">Cancel</button>}

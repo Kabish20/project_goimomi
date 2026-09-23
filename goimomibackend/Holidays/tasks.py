@@ -4,6 +4,12 @@ from celery import shared_task
 logger = logging.getLogger(__name__)
 
 
+@shared_task(soft_time_limit=90, time_limit=120)
+def send_global_horizons_export_task(event_id):
+    from .profile_notifications import deliver_profile_export
+    return deliver_profile_export(event_id)
+
+
 def queue_enquiry_notifications(enquiry, enquiry_type, lead_data):
     """Publish after commit; an unavailable notification service cannot reject a saved lead."""
     from django.db import transaction

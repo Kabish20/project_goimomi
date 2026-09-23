@@ -229,16 +229,31 @@ class GlobalHorizonsProfileViewSet(ModelViewSet):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = None
 
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            serializer.save()
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            serializer.save()
+
     @action(detail=False, methods=['get'], url_path='export', permission_classes=[IsAdminUser])
     def export(self, request):
         from .profile_exports import export_profiles
         file_type = request.query_params.get('file_type', 'xlsx')
-        if file_type not in ('xlsx', 'pdf'):
-            return Response({'detail': 'Choose xlsx or pdf.'}, status=400)
+        if file_type not in ('xlsx', 'pdf', 'booklet'):
+            return Response({'detail': 'Choose xlsx, pdf or booklet.'}, status=400)
         search = request.query_params.get('search', '').strip().lower()
         search_fields = ('full_name', 'city', 'country', 'profession', 'organization', 'email', 'interests', 'connections_sought')
         profiles = [profile for profile in self.get_queryset()
                     if not search or any(search in str(getattr(profile, field) or '').lower() for field in search_fields)]
+        if file_type == 'booklet':
+            from django.http import HttpResponse
+            from .profile_documents import participant_booklet
+            response = HttpResponse(participant_booklet(profiles), content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="global-horizons-participant-booklet.pdf"'
+            response['Cache-Control'] = 'private, no-store'
+            return response
         return export_profiles(profiles, request, file_type)
 
 
